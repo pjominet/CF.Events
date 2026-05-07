@@ -27,8 +27,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddDbContext<PEventsDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=pevents.db"));
+builder.Services.AddDbContext<EventsDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=events.db"));
 
 builder.Services.AddCors(options =>
 {
@@ -45,7 +45,7 @@ var app = builder.Build();
 // Ensure database is created
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<PEventsDbContext>();
+    var db = scope.ServiceProvider.GetRequiredService<EventsDbContext>();
     db.Database.EnsureCreated();
 }
 

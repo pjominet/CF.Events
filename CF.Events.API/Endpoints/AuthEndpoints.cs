@@ -12,13 +12,13 @@ public static class AuthEndpoints
 {
     public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/events/engagement/setup-status", async (PEventsDbContext db) =>
+        app.MapGet("/api/events/engagement/setup-status", async (EventsDbContext db) =>
         {
             var userExists = await db.Users.AnyAsync();
             return Results.Ok(new { needsSetup = !userExists });
         });
 
-        app.MapPost("/api/events/engagement/setup", async (string password, PEventsDbContext db) =>
+        app.MapPost("/api/events/engagement/setup", async (string password, EventsDbContext db) =>
         {
             if (await db.Users.AnyAsync())
                 return Results.BadRequest("User already exists.");
@@ -34,7 +34,7 @@ public static class AuthEndpoints
             return Results.NoContent();
         });
 
-        app.MapPost("/api/events/engagement/login", async (string password, PEventsDbContext db, IConfiguration config) =>
+        app.MapPost("/api/events/engagement/login", async (string password, EventsDbContext db, IConfiguration config) =>
         {
             var user = await db.Users.FirstOrDefaultAsync();
 

@@ -22,14 +22,18 @@
                 <label><input checked name="attending" type="radio" value="yes"> Happily Accept</label>
                 <label><input name="attending" type="radio" value="no"> Regretfully Decline</label>
             </div>
-            <div class="checkbox-group" id="plusOneOption">
-                <label><input name="plusone" type="checkbox" value="yes"> Bringing a +1?</label>
-            </div>
-            <div class="checkbox-group" id="dinnerOption">
-                <label><input name="dinner" type="checkbox" value="yes"> Join us for dinner?</label>
-            </div>
-            <div class="textarea-group">
-                <textarea maxlength="500" name="comments" placeholder="Add a comment... (optional)" rows="3"></textarea>
+            <div id="additionalOptions" style="display: none;">
+                <div class="checkbox-row">
+                    <div class="checkbox-group" id="plusOneOption">
+                        <label><input name="plusone" type="checkbox" value="yes"> Bringing a +1?</label>
+                    </div>
+                    <div class="checkbox-group" id="dinnerOption">
+                        <label><input name="dinner" type="checkbox" value="yes"> Join us for dinner?</label>
+                    </div>
+                </div>
+                <div class="textarea-group">
+                    <textarea maxlength="500" name="comments" placeholder="Add a comment... (optional)" rows="3"></textarea>
+                </div>
             </div>
             <div class="button-group" style="display: flex; gap: 10px; margin-top: 20px;">
                 <button id="submitBtn" style="flex: 1;" type="submit">Send</button>
@@ -56,8 +60,7 @@
     const modifyBtn = document.getElementById("modifyRsvp");
     const deleteBtn = document.getElementById("deleteRsvp");
     const attendanceRadios = rsvpForm.elements["attending"];
-    const plusOneOption = document.getElementById("plusOneOption");
-    const dinnerOption = document.getElementById("dinnerOption");
+    const additionalOptions = document.getElementById("additionalOptions");
 
     function getFingerprint() {
         return localStorage.getItem("rsvp_fingerprint");
@@ -141,11 +144,9 @@
 
     function toggleAdditionalOptions() {
         if (rsvpForm.elements["attending"].value === "yes") {
-            plusOneOption.style.display = "block";
-            dinnerOption.style.display = "block";
+            additionalOptions.style.display = "block";
         } else {
-            plusOneOption.style.display = "none";
-            dinnerOption.style.display = "none";
+            additionalOptions.style.display = "none";
         }
     }
 

@@ -184,6 +184,13 @@ body {
     font-size: 0.95rem;
 }
 
+.checkbox-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 10px 0;
+}
+
 #rsvpForm button,
 #loginForm button {
     padding: 10px;
