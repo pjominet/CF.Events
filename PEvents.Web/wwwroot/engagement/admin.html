@@ -41,7 +41,17 @@
             </table>
             <p id="noRsvpsMessage" style="display: none;">No RSVPs received yet.</p>
         </div>
-        <div id="loginSection" class="login-container">
+        <div id="setupSection" class="login-container" style="display: none;">
+            <h2>Initial Admin Setup</h2>
+            <p>Please set a password for the admin account.</p>
+            <form id="setupForm">
+                <input type="password" id="setupPassword" placeholder="Set Password" required>
+                <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
+                <button type="submit">Set Password</button>
+            </form>
+            <p id="setupError" class="error" style="display: none;"></p>
+        </div>
+        <div id="loginSection" class="login-container" style="display: none;">
             <h2>Login</h2>
             <form id="loginForm">
                 <input type="password" id="password" placeholder="Enter Password" required>
@@ -52,11 +62,65 @@
     </div>
 
     <script>
+        const setupForm = document.getElementById('setupForm');
+        const setupSection = document.getElementById('setupSection');
         const loginForm = document.getElementById('loginForm');
         const loginSection = document.getElementById('loginSection');
         const rsvpList = document.getElementById('rsvpList');
         const loginError = document.getElementById('loginError');
+        const setupError = document.getElementById('setupError');
+        const apiBaseUrl = window.location.protocol === "https:" ? "https://localhost:7041" : "http://localhost:5041";
         let refreshTimer = null;
+
+        async function checkSetup() {
+            try {
+                const response = await fetch(`${apiBaseUrl}/api/events/engagement/setup-status`);
+                const data = await response.json();
+                if (data.needsSetup) {
+                    setupSection.style.display = 'block';
+                    loginSection.style.display = 'none';
+                } else {
+                    setupSection.style.display = 'none';
+                    if (!sessionStorage.getItem('adminToken')) {
+                        loginSection.style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking setup status:', error);
+            }
+        }
+
+        setupForm.onsubmit = async function(e) {
+            e.preventDefault();
+            const password = document.getElementById('setupPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
+
+            if (password !== confirm) {
+                setupError.textContent = 'Passwords do not match.';
+                setupError.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${apiBaseUrl}/api/events/engagement/setup?password=${encodeURIComponent(password)}`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    alert('Admin setup successful! Please login.');
+                    setupSection.style.display = 'none';
+                    loginSection.style.display = 'block';
+                } else {
+                    const msg = await response.text();
+                    setupError.textContent = msg || 'Setup failed.';
+                    setupError.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Setup error:', error);
+                setupError.textContent = 'Could not connect to server.';
+                setupError.style.display = 'block';
+            }
+        };
 
         function parseJwt(token) {
             try {
@@ -100,7 +164,6 @@
             const token = sessionStorage.getItem('adminToken');
             if (!token) return;
 
-            const apiBaseUrl = window.location.protocol === "https:" ? "https://localhost:7041" : "http://localhost:5041";
             try {
                 const response = await fetch(`${apiBaseUrl}/api/events/engagement/refresh`, {
                     method: 'POST',
@@ -135,7 +198,6 @@
         loginForm.onsubmit = async function(e) {
             e.preventDefault();
             const password = document.getElementById('password').value;
-            const apiBaseUrl = window.location.protocol === "https:" ? "https://localhost:7041" : "http://localhost:5041";
 
             try {
                 const response = await fetch(`${apiBaseUrl}/api/events/engagement/login?password=${encodeURIComponent(password)}`, {
@@ -180,7 +242,6 @@
             }
 
             try {
-                const apiBaseUrl = window.location.protocol === "https:" ? "https://localhost:7041" : "http://localhost:5041";
                 const response = await fetch(`${apiBaseUrl}/api/events/engagement/rsvp`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -256,6 +317,8 @@
                 scheduleRefresh(token);
                 await showAdminContent();
             })();
+        } else {
+            checkSetup();
         }
     </script>
 </body>
