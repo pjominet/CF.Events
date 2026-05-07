@@ -1,13 +1,13 @@
 :root {
     /* Colors */
-    --primary-color: #3e523e;         /* Lightened dark green */
-    --secondary-color: #d68d8d;       /* Rose/Pink for RSVP button */
+    --primary-color: #3e523e; /* Lightened dark green */
+    --secondary-color: #d68d8d; /* Rose/Pink for RSVP button */
     --secondary-hover: #e2a5a5;
-    --bg-page: #fcfaf9;               /* Off-white for page background */
-    --bg-card: #e8e3df;               /* Beige for card and modal */
-    --bg-card-alt: #e9e4e0;           /* Slightly darker for card container back */
-    --bg-button: #dcd4cf;             /* Darker beige for location button */
-    --bg-button-hover: #f5f2f0;       /* Lighter for hover */
+    --bg-page: #fcfaf9; /* Off-white for page background */
+    --bg-card: #e8e3df; /* Beige for card and modal */
+    --bg-card-alt: #e9e4e0; /* Slightly darker for card container back */
+    --bg-button: #dcd4cf; /* Darker beige for location button */
+    --bg-button-hover: #f5f2f0; /* Lighter for hover */
 
     /* Fonts */
     --font-serif: 'Playfair Display', serif;
@@ -46,7 +46,7 @@ body {
     background-color: var(--bg-card-alt);
     width: var(--card-width);
     position: relative;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.12), 0 5px 15px rgba(0,0,0,0.08);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12), 0 5px 15px rgba(0, 0, 0, 0.08);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -97,7 +97,7 @@ body {
 .location-link:hover {
     background-color: var(--bg-button);
     transform: translateX(-50%) translateY(-1px);
-    box-shadow: 2px 2px 7px rgba(0,0,0,0.15);
+    box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.15);
 }
 
 .rsvp-button {
@@ -111,7 +111,7 @@ body {
     font-size: 1rem;
     letter-spacing: 0.05rem;
     cursor: pointer;
-    box-shadow: 2px 2px 7px rgba(0,0,0,0.15);
+    box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.15);
     z-index: 10;
     transition: all var(--transition-speed-slow) ease;
     white-space: nowrap;
@@ -120,12 +120,12 @@ body {
 .rsvp-button:hover {
     background-color: var(--secondary-hover);
     transform: translateY(-1px);
-    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
 }
 
 .rsvp-button:active {
     transform: translateY(0);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .modal {
@@ -235,7 +235,7 @@ body {
     background-color: var(--bg-card);
     padding: 30px;
     border-radius: var(--border-radius-lg);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
 }
 
 .admin-container h1 {
@@ -263,7 +263,7 @@ body {
     background-color: white;
     padding: 10px 15px;
     border-radius: var(--border-radius);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .stat-label {

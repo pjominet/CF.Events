@@ -1,7 +1,7 @@
+using CF.Events.API.Models;
 using Microsoft.EntityFrameworkCore;
-using PEvents.API.Models;
 
-namespace PEvents.API.Data;
+namespace CF.Events.API.Data;
 
 public class PEventsDbContext(DbContextOptions<PEventsDbContext> options) : DbContext(options)
 {

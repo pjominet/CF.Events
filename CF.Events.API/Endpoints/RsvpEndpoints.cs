@@ -1,8 +1,8 @@
+using CF.Events.API.Data;
+using CF.Events.API.Models;
 using Microsoft.EntityFrameworkCore;
-using PEvents.API.Data;
-using PEvents.API.Models;
 
-namespace PEvents.API.Endpoints;
+namespace CF.Events.API.Endpoints;
 
 public static class RsvpEndpoints
 {
@@ -14,10 +14,7 @@ public static class RsvpEndpoints
         {
             // Check if fingerprint already exists
             var existing = await db.Rsvps.FirstOrDefaultAsync(r => r.Fingerprint == rsvp.Fingerprint);
-            if (existing != null)
-            {
-                return Results.Conflict("An RSVP already exists for this fingerprint.");
-            }
+            if (existing != null) return Results.Conflict("An RSVP already exists for this fingerprint.");
 
             db.Rsvps.Add(rsvp);
             await db.SaveChangesAsync();
@@ -59,9 +56,6 @@ public static class RsvpEndpoints
             return Results.NoContent();
         });
 
-        group.MapGet("/", async (PEventsDbContext db) =>
-        {
-            return Results.Ok(await db.Rsvps.ToListAsync());
-        }).RequireAuthorization();
+        group.MapGet("/", async (PEventsDbContext db) => { return Results.Ok(await db.Rsvps.ToListAsync()); }).RequireAuthorization();
     }
 }

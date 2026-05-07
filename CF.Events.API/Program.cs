@@ -1,9 +1,9 @@
+using System.Text;
+using CF.Events.API.Data;
+using CF.Events.API.Endpoints;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using PEvents.API.Data;
-using PEvents.API.Endpoints;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,8 +35,8 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
     {
         policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+            .AllowAnyHeader()
+            .AllowAnyMethod();
     });
 });
 
@@ -50,10 +50,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+if (app.Environment.IsDevelopment()) app.MapOpenApi();
 
 // app.UseHttpsRedirection();
 app.UseCors();

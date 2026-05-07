@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PEvents.API", "PEvents.API\PEvents.API.csproj", "{351E934B-C457-4BE7-BC08-B9216B55FECF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CF.Events.API", "CF.Events.API\CF.Events.API.csproj", "{351E934B-C457-4BE7-BC08-B9216B55FECF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PEvents.Web", "PEvents.Web\PEvents.Web.csproj", "{CE2E53BB-A447-4E7E-9D31-7801733F5802}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CF.Events.Web", "CF.Events.Web\CF.Events.Web.csproj", "{CE2E53BB-A447-4E7E-9D31-7801733F5802}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

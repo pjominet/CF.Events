@@ -1,12 +1,12 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using PEvents.API.Data;
-using PEvents.API.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using CF.Events.API.Data;
+using CF.Events.API.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
-namespace PEvents.API.Endpoints;
+namespace CF.Events.API.Endpoints;
 
 public static class AuthEndpoints
 {
@@ -50,9 +50,9 @@ public static class AuthEndpoints
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: config["Jwt:Issuer"],
-                audience: config["Jwt:Audience"],
-                claims: claims,
+                config["Jwt:Issuer"],
+                config["Jwt:Audience"],
+                claims,
                 expires: DateTime.Now.AddMinutes(15),
                 signingCredentials: creds
             );
@@ -70,9 +70,9 @@ public static class AuthEndpoints
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: config["Jwt:Issuer"],
-                audience: config["Jwt:Audience"],
-                claims: claims,
+                config["Jwt:Issuer"],
+                config["Jwt:Audience"],
+                claims,
                 expires: DateTime.Now.AddMinutes(15),
                 signingCredentials: credentials
             );
