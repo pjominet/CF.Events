@@ -56,7 +56,7 @@ body {
 .card-image {
     width: 100%;
     aspect-ratio: 1 / 1.414;
-    background-image: url('assets/inspiration.jpeg');
+    background-image: url('assets/invitation.jpeg');
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
