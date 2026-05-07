@@ -1,0 +1,268 @@
+@page "/admin"
+@inject IHttpClientFactory HttpClientFactory
+@inject IJSRuntime JSRuntime
+@using System.Net.Http.Headers
+@using System.Text.Json
+
+<div class="admin-page">
+    <div class="admin-container">
+        <h1>Admin Dashboard</h1>
+
+        @if (isLoading)
+        {
+            <p id="loadingMessage">Loading RSVPs...</p>
+        }
+        else if (showSetup)
+        {
+            <div id="setupSection" class="login-container">
+                <h2>Initial Admin Setup</h2>
+                <p>Please set a password for the admin account.</p>
+                <form @onsubmit="HandleSetup">
+                    <input type="password" @bind="setupPassword" placeholder="Set Password" required>
+                    <input type="password" @bind="confirmPassword" placeholder="Confirm Password" required>
+                    <button type="submit">Set Password</button>
+                </form>
+                @if (!string.IsNullOrEmpty(setupError))
+                {
+                    <p class="error">@setupError</p>
+                }
+            </div>
+        }
+        else if (showLogin)
+        {
+            <div id="loginSection" class="login-container">
+                <h2>Login</h2>
+                <form @onsubmit="HandleLogin">
+                    <input type="password" @bind="loginPassword" placeholder="Enter Password" required>
+                    <button type="submit">Login</button>
+                </form>
+                @if (!string.IsNullOrEmpty(loginError))
+                {
+                    <p class="error">@loginError</p>
+                }
+            </div>
+        }
+        else
+        {
+            <div id="rsvpList">
+                <div class="admin-controls">
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Total Attendance:</span>
+                            <span class="stat-value">@totalAttendance</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Dinner Guests:</span>
+                            <span class="stat-value">@totalDinner</span>
+                        </div>
+                    </div>
+                    <button class="refresh-btn" @onclick="LoadRsvps">Refresh Data</button>
+                    <button class="refresh-btn" @onclick="Logout" style="background-color: #d9534f; margin-left: 10px;">Logout</button>
+                </div>
+
+                <div class="rsvp-table-container">
+                    <table class="rsvp-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Attending</th>
+                                <th>Plus One</th>
+                                <th>Dinner</th>
+                                <th>Comments</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var rsvp in rsvps)
+                            {
+                                <tr>
+                                    <td>@rsvp.Name</td>
+                                    <td>@(rsvp.Attending ? "✅ Yes" : "❌ No")</td>
+                                    <td>@(rsvp.Attending && rsvp.BringsPlusOne ? "👥 +1" : "-")</td>
+                                    <td>@(rsvp.Attending && rsvp.JoinForDinner ? "🍴 Yes" : "-")</td>
+                                    <td class="comment-cell">@rsvp.Comments</td>
+                                    <td>@rsvp.SubmittedAt.ToLocalTime().ToShortDateString()</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    @if (rsvps.Count == 0)
+                    {
+                        <p>No RSVPs received yet.</p>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private bool isLoading = true;
+    private bool showSetup = false;
+    private bool showLogin = false;
+    private string setupPassword = "";
+    private string confirmPassword = "";
+    private string setupError = "";
+    private string loginPassword = "";
+    private string loginError = "";
+    private List<Rsvp> rsvps = new();
+    private int totalAttendance = 0;
+    private int totalDinner = 0;
+    private string? token;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            token = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "adminToken");
+            if (string.IsNullOrEmpty(token))
+            {
+                await CheckSetupStatus();
+            }
+            else
+            {
+                await LoadRsvps();
+            }
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CheckSetupStatus()
+    {
+        var client = HttpClientFactory.CreateClient("EventsAPI");
+        try
+        {
+            var status = await client.GetFromJsonAsync<SetupStatus>("api/events/engagement/setup-status");
+            if (status?.NeedsSetup == true)
+            {
+                showSetup = true;
+                showLogin = false;
+            }
+            else
+            {
+                showSetup = false;
+                showLogin = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error checking setup status: {ex.Message}");
+        }
+    }
+
+    private async Task HandleSetup()
+    {
+        if (setupPassword != confirmPassword)
+        {
+            setupError = "Passwords do not match.";
+            return;
+        }
+
+        var client = HttpClientFactory.CreateClient("EventsAPI");
+        try
+        {
+            var response = await client.PostAsync($"api/events/engagement/setup?password={Uri.EscapeDataString(setupPassword)}", null);
+            if (response.IsSuccessStatusCode)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Admin setup successful! Please login.");
+                showSetup = false;
+                showLogin = true;
+                setupPassword = "";
+                confirmPassword = "";
+            }
+            else
+            {
+                setupError = await response.Content.ReadAsStringAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            setupError = "Could not connect to server.";
+        }
+    }
+
+    private async Task HandleLogin()
+    {
+        var client = HttpClientFactory.CreateClient("EventsAPI");
+        try
+        {
+            var response = await client.PostAsync($"api/events/engagement/login?password={Uri.EscapeDataString(loginPassword)}", null);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<LoginResult>();
+                token = result?.Token;
+                if (!string.IsNullOrEmpty(token))
+                {
+                    await JSRuntime.InvokeVoidAsync("sessionStorage.setItem", "adminToken", token);
+                    showLogin = false;
+                    await LoadRsvps();
+                }
+            }
+            else
+            {
+                loginError = "Invalid password.";
+            }
+        }
+        catch (Exception ex)
+        {
+            loginError = "Login failed.";
+        }
+    }
+
+    private async Task LoadRsvps()
+    {
+        if (string.IsNullOrEmpty(token)) return;
+
+        var client = HttpClientFactory.CreateClient("EventsAPI");
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        try
+        {
+            var response = await client.GetAsync("api/events/engagement/rsvp");
+            if (response.IsSuccessStatusCode)
+            {
+                rsvps = await response.Content.ReadFromJsonAsync<List<Rsvp>>() ?? new();
+                CalculateStats();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                await Logout();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading RSVPs: {ex.Message}");
+        }
+    }
+
+    private void CalculateStats()
+    {
+        totalAttendance = 0;
+        totalDinner = 0;
+        foreach (var rsvp in rsvps)
+        {
+            if (rsvp.Attending)
+            {
+                totalAttendance += 1;
+                if (rsvp.BringsPlusOne) totalAttendance += 1;
+                if (rsvp.JoinForDinner)
+                {
+                    totalDinner += 1;
+                    if (rsvp.BringsPlusOne) totalDinner += 1;
+                }
+            }
+        }
+    }
+
+    private async Task Logout()
+    {
+        await JSRuntime.InvokeVoidAsync("sessionStorage.removeItem", "adminToken");
+        token = null;
+        rsvps.Clear();
+        await CheckSetupStatus();
+    }
+
+    public class SetupStatus { public bool NeedsSetup { get; set; } }
+    public class LoginResult { public string Token { get; set; } = ""; }
+}

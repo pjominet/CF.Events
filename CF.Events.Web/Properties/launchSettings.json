@@ -4,8 +4,8 @@
         "https": {
             "commandName": "Project",
             "dotnetRunMessages": true,
-            "launchBrowser": true,
-            "launchUrl": "engagement/index.html",
+            "launchBrowser": false,
+            "launchUrl": "engagement",
             "applicationUrl": "https://localhost:7019;",
             "environmentVariables": {
                 "ASPNETCORE_ENVIRONMENT": "Development"

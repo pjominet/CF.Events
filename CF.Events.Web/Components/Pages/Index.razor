@@ -1,0 +1,47 @@
+@page "/"
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<div class="card-container">
+    <div class="card">
+        <div class="card-image">
+            <a class="location-link" href="https://maps.app.goo.gl/QqnpwaMKkHF4yWweA" target="_blank" title="Open Location">
+                <img alt="Location" class="location-icon" src="engagement/assets/location.svg">
+                <span>six seven terrasse</span>
+            </a>
+        </div>
+        <a class="rsvp-button" href="engagement/rsvp">RSVP now</a>
+    </div>
+</div>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await CheckAndRedirect();
+        }
+    }
+
+    private async Task CheckAndRedirect()
+    {
+        var fingerprint = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "rsvp_fingerprint");
+        if (string.IsNullOrEmpty(fingerprint)) return;
+
+        var client = HttpClientFactory.CreateClient("EventsAPI");
+
+        try
+        {
+            var response = await client.GetAsync($"api/events/engagement/rsvp/check/{fingerprint}");
+            if (response.IsSuccessStatusCode)
+            {
+                NavigationManager.NavigateTo("engagement/rsvp");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Status check failed: {ex.Message}");
+        }
+    }
+}
