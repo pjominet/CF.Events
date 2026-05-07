@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSVP - Engagement Toast</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Sacramento&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="rsvp-page">
+    <div class="admin-container"> <!-- Reuse admin container for centering -->
+        <h2 class="cursive" style="font-size: 3rem; text-align: center; margin-bottom: 10px;">RSVP</h2>
+
+        <div id="rsvpFormContainer">
+            <p style="text-align: center;">Will you be joining us?</p>
+            <form id="rsvpForm">
+                <input type="hidden" name="id" id="rsvpId">
+                <input type="text" name="name" placeholder="Your Name" required maxlength="100">
+                <div class="radio-group">
+                    <label><input type="radio" name="attending" value="yes" checked> Happily Accept</label>
+                    <label><input type="radio" name="attending" value="no"> Regretfully Decline</label>
+                </div>
+                <div id="plusOneOption" class="checkbox-group">
+                    <label><input type="checkbox" name="plusone" value="yes"> Bringing a +1?</label>
+                </div>
+                <div id="dinnerOption" class="checkbox-group">
+                    <label><input type="checkbox" name="dinner" value="yes"> Join us for dinner?</label>
+                </div>
+                <div class="textarea-group">
+                    <textarea name="comments" placeholder="Add a comment... (optional)" rows="3" maxlength="500"></textarea>
+                </div>
+                <div class="button-group" style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" id="submitBtn" style="flex: 1;">Send</button>
+                    <a href="index.html" style="flex: 1; text-decoration: none; display: flex; align-items: center; justify-content: center; background-color: #ccc; color: #333; border-radius: 5px; font-family: var(--font-sans); font-size: 0.9rem;">Back</a>
+                </div>
+            </form>
+        </div>
+
+        <div id="rsvpResult" style="display: none; text-align: center;">
+            <p id="resultMessage"></p>
+            <div class="button-group" style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                <button id="modifyRsvp" style="padding: 10px 20px; background-color: var(--primary-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Modify</button>
+                <button id="deleteRsvp" style="padding: 10px 20px; background-color: #d9534f; color: white; border: none; border-radius: 5px; cursor: pointer;">Delete</button>
+                <a href="index.html" style="padding: 10px 20px; text-decoration: none; background-color: #ccc; color: #333; border-radius: 5px; font-family: var(--font-sans); font-size: 0.9rem; display: flex; align-items: center;">Back</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const rsvpForm = document.getElementById("rsvpForm");
+        const rsvpFormContainer = document.getElementById("rsvpFormContainer");
+        const rsvpResult = document.getElementById("rsvpResult");
+        const resultMessage = document.getElementById("resultMessage");
+        const modifyBtn = document.getElementById("modifyRsvp");
+        const deleteBtn = document.getElementById("deleteRsvp");
+        const attendanceRadios = rsvpForm.elements["attending"];
+        const plusOneOption = document.getElementById("plusOneOption");
+        const dinnerOption = document.getElementById("dinnerOption");
+
+        function getFingerprint() {
+            return localStorage.getItem("rsvp_fingerprint");
+        }
+
+        async function checkStatus() {
+            const fingerprint = getFingerprint();
+            if (!fingerprint) {
+                showForm();
+                return;
+            }
+
+            const apiBaseUrl = window.location.protocol === "https:" ? "https://localhost:7041" : "http://localhost:5041";
+
+            try {
+                const response = await fetch(`${apiBaseUrl}/api/events/engagement/rsvp/check/${fingerprint}`);
+                if (response.ok) {
+                    const rsvp = await response.json();
+                    showResult(rsvp);
+                } else {
+                    showForm();
+                }
+            } catch (error) {
+                console.error("Status check failed:", error);
+                showForm();
+            }
+        }
+
+        function showResult(rsvp) {
+            rsvpFormContainer.style.display = "none";
+            rsvpResult.style.display = "block";
+            const status = rsvp.attending ? "Happily Accepted" : "Regretfully Declined";
+            resultMessage.innerHTML = `<h3 class="cursive" style="font-size: 2rem;">Current Status</h3><p>You have RSVP'd: <strong>${status}</strong></p>`;
+
+            modifyBtn.onclick = () => {
+                populateForm(rsvp);
+                showForm();
+            };
+
+            deleteBtn.onclick = async () => {
+                if (confirm("Are you sure you want to delete your RSVP?")) {
+                    await deleteRsvpAction(rsvp.id);
+                }
+            };
+        }
+
+        function showForm() {
+            rsvpFormContainer.style.display = "block";
+            rsvpResult.style.display = "none";
+        }
+
+        function populateForm(rsvp) {
+            document.getElementById("rsvpId").value = rsvp.id;
+            rsvpForm.elements["name"].value = rsvp.name;
+            rsvpForm.elements["attending"].value = rsvp.attending ? "yes" : "no";
+            rsvpForm.elements["plusone"].checked = rsvp.bringsPlusOne;
+            rsvpForm.elements["dinner"].checked = rsvp.joinForDinner;
+            rsvpForm.elements["comments"].value = rsvp.comments || "";
+            toggleAdditionalOptions();
+            document.getElementById("submitBtn").textContent = "Update RSVP";
+        }
+
+        async function deleteRsvpAction(id) {
+            const fingerprint = getFingerprint();
+            const apiBaseUrl = window.location.protocol === "https:" ? "https://localhost:7041" : "http://localhost:5041";
+            try {
+                const response = await fetch(`${apiBaseUrl}/api/events/engagement/rsvp/${id}?fingerprint=${fingerprint}`, {
+                    method: "DELETE"
+                });
+                if (response.ok) {
+                    alert("Your RSVP has been deleted.");
+                    rsvpForm.reset();
+                    document.getElementById("rsvpId").value = "";
+                    document.getElementById("submitBtn").textContent = "Send";
+                    showForm();
+                }
+            } catch (error) {
+                alert("Delete failed.");
+            }
+        }
+
+        function toggleAdditionalOptions() {
+            if (rsvpForm.elements["attending"].value === "yes") {
+                plusOneOption.style.display = "block";
+                dinnerOption.style.display = "block";
+            } else {
+                plusOneOption.style.display = "none";
+                dinnerOption.style.display = "none";
+            }
+        }
+
+        function initFingerprint() {
+            let fp = localStorage.getItem("rsvp_fingerprint");
+            if (!fp) {
+                fp = 'fp_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+                localStorage.setItem("rsvp_fingerprint", fp);
+            }
+            return fp;
+        }
+
+        // Initialize state
+        toggleAdditionalOptions();
+        checkStatus();
+
+        for (let radio of attendanceRadios) {
+            radio.addEventListener('change', toggleAdditionalOptions);
+        }
+
+        rsvpForm.onsubmit = async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const rsvpId = document.getElementById("rsvpId").value;
+            const rsvpData = {
+                id: rsvpId ? parseInt(rsvpId) : 0,
+                name: formData.get("name"),
+                attending: formData.get("attending") === "yes",
+                bringsPlusOne: formData.get("plusone") === "yes",
+                joinForDinner: formData.get("dinner") === "yes",
+                comments: formData.get("comments"),
+                fingerprint: initFingerprint()
+            };
+
+            try {
+                const apiBaseUrl = window.location.protocol === "https:" ? "https://localhost:7041" : "http://localhost:5041";
+                const method = rsvpId ? "PUT" : "POST";
+                const url = rsvpId ? `${apiBaseUrl}/api/events/engagement/rsvp/${rsvpId}` : `${apiBaseUrl}/api/events/engagement/rsvp`;
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(rsvpData)
+                });
+
+                if (response.ok) {
+                    const savedRsvp = await response.json();
+                    alert(rsvpId ? "Your RSVP has been updated!" : "Thank you for your response!");
+                    showResult(savedRsvp);
+                } else if (response.status === 409) {
+                    alert("You have already RSVP'd.");
+                    checkStatus();
+                } else {
+                    alert("Something went wrong. Please try again.");
+                }
+            } catch (error) {
+                console.error("Error submitting RSVP:", error);
+                alert("Could not connect to the server. Please try again later.");
+            }
+        }
+    </script>
+</body>
+</html>

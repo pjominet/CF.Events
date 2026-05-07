@@ -1,0 +1,67 @@
+using Microsoft.EntityFrameworkCore;
+using PEvents.API.Data;
+using PEvents.API.Models;
+
+namespace PEvents.API.Endpoints;
+
+public static class RsvpEndpoints
+{
+    public static void MapRsvpEndpoints(this IEndpointRouteBuilder app)
+    {
+        var group = app.MapGroup("/api/events/engagement/rsvp");
+
+        group.MapPost("/", async (Rsvp rsvp, PEventsDbContext db) =>
+        {
+            // Check if fingerprint already exists
+            var existing = await db.Rsvps.FirstOrDefaultAsync(r => r.Fingerprint == rsvp.Fingerprint);
+            if (existing != null)
+            {
+                return Results.Conflict("An RSVP already exists for this fingerprint.");
+            }
+
+            db.Rsvps.Add(rsvp);
+            await db.SaveChangesAsync();
+            return Results.Created($"/api/events/engagement/rsvp/{rsvp.Id}", rsvp);
+        });
+
+        group.MapGet("/check/{fingerprint}", async (string fingerprint, PEventsDbContext db) =>
+        {
+            var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.Fingerprint == fingerprint);
+            return rsvp != null ? Results.Ok(rsvp) : Results.NotFound();
+        });
+
+        group.MapPut("/{id}", async (int id, Rsvp updatedRsvp, PEventsDbContext db) =>
+        {
+            var rsvp = await db.Rsvps.FindAsync(id);
+            if (rsvp == null) return Results.NotFound();
+
+            if (rsvp.Fingerprint != updatedRsvp.Fingerprint) return Results.Forbid();
+
+            rsvp.Name = updatedRsvp.Name;
+            rsvp.Attending = updatedRsvp.Attending;
+            rsvp.BringsPlusOne = updatedRsvp.BringsPlusOne;
+            rsvp.JoinForDinner = updatedRsvp.JoinForDinner;
+            rsvp.Comments = updatedRsvp.Comments;
+
+            await db.SaveChangesAsync();
+            return Results.Ok(rsvp);
+        });
+
+        group.MapDelete("/{id}", async (int id, string fingerprint, PEventsDbContext db) =>
+        {
+            var rsvp = await db.Rsvps.FindAsync(id);
+            if (rsvp == null) return Results.NotFound();
+
+            if (rsvp.Fingerprint != fingerprint) return Results.Forbid();
+
+            db.Rsvps.Remove(rsvp);
+            await db.SaveChangesAsync();
+            return Results.NoContent();
+        });
+
+        group.MapGet("/", async (PEventsDbContext db) =>
+        {
+            return Results.Ok(await db.Rsvps.ToListAsync());
+        }).RequireAuthorization();
+    }
+}
