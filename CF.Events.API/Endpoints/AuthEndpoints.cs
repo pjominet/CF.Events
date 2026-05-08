@@ -18,14 +18,14 @@ public static class AuthEndpoints
             return Results.Ok(new { needsSetup = !userExists });
         });
 
-        app.MapPost("/api/events/engagement/setup", async (string password, EventsDbContext db) =>
+        app.MapPost("/api/events/engagement/setup", async (LoginRequest request, EventsDbContext db) =>
         {
             if (await db.Users.AnyAsync())
                 return Results.BadRequest("User already exists.");
 
             var admin = new User
             {
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(password)
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
             };
 
             db.Users.Add(admin);
@@ -34,11 +34,11 @@ public static class AuthEndpoints
             return Results.NoContent();
         });
 
-        app.MapPost("/api/events/engagement/login", async (string password, EventsDbContext db, IConfiguration config) =>
+        app.MapPost("/api/events/engagement/login", async (LoginRequest request, EventsDbContext db, IConfiguration config) =>
         {
             var user = await db.Users.FirstOrDefaultAsync();
 
-            if (user is null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
                 return Results.Unauthorized();
 
             var claims = new[]
@@ -47,14 +47,14 @@ public static class AuthEndpoints
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
                 config["Jwt:Issuer"],
                 config["Jwt:Audience"],
                 claims,
                 expires: DateTime.Now.AddMinutes(15),
-                signingCredentials: creds
+                signingCredentials: credentials
             );
 
             return Results.Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });

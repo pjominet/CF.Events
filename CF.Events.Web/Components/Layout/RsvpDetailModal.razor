@@ -1,43 +1,38 @@
-﻿@if (show)
-{
-    <div class="modal fade show modal-backdrop-custom" id="detailModal" tabindex="-1" style="display: block;" role="dialog">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content border-0 shadow modal-content-custom">
-                <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fs-2">RSVP Details</h5>
-                    <button type="button" class="btn-close" @onclick="Close" aria-label="Close"></button>
+﻿<div class="modal fade @(show ? "show" : "") modal-backdrop-custom" id="detailModal" tabindex="-1" style="display: @(show ? "block" : "none");" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow modal-content-custom">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fs-2">RSVP Details</h5>
+                <button type="button" class="btn-close" @onclick="Close" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4">
+                <div>
+                    <label class="fw-bold text-primary small text-uppercase">Guest Name</label>
+                    <p class="fs-5">@Rsvp?.Name</p>
                 </div>
-                <div class="modal-body py-4">
-                    <div class="mb-3">
-                        <label class="fw-bold text-primary small text-uppercase">Guest Name</label>
-                        <p class="fs-5">@Rsvp?.Name</p>
-                    </div>
-                    @if (!string.IsNullOrEmpty(Rsvp?.AccessCode))
-                    {
-                        <div class="mb-3">
-                            <label class="fw-bold text-primary small text-uppercase d-block">Access Code</label>
-                            <div @ref="copyBadgeElement"
-                                 class="copy-badge"
-                                 @onclick="CopyCode">
-                                <code class="fs-4 fw-bold letter-spacing-1 text-primary">@Rsvp.AccessCode</code>
-                                <i class="bi bi-copy text-muted small"></i>
-                            </div>
+                <div class="mt-3">
+                    <label class="fw-bold text-primary small text-uppercase">Comments</label>
+                    <p class="fs-6 text-muted @(string.IsNullOrEmpty(Rsvp?.Comments) ? "italic" : "")">
+                        @(string.IsNullOrEmpty(Rsvp?.Comments) ? "No comments provided." : Rsvp.Comments)
+                    </p>
+                </div>
+                @if (!string.IsNullOrEmpty(Rsvp?.AccessCode))
+                {
+                    <div class="mt-3">
+                        <label class="fw-bold text-primary small text-uppercase d-block">Access Code</label>
+                        <div @ref="copyBadgeElement" class="copy-badge" @onclick="CopyCode" style="width: 320px;">
+                            <code class="fs-4 fw-bold letter-spacing-1 text-primary">@Rsvp.AccessCode</code>
+                            <i class="bi bi-copy text-muted small"></i>
                         </div>
-                    }
-                    <div>
-                        <label class="fw-bold text-primary small text-uppercase">Comments</label>
-                        <p class="fs-6 text-muted @(string.IsNullOrEmpty(Rsvp?.Comments) ? "italic" : "")">
-                            @(string.IsNullOrEmpty(Rsvp?.Comments) ? "No comments provided." : Rsvp.Comments)
-                        </p>
                     </div>
-                </div>
-                <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-primary px-4" @onclick="Close">Close</button>
-                </div>
+                }
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-primary px-4" @onclick="Close">Close</button>
             </div>
         </div>
     </div>
-}
+</div>
 
 @code {
     private bool show;
@@ -62,10 +57,11 @@
 
     private async Task CopyCode()
     {
-        if (Rsvp != null)
+        if (Rsvp is not null)
         {
             await JsRuntime.InvokeVoidAsync("copyToClipboard", Rsvp.AccessCode, copyBadgeElement);
             ToastService.Show("Code copied to clipboard!", ToastType.Success);
         }
     }
+
 }

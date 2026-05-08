@@ -12,13 +12,9 @@
 </div>
 
 @code {
-    protected override void OnInitialized()
-    {
-        ToastService.OnChange += StateHasChanged;
-    }
+    protected override void OnInitialized() => ToastService.OnChange += OnToastChanged;
 
-    public void Dispose()
-    {
-        ToastService.OnChange -= StateHasChanged;
-    }
+    private void OnToastChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => ToastService.OnChange -= OnToastChanged;
 }

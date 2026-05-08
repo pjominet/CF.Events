@@ -1,15 +1,17 @@
 :root {
     /* Colors */
-    --primary-color: #3e523e; /* Lightened dark green */
-    --secondary-color: #d68d8d; /* Rose/Pink for RSVP button */
-    --secondary-hover: #e2a5a5;
-    --bg-page: #fcfaf9; /* Off-white for page background */
-    --bg-card: #e8e3df; /* Beige for card and modal */
-    --bg-card-alt: #e9e4e0; /* Slightly darker for card container back */
-    --bg-button: #dcd4cf; /* Darker beige for location button */
-    --bg-button-hover: #f5f2f0; /* Lighter for hover */
-    --bg-light-grey: #f0f0f0; /* Soft grey for neutral actions */
-    --bg-light-grey-hover: #e0e0e0;
+    --primary-color: #3e523e;
+    --secondary-color: #d68d8d;
+    --danger-color: #d9534f;
+    --info-color: #31708f;
+
+    --bg-page: #fcfaf9;
+    --bg-card: #e8e3df;
+    --bg-card-alt: #e9e4e0;
+    --bg-button: #dcd4cf;
+    --bg-button-hover: #f5f2f0;
+    --bg-light-grey: #c0c0c0;
+    --bg-light-grey-hover: #a9a9a9;
 
     /* Fonts */
     --font-serif: 'Domine', serif;
@@ -22,6 +24,8 @@
     --border-radius-lg: 10px;
     --transition-speed: 0.2s;
     --transition-speed-slow: 0.3s;
+    --request-id-color: #666;
+    --request-id-bg: #eee;
 
     /* Shadows */
     --card-shadow: 0 20px 45px rgba(0, 0, 0, 0.15), 0 10px 20px rgba(0, 0, 0, 0.1);
@@ -29,36 +33,47 @@
     /* Bootstrap Overrides */
     --bs-primary: var(--primary-color);
     --bs-primary-rgb: 62, 82, 62;
-    --bs-secondary: var(--secondary-color);
-    --bs-secondary-rgb: 214, 141, 141;
+    --bs-danger: var(--danger-color);
+    --bs-danger-rgb: 217, 83, 79;
+    --bs-info: var(--info-color);
+    --bs-info-rgb: 49, 112, 143;
+
+    /* Button State Colors */
+    --primary-hover: #2d3c2d;
+    --secondary-hover: #e2a5a5;
+    --danger-hover: #c9302c;
+    --info-hover: #265a78;
 }
 
 /* Bootstrap Button Overrides */
 .btn-primary {
     --bs-btn-bg: var(--primary-color);
     --bs-btn-border-color: var(--primary-color);
-    --bs-btn-hover-bg: #2d3c2d;
-    --bs-btn-hover-border-color: #2d3c2d;
-    --bs-btn-active-bg: #2d3c2d;
-    --bs-btn-active-border-color: #2d3c2d;
+    --bs-btn-hover-bg: var(--primary-hover);
+    --bs-btn-hover-border-color: var(--primary-hover);
+    --bs-btn-active-bg: var(--primary-hover);
+    --bs-btn-active-border-color: var(--primary-hover);
 }
 
-.btn-secondary {
-    --bs-btn-bg: var(--secondary-color);
-    --bs-btn-border-color: var(--secondary-color);
-    --bs-btn-hover-bg: var(--secondary-hover);
-    --bs-btn-hover-border-color: var(--secondary-hover);
-    --bs-btn-active-bg: var(--secondary-hover);
-    --bs-btn-active-border-color: var(--secondary-hover);
+.btn-danger {
+    --bs-btn-bg: var(--danger-color);
+    --bs-btn-border-color: var(--danger-color);
+    --bs-btn-hover-bg: var(--danger-hover);
+    --bs-btn-hover-border-color: var(--danger-hover);
+    --bs-btn-active-bg: var(--danger-hover);
+    --bs-btn-active-border-color: var(--danger-hover);
 }
 
-.btn-light {
-    --bs-btn-bg: var(--bg-light-grey);
-    --bs-btn-border-color: var(--bg-light-grey);
-    --bs-btn-hover-bg: var(--bg-light-grey-hover);
-    --bs-btn-hover-border-color: var(--bg-light-grey-hover);
-    --bs-btn-active-bg: var(--bg-light-grey-hover);
-    --bs-btn-active-border-color: var(--bg-light-grey-hover);
+.btn-info {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--info-color);
+    --bs-btn-border-color: var(--info-color);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--info-hover);
+    --bs-btn-hover-border-color: var(--info-hover);
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: var(--info-hover);
+    --bs-btn-active-border-color: var(--info-hover);
 }
 
 body {
@@ -158,10 +173,6 @@ body {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.modal {
-    display: none;
-}
-
 .cursive {
     font-family: var(--font-cursive);
 }
@@ -175,7 +186,7 @@ body {
 }
 
 .modal-backdrop-custom {
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0, 0, 0, 0.5);
 }
 
 .modal-content-custom {
@@ -217,12 +228,12 @@ body {
 }
 
 .letter-spacing-1 {
-        letter-spacing: 0.1rem;
-    }
+    letter-spacing: 0.1rem;
+}
 
-    .letter-spacing-2 {
-        letter-spacing: 0.2rem;
-    }
+.letter-spacing-2 {
+    letter-spacing: 0.2rem;
+}
 
 .comments-cell {
     max-width: 300px;
@@ -237,14 +248,13 @@ body {
     gap: 6px;
     padding: 2px 8px;
     border-radius: 4px;
-    background-color: rgba(62, 82, 62, 0.05);
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
     border: 2px solid transparent;
-    min-width: 140px;
     justify-content: center;
 }
 
 .copy-badge:hover {
-    background-color: rgba(62, 82, 62, 0.1);
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
 }
 
 .copy-badge:active {
@@ -256,14 +266,32 @@ body {
 }
 
 @keyframes clickSuccess {
-    0% { transform: scale(1); border: 2px solid transparent; }
-    50% { transform: scale(1.05); background-color: rgba(62, 82, 62, 0.2); border: 2px solid var(--primary-color); }
-    100% { transform: scale(1); border: 2px solid transparent; }
+    0% {
+        transform: scale(1);
+        border: 2px solid transparent;
+    }
+    50% {
+        transform: scale(1.05);
+        background-color: rgba(var(--bs-primary-rgb), 0.2);
+        border: 2px solid var(--primary-color);
+    }
+    100% {
+        transform: scale(1);
+        border: 2px solid transparent;
+    }
 }
 
 .copy-badge code {
     background: none !important;
     padding: 0 !important;
+    font-family: inherit;
+}
+
+.copy-badge code.copied-text {
+    font-size: 0.8rem;
+    color: var(--primary-color) !important;
+    letter-spacing: normal;
+    font-weight: normal;
 }
 
 #rsvpForm textarea {
@@ -284,23 +312,23 @@ body {
 
 .form-check-input:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.25rem rgba(62, 82, 62, 0.25); /* rgba version of --primary-color */
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
 }
 
 .error-message {
-    color: #d9534f;
+    color: var( --danger-color);
     font-size: 1.2rem;
     margin-bottom: 10px;
 }
 
 .request-id {
     font-size: 0.85rem;
-    color: #666;
+    color: var(--request-id-color);
     margin-top: 15px;
 }
 
 .request-id code {
-    background: #eee;
+    background: var(--request-id-bg);
     padding: 2px 5px;
     border-radius: 3px;
 }
@@ -331,9 +359,17 @@ body {
     animation: slideIn 0.3s ease-out;
 }
 
-.toast.success { background-color: #4b6a4b; }
-.toast.error { background-color: #a94442; }
-.toast.info { background-color: #31708f; }
+.toast.success {
+    background-color: var(--primary-color);
+}
+
+.toast.error {
+    background-color: var(--danger-color);
+}
+
+.toast.info {
+    background-color: var(--info-color);
+}
 
 .toast-message {
     flex-grow: 1;
@@ -356,8 +392,14 @@ body {
 }
 
 @keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
 @media (max-width: 500px) {

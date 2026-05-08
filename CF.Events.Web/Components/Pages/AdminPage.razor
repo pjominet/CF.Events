@@ -24,7 +24,6 @@
         else if (showSetup)
         {
             <div id="setupSection" class="mx-auto admin-max-width-setup">
-                <h2 class="text-center">Initial Admin Setup</h2>
                 <p class="text-center text-muted">Please set a password for the admin account.</p>
                 <form @onsubmit="HandleSetup" class="d-flex flex-column gap-3">
                     <input type="password" class="form-control" @bind="setupPassword" placeholder="Set Password" required>
@@ -40,7 +39,6 @@
         else if (showLogin)
         {
             <div id="loginSection" class="mx-auto admin-max-width-setup">
-                <h2 class="text-center">Login</h2>
                 <form @onsubmit="HandleLogin" class="d-flex flex-column gap-3">
                     <input type="password" class="form-control" @bind="loginPassword" placeholder="Enter Password" required>
                     <button type="submit" class="btn btn-primary w-100">Login</button>
@@ -91,8 +89,9 @@
                                 <tr>
                                     <td>@rsvp.Name</td>
                                     <td>
-                                        <div @onclick="async (e) => await CopyCode(rsvp.AccessCode, e)"
-                                             class="copy-badge">
+                                        <div @ref="copyBadgeRefs[rsvp.Id]"
+                                             @onclick="() => CopyCode(rsvp.AccessCode, copyBadgeRefs[rsvp.Id])"
+                                             class="copy-badge" style="width: 170px">
                                             <code class="text-primary fw-bold">@rsvp.AccessCode</code>
                                             <i class="bi bi-copy text-muted small"></i>
                                         </div>
@@ -114,16 +113,10 @@
                                     <td>
                                         <div class="d-flex gap-1">
                                             <button class="btn btn-sm btn-info"
-                                                    data-bs-toggle="tooltip"
-                                                    data-bs-placement="top"
-                                                    title="View full comment"
                                                     @onclick="() => ShowDetails(rsvp)">
                                                 <i class="bi bi-eye"></i>
                                             </button>
                                             <button class="btn btn-sm btn-danger"
-                                                    data-bs-toggle="tooltip"
-                                                    data-bs-placement="top"
-                                                    title="Remove RSVP"
                                                     @onclick="() => RequestDelete(rsvp.Id)">
                                                 <i class="bi bi-trash"></i>
                                             </button>

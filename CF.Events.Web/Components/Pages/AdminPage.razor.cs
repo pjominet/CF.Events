@@ -2,7 +2,6 @@ using CF.Events.Web.Models;
 using CF.Events.Web.Services;
 using CF.Events.Web.Components.Layout;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using System.Net.Http.Headers;
 
@@ -18,6 +17,7 @@ public partial class AdminPage : ComponentBase
     private string setupError = string.Empty;
     private string loginPassword = string.Empty;
     private string loginError = string.Empty;
+    private readonly Dictionary<int, ElementReference> copyBadgeRefs = [];
     private List<Rsvp> rsvps = [];
     private int totalAttendance;
     private int totalDinner;
@@ -35,7 +35,6 @@ public partial class AdminPage : ComponentBase
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await JsRuntime.InvokeVoidAsync("initializeTooltips");
         if (firstRender)
         {
             try
@@ -94,7 +93,7 @@ public partial class AdminPage : ComponentBase
         var client = HttpClientFactory.CreateClient("EventsAPI");
         try
         {
-            var response = await client.PostAsync($"api/events/engagement/setup?password={Uri.EscapeDataString(setupPassword)}", null);
+            var response = await client.PostAsJsonAsync("api/events/engagement/setup", new LoginRequest { Password = setupPassword });
             if (response.IsSuccessStatusCode)
             {
                 ToastService.Show("Admin setup successful! Please login.", ToastType.Success);
@@ -103,12 +102,9 @@ public partial class AdminPage : ComponentBase
                 setupPassword = string.Empty;
                 confirmPassword = string.Empty;
             }
-            else
-            {
-                setupError = await response.Content.ReadAsStringAsync();
-            }
+            else setupError = await response.Content.ReadAsStringAsync();
         }
-        catch (Exception ex)
+        catch
         {
             setupError = "Could not connect to server.";
         }
@@ -119,7 +115,7 @@ public partial class AdminPage : ComponentBase
         var client = HttpClientFactory.CreateClient("EventsAPI");
         try
         {
-            var response = await client.PostAsync($"api/events/engagement/login?password={Uri.EscapeDataString(loginPassword)}", null);
+            var response = await client.PostAsJsonAsync("api/events/engagement/login", new LoginRequest { Password = loginPassword });
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadFromJsonAsync<LoginResult>();
@@ -131,12 +127,9 @@ public partial class AdminPage : ComponentBase
                     await LoadRsvps();
                 }
             }
-            else
-            {
-                loginError = "Invalid password.";
-            }
+            else loginError = "Invalid password.";
         }
-        catch (Exception ex)
+        catch
         {
             loginError = "Login failed.";
             ToastService.Show("Login failed. Connection error.", ToastType.Error);
@@ -155,6 +148,7 @@ public partial class AdminPage : ComponentBase
             var result = await client.GetFromJsonAsync<List<Rsvp>>("api/events/engagement/rsvp");
             if (result is not null)
             {
+                copyBadgeRefs.Clear();
                 rsvps = result.OrderByDescending(r => r.SubmittedAt).ToList();
                 totalAttendance = rsvps.Count(r => r.Attending) + rsvps.Count(r => r is { Attending: true, BringsPlusOne: true });
                 totalDinner = rsvps.Count(r => r is { Attending: true, JoinForDinner: true });
@@ -164,9 +158,7 @@ public partial class AdminPage : ComponentBase
         {
             Console.WriteLine($"Error loading RSVPs: {ex.Message}");
             if (ex is HttpRequestException { StatusCode: System.Net.HttpStatusCode.Unauthorized })
-            {
                 await Logout();
-            }
             else
             {
                 isApiOffline = true;
@@ -185,18 +177,16 @@ public partial class AdminPage : ComponentBase
         StateHasChanged();
     }
 
-    private async Task CopyCode(string code, MouseEventArgs e)
+    private async Task CopyCode(string code, ElementReference element)
     {
-        // This is a bit of a hack to get the element from the event,
-        // but since we are in a loop it's easier than managing a list of ElementReferences
-        await JsRuntime.InvokeVoidAsync("copyToClipboardFromEvent", code);
+        await JsRuntime.InvokeVoidAsync("copyToClipboard", code, element);
         ToastService.Show("Code copied to clipboard!", ToastType.Success);
     }
 
-    private void ShowDetails(Rsvp rsvp)
+    private async Task ShowDetails(Rsvp rsvp)
     {
         selectedRsvp = rsvp;
-        detailModal.Show();
+        await detailModal.Show();
     }
 
     private void RequestDelete(int id)
@@ -208,9 +198,7 @@ public partial class AdminPage : ComponentBase
     private async Task HandleDeleteConfirmation(bool confirmed)
     {
         if (confirmed && rsvpIdToDelete.HasValue)
-        {
             await DeleteRsvp(rsvpIdToDelete.Value);
-        }
         rsvpIdToDelete = null;
     }
 
@@ -229,10 +217,7 @@ public partial class AdminPage : ComponentBase
                 ToastService.Show("RSVP deleted successfully.", ToastType.Success);
                 await LoadRsvps();
             }
-            else
-            {
-                ToastService.Show("Failed to delete RSVP.", ToastType.Error);
-            }
+            else ToastService.Show("Failed to delete RSVP.", ToastType.Error);
         }
         catch (Exception ex)
         {

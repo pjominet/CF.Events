@@ -27,7 +27,6 @@ public partial class RsvpPage : ComponentBase
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await JsRuntime.InvokeVoidAsync("initializeTooltips");
         if (firstRender)
         {
             fingerprint = await JsRuntime.InvokeAsync<string>("localStorage.getItem", "rsvp_fingerprint");
@@ -177,10 +176,7 @@ public partial class RsvpPage : ComponentBase
 
     private async Task HandleDeleteConfirmation(bool confirmed)
     {
-        if (confirmed)
-        {
-            await DeleteRsvp();
-        }
+        if (confirmed) await DeleteRsvp();
     }
 
     private async Task DeleteRsvp()

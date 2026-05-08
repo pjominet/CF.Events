@@ -42,7 +42,10 @@ public class ToastService : IDisposable
         NotifyStateChanged();
 
         // Auto-remove after 5 seconds
-        Task.Delay(5000).ContinueWith(_ => Remove(toast.Id));
+        _ = Task.Run(async () => {
+            await Task.Delay(5000);
+            Remove(toast.Id);
+        });
     }
 
     public void Remove(Guid id)

@@ -15,10 +15,7 @@ public partial class Index : ComponentBase
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await JsRuntime.InvokeVoidAsync("initializeTooltips");
-        if (firstRender)
-        {
-            await CheckAndRedirect();
-        }
+        if (firstRender) await CheckAndRedirect();
     }
 
     private async Task CheckAndRedirect()
@@ -36,20 +33,16 @@ public partial class Index : ComponentBase
 
             // Try fingerprint first
             if (!string.IsNullOrEmpty(fingerprint))
-            {
                 response = await client.GetAsync($"api/events/engagement/rsvp/check/{fingerprint}");
-            }
 
-            // If not found by fingerprint but we have an access code, try that
-            if ((response == null || !response.IsSuccessStatusCode) && !string.IsNullOrEmpty(accessCode))
-            {
+            // If not found by fingerprint, but we have an access code, try that
+            if (response is not { IsSuccessStatusCode: true } && !string.IsNullOrEmpty(accessCode))
                 response = await client.GetAsync($"api/events/engagement/rsvp/code/{accessCode}");
-            }
 
-            if (response != null && response.IsSuccessStatusCode)
+            if (response is { IsSuccessStatusCode: true })
             {
                 var rsvp = await response.Content.ReadFromJsonAsync<Rsvp>();
-                if (rsvp != null)
+                if (rsvp is not null)
                 {
                     // Ensure local storage is in sync
                     await JsRuntime.InvokeVoidAsync("localStorage.setItem", "rsvp_fingerprint", rsvp.Fingerprint);
