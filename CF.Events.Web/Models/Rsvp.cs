@@ -15,6 +15,7 @@ public class Rsvp
     [StringLength(500)] public string? Comments { get; set; }
 
     public string Fingerprint { get; set; } = string.Empty;
+    public string AccessCode { get; set; } = string.Empty;
 
     public DateTime SubmittedAt { get; init; } = DateTime.UtcNow;
 }

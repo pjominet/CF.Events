@@ -76,6 +76,7 @@
                         <thead class="table-dark">
                             <tr>
                                 <th>Name</th>
+                                <th>Code</th>
                                 <th>Attending</th>
                                 <th>Plus One</th>
                                 <th>Dinner</th>
@@ -89,6 +90,13 @@
                             {
                                 <tr>
                                     <td>@rsvp.Name</td>
+                                    <td>
+                                        <div @onclick="async (e) => await CopyCode(rsvp.AccessCode, e)"
+                                             class="copy-badge">
+                                            <code class="text-primary fw-bold">@rsvp.AccessCode</code>
+                                            <i class="bi bi-copy text-muted small"></i>
+                                        </div>
+                                    </td>
                                     <td>@(rsvp.Attending ? "✅ Yes" : "❌ No")</td>
                                     <td>@(rsvp is { Attending: true, BringsPlusOne: true } ? "👥 +1" : "-")</td>
                                     <td>@(rsvp is { Attending: true, JoinForDinner: true } ? "🍴 Yes" : "-")</td>

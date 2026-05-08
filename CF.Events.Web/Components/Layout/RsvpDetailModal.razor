@@ -12,6 +12,18 @@
                         <label class="fw-bold text-primary small text-uppercase">Guest Name</label>
                         <p class="fs-5">@Rsvp?.Name</p>
                     </div>
+                    @if (!string.IsNullOrEmpty(Rsvp?.AccessCode))
+                    {
+                        <div class="mb-3">
+                            <label class="fw-bold text-primary small text-uppercase d-block">Access Code</label>
+                            <div @ref="copyBadgeElement"
+                                 class="copy-badge"
+                                 @onclick="CopyCode">
+                                <code class="fs-4 fw-bold letter-spacing-1 text-primary">@Rsvp.AccessCode</code>
+                                <i class="bi bi-copy text-muted small"></i>
+                            </div>
+                        </div>
+                    }
                     <div>
                         <label class="fw-bold text-primary small text-uppercase">Comments</label>
                         <p class="fs-6 text-muted @(string.IsNullOrEmpty(Rsvp?.Comments) ? "italic" : "")">
@@ -29,18 +41,31 @@
 
 @code {
     private bool show;
+    private ElementReference copyBadgeElement;
 
     [Parameter] public Rsvp? Rsvp { get; set; }
+    [Inject] private IJSRuntime JsRuntime { get; set; } = null!;
+    [Inject] private ToastService ToastService { get; set; } = null!;
 
-    public void Show()
+    public async Task Show()
     {
         show = true;
         StateHasChanged();
+        await JsRuntime.InvokeVoidAsync("initializeTooltips");
     }
 
     public void Close()
     {
         show = false;
         StateHasChanged();
+    }
+
+    private async Task CopyCode()
+    {
+        if (Rsvp != null)
+        {
+            await JsRuntime.InvokeVoidAsync("copyToClipboard", Rsvp.AccessCode, copyBadgeElement);
+            ToastService.Show("Code copied to clipboard!", ToastType.Success);
+        }
     }
 }

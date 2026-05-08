@@ -13,6 +13,9 @@ public partial class RsvpPage : ComponentBase
     private bool showResult;
     private bool isLoading = true;
     private string? fingerprint;
+    private string accessCodeInput = string.Empty;
+    private bool isRetrieving;
+    private ElementReference copyBadgeElement;
     private ConfirmationDialog deleteConfirmation = null!;
 
     private bool isApiOffline;
@@ -63,6 +66,10 @@ public partial class RsvpPage : ComponentBase
             if (response.IsSuccessStatusCode)
             {
                 currentRsvp = await response.Content.ReadFromJsonAsync<Rsvp>();
+                if (currentRsvp != null)
+                {
+                    await JsRuntime.InvokeVoidAsync("localStorage.setItem", "rsvp_access_code", currentRsvp.AccessCode);
+                }
                 showResult = true;
             }
         }
@@ -70,6 +77,44 @@ public partial class RsvpPage : ComponentBase
         {
             Console.WriteLine($"Status check failed: {ex.Message}");
             throw; // Re-throw to be caught in OnAfterRenderAsync
+        }
+    }
+
+    private async Task RetrieveByCode()
+    {
+        if (string.IsNullOrEmpty(accessCodeInput)) return;
+
+        isRetrieving = true;
+        var client = HttpClientFactory.CreateClient("EventsAPI");
+        try
+        {
+            var response = await client.GetAsync($"api/events/engagement/rsvp/code/{accessCodeInput.Trim().ToUpper()}");
+            if (response.IsSuccessStatusCode)
+            {
+                currentRsvp = await response.Content.ReadFromJsonAsync<Rsvp>();
+                if (currentRsvp is not null)
+                {
+                    // Sync fingerprint and access code to local storage for future seamless access
+                    fingerprint = currentRsvp.Fingerprint;
+                    await JsRuntime.InvokeVoidAsync("localStorage.setItem", "rsvp_fingerprint", fingerprint);
+                    await JsRuntime.InvokeVoidAsync("localStorage.setItem", "rsvp_access_code", currentRsvp.AccessCode);
+                    showResult = true;
+                    ToastService.Show("RSVP found and synchronized to this device!", ToastType.Success);
+                }
+            }
+            else
+            {
+                ToastService.Show("RSVP not found. Please check the code.", ToastType.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Retrieval failed: {ex.Message}");
+            ToastService.Show("Connection error. Please try again.", ToastType.Error);
+        }
+        finally
+        {
+            isRetrieving = false;
         }
     }
 
@@ -86,6 +131,10 @@ public partial class RsvpPage : ComponentBase
             if (response.IsSuccessStatusCode)
             {
                 currentRsvp = await response.Content.ReadFromJsonAsync<Rsvp>();
+                if (currentRsvp != null)
+                {
+                    await JsRuntime.InvokeVoidAsync("localStorage.setItem", "rsvp_access_code", currentRsvp.AccessCode);
+                }
                 showResult = true;
                 ToastService.Show(rsvpModel.Id > 0 ? "Your RSVP has been updated!" : "Thank you for your response!", ToastType.Success);
             }
@@ -118,6 +167,12 @@ public partial class RsvpPage : ComponentBase
             Fingerprint = currentRsvp.Fingerprint
         };
         showResult = false;
+    }
+
+    private async Task CopyCode(string code)
+    {
+        await JsRuntime.InvokeVoidAsync("copyToClipboard", code, copyBadgeElement);
+        ToastService.Show("Code copied to clipboard!", ToastType.Success);
     }
 
     private async Task HandleDeleteConfirmation(bool confirmed)

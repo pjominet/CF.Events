@@ -216,13 +216,54 @@ body {
     max-width: 400px;
 }
 
-.error-max-width {
-    max-width: 500px;
-}
+.letter-spacing-1 {
+        letter-spacing: 0.1rem;
+    }
+
+    .letter-spacing-2 {
+        letter-spacing: 0.2rem;
+    }
 
 .comments-cell {
     max-width: 300px;
     word-wrap: break-word;
+}
+
+.copy-badge {
+    cursor: pointer;
+    transition: all var(--transition-speed);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background-color: rgba(62, 82, 62, 0.05);
+    border: 2px solid transparent;
+    min-width: 140px;
+    justify-content: center;
+}
+
+.copy-badge:hover {
+    background-color: rgba(62, 82, 62, 0.1);
+}
+
+.copy-badge:active {
+    transform: translateY(0);
+}
+
+.copy-badge.clicked {
+    animation: clickSuccess 0.4s ease;
+}
+
+@keyframes clickSuccess {
+    0% { transform: scale(1); border: 2px solid transparent; }
+    50% { transform: scale(1.05); background-color: rgba(62, 82, 62, 0.2); border: 2px solid var(--primary-color); }
+    100% { transform: scale(1); border: 2px solid transparent; }
+}
+
+.copy-badge code {
+    background: none !important;
+    padding: 0 !important;
 }
 
 #rsvpForm textarea {

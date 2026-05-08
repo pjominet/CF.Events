@@ -2,6 +2,7 @@ using CF.Events.Web.Models;
 using CF.Events.Web.Services;
 using CF.Events.Web.Components.Layout;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using System.Net.Http.Headers;
 
@@ -182,6 +183,14 @@ public partial class AdminPage : ComponentBase
         showLogin = true;
         rsvps.Clear();
         StateHasChanged();
+    }
+
+    private async Task CopyCode(string code, MouseEventArgs e)
+    {
+        // This is a bit of a hack to get the element from the event,
+        // but since we are in a loop it's easier than managing a list of ElementReferences
+        await JsRuntime.InvokeVoidAsync("copyToClipboardFromEvent", code);
+        ToastService.Show("Code copied to clipboard!", ToastType.Success);
     }
 
     private void ShowDetails(Rsvp rsvp)

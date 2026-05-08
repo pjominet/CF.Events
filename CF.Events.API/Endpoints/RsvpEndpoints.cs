@@ -17,6 +17,17 @@ public static class RsvpEndpoints
             if (existing != null)
                 return Results.Conflict("An RSVP already exists for this fingerprint.");
 
+            // Generate unique access code
+            const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+            var random = new Random();
+            string code;
+            do
+            {
+                code = new string(Enumerable.Repeat(chars, 6)
+                    .Select(s => s[random.Next(s.Length)]).ToArray());
+            } while (await db.Rsvps.AnyAsync(r => r.AccessCode == code));
+
+            rsvp.AccessCode = code;
             db.Rsvps.Add(rsvp);
             await db.SaveChangesAsync();
             return Results.Created($"/api/events/engagement/rsvp/{rsvp.Id}", rsvp);
@@ -25,6 +36,12 @@ public static class RsvpEndpoints
         group.MapGet("/check/{fingerprint}", async (string fingerprint, EventsDbContext db) =>
         {
             var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.Fingerprint == fingerprint);
+            return rsvp != null ? Results.Ok(rsvp) : Results.NotFound();
+        });
+
+        group.MapGet("/code/{code}", async (string code, EventsDbContext db) =>
+        {
+            var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.AccessCode == code.ToUpper());
             return rsvp != null ? Results.Ok(rsvp) : Results.NotFound();
         });
 

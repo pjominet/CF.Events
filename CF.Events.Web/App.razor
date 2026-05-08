@@ -32,6 +32,40 @@
                 });
             }, 100);
         };
+
+        window.copyToClipboardFromEvent = (text) => {
+            const element = event.currentTarget;
+            window.copyToClipboard(text, element);
+        };
+
+        window.copyToClipboard = (text, element) => {
+            navigator.clipboard.writeText(text).then(() => {
+                if (element) {
+                    const codeElement = element.querySelector('code');
+                    const originalText = codeElement ? codeElement.innerText : null;
+
+                    if (codeElement) {
+                        codeElement.innerText = 'copied to clipboard';
+                        codeElement.classList.add('small', 'text-muted');
+                        codeElement.classList.remove('fs-4');
+                    }
+
+                    element.classList.add('clicked');
+
+                    setTimeout(() => {
+                        element.classList.remove('clicked');
+                        if (codeElement && originalText) {
+                            codeElement.innerText = originalText;
+                            codeElement.classList.remove('small', 'text-muted');
+                            codeElement.classList.add('fs-4');
+                        }
+                    }, 1500);
+                }
+                console.log('Copied to clipboard:', text);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
+        };
     </script>
     <script src="_framework/blazor.web.js"></script>
 </body>
