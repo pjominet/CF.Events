@@ -24,12 +24,11 @@
         <div id="rsvpResult" class="text-center">
             <div id="resultMessage">
                 <h3 class="cursive status-title">Current Status</h3>
-                <p>You have RSVP'd: <strong>@(currentRsvp?.Attending == true ? "Happily Accepted" : "Regretfully Declined")</strong></p>
+                <p><strong>@(currentRsvp?.Attending is true ? "Happily Accepted" : "Regretfully Declined")</strong></p>
             </div>
             <div class="button-group flex-center gap-10 mt-20">
                 <button @onclick="ModifyRsvp" class="btn-primary">Modify</button>
                 <button @onclick="DeleteRsvp" class="btn-danger">Delete</button>
-                <a href="engagement" class="btn-secondary">Back</a>
             </div>
         </div>
     }
@@ -37,7 +36,7 @@
     {
         <div id="rsvpFormContainer">
             <p class="text-center">Will you be joining us?</p>
-            <EditForm Model="rsvpModel" OnValidSubmit="HandleSubmit" id="rsvpForm">
+            <EditForm Model="rsvpModel" OnValidSubmit="HandleRsvp" id="rsvpForm">
                 <DataAnnotationsValidator />
                 <InputText @bind-Value="rsvpModel.Name" maxlength="100" placeholder="Your Name" required />
 

@@ -70,7 +70,7 @@ public partial class RsvpPage : ComponentBase
         }
     }
 
-    private async Task HandleSubmit()
+    private async Task HandleRsvp()
     {
         var client = HttpClientFactory.CreateClient("EventsAPI");
         try
