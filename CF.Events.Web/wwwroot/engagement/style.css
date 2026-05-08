@@ -177,12 +177,10 @@ body {
     font-family: var(--font-cursive);
 }
 
-.font-size-2rem {
-    font-size: 2rem;
-}
-
-.font-size-3rem {
-    font-size: 3rem;
+#privacy-hint {
+    font-size: 0.8rem;
+    font-style: italic;
+    font-weight: lighter;
 }
 
 .modal-backdrop-custom {
