@@ -1,5 +1,6 @@
 using CF.Events.API.Data;
-using CF.Events.API.Models;
+using CF.Events.Shared;
+using CF.Events.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace CF.Events.API.Endpoints;
@@ -8,15 +9,10 @@ public static class RsvpEndpoints
 {
     public static void MapRsvpEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/events/engagement/rsvp");
+        var group = app.MapGroup("/api/events/engagement/rsvp").RequireRateLimiting(Constants.RateLimiting.Fixed);
 
         group.MapPost("/", async (Rsvp rsvp, EventsDbContext db) =>
         {
-            // Check if fingerprint already exists
-            var existing = await db.Rsvps.FirstOrDefaultAsync(r => r.Fingerprint == rsvp.Fingerprint);
-            if (existing != null)
-                return Results.Conflict("An RSVP already exists for this fingerprint.");
-
             // Generate unique access code
             const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
             var random = new Random();
@@ -33,25 +29,20 @@ public static class RsvpEndpoints
             return Results.Created($"/api/events/engagement/rsvp/{rsvp.Id}", rsvp);
         });
 
-        group.MapGet("/check/{fingerprint}", async (string fingerprint, EventsDbContext db) =>
-        {
-            var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.Fingerprint == fingerprint);
-            return rsvp != null ? Results.Ok(rsvp) : Results.NotFound();
-        });
 
         group.MapGet("/code/{code}", async (string code, EventsDbContext db) =>
         {
-            var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.AccessCode == code.ToUpper());
-            return rsvp != null ? Results.Ok(rsvp) : Results.NotFound();
-        });
+            var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.AccessCode.Equals(code, StringComparison.CurrentCultureIgnoreCase));
+            return rsvp is not null ? Results.Ok(rsvp) : Results.NotFound();
+        }).RequireRateLimiting(Constants.RateLimiting.Strict);
 
         group.MapPut("/{id:int}", async (int id, Rsvp updatedRsvp, EventsDbContext db) =>
         {
             var rsvp = await db.Rsvps.FindAsync(id);
-            if (rsvp == null)
+            if (rsvp is null)
                 return Results.NotFound();
 
-            if (rsvp.Fingerprint != updatedRsvp.Fingerprint)
+            if (rsvp.AccessCode != updatedRsvp.AccessCode)
                 return Results.Forbid();
 
             rsvp.Name = updatedRsvp.Name;
@@ -64,13 +55,13 @@ public static class RsvpEndpoints
             return Results.Ok(rsvp);
         });
 
-        group.MapDelete("/{id:int}", async (int id, string fingerprint, EventsDbContext db) =>
+        group.MapDelete("/{id:int}", async (int id, string accessCode, EventsDbContext db) =>
         {
             var rsvp = await db.Rsvps.FindAsync(id);
             if (rsvp == null)
                 return Results.NotFound();
 
-            if (rsvp.Fingerprint != fingerprint)
+            if (!rsvp.AccessCode.Equals(accessCode, StringComparison.CurrentCultureIgnoreCase))
                 return Results.Forbid();
 
             db.Rsvps.Remove(rsvp);

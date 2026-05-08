@@ -3,6 +3,8 @@ using System.Security.Claims;
 using System.Text;
 using CF.Events.API.Data;
 using CF.Events.API.Models;
+using CF.Events.Shared;
+using CF.Events.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -12,13 +14,15 @@ public static class AuthEndpoints
 {
     public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/events/engagement/setup-status", async (EventsDbContext db) =>
+        var group = app.MapGroup("/api/events/engagement").RequireRateLimiting(Constants.RateLimiting.Fixed);
+
+        group.MapGet("/setup-status", async (EventsDbContext db) =>
         {
             var userExists = await db.Users.AnyAsync();
             return Results.Ok(new { needsSetup = !userExists });
         });
 
-        app.MapPost("/api/events/engagement/setup", async (LoginRequest request, EventsDbContext db) =>
+        group.MapPost("/setup", async (LoginRequest request, EventsDbContext db) =>
         {
             if (await db.Users.AnyAsync())
                 return Results.BadRequest("User already exists.");
@@ -32,9 +36,9 @@ public static class AuthEndpoints
             await db.SaveChangesAsync();
 
             return Results.NoContent();
-        });
+        }).RequireRateLimiting(Constants.RateLimiting.Strict);
 
-        app.MapPost("/api/events/engagement/login", async (LoginRequest request, EventsDbContext db, IConfiguration config) =>
+        group.MapPost("/login", async (LoginRequest request, EventsDbContext db, IConfiguration config) =>
         {
             var user = await db.Users.FirstOrDefaultAsync();
 
@@ -58,9 +62,9 @@ public static class AuthEndpoints
             );
 
             return Results.Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
-        });
+        }).RequireRateLimiting(Constants.RateLimiting.Strict);
 
-        app.MapPost("/api/events/engagement/refresh", (ClaimsPrincipal user, IConfiguration config) =>
+        group.MapPost("/refresh", (ClaimsPrincipal user, IConfiguration config) =>
         {
             if (user.Identity?.IsAuthenticated is not true)
                 return Results.Unauthorized();

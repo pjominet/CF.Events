@@ -1,6 +1,7 @@
-using CF.Events.Web.Models;
 using CF.Events.Web.Services;
 using CF.Events.Web.Components.Layout;
+using CF.Events.Shared;
+using CF.Events.Shared.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using System.Net.Http.Headers;
@@ -60,7 +61,7 @@ public partial class AdminPage : ComponentBase
 
     private async Task CheckSetupStatus()
     {
-        var client = HttpClientFactory.CreateClient("EventsAPI");
+        var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
         try
         {
             var status = await client.GetFromJsonAsync<SetupStatus>("api/events/engagement/setup-status");
@@ -90,7 +91,7 @@ public partial class AdminPage : ComponentBase
             return;
         }
 
-        var client = HttpClientFactory.CreateClient("EventsAPI");
+        var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
         try
         {
             var response = await client.PostAsJsonAsync("api/events/engagement/setup", new LoginRequest { Password = setupPassword });
@@ -112,7 +113,7 @@ public partial class AdminPage : ComponentBase
 
     private async Task HandleLogin()
     {
-        var client = HttpClientFactory.CreateClient("EventsAPI");
+        var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
         try
         {
             var response = await client.PostAsJsonAsync("api/events/engagement/login", new LoginRequest { Password = loginPassword });
@@ -140,7 +141,7 @@ public partial class AdminPage : ComponentBase
     {
         if (string.IsNullOrEmpty(token)) return;
 
-        var client = HttpClientFactory.CreateClient("EventsAPI");
+        var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         try
@@ -206,7 +207,7 @@ public partial class AdminPage : ComponentBase
     {
         if (string.IsNullOrEmpty(token)) return;
 
-        var client = HttpClientFactory.CreateClient("EventsAPI");
+        var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         try

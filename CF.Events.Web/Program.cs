@@ -1,4 +1,5 @@
 using CF.Events.Web.Services;
+using CF.Events.Shared;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,7 +9,7 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddSingleton<ToastService>();
 
-builder.Services.AddHttpClient("EventsAPI", client =>
+builder.Services.AddHttpClient(Constants.HttpClients.EventsApi, client =>
 {
     var apiBaseUrl = builder.Configuration["EventsApi:BaseUrl"];
     if (string.IsNullOrEmpty(apiBaseUrl))
@@ -26,8 +27,16 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseStaticFiles();
-app.UseAntiforgery();
 
+app.UseSecurityHeaders(
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " +
+    "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; " +
+    "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; " +
+    "img-src 'self' data:; " +
+    "connect-src 'self' ws: wss: http://localhost:5041;"); // Allow WebSocket for Blazor Server and API connection
+
+app.UseAntiforgery();
 app.MapRazorComponents<CF.Events.Web.App>()
     .AddInteractiveServerRenderMode();
 

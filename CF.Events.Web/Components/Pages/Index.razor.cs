@@ -1,5 +1,6 @@
-using CF.Events.Web.Models;
 using CF.Events.Web.Services;
+using CF.Events.Shared;
+using CF.Events.Shared.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
@@ -10,7 +11,6 @@ public partial class Index : ComponentBase
     [Inject] private IHttpClientFactory HttpClientFactory { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
     [Inject] private IJSRuntime JsRuntime { get; set; } = null!;
-    [Inject] private ToastService ToastService { get; set; } = null!;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -25,7 +25,7 @@ public partial class Index : ComponentBase
 
         if (string.IsNullOrEmpty(fingerprint) && string.IsNullOrEmpty(accessCode)) return;
 
-        var client = HttpClientFactory.CreateClient("EventsAPI");
+        var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
 
         try
         {
@@ -45,7 +45,6 @@ public partial class Index : ComponentBase
                 if (rsvp is not null)
                 {
                     // Ensure local storage is in sync
-                    await JsRuntime.InvokeVoidAsync("localStorage.setItem", "rsvp_fingerprint", rsvp.Fingerprint);
                     await JsRuntime.InvokeVoidAsync("localStorage.setItem", "rsvp_access_code", rsvp.AccessCode);
                     NavigationManager.NavigateTo("engagement/rsvp");
                 }

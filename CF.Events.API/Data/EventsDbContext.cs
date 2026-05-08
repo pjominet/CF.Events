@@ -1,4 +1,5 @@
 using CF.Events.API.Models;
+using CF.Events.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace CF.Events.API.Data;

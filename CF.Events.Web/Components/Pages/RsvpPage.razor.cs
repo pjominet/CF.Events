@@ -1,7 +1,7 @@
-using System.Net;
-using CF.Events.Web.Models;
 using CF.Events.Web.Services;
 using CF.Events.Web.Components.Layout;
+using CF.Events.Shared;
+using CF.Events.Shared.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 namespace CF.Events.Web.Components.Pages;
@@ -12,7 +12,7 @@ public partial class RsvpPage : ComponentBase
     private Rsvp? currentRsvp;
     private bool showResult;
     private bool isLoading = true;
-    private string? fingerprint;
+    private string? savedAccessCode;
     private string accessCodeInput = string.Empty;
     private bool isRetrieving;
     private ElementReference copyBadgeElement;
@@ -29,13 +29,7 @@ public partial class RsvpPage : ComponentBase
     {
         if (firstRender)
         {
-            fingerprint = await JsRuntime.InvokeAsync<string>("localStorage.getItem", "rsvp_fingerprint");
-            if (string.IsNullOrEmpty(fingerprint))
-            {
-                fingerprint = $"fp_{Guid.NewGuid().ToString("N")[..9]}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
-                await JsRuntime.InvokeVoidAsync("localStorage.setItem", "rsvp_fingerprint", fingerprint);
-            }
-            rsvpModel.Fingerprint = fingerprint;
+            savedAccessCode = await JsRuntime.InvokeAsync<string>("localStorage.getItem", "rsvp_access_code");
             try
             {
                 await CheckStatus();
@@ -56,19 +50,15 @@ public partial class RsvpPage : ComponentBase
 
     private async Task CheckStatus()
     {
-        if (string.IsNullOrEmpty(fingerprint)) return;
+        if (string.IsNullOrEmpty(savedAccessCode)) return;
 
-        var client = HttpClientFactory.CreateClient("EventsAPI");
+        var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
         try
         {
-            var response = await client.GetAsync($"api/events/engagement/rsvp/check/{fingerprint}");
+            var response = await client.GetAsync($"api/events/engagement/rsvp/code/{savedAccessCode}");
             if (response.IsSuccessStatusCode)
             {
                 currentRsvp = await response.Content.ReadFromJsonAsync<Rsvp>();
-                if (currentRsvp != null)
-                {
-                    await JsRuntime.InvokeVoidAsync("localStorage.setItem", "rsvp_access_code", currentRsvp.AccessCode);
-                }
                 showResult = true;
             }
         }
@@ -84,7 +74,7 @@ public partial class RsvpPage : ComponentBase
         if (string.IsNullOrEmpty(accessCodeInput)) return;
 
         isRetrieving = true;
-        var client = HttpClientFactory.CreateClient("EventsAPI");
+        var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
         try
         {
             var response = await client.GetAsync($"api/events/engagement/rsvp/code/{accessCodeInput.Trim().ToUpper()}");
@@ -93,10 +83,9 @@ public partial class RsvpPage : ComponentBase
                 currentRsvp = await response.Content.ReadFromJsonAsync<Rsvp>();
                 if (currentRsvp is not null)
                 {
-                    // Sync fingerprint and access code to local storage for future seamless access
-                    fingerprint = currentRsvp.Fingerprint;
-                    await JsRuntime.InvokeVoidAsync("localStorage.setItem", "rsvp_fingerprint", fingerprint);
-                    await JsRuntime.InvokeVoidAsync("localStorage.setItem", "rsvp_access_code", currentRsvp.AccessCode);
+                    // Sync access code to local storage for future seamless access
+                    savedAccessCode = currentRsvp.AccessCode;
+                    await JsRuntime.InvokeVoidAsync("localStorage.setItem", "rsvp_access_code", savedAccessCode);
                     showResult = true;
                     ToastService.Show("RSVP found and synchronized to this device!", ToastType.Success);
                 }
@@ -119,7 +108,7 @@ public partial class RsvpPage : ComponentBase
 
     private async Task HandleRsvp()
     {
-        var client = HttpClientFactory.CreateClient("EventsAPI");
+        var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
         try
         {
             HttpResponseMessage response;
@@ -132,15 +121,11 @@ public partial class RsvpPage : ComponentBase
                 currentRsvp = await response.Content.ReadFromJsonAsync<Rsvp>();
                 if (currentRsvp != null)
                 {
-                    await JsRuntime.InvokeVoidAsync("localStorage.setItem", "rsvp_access_code", currentRsvp.AccessCode);
+                    savedAccessCode = currentRsvp.AccessCode;
+                    await JsRuntime.InvokeVoidAsync("localStorage.setItem", "rsvp_access_code", savedAccessCode);
                 }
                 showResult = true;
                 ToastService.Show(rsvpModel.Id > 0 ? "Your RSVP has been updated!" : "Thank you for your response!", ToastType.Success);
-            }
-            else if (response.StatusCode is HttpStatusCode.Conflict)
-            {
-                ToastService.Show("You have already RSVP'd.");
-                await CheckStatus();
             }
             else ToastService.Show("Something went wrong. Please try again.", ToastType.Error);
         }
@@ -163,7 +148,7 @@ public partial class RsvpPage : ComponentBase
             BringsPlusOne = currentRsvp.BringsPlusOne,
             JoinForDinner = currentRsvp.JoinForDinner,
             Comments = currentRsvp.Comments,
-            Fingerprint = currentRsvp.Fingerprint
+            AccessCode = currentRsvp.AccessCode
         };
         showResult = false;
     }
@@ -183,14 +168,16 @@ public partial class RsvpPage : ComponentBase
     {
         if (currentRsvp is null) return;
 
-        var client = HttpClientFactory.CreateClient("EventsAPI");
+        var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
         try
         {
-            var response = await client.DeleteAsync($"api/events/engagement/rsvp/{currentRsvp.Id}?fingerprint={fingerprint}");
+            var response = await client.DeleteAsync($"api/events/engagement/rsvp/{currentRsvp.Id}?accessCode={currentRsvp.AccessCode}");
             if (response.IsSuccessStatusCode)
             {
                 ToastService.Show("Your RSVP has been deleted.", ToastType.Success);
-                rsvpModel = new Rsvp { Fingerprint = fingerprint! };
+                await JsRuntime.InvokeVoidAsync("localStorage.removeItem", "rsvp_access_code");
+                savedAccessCode = null;
+                rsvpModel = new Rsvp();
                 showResult = false;
             }
             else ToastService.Show("Delete failed.", ToastType.Error);

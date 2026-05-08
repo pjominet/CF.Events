@@ -1,6 +1,8 @@
 using System.Text;
+using Microsoft.AspNetCore.RateLimiting;
 using CF.Events.API.Data;
 using CF.Events.API.Endpoints;
+using CF.Events.Shared;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -34,9 +36,38 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.AllowAnyOrigin()
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+        var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? [];
+        if (allowedOrigins.Length > 0)
+        {
+            policy.WithOrigins(allowedOrigins)
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        }
+        else
+        {
+            policy.AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        }
+    });
+});
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.AddFixedWindowLimiter(Constants.RateLimiting.Fixed, opt =>
+    {
+        opt.Window = TimeSpan.FromSeconds(10);
+        opt.PermitLimit = 10;
+        opt.QueueLimit = 0;
+    });
+
+    options.AddFixedWindowLimiter(Constants.RateLimiting.Strict, opt =>
+    {
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.PermitLimit = 5;
+        opt.QueueLimit = 0;
     });
 });
 
@@ -68,6 +99,9 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 
 app.UseCors();
+app.UseSecurityHeaders();
+
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 

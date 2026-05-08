@@ -9,5 +9,8 @@
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.0-preview.1.25120.3" />
         <PackageReference Include="BCrypt.Net-Next" Version="4.1.0" />
     </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\CF.Events.Shared\CF.Events.Shared.csproj" />
+    </ItemGroup>
 
 </Project>
