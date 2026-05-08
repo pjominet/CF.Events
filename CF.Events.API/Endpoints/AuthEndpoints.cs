@@ -83,5 +83,32 @@ public static class AuthEndpoints
 
             return Results.Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
         }).RequireAuthorization();
+
+        group.MapPost("/logout", async (HttpContext context, EventsDbContext db) =>
+        {
+            var authHeader = context.Request.Headers.Authorization.ToString();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                return Results.Unauthorized();
+
+            var token = authHeader.Substring("Bearer ".Length).Trim();
+            var handler = new JwtSecurityTokenHandler();
+
+            if (!handler.CanReadToken(token))
+                return Results.BadRequest("Invalid token");
+
+            var jwtToken = handler.ReadJwtToken(token);
+
+            if (await db.RevokedTokens.AnyAsync(t => t.Token == token))
+                return Results.NoContent();
+
+            db.RevokedTokens.Add(new RevokedToken
+            {
+                Token = token,
+                ExpiryDate = jwtToken.ValidTo
+            });
+
+            await db.SaveChangesAsync();
+            return Results.NoContent();
+        }).RequireAuthorization();
     }
 }

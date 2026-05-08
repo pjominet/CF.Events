@@ -4,9 +4,9 @@ namespace CF.Events.API.Models;
 
 public class User
 {
-    public int Id { get; set; }
+    public int Id { get; init; }
 
-    [Required] public string PasswordHash { get; set; } = string.Empty;
+    [Required] [StringLength(64)] public string PasswordHash { get; init; } = string.Empty;
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 }

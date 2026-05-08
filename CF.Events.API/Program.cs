@@ -2,10 +2,12 @@ using System.Text;
 using Microsoft.AspNetCore.RateLimiting;
 using CF.Events.API.Data;
 using CF.Events.API.Endpoints;
+using CF.Events.API.Services;
 using CF.Events.Shared;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,9 +27,25 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
         };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var db = context.HttpContext.RequestServices.GetRequiredService<EventsDbContext>();
+                var token = context.SecurityToken as JwtSecurityToken;
+
+                if (token != null && await db.RevokedTokens.AnyAsync(t => t.Token == token.RawData))
+                {
+                    context.Fail("Token has been revoked.");
+                }
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
+
+builder.Services.AddHostedService<TokenCleanupService>();
 
 builder.Services.AddDbContext<EventsDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=events.db"));

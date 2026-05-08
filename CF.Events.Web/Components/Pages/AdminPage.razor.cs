@@ -171,6 +171,20 @@ public partial class AdminPage : ComponentBase
 
     private async Task Logout()
     {
+        if (!string.IsNullOrEmpty(token))
+        {
+            try
+            {
+                var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                await client.PostAsync("api/events/engagement/logout", null);
+            }
+            catch
+            {
+                // Ignore logout errors
+            }
+        }
+
         await JsRuntime.InvokeVoidAsync("sessionStorage.removeItem", "adminToken");
         token = null;
         showLogin = true;

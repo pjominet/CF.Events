@@ -8,4 +8,5 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : DbCont
 {
     public DbSet<Rsvp> Rsvps => Set<Rsvp>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<RevokedToken> RevokedTokens => Set<RevokedToken>();
 }

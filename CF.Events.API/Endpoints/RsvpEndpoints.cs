@@ -32,7 +32,7 @@ public static class RsvpEndpoints
 
         group.MapGet("/code/{code}", async (string code, EventsDbContext db) =>
         {
-            var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.AccessCode.Equals(code, StringComparison.CurrentCultureIgnoreCase));
+            var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.AccessCode == code.ToUpper());
             return rsvp is not null ? Results.Ok(rsvp) : Results.NotFound();
         }).RequireRateLimiting(Constants.RateLimiting.Strict);
 
@@ -58,7 +58,7 @@ public static class RsvpEndpoints
         group.MapDelete("/{id:int}", async (int id, string accessCode, EventsDbContext db) =>
         {
             var rsvp = await db.Rsvps.FindAsync(id);
-            if (rsvp == null)
+            if (rsvp is null)
                 return Results.NotFound();
 
             if (!rsvp.AccessCode.Equals(accessCode, StringComparison.CurrentCultureIgnoreCase))
