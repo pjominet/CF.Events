@@ -1,6 +1,0 @@
-@PEvents.API_HostAddress = http://localhost:7777
-
-POST {{PEvents.API_HostAddress}}/api/events/engagement/rsvp
-Accept: application/json
-
-###

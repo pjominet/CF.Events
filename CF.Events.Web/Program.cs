@@ -12,7 +12,7 @@ builder.Services.AddHttpClient("EventsAPI", client =>
 {
     var apiBaseUrl = builder.Configuration["EventsApi:BaseUrl"];
     if (string.IsNullOrEmpty(apiBaseUrl))
-        apiBaseUrl = "https://localhost:7041";
+        apiBaseUrl = "http://localhost:5041";
     client.BaseAddress = new Uri(apiBaseUrl);
 });
 
@@ -25,7 +25,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
 
