@@ -1,0 +1,46 @@
+﻿@if (show)
+{
+    <div class="modal fade show modal-backdrop-custom" id="detailModal" tabindex="-1" style="display: block;" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow modal-content-custom">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fs-2">RSVP Details</h5>
+                    <button type="button" class="btn-close" @onclick="Close" aria-label="Close"></button>
+                </div>
+                <div class="modal-body py-4">
+                    <div class="mb-3">
+                        <label class="fw-bold text-primary small text-uppercase">Guest Name</label>
+                        <p class="fs-5">@Rsvp?.Name</p>
+                    </div>
+                    <div>
+                        <label class="fw-bold text-primary small text-uppercase">Comments</label>
+                        <p class="fs-6 text-muted @(string.IsNullOrEmpty(Rsvp?.Comments) ? "italic" : "")">
+                            @(string.IsNullOrEmpty(Rsvp?.Comments) ? "No comments provided." : Rsvp.Comments)
+                        </p>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-primary px-4" @onclick="Close">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool show;
+
+    [Parameter] public Rsvp? Rsvp { get; set; }
+
+    public void Show()
+    {
+        show = true;
+        StateHasChanged();
+    }
+
+    public void Close()
+    {
+        show = false;
+        StateHasChanged();
+    }
+}

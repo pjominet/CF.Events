@@ -1,75 +1,79 @@
 @page "/engagement/admin"
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
-<div class="admin-page centered-container">
-    <div class="admin-container">
-        <h1>Admin Dashboard</h1>
+<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center p-3">
+    <div class="card border-0 p-4 mx-auto bg-card-custom rounded-lg-custom admin-card-width @(showSetup || showLogin ? "admin-max-width-login" : "admin-max-width-dashboard")">
+        <h1 class="text-center mb-4">Admin Dashboard</h1>
 
         @if (isLoading)
         {
-            <div class="loading-container">
+            <div class="d-flex flex-column align-items-center justify-content-center py-5">
                 <p>Loading...</p>
-                <div class="loading-spinner"></div>
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
             </div>
         }
         else if (isApiOffline)
         {
-            <div class="error-container text-center">
-                <p class="error">@apiError</p>
-                <button class="refresh-btn mt-20" @onclick="() => { isApiOffline = false; isLoading = true; StateHasChanged(); }">Retry</button>
+            <div class="text-center py-4">
+                <p class="text-danger">@apiError</p>
+                <button class="btn btn-primary" @onclick="() => { isApiOffline = false; isLoading = true; StateHasChanged(); }">Retry</button>
             </div>
         }
         else if (showSetup)
         {
-            <div id="setupSection" class="login-container">
-                <h2>Initial Admin Setup</h2>
-                <p>Please set a password for the admin account.</p>
-                <form @onsubmit="HandleSetup">
-                    <input type="password" @bind="setupPassword" placeholder="Set Password" required>
-                    <input type="password" @bind="confirmPassword" placeholder="Confirm Password" required>
-                    <button type="submit">Set Password</button>
+            <div id="setupSection" class="mx-auto admin-max-width-setup">
+                <h2 class="text-center">Initial Admin Setup</h2>
+                <p class="text-center text-muted">Please set a password for the admin account.</p>
+                <form @onsubmit="HandleSetup" class="d-flex flex-column gap-3">
+                    <input type="password" class="form-control" @bind="setupPassword" placeholder="Set Password" required>
+                    <input type="password" class="form-control" @bind="confirmPassword" placeholder="Confirm Password" required>
+                    <button type="submit" class="btn btn-primary w-100">Set Password</button>
                 </form>
                 @if (!string.IsNullOrEmpty(setupError))
                 {
-                    <p class="error">@setupError</p>
+                    <p class="text-danger text-center mt-3">@setupError</p>
                 }
             </div>
         }
         else if (showLogin)
         {
-            <div id="loginSection" class="login-container">
-                <h2>Login</h2>
-                <form @onsubmit="HandleLogin">
-                    <input type="password" @bind="loginPassword" placeholder="Enter Password" required>
-                    <button type="submit">Login</button>
+            <div id="loginSection" class="mx-auto admin-max-width-setup">
+                <h2 class="text-center">Login</h2>
+                <form @onsubmit="HandleLogin" class="d-flex flex-column gap-3">
+                    <input type="password" class="form-control" @bind="loginPassword" placeholder="Enter Password" required>
+                    <button type="submit" class="btn btn-primary w-100">Login</button>
                 </form>
                 @if (!string.IsNullOrEmpty(loginError))
                 {
-                    <p class="error">@loginError</p>
+                    <p class="text-danger text-center mt-3">@loginError</p>
                 }
             </div>
         }
         else
         {
             <div id="rsvpList">
-                <div class="admin-controls">
-                    <div class="stats">
-                        <div class="stat-item">
-                            <span class="stat-label">Total Attendance:</span>
-                            <span class="stat-value">@totalAttendance</span>
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+                    <div class="d-flex gap-3">
+                        <div class="bg-white-custom p-2 px-3 rounded shadow-sm">
+                            <span class="fw-bold text-primary">Total Attendance:</span>
+                            <span class="fw-bold ms-2 text-secondary">@totalAttendance</span>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Dinner Guests:</span>
-                            <span class="stat-value">@totalDinner</span>
+                        <div class="bg-white-custom p-2 px-3 rounded shadow-sm">
+                            <span class="fw-bold text-primary">Dinner Guests:</span>
+                            <span class="fw-bold ms-2 text-secondary">@totalDinner</span>
                         </div>
                     </div>
-                    <button class="refresh-btn" @onclick="LoadRsvps">Refresh Data</button>
-                    <button class="refresh-btn btn-logout ml-10" @onclick="Logout">Logout</button>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary" @onclick="LoadRsvps">Refresh Data</button>
+                        <button class="btn btn-danger" @onclick="Logout">Logout</button>
+                    </div>
                 </div>
 
-                <div class="rsvp-table-container">
-                    <table class="rsvp-table">
-                        <thead>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-dark">
                             <tr>
                                 <th>Name</th>
                                 <th>Attending</th>
@@ -77,6 +81,7 @@
                                 <th>Dinner</th>
                                 <th>Comments</th>
                                 <th>Date</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -85,20 +90,55 @@
                                 <tr>
                                     <td>@rsvp.Name</td>
                                     <td>@(rsvp.Attending ? "✅ Yes" : "❌ No")</td>
-                                    <td>@(rsvp.Attending && rsvp.BringsPlusOne ? "👥 +1" : "-")</td>
-                                    <td>@(rsvp.Attending && rsvp.JoinForDinner ? "🍴 Yes" : "-")</td>
-                                    <td class="comment-cell">@rsvp.Comments</td>
+                                    <td>@(rsvp is { Attending: true, BringsPlusOne: true } ? "👥 +1" : "-")</td>
+                                    <td>@(rsvp is { Attending: true, JoinForDinner: true } ? "🍴 Yes" : "-")</td>
+                                    <td class="text-muted small italic comments-cell">
+                                        @if (!string.IsNullOrEmpty(rsvp.Comments))
+                                        {
+                                            <span class="text-truncate d-inline-block" style="max-width: 150px;">@rsvp.Comments</span>
+                                        }
+                                        else
+                                        {
+                                            <span>-</span>
+                                        }
+                                    </td>
                                     <td>@rsvp.SubmittedAt.ToLocalTime().ToShortDateString()</td>
+                                    <td>
+                                        <div class="d-flex gap-1">
+                                            <button class="btn btn-sm btn-info"
+                                                    data-bs-toggle="tooltip"
+                                                    data-bs-placement="top"
+                                                    title="View full comment"
+                                                    @onclick="() => ShowDetails(rsvp)">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger"
+                                                    data-bs-toggle="tooltip"
+                                                    data-bs-placement="top"
+                                                    title="Remove RSVP"
+                                                    @onclick="() => RequestDelete(rsvp.Id)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
                             }
                         </tbody>
                     </table>
                     @if (rsvps.Count == 0)
                     {
-                        <p>No RSVPs received yet.</p>
+                        <p class="text-center text-muted py-4">No RSVPs received yet.</p>
                     }
                 </div>
             </div>
         }
     </div>
 </div>
+
+<ConfirmationDialog @ref="deleteConfirmation"
+                    Title="Delete RSVP"
+                    Message="Are you sure you want to delete this RSVP? This action cannot be undone."
+                    ConfirmText="Delete"
+                    OnConfirmation="HandleDeleteConfirmation" />
+
+<RsvpDetailModal @ref="detailModal" Rsvp="selectedRsvp" />

@@ -1,6 +1,7 @@
 using System.Net;
 using CF.Events.Web.Models;
 using CF.Events.Web.Services;
+using CF.Events.Web.Components.Layout;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 namespace CF.Events.Web.Components.Pages;
@@ -12,6 +13,7 @@ public partial class RsvpPage : ComponentBase
     private bool showResult;
     private bool isLoading = true;
     private string? fingerprint;
+    private ConfirmationDialog deleteConfirmation = null!;
 
     private bool isApiOffline;
     private string apiError = string.Empty;
@@ -22,6 +24,7 @@ public partial class RsvpPage : ComponentBase
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        await JsRuntime.InvokeVoidAsync("initializeTooltips");
         if (firstRender)
         {
             fingerprint = await JsRuntime.InvokeAsync<string>("localStorage.getItem", "rsvp_fingerprint");
@@ -117,12 +120,17 @@ public partial class RsvpPage : ComponentBase
         showResult = false;
     }
 
+    private async Task HandleDeleteConfirmation(bool confirmed)
+    {
+        if (confirmed)
+        {
+            await DeleteRsvp();
+        }
+    }
+
     private async Task DeleteRsvp()
     {
         if (currentRsvp is null) return;
-
-        var confirmed = await JsRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete your RSVP?");
-        if (!confirmed) return;
 
         var client = HttpClientFactory.CreateClient("EventsAPI");
         try

@@ -1,5 +1,6 @@
 using CF.Events.Web.Models;
 using CF.Events.Web.Services;
+using CF.Events.Web.Components.Layout;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using System.Net.Http.Headers;
@@ -22,6 +23,10 @@ public partial class AdminPage : ComponentBase
     private bool isApiOffline;
     private string apiError = string.Empty;
     private string? token;
+    private ConfirmationDialog deleteConfirmation = null!;
+    private RsvpDetailModal detailModal = null!;
+    private int? rsvpIdToDelete;
+    private Rsvp? selectedRsvp;
 
     [Inject] private IHttpClientFactory HttpClientFactory { get; set; } = null!;
     [Inject] private IJSRuntime JsRuntime { get; set; } = null!;
@@ -29,6 +34,7 @@ public partial class AdminPage : ComponentBase
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        await JsRuntime.InvokeVoidAsync("initializeTooltips");
         if (firstRender)
         {
             try
@@ -176,6 +182,54 @@ public partial class AdminPage : ComponentBase
         showLogin = true;
         rsvps.Clear();
         StateHasChanged();
+    }
+
+    private void ShowDetails(Rsvp rsvp)
+    {
+        selectedRsvp = rsvp;
+        detailModal.Show();
+    }
+
+    private void RequestDelete(int id)
+    {
+        rsvpIdToDelete = id;
+        deleteConfirmation.Show();
+    }
+
+    private async Task HandleDeleteConfirmation(bool confirmed)
+    {
+        if (confirmed && rsvpIdToDelete.HasValue)
+        {
+            await DeleteRsvp(rsvpIdToDelete.Value);
+        }
+        rsvpIdToDelete = null;
+    }
+
+    private async Task DeleteRsvp(int id)
+    {
+        if (string.IsNullOrEmpty(token)) return;
+
+        var client = HttpClientFactory.CreateClient("EventsAPI");
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        try
+        {
+            var response = await client.DeleteAsync($"api/events/engagement/rsvp/admin/{id}");
+            if (response.IsSuccessStatusCode)
+            {
+                ToastService.Show("RSVP deleted successfully.", ToastType.Success);
+                await LoadRsvps();
+            }
+            else
+            {
+                ToastService.Show("Failed to delete RSVP.", ToastType.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting RSVP: {ex.Message}");
+            ToastService.Show("Error deleting RSVP. Connection error.", ToastType.Error);
+        }
     }
 
     private class SetupStatus { public bool NeedsSetup { get; init; } }

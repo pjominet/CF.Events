@@ -2,21 +2,23 @@
 @using System.Diagnostics
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
-<div class="admin-container centered-container">
-    <h2 class="cursive title-cursive">Oops!</h2>
-    <div class="text-center">
-        <p class="error-message">Something went wrong while processing your request.</p>
-        <p>Please try again later or return to the home page.</p>
+<div class="container py-5">
+    <div class="card border-0 p-4 mx-auto text-center bg-card-custom rounded-lg-custom error-max-width">
+        <h2 class="cursive mb-4 font-size-3rem">Oops!</h2>
+        <div class="text-center">
+            <p class="text-danger fs-5">Something went wrong while processing your request.</p>
+            <p>Please try again later or return to the home page.</p>
 
-        @if (ShowRequestId)
-        {
-            <p class="request-id">
-                <strong>Request ID:</strong> <code>@RequestId</code>
-            </p>
-        }
+            @if (ShowRequestId)
+            {
+                <p class="small text-muted mt-3">
+                    <strong>Request ID:</strong> <code>@RequestId</code>
+                </p>
+            }
 
-        <div class="mt-20">
-            <a href="engagement" class="btn-primary">Go to Home</a>
+            <div class="mt-4">
+                <a href="engagement" class="btn btn-primary px-4">Go to Home</a>
+            </div>
         </div>
     </div>
 </div>

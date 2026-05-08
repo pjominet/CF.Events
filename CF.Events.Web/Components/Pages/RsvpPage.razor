@@ -1,76 +1,94 @@
 @page "/engagement/rsvp"
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
-<div class="admin-container centered-container">
-    <h2 class="cursive title-cursive">RSVP</h2>
+<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center p-3">
+    <div class="card border-0 p-4 mx-auto bg-card-custom rounded-lg-custom">
+                <h2 class="cursive text-center mb-4 font-size-3rem">RSVP</h2>
 
-    @if (isLoading)
-    {
-        <div class="loading-container">
-            <p>Checking RSVP status...</p>
-            <div class="loading-spinner"></div>
-        </div>
-    }
-    else if (isApiOffline)
-    {
-        <div class="error-container text-center">
-            <p class="error">@apiError</p>
-            <button class="refresh-btn mt-20" @onclick="() => { isApiOffline = false; isLoading = true; StateHasChanged(); }">Retry</button>
-            <a href="engagement" class="btn-secondary mt-10">Back</a>
-        </div>
-    }
-    else if (showResult)
-    {
-        <div id="rsvpResult" class="text-center">
-            <div id="resultMessage">
-                <h3 class="cursive status-title">Current Status</h3>
-                <p><strong>@(currentRsvp?.Attending is true ? "Happily Accepted" : "Regretfully Declined")</strong></p>
-            </div>
-            <div class="button-group flex-center gap-10 mt-20">
-                <button @onclick="ModifyRsvp" class="btn-primary">Modify</button>
-                <button @onclick="DeleteRsvp" class="btn-danger">Delete</button>
-            </div>
-        </div>
-    }
-    else
-    {
-        <div id="rsvpFormContainer">
-            <p class="text-center">Will you be joining us?</p>
-            <EditForm Model="rsvpModel" OnValidSubmit="HandleRsvp" id="rsvpForm">
-                <DataAnnotationsValidator />
-                <InputText @bind-Value="rsvpModel.Name" maxlength="100" placeholder="Your Name" required />
-
-                <div class="radio-group">
-                    <label>
-                        <input type="radio" name="attending" checked="@(rsvpModel.Attending)" @onclick="@(() => rsvpModel.Attending = true)" /> Happily Accept
-                    </label>
-                    <label>
-                        <input type="radio" name="attending" checked="@(!rsvpModel.Attending)" @onclick="@(() => rsvpModel.Attending = false)" /> Regretfully Decline
-                    </label>
-                </div>
-
-                @if (rsvpModel.Attending)
+                @if (isLoading)
                 {
-                    <div id="additionalOptions">
-                        <div class="checkbox-row">
-                            <div class="checkbox-group" id="plusOneOption">
-                                <label><InputCheckbox @bind-Value="rsvpModel.BringsPlusOne" /> Bringing a +1?</label>
-                            </div>
-                            <div class="checkbox-group" id="dinnerOption">
-                                <label><InputCheckbox @bind-Value="rsvpModel.JoinForDinner" /> Join us for dinner?</label>
-                            </div>
-                        </div>
-                        <div class="textarea-group">
-                            <InputTextArea @bind-Value="rsvpModel.Comments" maxlength="500" placeholder="Add a comment... (optional)" rows="3" />
+                    <div class="d-flex flex-column align-items-center justify-content-center py-5">
+                        <p>Checking RSVP status...</p>
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
                         </div>
                     </div>
                 }
+                else if (isApiOffline)
+                {
+                    <div class="text-center py-4">
+                        <p class="text-danger">@apiError</p>
+                        <button class="btn btn-primary mt-3" @onclick="() => { isApiOffline = false; isLoading = true; StateHasChanged(); }">Retry</button>
+                        <a href="engagement" class="btn btn-secondary mt-2 ms-2">Back</a>
+                    </div>
+                }
+                else if (showResult)
+                {
+                    <div id="rsvpResult" class="text-center">
+                        <div id="resultMessage">
+                            <h3 class="cursive mb-3 font-size-2rem">Current Status</h3>
+                            <p class="fs-5"><strong>@(currentRsvp?.Attending is true ? "Happily Accepted" : "Regretfully Declined")</strong></p>
+                        </div>
+                        <div class="d-flex justify-content-center gap-2 mt-4">
+                            <button @onclick="ModifyRsvp" class="btn btn-primary px-4">Modify</button>
+                            <button @onclick="() => deleteConfirmation.Show()" class="btn btn-danger px-4">Delete</button>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div id="rsvpFormContainer">
+                        <p class="text-center mb-4">Will you be joining us?</p>
+                        <EditForm Model="rsvpModel" OnValidSubmit="HandleRsvp" id="rsvpForm" class="d-flex flex-column gap-3">
+                            <DataAnnotationsValidator />
+                            <InputText @bind-Value="rsvpModel.Name" class="form-control" maxlength="100" placeholder="Your Name" required />
 
-                <div class="button-group flex-center gap-10 mt-20">
-                    <button id="submitBtn" class="btn-flex-1" type="submit">@(rsvpModel.Id > 0 ? "Update RSVP" : "Send")</button>
-                    <a href="engagement" class="btn-secondary btn-flex-1 flex-center">Back</a>
-                </div>
-            </EditForm>
+                            <div class="d-flex justify-content-center gap-4 my-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="attending" id="accept" checked="@(rsvpModel.Attending)" @onclick="@(() => rsvpModel.Attending = true)" />
+                                    <label class="form-check-label" for="accept">Happily Accept</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="attending" id="decline" checked="@(!rsvpModel.Attending)" @onclick="@(() => rsvpModel.Attending = false)" />
+                                    <label class="form-check-label" for="decline">Regretfully Decline</label>
+                                </div>
+                            </div>
+
+                            @if (rsvpModel.Attending)
+                            {
+                                <div id="additionalOptions" class="d-flex flex-column gap-3 mt-2">
+                                    <div class="row g-3 justify-content-center">
+                                        <div class="col-auto">
+                                            <div class="form-check">
+                                                <InputCheckbox @bind-Value="rsvpModel.BringsPlusOne" class="form-check-input" id="plusOne" />
+                                                <label class="form-check-label" for="plusOne">Bringing a +1?</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <div class="form-check">
+                                                <InputCheckbox @bind-Value="rsvpModel.JoinForDinner" class="form-check-input" id="dinner" />
+                                                <label class="form-check-label" for="dinner">Join us for dinner?</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <InputTextArea @bind-Value="rsvpModel.Comments" class="form-control" maxlength="500" placeholder="Add a comment... (optional)" rows="3" />
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="d-flex justify-content-center gap-2 mt-4">
+                                <button id="submitBtn" class="btn btn-primary flex-grow-1" type="submit">@(rsvpModel.Id > 0 ? "Update RSVP" : "Send")</button>
+                                <a href="engagement" class="btn btn-secondary flex-grow-1 d-flex align-items-center justify-content-center">Back</a>
+                            </div>
+                        </EditForm>
+                    </div>
+                }
+            </div>
         </div>
-    }
-</div>
+
+        <ConfirmationDialog @ref="deleteConfirmation"
+                            Title="Delete RSVP"
+                            Message="Are you sure you want to delete your RSVP? This cannot be undone."
+                            ConfirmText="Delete"
+                            OnConfirmation="HandleDeleteConfirmation" />
