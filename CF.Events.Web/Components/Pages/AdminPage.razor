@@ -1,16 +1,23 @@
-@page "/admin"
-@inject IHttpClientFactory HttpClientFactory
-@inject IJSRuntime JSRuntime
-@using System.Net.Http.Headers
-@using System.Text.Json
+@page "/engagement/admin"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 
-<div class="admin-page">
+<div class="admin-page centered-container">
     <div class="admin-container">
         <h1>Admin Dashboard</h1>
 
         @if (isLoading)
         {
-            <p id="loadingMessage">Loading RSVPs...</p>
+            <div class="loading-container">
+                <p>Loading...</p>
+                <div class="loading-spinner"></div>
+            </div>
+        }
+        else if (isApiOffline)
+        {
+            <div class="error-container text-center">
+                <p class="error">@apiError</p>
+                <button class="refresh-btn mt-20" @onclick="() => { isApiOffline = false; isLoading = true; StateHasChanged(); }">Retry</button>
+            </div>
         }
         else if (showSetup)
         {
@@ -57,7 +64,7 @@
                         </div>
                     </div>
                     <button class="refresh-btn" @onclick="LoadRsvps">Refresh Data</button>
-                    <button class="refresh-btn" @onclick="Logout" style="background-color: #d9534f; margin-left: 10px;">Logout</button>
+                    <button class="refresh-btn btn-logout ml-10" @onclick="Logout">Logout</button>
                 </div>
 
                 <div class="rsvp-table-container">
@@ -95,174 +102,3 @@
         }
     </div>
 </div>
-
-@code {
-    private bool isLoading = true;
-    private bool showSetup = false;
-    private bool showLogin = false;
-    private string setupPassword = "";
-    private string confirmPassword = "";
-    private string setupError = "";
-    private string loginPassword = "";
-    private string loginError = "";
-    private List<Rsvp> rsvps = new();
-    private int totalAttendance = 0;
-    private int totalDinner = 0;
-    private string? token;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            token = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "adminToken");
-            if (string.IsNullOrEmpty(token))
-            {
-                await CheckSetupStatus();
-            }
-            else
-            {
-                await LoadRsvps();
-            }
-            isLoading = false;
-            StateHasChanged();
-        }
-    }
-
-    private async Task CheckSetupStatus()
-    {
-        var client = HttpClientFactory.CreateClient("EventsAPI");
-        try
-        {
-            var status = await client.GetFromJsonAsync<SetupStatus>("api/events/engagement/setup-status");
-            if (status?.NeedsSetup == true)
-            {
-                showSetup = true;
-                showLogin = false;
-            }
-            else
-            {
-                showSetup = false;
-                showLogin = true;
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error checking setup status: {ex.Message}");
-        }
-    }
-
-    private async Task HandleSetup()
-    {
-        if (setupPassword != confirmPassword)
-        {
-            setupError = "Passwords do not match.";
-            return;
-        }
-
-        var client = HttpClientFactory.CreateClient("EventsAPI");
-        try
-        {
-            var response = await client.PostAsync($"api/events/engagement/setup?password={Uri.EscapeDataString(setupPassword)}", null);
-            if (response.IsSuccessStatusCode)
-            {
-                await JSRuntime.InvokeVoidAsync("alert", "Admin setup successful! Please login.");
-                showSetup = false;
-                showLogin = true;
-                setupPassword = "";
-                confirmPassword = "";
-            }
-            else
-            {
-                setupError = await response.Content.ReadAsStringAsync();
-            }
-        }
-        catch (Exception ex)
-        {
-            setupError = "Could not connect to server.";
-        }
-    }
-
-    private async Task HandleLogin()
-    {
-        var client = HttpClientFactory.CreateClient("EventsAPI");
-        try
-        {
-            var response = await client.PostAsync($"api/events/engagement/login?password={Uri.EscapeDataString(loginPassword)}", null);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadFromJsonAsync<LoginResult>();
-                token = result?.Token;
-                if (!string.IsNullOrEmpty(token))
-                {
-                    await JSRuntime.InvokeVoidAsync("sessionStorage.setItem", "adminToken", token);
-                    showLogin = false;
-                    await LoadRsvps();
-                }
-            }
-            else
-            {
-                loginError = "Invalid password.";
-            }
-        }
-        catch (Exception ex)
-        {
-            loginError = "Login failed.";
-        }
-    }
-
-    private async Task LoadRsvps()
-    {
-        if (string.IsNullOrEmpty(token)) return;
-
-        var client = HttpClientFactory.CreateClient("EventsAPI");
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        try
-        {
-            var response = await client.GetAsync("api/events/engagement/rsvp");
-            if (response.IsSuccessStatusCode)
-            {
-                rsvps = await response.Content.ReadFromJsonAsync<List<Rsvp>>() ?? new();
-                CalculateStats();
-            }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-            {
-                await Logout();
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error loading RSVPs: {ex.Message}");
-        }
-    }
-
-    private void CalculateStats()
-    {
-        totalAttendance = 0;
-        totalDinner = 0;
-        foreach (var rsvp in rsvps)
-        {
-            if (rsvp.Attending)
-            {
-                totalAttendance += 1;
-                if (rsvp.BringsPlusOne) totalAttendance += 1;
-                if (rsvp.JoinForDinner)
-                {
-                    totalDinner += 1;
-                    if (rsvp.BringsPlusOne) totalDinner += 1;
-                }
-            }
-        }
-    }
-
-    private async Task Logout()
-    {
-        await JSRuntime.InvokeVoidAsync("sessionStorage.removeItem", "adminToken");
-        token = null;
-        rsvps.Clear();
-        await CheckSetupStatus();
-    }
-
-    public class SetupStatus { public bool NeedsSetup { get; set; } }
-    public class LoginResult { public string Token { get; set; } = ""; }
-}

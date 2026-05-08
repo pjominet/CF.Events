@@ -367,10 +367,163 @@ body {
     to { transform: rotate(360deg); }
 }
 
+.error-container {
+    padding: 20px;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.mt-20 { margin-top: 20px; }
+.mt-10 { margin-top: 10px; }
+.ml-10 { margin-left: 10px; }
+
 .error {
     color: #a00;
     text-align: center;
     padding: 20px;
+}
+
+/* Shared & Utility Classes */
+.centered-container {
+    min-height: 200px;
+}
+
+.title-cursive {
+    font-size: 3rem;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+/* Toast Notifications */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.toast {
+    pointer-events: auto;
+    min-width: 250px;
+    padding: 15px 20px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+    font-family: var(--font-sans);
+    animation: slideIn 0.3s ease-out;
+}
+
+.toast.success { background-color: #4b6a4b; }
+.toast.error { background-color: #a94442; }
+.toast.info { background-color: #31708f; }
+
+.toast-message {
+    flex-grow: 1;
+    margin-right: 15px;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity var(--transition-speed);
+}
+
+.toast-close:hover {
+    opacity: 1;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.result-container {
+    text-align: center;
+}
+
+.status-title {
+    font-size: 2rem;
+}
+
+.flex-center {
+    display: flex;
+    justify-content: center;
+}
+
+.gap-10 {
+    gap: 10px;
+}
+
+.mt-20 {
+    margin-top: 20px;
+}
+
+.btn-primary {
+    padding: 10px 20px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-danger {
+    padding: 10px 20px;
+    background-color: #d9534f;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-secondary {
+    padding: 10px 20px;
+    text-decoration: none;
+    background-color: #ccc;
+    color: #333;
+    border-radius: 5px;
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+}
+
+.btn-flex-1 {
+    flex: 1;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.ml-10 {
+    margin-left: 10px;
+}
+
+.btn-logout {
+    background-color: #d9534f;
 }
 
 @media (max-width: 500px) {
