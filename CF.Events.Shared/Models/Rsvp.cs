@@ -19,7 +19,7 @@ public class Rsvp
 
     [Required]
     [StringLength(6)]
-    public string AccessCode { get; set; } = string.Empty;
+    public string AccessCode { get; set; } = "NONE";
 
     public DateTime SubmittedAt { get; init; } = DateTime.UtcNow;
 }
