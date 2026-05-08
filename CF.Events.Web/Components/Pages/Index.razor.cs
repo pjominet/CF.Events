@@ -13,10 +13,7 @@ public partial class Index : ComponentBase
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
-        {
-            await CheckAndRedirect();
-        }
+        if (firstRender) await CheckAndRedirect();
     }
 
     private async Task CheckAndRedirect()

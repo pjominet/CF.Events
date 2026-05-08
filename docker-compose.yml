@@ -1,0 +1,30 @@
+﻿services:
+  cf-events-api:
+    build:
+      context: .
+      dockerfile: CF.Events.API/Dockerfile
+    container_name: cf-events-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - Jwt__Key=OyINhOESzMsC6hWcSU1F1L453mOi88Gs#D0dEhTyruWTfddcq0HHJNrKy7OHWnXJo
+      - Jwt__Issuer=CF.Events.API
+      - Jwt__Audience=CF.Events.Web
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "5041:8081"
+    restart: always
+
+  cf-events-web:
+    build:
+      context: .
+      dockerfile: CF.Events.Web/Dockerfile
+    container_name: cf-events-web
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - EventsApi__BaseUrl=http://cf-events-api:8081
+    ports:
+      - "8080:8082"
+    depends_on:
+      - cf-events-api
+    restart: always

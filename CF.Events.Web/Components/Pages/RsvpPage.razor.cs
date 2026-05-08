@@ -1,3 +1,4 @@
+using System.Net;
 using CF.Events.Web.Models;
 using CF.Events.Web.Services;
 using Microsoft.AspNetCore.Components;
@@ -12,22 +13,22 @@ public partial class RsvpPage : ComponentBase
     private bool isLoading = true;
     private string? fingerprint;
 
-    private bool isApiOffline = false;
-    private string apiError = "";
+    private bool isApiOffline;
+    private string apiError = string.Empty;
 
     [Inject] private IHttpClientFactory HttpClientFactory { get; set; } = null!;
-    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
+    [Inject] private IJSRuntime JsRuntime { get; set; } = null!;
     [Inject] private ToastService ToastService { get; set; } = null!;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            fingerprint = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "rsvp_fingerprint");
+            fingerprint = await JsRuntime.InvokeAsync<string>("localStorage.getItem", "rsvp_fingerprint");
             if (string.IsNullOrEmpty(fingerprint))
             {
-                fingerprint = $"fp_{Guid.NewGuid().ToString("N").Substring(0, 9)}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
-                await JSRuntime.InvokeVoidAsync("localStorage.setItem", "rsvp_fingerprint", fingerprint);
+                fingerprint = $"fp_{Guid.NewGuid().ToString("N")[..9]}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
+                await JsRuntime.InvokeVoidAsync("localStorage.setItem", "rsvp_fingerprint", fingerprint);
             }
             rsvpModel.Fingerprint = fingerprint;
             try
@@ -85,9 +86,9 @@ public partial class RsvpPage : ComponentBase
                 showResult = true;
                 ToastService.Show(rsvpModel.Id > 0 ? "Your RSVP has been updated!" : "Thank you for your response!", ToastType.Success);
             }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+            else if (response.StatusCode is HttpStatusCode.Conflict)
             {
-                ToastService.Show("You have already RSVP'd.", ToastType.Info);
+                ToastService.Show("You have already RSVP'd.");
                 await CheckStatus();
             }
             else ToastService.Show("Something went wrong. Please try again.", ToastType.Error);
@@ -120,7 +121,7 @@ public partial class RsvpPage : ComponentBase
     {
         if (currentRsvp is null) return;
 
-        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete your RSVP?");
+        var confirmed = await JsRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete your RSVP?");
         if (!confirmed) return;
 
         var client = HttpClientFactory.CreateClient("EventsAPI");

@@ -10,8 +10,10 @@ builder.Services.AddSingleton<ToastService>();
 
 builder.Services.AddHttpClient("EventsAPI", client =>
 {
-    var isHttps = builder.Environment.IsDevelopment(); // Simplified for now
-    client.BaseAddress = new Uri(isHttps ? "https://localhost:7041" : "http://localhost:5041");
+    var apiBaseUrl = builder.Configuration["EventsApi:BaseUrl"];
+    if (string.IsNullOrEmpty(apiBaseUrl))
+        apiBaseUrl = "https://localhost:7041";
+    client.BaseAddress = new Uri(apiBaseUrl);
 });
 
 var app = builder.Build();

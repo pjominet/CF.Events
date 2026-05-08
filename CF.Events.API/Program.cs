@@ -50,9 +50,22 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment()) app.MapOpenApi();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler(handler =>
+    {
+        handler.Run(async context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(new { error = "An unexpected error occurred." });
+        });
+    });
+    app.UseHsts();
+}
 
-// app.UseHttpsRedirection();
+app.UseHttpsRedirection();
+if (app.Environment.IsDevelopment()) app.MapOpenApi();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();

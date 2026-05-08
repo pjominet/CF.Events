@@ -385,6 +385,24 @@ body {
     padding: 20px;
 }
 
+.error-message {
+    color: #d9534f;
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
+.request-id {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 15px;
+}
+
+.request-id code {
+    background: #eee;
+    padding: 2px 5px;
+    border-radius: 3px;
+}
+
 /* Shared & Utility Classes */
 .centered-container {
     min-height: 200px;
