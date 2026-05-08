@@ -241,3 +241,6 @@ _Pvt_Extensions
 *.db-shm
 *.db-wal
 
+#outputs
+*.tar
+
