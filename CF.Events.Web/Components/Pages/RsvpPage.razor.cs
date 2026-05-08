@@ -2,8 +2,6 @@ using CF.Events.Web.Models;
 using CF.Events.Web.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using System.Net.Http.Json;
-
 namespace CF.Events.Web.Components.Pages;
 
 public partial class RsvpPage : ComponentBase
@@ -17,9 +15,9 @@ public partial class RsvpPage : ComponentBase
     private bool isApiOffline = false;
     private string apiError = "";
 
-    [Inject] private IHttpClientFactory HttpClientFactory { get; set; } = default!;
-    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
-    [Inject] private ToastService ToastService { get; set; } = default!;
+    [Inject] private IHttpClientFactory HttpClientFactory { get; set; } = null!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
+    [Inject] private ToastService ToastService { get; set; } = null!;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -78,13 +76,8 @@ public partial class RsvpPage : ComponentBase
         {
             HttpResponseMessage response;
             if (rsvpModel.Id > 0)
-            {
                 response = await client.PutAsJsonAsync($"api/events/engagement/rsvp/{rsvpModel.Id}", rsvpModel);
-            }
-            else
-            {
-                response = await client.PostAsJsonAsync("api/events/engagement/rsvp", rsvpModel);
-            }
+            else response = await client.PostAsJsonAsync("api/events/engagement/rsvp", rsvpModel);
 
             if (response.IsSuccessStatusCode)
             {
@@ -97,10 +90,7 @@ public partial class RsvpPage : ComponentBase
                 ToastService.Show("You have already RSVP'd.", ToastType.Info);
                 await CheckStatus();
             }
-            else
-            {
-                ToastService.Show("Something went wrong. Please try again.", ToastType.Error);
-            }
+            else ToastService.Show("Something went wrong. Please try again.", ToastType.Error);
         }
         catch (Exception ex)
         {
@@ -111,27 +101,26 @@ public partial class RsvpPage : ComponentBase
 
     private void ModifyRsvp()
     {
-        if (currentRsvp != null)
+        if (currentRsvp is null) return;
+
+        rsvpModel = new Rsvp
         {
-            rsvpModel = new Rsvp
-            {
-                Id = currentRsvp.Id,
-                Name = currentRsvp.Name,
-                Attending = currentRsvp.Attending,
-                BringsPlusOne = currentRsvp.BringsPlusOne,
-                JoinForDinner = currentRsvp.JoinForDinner,
-                Comments = currentRsvp.Comments,
-                Fingerprint = currentRsvp.Fingerprint
-            };
-            showResult = false;
-        }
+            Id = currentRsvp.Id,
+            Name = currentRsvp.Name,
+            Attending = currentRsvp.Attending,
+            BringsPlusOne = currentRsvp.BringsPlusOne,
+            JoinForDinner = currentRsvp.JoinForDinner,
+            Comments = currentRsvp.Comments,
+            Fingerprint = currentRsvp.Fingerprint
+        };
+        showResult = false;
     }
 
     private async Task DeleteRsvp()
     {
-        if (currentRsvp == null) return;
+        if (currentRsvp is null) return;
 
-        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete your RSVP?");
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete your RSVP?");
         if (!confirmed) return;
 
         var client = HttpClientFactory.CreateClient("EventsAPI");
@@ -144,10 +133,7 @@ public partial class RsvpPage : ComponentBase
                 rsvpModel = new Rsvp { Fingerprint = fingerprint! };
                 showResult = false;
             }
-            else
-            {
-                ToastService.Show("Delete failed.", ToastType.Error);
-            }
+            else ToastService.Show("Delete failed.", ToastType.Error);
         }
         catch (Exception ex)
         {

@@ -2,7 +2,6 @@ using CF.Events.Web.Models;
 using CF.Events.Web.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using System.Net.Http.Json;
 using System.Net.Http.Headers;
 
 namespace CF.Events.Web.Components.Pages;
@@ -10,23 +9,23 @@ namespace CF.Events.Web.Components.Pages;
 public partial class AdminPage : ComponentBase
 {
     private bool isLoading = true;
-    private bool showSetup = false;
-    private bool showLogin = false;
-    private string setupPassword = "";
-    private string confirmPassword = "";
-    private string setupError = "";
-    private string loginPassword = "";
-    private string loginError = "";
-    private List<Rsvp> rsvps = new();
-    private int totalAttendance = 0;
-    private int totalDinner = 0;
-    private bool isApiOffline = false;
-    private string apiError = "";
+    private bool showSetup;
+    private bool showLogin;
+    private string setupPassword = string.Empty;
+    private string confirmPassword = string.Empty;
+    private string setupError = string.Empty;
+    private string loginPassword = string.Empty;
+    private string loginError = string.Empty;
+    private List<Rsvp> rsvps = [];
+    private int totalAttendance;
+    private int totalDinner;
+    private bool isApiOffline;
+    private string apiError = string.Empty;
     private string? token;
 
-    [Inject] private IHttpClientFactory HttpClientFactory { get; set; } = default!;
-    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
-    [Inject] private ToastService ToastService { get; set; } = default!;
+    [Inject] private IHttpClientFactory HttpClientFactory { get; set; } = null!;
+    [Inject] private IJSRuntime JsRuntime { get; set; } = null!;
+    [Inject] private ToastService ToastService { get; set; } = null!;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -34,15 +33,10 @@ public partial class AdminPage : ComponentBase
         {
             try
             {
-                token = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "adminToken");
+                token = await JsRuntime.InvokeAsync<string>("sessionStorage.getItem", "adminToken");
                 if (string.IsNullOrEmpty(token))
-                {
                     await CheckSetupStatus();
-                }
-                else
-                {
-                    await LoadRsvps();
-                }
+                else await LoadRsvps();
             }
             catch (Exception ex)
             {
@@ -64,7 +58,7 @@ public partial class AdminPage : ComponentBase
         try
         {
             var status = await client.GetFromJsonAsync<SetupStatus>("api/events/engagement/setup-status");
-            if (status?.NeedsSetup == true)
+            if (status?.NeedsSetup is true)
             {
                 showSetup = true;
                 showLogin = false;
@@ -99,8 +93,8 @@ public partial class AdminPage : ComponentBase
                 ToastService.Show("Admin setup successful! Please login.", ToastType.Success);
                 showSetup = false;
                 showLogin = true;
-                setupPassword = "";
-                confirmPassword = "";
+                setupPassword = string.Empty;
+                confirmPassword = string.Empty;
             }
             else
             {
@@ -125,7 +119,7 @@ public partial class AdminPage : ComponentBase
                 token = result?.Token;
                 if (!string.IsNullOrEmpty(token))
                 {
-                    await JSRuntime.InvokeVoidAsync("sessionStorage.setItem", "adminToken", token);
+                    await JsRuntime.InvokeVoidAsync("sessionStorage.setItem", "adminToken", token);
                     showLogin = false;
                     await LoadRsvps();
                 }
@@ -152,11 +146,11 @@ public partial class AdminPage : ComponentBase
         try
         {
             var result = await client.GetFromJsonAsync<List<Rsvp>>("api/events/engagement/rsvp");
-            if (result != null)
+            if (result is not null)
             {
                 rsvps = result.OrderByDescending(r => r.SubmittedAt).ToList();
-                totalAttendance = rsvps.Count(r => r.Attending) + rsvps.Where(r => r.Attending && r.BringsPlusOne).Count();
-                totalDinner = rsvps.Count(r => r.Attending && r.JoinForDinner);
+                totalAttendance = rsvps.Count(r => r.Attending) + rsvps.Count(r => r is { Attending: true, BringsPlusOne: true });
+                totalDinner = rsvps.Count(r => r is { Attending: true, JoinForDinner: true });
             }
         }
         catch (Exception ex)
@@ -177,13 +171,13 @@ public partial class AdminPage : ComponentBase
 
     private async Task Logout()
     {
-        await JSRuntime.InvokeVoidAsync("sessionStorage.removeItem", "adminToken");
+        await JsRuntime.InvokeVoidAsync("sessionStorage.removeItem", "adminToken");
         token = null;
         showLogin = true;
         rsvps.Clear();
         StateHasChanged();
     }
 
-    private class SetupStatus { public bool NeedsSetup { get; set; } }
-    private class LoginResult { public string? Token { get; set; } }
+    private class SetupStatus { public bool NeedsSetup { get; init; } }
+    private class LoginResult { public string? Token { get; init; } }
 }

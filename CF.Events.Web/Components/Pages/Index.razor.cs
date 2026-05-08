@@ -6,10 +6,10 @@ namespace CF.Events.Web.Components.Pages;
 
 public partial class Index : ComponentBase
 {
-    [Inject] private IHttpClientFactory HttpClientFactory { get; set; } = default!;
-    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
-    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
-    [Inject] private ToastService ToastService { get; set; } = default!;
+    [Inject] private IHttpClientFactory HttpClientFactory { get; set; } = null!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = null!;
+    [Inject] private IJSRuntime JsRuntime { get; set; } = null!;
+    [Inject] private ToastService ToastService { get; set; } = null!;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -21,7 +21,7 @@ public partial class Index : ComponentBase
 
     private async Task CheckAndRedirect()
     {
-        var fingerprint = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "rsvp_fingerprint");
+        var fingerprint = await JsRuntime.InvokeAsync<string>("localStorage.getItem", "rsvp_fingerprint");
         if (string.IsNullOrEmpty(fingerprint)) return;
 
         var client = HttpClientFactory.CreateClient("EventsAPI");
@@ -30,9 +30,7 @@ public partial class Index : ComponentBase
         {
             var response = await client.GetAsync($"api/events/engagement/rsvp/check/{fingerprint}");
             if (response.IsSuccessStatusCode)
-            {
                 NavigationManager.NavigateTo("engagement/rsvp");
-            }
         }
         catch (Exception ex)
         {

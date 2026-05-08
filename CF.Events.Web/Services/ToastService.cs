@@ -12,32 +12,32 @@ public enum ToastType
 public class ToastMessage
 {
     public Guid Id { get; } = Guid.NewGuid();
-    public string Message { get; set; } = string.Empty;
-    public ToastType Type { get; set; } = ToastType.Info;
+    public string Message { get; init; } = string.Empty;
+    public ToastType Type { get; init; } = ToastType.Info;
 }
 
 public class ToastService : IDisposable
 {
     public event Action? OnChange;
-    private readonly List<ToastMessage> _toasts = new();
-    private readonly System.Timers.Timer _timer;
+    private readonly List<ToastMessage> toasts = [];
+    private readonly System.Timers.Timer timer;
 
     public ToastService()
     {
-        _timer = new System.Timers.Timer(5000);
-        _timer.Elapsed += OnTimerElapsed;
-        _timer.AutoReset = true;
-        _timer.Start();
+        timer = new System.Timers.Timer(5000);
+        timer.Elapsed += OnTimerElapsed;
+        timer.AutoReset = true;
+        timer.Start();
     }
 
-    public List<ToastMessage> GetToasts() => _toasts.ToList();
+    public List<ToastMessage> GetToasts() => toasts.ToList();
 
     public void Show(string message, ToastType type = ToastType.Info)
     {
         var toast = new ToastMessage { Message = message, Type = type };
-        lock (_toasts)
+        lock (toasts)
         {
-            _toasts.Add(toast);
+            toasts.Add(toast);
         }
         NotifyStateChanged();
 
@@ -47,14 +47,13 @@ public class ToastService : IDisposable
 
     public void Remove(Guid id)
     {
-        lock (_toasts)
+        lock (toasts)
         {
-            var toast = _toasts.FirstOrDefault(t => t.Id == id);
-            if (toast != null)
-            {
-                _toasts.Remove(toast);
-                NotifyStateChanged();
-            }
+            var toast = toasts.FirstOrDefault(t => t.Id == id);
+            if (toast is null) return;
+
+            toasts.Remove(toast);
+            NotifyStateChanged();
         }
     }
 
@@ -67,6 +66,6 @@ public class ToastService : IDisposable
 
     public void Dispose()
     {
-        _timer.Dispose();
+        timer.Dispose();
     }
 }
