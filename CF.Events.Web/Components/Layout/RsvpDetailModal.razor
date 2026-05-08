@@ -1,5 +1,4 @@
-﻿@using CF.Events.Shared.Models
-<div class="modal fade @(show ? "show" : "") modal-backdrop-custom" id="detailModal" tabindex="-1" style="display: @(show ? "block" : "none");" role="dialog">
+﻿<div class="modal fade @(show ? "show" : "") modal-backdrop-custom" id="detailModal" tabindex="-1" style="display: @(show ? "block" : "none");" role="dialog">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content border-0 shadow modal-content-custom">
             <div class="modal-header border-0 pb-0">
@@ -43,14 +42,13 @@
     [Inject] private IJSRuntime JsRuntime { get; set; } = null!;
     [Inject] private ToastService ToastService { get; set; } = null!;
 
-    public async Task Show()
+    public void Show()
     {
         show = true;
         StateHasChanged();
-        await JsRuntime.InvokeVoidAsync("initializeTooltips");
     }
 
-    public void Close()
+    private void Close()
     {
         show = false;
         StateHasChanged();

@@ -198,10 +198,10 @@ public partial class AdminPage : ComponentBase
         ToastService.Show("Code copied to clipboard!", ToastType.Success);
     }
 
-    private async Task ShowDetails(Rsvp rsvp)
+    private void ShowDetails(Rsvp rsvp)
     {
         selectedRsvp = rsvp;
-        await detailModal.Show();
+        detailModal.Show();
     }
 
     private void RequestDelete(int id)
