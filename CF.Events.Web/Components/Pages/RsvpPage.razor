@@ -50,19 +50,25 @@
                 {
                     <div id="rsvpFormContainer">
                         <p class="text-center mb-4">Will you be joining us?</p>
-                        <EditForm Model="rsvpModel" OnValidSubmit="HandleRsvp" id="rsvpForm" class="d-flex flex-column gap-3">
-                            <DataAnnotationsValidator />
-                            <InputText @bind-Value="rsvpModel.Name" class="form-control" maxlength="100" placeholder="Your Name" required />
+                        <EditForm Model="rsvpModel" OnValidSubmit="HandleSubmit" id="rsvpForm" class="d-flex flex-column gap-3" FormName="RsvpForm">
+                            <InputHidden @bind-Value="rsvpModel.AccessCode"></InputHidden>
+                            <DataAnnotationsValidator/>
+                            <div class="mb-1">
+                                <InputText @bind-Value="rsvpModel.Name" class="form-control" maxlength="100" placeholder="Your Name"/>
+                                <ValidationMessage For="@(() => rsvpModel.Name)" class="text-danger small mt-1"/>
+                            </div>
 
                             <div class="d-flex justify-content-center gap-4 my-2">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="attending" id="accept" checked="@(rsvpModel.Attending)" @onclick="@(() => rsvpModel.Attending = true)" />
-                                    <label class="form-check-label" for="accept">Happily Accept</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="attending" id="decline" checked="@(!rsvpModel.Attending)" @onclick="@(() => rsvpModel.Attending = false)" />
-                                    <label class="form-check-label" for="decline">Regretfully Decline</label>
-                                </div>
+                                <InputRadioGroup @bind-Value="rsvpModel.Attending">
+                                    <div class="form-check">
+                                        <InputRadio Value="true" class="form-check-input" id="accept"/>
+                                        <label class="form-check-label" for="accept">Happily Accept</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <InputRadio Value="false" class="form-check-input" id="decline"/>
+                                        <label class="form-check-label" for="decline">Regretfully Decline</label>
+                                    </div>
+                                </InputRadioGroup>
                             </div>
 
                             @if (rsvpModel.Attending)
@@ -71,19 +77,19 @@
                                     <div class="row g-3 justify-content-center">
                                         <div class="col-auto">
                                             <div class="form-check">
-                                                <InputCheckbox @bind-Value="rsvpModel.BringsPlusOne" class="form-check-input" id="plusOne" />
+                                                <InputCheckbox @bind-Value="rsvpModel.BringsPlusOne" class="form-check-input" id="plusOne"/>
                                                 <label class="form-check-label" for="plusOne">Bringing a +1?</label>
                                             </div>
                                         </div>
                                         <div class="col-auto">
                                             <div class="form-check">
-                                                <InputCheckbox @bind-Value="rsvpModel.JoinForDinner" class="form-check-input" id="dinner" />
+                                                <InputCheckbox @bind-Value="rsvpModel.JoinForDinner" class="form-check-input" id="dinner"/>
                                                 <label class="form-check-label" for="dinner">Join us for dinner?</label>
                                             </div>
                                         </div>
                                     </div>
                                     <div>
-                                        <InputTextArea @bind-Value="rsvpModel.Comments" class="form-control" maxlength="500" placeholder="Add a comment... (optional)" rows="3" />
+                                        <InputTextArea @bind-Value="rsvpModel.Comments" class="form-control" maxlength="500" placeholder="Add a comment... (optional)" rows="3"/>
                                     </div>
                                 </div>
                             }

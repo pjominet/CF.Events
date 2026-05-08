@@ -18,7 +18,7 @@ public class Rsvp
     public string? Comments { get; set; }
 
     [Required]
-    [StringLength(10)]
+    [StringLength(6)]
     public string AccessCode { get; set; } = string.Empty;
 
     public DateTime SubmittedAt { get; init; } = DateTime.UtcNow;

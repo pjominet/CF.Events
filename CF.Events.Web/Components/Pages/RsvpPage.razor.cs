@@ -87,6 +87,7 @@ public partial class RsvpPage : ComponentBase
                     savedAccessCode = currentRsvp.AccessCode;
                     await JsRuntime.InvokeVoidAsync("localStorage.setItem", "rsvp_access_code", savedAccessCode);
                     showResult = true;
+                    StateHasChanged();
                     ToastService.Show("RSVP found and synchronized to this device!", ToastType.Success);
                 }
             }
@@ -106,7 +107,7 @@ public partial class RsvpPage : ComponentBase
         }
     }
 
-    private async Task HandleRsvp()
+    private async Task HandleSubmit()
     {
         var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
         try
@@ -125,6 +126,7 @@ public partial class RsvpPage : ComponentBase
                     await JsRuntime.InvokeVoidAsync("localStorage.setItem", "rsvp_access_code", savedAccessCode);
                 }
                 showResult = true;
+                StateHasChanged(); // Force UI update
                 ToastService.Show(rsvpModel.Id > 0 ? "Your RSVP has been updated!" : "Thank you for your response!", ToastType.Success);
             }
             else ToastService.Show("Something went wrong. Please try again.", ToastType.Error);
@@ -151,6 +153,7 @@ public partial class RsvpPage : ComponentBase
             AccessCode = currentRsvp.AccessCode
         };
         showResult = false;
+        StateHasChanged();
     }
 
     private async Task CopyCode(string code)
@@ -179,6 +182,7 @@ public partial class RsvpPage : ComponentBase
                 savedAccessCode = null;
                 rsvpModel = new Rsvp();
                 showResult = false;
+                StateHasChanged(); // Force UI update
             }
             else ToastService.Show("Delete failed.", ToastType.Error);
         }
