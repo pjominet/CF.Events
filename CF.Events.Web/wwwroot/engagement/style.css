@@ -84,6 +84,10 @@ body {
     color: var(--primary-color);
 }
 
+h1:focus {
+    outline: none;
+}
+
 .card-container {
     padding: 20px;
 }
@@ -236,6 +240,24 @@ body {
 .comments-cell {
     max-width: 300px;
     word-wrap: break-word;
+}
+
+/* Scrollable Table with Sticky Header */
+.table-scroll-container {
+    max-height: 65vh; /* Roughly 15 rows depending on content */
+    overflow-y: auto;
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+.table-scroll-container thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.table-scroll-container .table {
+    margin-bottom: 0;
 }
 
 .copy-badge {
