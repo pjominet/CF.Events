@@ -254,6 +254,7 @@ h1:focus {
     position: sticky;
     top: 0;
     z-index: 10;
+    background-color: #212529; /* Explicitly set background for sticky header */
 }
 
 .table-scroll-container .table {

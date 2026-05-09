@@ -94,9 +94,8 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var rsvp in rsvps)
-                            {
-                                <tr>
+                            <Virtualize Items="rsvps" Context="rsvp">
+                                <tr @key="rsvp.Id">
                                     <td>@rsvp.Name</td>
                                     <td>
                                         <div @ref="copyBadgeRefs[rsvp.Id]"
@@ -133,7 +132,7 @@
                                         </div>
                                     </td>
                                 </tr>
-                            }
+                            </Virtualize>
                         </tbody>
                     </table>
                     @if (rsvps.Count == 0)
