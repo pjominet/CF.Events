@@ -11,6 +11,7 @@ namespace CF.Events.Web.Components.Pages;
 public partial class AdminPage : ComponentBase
 {
     private bool isLoading = true;
+    private bool isRefreshing;
     private bool showSetup;
     private bool showLogin;
     private string setupPassword = string.Empty;
@@ -141,6 +142,9 @@ public partial class AdminPage : ComponentBase
     {
         if (string.IsNullOrEmpty(token)) return;
 
+        isRefreshing = true;
+        var startTime = DateTime.UtcNow;
+
         var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -149,10 +153,9 @@ public partial class AdminPage : ComponentBase
             var result = await client.GetFromJsonAsync<List<Rsvp>>("api/events/engagement/rsvp");
             if (result is not null)
             {
-                copyBadgeRefs.Clear();
                 rsvps = result.OrderByDescending(r => r.SubmittedAt).ToList();
                 totalAttendance = rsvps.Count(r => r.Attending) + rsvps.Count(r => r is { Attending: true, BringsPlusOne: true });
-                totalDinner = rsvps.Count(r => r is { Attending: true, JoinForDinner: true });
+                totalDinner = rsvps.Count(r => r is { Attending: true, JoinForDinner: true }) + rsvps.Count(r => r is { Attending: true, JoinForDinner: true, BringsPlusOne: true });
             }
         }
         catch (Exception ex)
@@ -166,6 +169,15 @@ public partial class AdminPage : ComponentBase
                 apiError = "Lost connection to the API.";
                 ToastService.Show("Error loading data. API might be offline.", ToastType.Error);
             }
+        }
+        finally
+        {
+            var elapsed = DateTime.UtcNow - startTime;
+            if (elapsed.TotalMilliseconds < 500)
+            {
+                await Task.Delay(500 - (int)elapsed.TotalMilliseconds);
+            }
+            isRefreshing = false;
         }
     }
 
@@ -192,10 +204,13 @@ public partial class AdminPage : ComponentBase
         StateHasChanged();
     }
 
-    private async Task CopyCode(string code, ElementReference element)
+    private async Task CopyCode(string code, int rsvpId)
     {
-        await JsRuntime.InvokeVoidAsync("copyToClipboard", code, element);
-        ToastService.Show("Code copied to clipboard!", ToastType.Success);
+        if (copyBadgeRefs.TryGetValue(rsvpId, out var element))
+        {
+            await JsRuntime.InvokeVoidAsync("copyToClipboard", code, element);
+            ToastService.Show("Code copied to clipboard!", ToastType.Success);
+        }
     }
 
     private void ShowDetails(Rsvp rsvp)

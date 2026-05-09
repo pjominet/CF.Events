@@ -64,7 +64,17 @@
                         </div>
                     </div>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-primary" @onclick="LoadRsvps">Refresh Data</button>
+                        <button class="btn btn-primary d-flex align-items-center gap-2" @onclick="LoadRsvps" disabled="@isRefreshing">
+                            @if (isRefreshing)
+                            {
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                <span>Refreshing...</span>
+                            }
+                            else
+                            {
+                                <span>Refresh Data</span>
+                            }
+                        </button>
                         <button class="btn btn-danger" @onclick="Logout">Logout</button>
                     </div>
                 </div>
@@ -90,7 +100,7 @@
                                     <td>@rsvp.Name</td>
                                     <td>
                                         <div @ref="copyBadgeRefs[rsvp.Id]"
-                                             @onclick="() => CopyCode(rsvp.AccessCode, copyBadgeRefs[rsvp.Id])"
+                                             @onclick="() => CopyCode(rsvp.AccessCode, rsvp.Id)"
                                              class="copy-badge" style="width: 170px">
                                             <code class="text-primary fw-bold">@rsvp.AccessCode</code>
                                             <i class="bi bi-copy text-muted small"></i>
