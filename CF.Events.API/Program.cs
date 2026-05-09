@@ -70,24 +70,27 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddRateLimiter(options =>
+if (!builder.Environment.IsDevelopment())
 {
-    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-
-    options.AddFixedWindowLimiter(Constants.RateLimiting.Fixed, opt =>
+    builder.Services.AddRateLimiter(options =>
     {
-        opt.Window = TimeSpan.FromSeconds(10);
-        opt.PermitLimit = 10;
-        opt.QueueLimit = 0;
-    });
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-    options.AddFixedWindowLimiter(Constants.RateLimiting.Strict, opt =>
-    {
-        opt.Window = TimeSpan.FromMinutes(1);
-        opt.PermitLimit = 5;
-        opt.QueueLimit = 0;
+        options.AddFixedWindowLimiter(Constants.RateLimiting.Fixed, opt =>
+        {
+            opt.Window = TimeSpan.FromSeconds(10);
+            opt.PermitLimit = 10;
+            opt.QueueLimit = 0;
+        });
+
+        options.AddFixedWindowLimiter(Constants.RateLimiting.Strict, opt =>
+        {
+            opt.Window = TimeSpan.FromMinutes(1);
+            opt.PermitLimit = 5;
+            opt.QueueLimit = 0;
+        });
     });
-});
+}
 
 var app = builder.Build();
 
@@ -119,7 +122,8 @@ if (app.Environment.IsDevelopment())
 app.UseCors();
 app.UseSecurityHeaders();
 
-app.UseRateLimiter();
+if (!app.Environment.IsDevelopment())
+    app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
