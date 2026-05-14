@@ -1,9 +1,13 @@
 using CF.Events.Web.Services;
 using CF.Events.Shared;
+using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo("/app/keys"));
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 

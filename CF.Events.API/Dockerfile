@@ -28,7 +28,7 @@ ENV ASPNETCORE_HTTP_PORTS=8081
 # Create a directory for the database and set permissions if needed
 # The app uses "Data Source=events.db" by default.
 # We can mount a volume to /app/data and change the connection string.
-RUN mkdir -p /app/data
+RUN mkdir -p /app/data /app/keys
 ENV ConnectionStrings__DefaultConnection="Data Source=/app/data/events.db"
 
 EXPOSE 8081
