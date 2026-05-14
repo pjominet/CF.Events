@@ -22,6 +22,9 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
+# Create a directory for Data Protection keys
+RUN mkdir -p /app/keys
+
 # Set custom port
 ENV ASPNETCORE_HTTP_PORTS=8082
 
