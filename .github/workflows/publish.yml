@@ -9,6 +9,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME_API: ${{ github.repository }}-api
   IMAGE_NAME_WEB: ${{ github.repository }}-web
+  VERSION: 1.0.${{ github.run_number }}
 
 jobs:
   build-and-push:
@@ -35,6 +36,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_API }}
           tags: |
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
+            type=raw,value=${{ env.VERSION }},enable=${{ github.ref == 'refs/heads/master' }}
             type=sha
 
       - name: Build and push API image
@@ -53,6 +55,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_WEB }}
           tags: |
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
+            type=raw,value=${{ env.VERSION }},enable=${{ github.ref == 'refs/heads/master' }}
             type=sha
 
       - name: Build and push Web image
