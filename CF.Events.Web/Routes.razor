@@ -1,9 +1,9 @@
 <CascadingAuthenticationState>
-    <Router AppAssembly="@typeof(App).Assembly">
+    <Router AppAssembly="@typeof(App).Assembly" NotFoundPage="@typeof(NotFound)">
         <Found Context="routeData">
-            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(Components.Layout.MainLayout)">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
                 <NotAuthorized>
-                    <LayoutView Layout="@typeof(Components.Layout.MainLayout)">
+                    <LayoutView Layout="@typeof(MainLayout)">
                         <div class="container d-flex align-items-center justify-content-center min-vh-100">
                             <div class="card p-4 text-center">
                                 <h2 class="text-danger">Not Authorized</h2>
@@ -16,18 +16,5 @@
             </AuthorizeRouteView>
             <FocusOnNavigate RouteData="@routeData" Selector="h1" />
         </Found>
-        <NotFound>
-            <LayoutView Layout="@typeof(Components.Layout.MainLayout)">
-                <div class="admin-container centered-container">
-                    <h2 class="cursive title-cursive">Not Found</h2>
-                    <div class="text-center">
-                        <p class="error-message">The page you're looking for doesn't exist.</p>
-                        <div class="mt-20">
-                            <a href="engagement" class="btn-primary">Go to Home</a>
-                        </div>
-                    </div>
-                </div>
-            </LayoutView>
-        </NotFound>
     </Router>
 </CascadingAuthenticationState>
