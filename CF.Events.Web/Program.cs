@@ -44,8 +44,8 @@ app.UseStaticFiles(new StaticFileOptions
 {
     OnPrepareResponse = ctx =>
     {
-        if (!ctx.Context.Request.Path.StartsWithSegments("/invitations") || ctx.Context.User.Identity is { IsAuthenticated: true })
-            return;
+        if (ctx.Context.User.Identity is { IsAuthenticated: true }) return;
+        if (!ctx.Context.Request.Path.StartsWithSegments("/invitations")) return;
 
         ctx.Context.Response.StatusCode = 403;
         ctx.Context.Response.Body = Stream.Null;
