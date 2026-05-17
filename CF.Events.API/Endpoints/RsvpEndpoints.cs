@@ -72,14 +72,14 @@ public static class RsvpEndpoints
         group.MapDelete("/admin/{id:int}", async (int id, EventsDbContext db) =>
         {
             var rsvp = await db.Rsvps.FindAsync(id);
-            if (rsvp == null)
+            if (rsvp is null)
                 return Results.NotFound();
 
             db.Rsvps.Remove(rsvp);
             await db.SaveChangesAsync();
             return Results.NoContent();
-        }).RequireAuthorization();
+        }).RequireAuthorization(policy => policy.RequireRole(Constants.Roles.Admin));
 
-        group.MapGet("/", async (EventsDbContext db) => Results.Ok((object?)await db.Rsvps.ToListAsync())).RequireAuthorization();
+        group.MapGet("/", async (EventsDbContext db) => Results.Ok((object?)await db.Rsvps.ToListAsync())).RequireAuthorization(policy => policy.RequireRole(Constants.Roles.Admin));
     }
 }

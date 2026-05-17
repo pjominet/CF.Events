@@ -3,6 +3,7 @@ using CF.Events.Web.Components.Layout;
 using CF.Events.Shared;
 using CF.Events.Shared.Models;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 using System.Net.Http.Headers;
 
@@ -12,20 +13,12 @@ public partial class AdminPage : ComponentBase
 {
     private bool isLoading = true;
     private bool isRefreshing;
-    private bool showSetup;
-    private bool showLogin;
-    private string setupPassword = string.Empty;
-    private string confirmPassword = string.Empty;
-    private string setupError = string.Empty;
-    private string loginPassword = string.Empty;
-    private string loginError = string.Empty;
     private readonly Dictionary<int, ElementReference> copyBadgeRefs = [];
     private List<Rsvp> rsvps = [];
     private int totalAttendance;
     private int totalDinner;
     private bool isApiOffline;
     private string apiError = string.Empty;
-    private string? token;
     private ConfirmationDialog deleteConfirmation = null!;
     private RsvpDetailModal detailModal = null!;
     private int? rsvpIdToDelete;
@@ -34,6 +27,8 @@ public partial class AdminPage : ComponentBase
     [Inject] private IHttpClientFactory HttpClientFactory { get; set; } = null!;
     [Inject] private IJSRuntime JsRuntime { get; set; } = null!;
     [Inject] private ToastService ToastService { get; set; } = null!;
+    [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = null!;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -41,10 +36,7 @@ public partial class AdminPage : ComponentBase
         {
             try
             {
-                token = await JsRuntime.InvokeAsync<string>("sessionStorage.getItem", "adminToken");
-                if (string.IsNullOrEmpty(token))
-                    await CheckSetupStatus();
-                else await LoadRsvps();
+                await LoadRsvps();
             }
             catch (Exception ex)
             {
@@ -60,93 +52,29 @@ public partial class AdminPage : ComponentBase
         }
     }
 
-    private async Task CheckSetupStatus()
+    private async Task LoadRsvps()
     {
-        var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
-        try
-        {
-            var status = await client.GetFromJsonAsync<SetupStatus>("api/events/engagement/setup-status");
-            if (status?.NeedsSetup is true)
-            {
-                showSetup = true;
-                showLogin = false;
-            }
-            else
-            {
-                showSetup = false;
-                showLogin = true;
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error checking setup status: {ex.Message}");
-            throw; // Re-throw to be caught in OnAfterRenderAsync
-        }
-    }
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
 
-    private async Task HandleSetup()
-    {
-        if (setupPassword != confirmPassword)
+        if (user.Identity?.IsAuthenticated is not true)
         {
-            setupError = "Passwords do not match.";
+            NavigationManager.NavigateTo("account/login");
             return;
         }
 
-        var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
-        try
+        var tokenValueResult = await ((ApiAuthenticationStateProvider)AuthStateProvider).GetTokenAsync();
+        if (string.IsNullOrEmpty(tokenValueResult))
         {
-            var response = await client.PostAsJsonAsync("api/events/engagement/setup", new LoginRequest { Password = setupPassword });
-            if (response.IsSuccessStatusCode)
-            {
-                ToastService.Show("Admin setup successful! Please login.", ToastType.Success);
-                showSetup = false;
-                showLogin = true;
-                setupPassword = string.Empty;
-                confirmPassword = string.Empty;
-            }
-            else setupError = await response.Content.ReadAsStringAsync();
+            NavigationManager.NavigateTo("account/login");
+            return;
         }
-        catch
-        {
-            setupError = "Could not connect to server.";
-        }
-    }
-
-    private async Task HandleLogin()
-    {
-        var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
-        try
-        {
-            var response = await client.PostAsJsonAsync("api/events/engagement/login", new LoginRequest { Password = loginPassword });
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadFromJsonAsync<LoginResult>();
-                token = result?.Token;
-                if (!string.IsNullOrEmpty(token))
-                {
-                    await JsRuntime.InvokeVoidAsync("sessionStorage.setItem", "adminToken", token);
-                    showLogin = false;
-                    await LoadRsvps();
-                }
-            }
-            else loginError = "Invalid password.";
-        }
-        catch
-        {
-            loginError = "Login failed.";
-            ToastService.Show("Login failed. Connection error.", ToastType.Error);
-        }
-    }
-
-    private async Task LoadRsvps()
-    {
-        if (string.IsNullOrEmpty(token)) return;
 
         isRefreshing = true;
         var startTime = DateTime.UtcNow;
 
         var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenValueResult);
 
         try
         {
@@ -183,13 +111,14 @@ public partial class AdminPage : ComponentBase
 
     private async Task Logout()
     {
-        if (!string.IsNullOrEmpty(token))
+        var tokenValueResult = await ((ApiAuthenticationStateProvider)AuthStateProvider).GetTokenAsync();
+        if (!string.IsNullOrEmpty(tokenValueResult))
         {
             try
             {
                 var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                await client.PostAsync("api/events/engagement/logout", null);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenValueResult);
+                await client.PostAsync("api/auth/logout", null);
             }
             catch
             {
@@ -197,11 +126,8 @@ public partial class AdminPage : ComponentBase
             }
         }
 
-        await JsRuntime.InvokeVoidAsync("sessionStorage.removeItem", "adminToken");
-        token = null;
-        showLogin = true;
-        rsvps.Clear();
-        StateHasChanged();
+        await ((ApiAuthenticationStateProvider)AuthStateProvider).MarkUserAsLoggedOut();
+        NavigationManager.NavigateTo("account/login");
     }
 
     private async Task CopyCode(string code, int rsvpId)
@@ -234,10 +160,11 @@ public partial class AdminPage : ComponentBase
 
     private async Task DeleteRsvp(int id)
     {
-        if (string.IsNullOrEmpty(token)) return;
+        var tokenValueResult = await ((ApiAuthenticationStateProvider)AuthStateProvider).GetTokenAsync();
+        if (string.IsNullOrEmpty(tokenValueResult)) return;
 
         var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenValueResult);
 
         try
         {
@@ -255,7 +182,4 @@ public partial class AdminPage : ComponentBase
             ToastService.Show("Error deleting RSVP. Connection error.", ToastType.Error);
         }
     }
-
-    private class SetupStatus { public bool NeedsSetup { get; init; } }
-    private class LoginResult { public string? Token { get; init; } }
 }

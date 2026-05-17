@@ -120,7 +120,7 @@ public partial class RsvpPage : ComponentBase
             if (response.IsSuccessStatusCode)
             {
                 currentRsvp = await response.Content.ReadFromJsonAsync<Rsvp>();
-                if (currentRsvp != null)
+                if (currentRsvp is not null)
                 {
                     savedAccessCode = currentRsvp.AccessCode;
                     await JsRuntime.InvokeVoidAsync("localStorage.setItem", "rsvp_access_code", savedAccessCode);

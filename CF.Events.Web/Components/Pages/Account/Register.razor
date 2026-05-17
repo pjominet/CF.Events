@@ -1,0 +1,47 @@
+@page "/account/register"
+@rendermode InteractiveServer
+
+<div class="container d-flex align-items-center justify-content-center min-vh-100 p-3">
+    <div class="card p-4 shadow-sm" style="max-width: 400px; width: 100%;">
+        <h2 class="text-center mb-4">Register</h2>
+
+        <EditForm Model="registerRequest" OnValidSubmit="HandleRegister" FormName="registerForm">
+            <DataAnnotationsValidator />
+
+            <div class="mb-3">
+                <label class="form-label">Email address</label>
+                <InputText class="form-control" @bind-Value="registerRequest.Email" />
+                <ValidationMessage For="@(() => registerRequest.Email)" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <InputText type="password" class="form-control" @bind-Value="registerRequest.Password" />
+                <ValidationMessage For="@(() => registerRequest.Password)" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Confirm Password</label>
+                <InputText type="password" class="form-control" @bind-Value="registerRequest.ConfirmPassword" />
+                <ValidationMessage For="@(() => registerRequest.ConfirmPassword)" class="text-danger" />
+            </div>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger mb-3">@errorMessage</div>
+            }
+
+            <button type="submit" class="btn btn-primary w-100" disabled="@isSubmitting">
+                @if (isSubmitting)
+                {
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                }
+                Register
+            </button>
+        </EditForm>
+
+        <div class="text-center mt-3">
+            <p>Already have an account? <a href="account/login">Login here</a></p>
+        </div>
+    </div>
+</div>

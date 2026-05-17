@@ -1,19 +1,33 @@
-<Router AppAssembly="@typeof(App).Assembly">
-    <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(Components.Layout.MainLayout)" />
-        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-    </Found>
-    <NotFound>
-        <LayoutView Layout="@typeof(Components.Layout.MainLayout)">
-            <div class="admin-container centered-container">
-                <h2 class="cursive title-cursive">Not Found</h2>
-                <div class="text-center">
-                    <p class="error-message">The page you're looking for doesn't exist.</p>
-                    <div class="mt-20">
-                        <a href="engagement" class="btn-primary">Go to Home</a>
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(Components.Layout.MainLayout)">
+                <NotAuthorized>
+                    <LayoutView Layout="@typeof(Components.Layout.MainLayout)">
+                        <div class="container d-flex align-items-center justify-content-center min-vh-100">
+                            <div class="card p-4 text-center">
+                                <h2 class="text-danger">Not Authorized</h2>
+                                <p>You are not authorized to access this page. Please log in.</p>
+                                <a href="account/login" class="btn btn-primary">Go to Login</a>
+                            </div>
+                        </div>
+                    </LayoutView>
+                </NotAuthorized>
+            </AuthorizeRouteView>
+            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        </Found>
+        <NotFound>
+            <LayoutView Layout="@typeof(Components.Layout.MainLayout)">
+                <div class="admin-container centered-container">
+                    <h2 class="cursive title-cursive">Not Found</h2>
+                    <div class="text-center">
+                        <p class="error-message">The page you're looking for doesn't exist.</p>
+                        <div class="mt-20">
+                            <a href="engagement" class="btn-primary">Go to Home</a>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </LayoutView>
-    </NotFound>
-</Router>
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>

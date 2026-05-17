@@ -1,8 +1,9 @@
 @page "/engagement/admin"
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
+@attribute [Authorize(Roles = Constants.Roles.Admin)]
 
 <div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center p-3">
-    <div class="card border-0 p-4 mx-auto bg-card-custom rounded-lg-custom admin-card-width @(showSetup || showLogin ? "admin-max-width-login" : "admin-max-width-dashboard")">
+    <div class="card border-0 p-4 mx-auto bg-card-custom rounded-lg-custom admin-card-width admin-max-width-dashboard">
         <h1 class="text-center mb-4">Admin Dashboard</h1>
 
         @if (isLoading)
@@ -19,34 +20,6 @@
             <div class="text-center py-4">
                 <p class="text-danger">@apiError</p>
                 <button class="btn btn-primary" @onclick="() => { isApiOffline = false; isLoading = true; StateHasChanged(); }">Retry</button>
-            </div>
-        }
-        else if (showSetup)
-        {
-            <div id="setupSection" class="mx-auto admin-max-width-setup">
-                <p class="text-center text-muted">Please set a password for the admin account.</p>
-                <form @onsubmit="HandleSetup" class="d-flex flex-column gap-3">
-                    <input type="password" class="form-control" @bind="setupPassword" placeholder="Set Password" required>
-                    <input type="password" class="form-control" @bind="confirmPassword" placeholder="Confirm Password" required>
-                    <button type="submit" class="btn btn-primary w-100">Set Password</button>
-                </form>
-                @if (!string.IsNullOrEmpty(setupError))
-                {
-                    <p class="text-danger text-center mt-3">@setupError</p>
-                }
-            </div>
-        }
-        else if (showLogin)
-        {
-            <div id="loginSection" class="mx-auto admin-max-width-setup">
-                <form @onsubmit="HandleLogin" class="d-flex flex-column gap-3">
-                    <input type="password" class="form-control" @bind="loginPassword" placeholder="Enter Password" required>
-                    <button type="submit" class="btn btn-primary w-100">Login</button>
-                </form>
-                @if (!string.IsNullOrEmpty(loginError))
-                {
-                    <p class="text-danger text-center mt-3">@loginError</p>
-                }
             </div>
         }
         else
@@ -135,7 +108,7 @@
                             </Virtualize>
                         </tbody>
                     </table>
-                    @if (rsvps.Count == 0)
+                    @if (rsvps.Count is 0)
                     {
                         <p class="text-center text-muted py-4">No RSVPs received yet.</p>
                     }

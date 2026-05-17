@@ -28,7 +28,7 @@
                 <div id="resultMessage" class="d-flex flex-column align-items-center">
                     <h3 class="cursive mb-3">Current Status</h3>
                     <p class="fs-5 mb-1"><strong>@(currentRsvp?.Attending is true ? "Happily Accepted" : "Regretfully Declined")</strong></p>
-                    @if (currentRsvp != null)
+                    @if (currentRsvp is not null)
                     {
                         <div @ref="copyBadgeElement"
                              class="mt-3 p-3 rounded bg-white-custom shadow-sm d-flex flex-column align-items-center copy-badge"
@@ -106,7 +106,7 @@
                     </div>
                 </EditForm>
 
-                @if (rsvpModel.Id == 0)
+                @if (rsvpModel.Id is 0)
                 {
                     <hr class="my-4">
                     <div class="text-center">

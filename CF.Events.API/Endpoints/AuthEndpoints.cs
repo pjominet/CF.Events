@@ -4,7 +4,9 @@ using System.Text;
 using CF.Events.API.Data;
 using CF.Events.API.Models;
 using CF.Events.Shared;
+using CF.Events.Shared.DTOs;
 using CF.Events.Shared.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -14,41 +16,45 @@ public static class AuthEndpoints
 {
     public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/events/engagement").RequireRateLimiting(Constants.RateLimiting.Fixed);
+        var group = app.MapGroup("/api/auth").RequireRateLimiting(Constants.RateLimiting.Fixed);
 
-        group.MapGet("/setup-status", async (EventsDbContext db) =>
+        group.MapPost("/register", async (RegisterRequest request, UserManager<ApplicationUser> userManager) =>
         {
-            var userExists = await db.Users.AnyAsync();
-            return Results.Ok(new { needsSetup = !userExists });
-        });
+            var user = new ApplicationUser { UserName = request.Email, Email = request.Email };
+            var result = await userManager.CreateAsync(user, request.Password);
 
-        group.MapPost("/setup", async (LoginRequest request, EventsDbContext db) =>
-        {
-            if (await db.Users.AnyAsync())
-                return Results.BadRequest("User already exists.");
-
-            var admin = new User
+            if (!result.Succeeded)
             {
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
-            };
+                return Results.BadRequest(new AuthResponse
+                {
+                    Success = false,
+                    Error = string.Join(", ", result.Errors.Select(e => e.Description))
+                });
+            }
 
-            db.Users.Add(admin);
-            await db.SaveChangesAsync();
+            // By default, first user is Admin, others are User
+            var isFirstUser = await userManager.Users.CountAsync() == 1;
+            await userManager.AddToRoleAsync(user, isFirstUser ? Constants.Roles.Admin : Constants.Roles.User);
 
-            return Results.NoContent();
+            return Results.Ok(new AuthResponse { Success = true });
         }).RequireRateLimiting(Constants.RateLimiting.Strict);
 
-        group.MapPost("/login", async (LoginRequest request, EventsDbContext db, IConfiguration config) =>
+        group.MapPost("/login", async (LoginRequest request, UserManager<ApplicationUser> userManager, IConfiguration config) =>
         {
-            var user = await db.Users.FirstOrDefaultAsync();
-
-            if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
-                return Results.Unauthorized();
-
-            var claims = new[]
+            var user = await userManager.FindByEmailAsync(request.Email);
+            if (user is null || !await userManager.CheckPasswordAsync(user, request.Password))
             {
-                new Claim(ClaimTypes.Name, "admin")
+                return Results.Unauthorized();
+            }
+
+            var roles = await userManager.GetRolesAsync(user);
+            var claims = new List<Claim>
+            {
+                new(ClaimTypes.Name, user.Email!),
+                new(ClaimTypes.NameIdentifier, user.Id),
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -57,31 +63,56 @@ public static class AuthEndpoints
                 config["Jwt:Issuer"],
                 config["Jwt:Audience"],
                 claims,
-                expires: DateTime.Now.AddMinutes(15),
+                expires: DateTime.Now.AddDays(1),
                 signingCredentials: credentials
             );
 
-            return Results.Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
+            return Results.Ok(new AuthResponse
+            {
+                Success = true,
+                Token = new JwtSecurityTokenHandler().WriteToken(token),
+                Email = user.Email,
+                Roles = roles
+            });
         }).RequireRateLimiting(Constants.RateLimiting.Strict);
 
-        group.MapPost("/refresh", (ClaimsPrincipal user, IConfiguration config) =>
+        group.MapGet("/me", async (ClaimsPrincipal claimsPrincipal, UserManager<ApplicationUser> userManager) =>
         {
-            if (user.Identity?.IsAuthenticated is not true)
-                return Results.Unauthorized();
+            var userId = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId is null) return Results.Unauthorized();
 
-            var claims = user.Claims.ToList();
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!));
-            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var user = await userManager.FindByIdAsync(userId);
+            if (user is null) return Results.NotFound();
 
-            var token = new JwtSecurityToken(
-                config["Jwt:Issuer"],
-                config["Jwt:Audience"],
-                claims,
-                expires: DateTime.Now.AddMinutes(15),
-                signingCredentials: credentials
-            );
+            var roles = await userManager.GetRolesAsync(user);
 
-            return Results.Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
+            return Results.Ok(new UserDto
+            {
+                Id = user.Id,
+                Email = user.Email!,
+                Roles = roles
+            });
+        }).RequireAuthorization();
+
+        group.MapPost("/change-password", async (UpdatePasswordRequest request, ClaimsPrincipal claimsPrincipal, UserManager<ApplicationUser> userManager) =>
+        {
+            var userId = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId is null) return Results.Unauthorized();
+
+            var user = await userManager.FindByIdAsync(userId);
+            if (user is null) return Results.NotFound();
+
+            var result = await userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+            if (!result.Succeeded)
+            {
+                return Results.BadRequest(new AuthResponse
+                {
+                    Success = false,
+                    Error = string.Join(", ", result.Errors.Select(e => e.Description))
+                });
+            }
+
+            return Results.Ok(new AuthResponse { Success = true });
         }).RequireAuthorization();
 
         group.MapPost("/logout", async (HttpContext context, EventsDbContext db) =>
@@ -90,7 +121,7 @@ public static class AuthEndpoints
             if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                 return Results.Unauthorized();
 
-            var token = authHeader.Substring("Bearer ".Length).Trim();
+            var token = authHeader["Bearer ".Length..].Trim();
             var handler = new JwtSecurityTokenHandler();
 
             if (!handler.CanReadToken(token))

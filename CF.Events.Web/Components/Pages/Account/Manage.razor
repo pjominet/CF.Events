@@ -1,0 +1,64 @@
+@page "/account/manage"
+@rendermode InteractiveServer
+@attribute [Authorize]
+
+<div class="container d-flex align-items-center justify-content-center min-vh-100 p-3">
+    <div class="card p-4 shadow-sm" style="max-width: 500px; width: 100%;">
+        <h2 class="text-center mb-4">Manage Account</h2>
+
+        <div class="mb-4">
+            <h5>User Information</h5>
+            <p><strong>Email:</strong> @userEmail</p>
+            <p><strong>Roles:</strong> @string.Join(", ", userRoles)</p>
+        </div>
+
+        <hr />
+
+        <div class="mb-4">
+            <h5>Change Password</h5>
+            <EditForm Model="passwordRequest" OnValidSubmit="HandleChangePassword" FormName="changePasswordForm">
+                <DataAnnotationsValidator />
+
+                <div class="mb-3">
+                    <label class="form-label">Current Password</label>
+                    <InputText type="password" class="form-control" @bind-Value="passwordRequest.CurrentPassword" />
+                    <ValidationMessage For="@(() => passwordRequest.CurrentPassword)" class="text-danger" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">New Password</label>
+                    <InputText type="password" class="form-control" @bind-Value="passwordRequest.NewPassword" />
+                    <ValidationMessage For="@(() => passwordRequest.NewPassword)" class="text-danger" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Confirm New Password</label>
+                    <InputText type="password" class="form-control" @bind-Value="passwordRequest.ConfirmNewPassword" />
+                    <ValidationMessage For="@(() => passwordRequest.ConfirmNewPassword)" class="text-danger" />
+                </div>
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger mb-3">@errorMessage</div>
+                }
+
+                @if (!string.IsNullOrEmpty(successMessage))
+                {
+                    <div class="alert alert-success mb-3">@successMessage</div>
+                }
+
+                <button type="submit" class="btn btn-primary w-100" disabled="@isSubmitting">
+                    @if (isSubmitting)
+                    {
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    }
+                    Change Password
+                </button>
+            </EditForm>
+        </div>
+
+        <div class="text-center mt-3">
+            <a href="engagement/admin" class="btn btn-outline-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+</div>
