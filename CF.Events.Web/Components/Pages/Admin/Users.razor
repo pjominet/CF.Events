@@ -1,0 +1,62 @@
+@page "/admin/users"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@attribute [Authorize(Roles = Roles.Admin)]
+
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col d-flex justify-content-between align-items-center">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="/admin">Admin</a></li>
+                        <li class="breadcrumb-item active">Users</li>
+                    </ol>
+                </nav>
+                <h1 class="cursive fs-1">Manage Users</h1>
+            </div>
+            <a href="/admin" class="btn btn-outline-secondary btn-sm">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <div class="card shadow-sm border-0 p-4">
+                <div class="card-header bg-primary text-white border-0 rounded-3 mb-4">
+                    <h5 class="mb-0 p-2">Invite New User</h5>
+                </div>
+                <div class="card-body p-0">
+                    <EditForm Model="registerRequest" OnValidSubmit="HandleInviteUser" FormName="inviteUserForm">
+                        <DataAnnotationsValidator />
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Email Address</label>
+                            <InputText class="form-control form-control-lg" @bind-Value="registerRequest.Email" placeholder="guest@example.com" />
+                            <ValidationMessage For="@(() => registerRequest.Email)" class="text-danger" />
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Temporary Password</label>
+                            <div class="input-group">
+                                <InputText class="form-control" @bind-Value="registerRequest.Password" />
+                                <button class="btn btn-outline-secondary" type="button" @onclick="GeneratePassword">
+                                    <i class="bi bi-arrow-clockwise"></i> Generate
+                                </button>
+                            </div>
+                            <div class="form-text mt-2">The user will be asked to change this password on their first login.</div>
+                            <ValidationMessage For="@(() => registerRequest.Password)" class="text-danger" />
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg w-100" disabled="@isInviting">
+                            @if (isInviting)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                <span>Sending...</span>
+                            }
+                            else
+                            {
+                                <i class="bi bi-envelope-plus me-2"></i><span>Send Invitation</span>
+                            }
+                        </button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

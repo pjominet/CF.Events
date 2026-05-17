@@ -45,6 +45,16 @@
                 console.error('Failed to copy:', err);
             });
         };
+
+        window.hookRsvpButton = (buttonId, targetUrl) => {
+            const btn = document.getElementById(buttonId);
+            if (btn) {
+                btn.onclick = (e) => {
+                    e.preventDefault();
+                    window.location.href = targetUrl;
+                };
+            }
+        };
     </script>
     <script src="_framework/blazor.web.js"></script>
 </body>

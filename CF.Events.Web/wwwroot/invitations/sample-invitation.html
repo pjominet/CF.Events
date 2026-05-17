@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sample Invitation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .invitation-card {
+            background-color: white;
+            padding: 3rem;
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            text-align: center;
+            max-width: 500px;
+        }
+        h1 { color: #d63384; font-family: 'Cursive', serif; }
+        .btn-rsvp {
+            display: inline-block;
+            background-color: #d63384;
+            color: white;
+            padding: 0.75rem 2rem;
+            text-decoration: none;
+            border-radius: 2rem;
+            margin-top: 2rem;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .btn-rsvp:hover { background-color: #b02a6b; }
+    </style>
+</head>
+<body>
+    <div class="invitation-card">
+        <h1>You're Invited!</h1>
+        <p>We are excited to invite you to our special event.</p>
+        <p><strong>Date:</strong> [EventDate]</p>
+        <p><strong>Location:</strong> [EventLocation]</p>
+        <!-- The button should have a specific ID or class for the web app to hook into -->
+        <a href="#" id="rsvp-button" class="btn-rsvp">RSVP NOW</a>
+    </div>
+</body>
+</html>

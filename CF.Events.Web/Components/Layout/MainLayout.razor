@@ -12,11 +12,17 @@
                     <div class="collapse navbar-collapse" id="navbarNav">
                         <ul class="navbar-nav me-auto">
                             <li class="nav-item">
-                                <a class="nav-link" href="/">My Invites</a>
+                                <a class="nav-link" href="/invites">My Invites</a>
                             </li>
                             <AuthorizeView Roles="@Roles.Admin" Context="adminContext">
                                 <li class="nav-item">
-                                    <a class="nav-link" href="/admin">Admin</a>
+                                    <a class="nav-link" href="/admin">Admin Dashboard</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/admin/events">Events</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/admin/users">Users</a>
                                 </li>
                             </AuthorizeView>
                         </ul>

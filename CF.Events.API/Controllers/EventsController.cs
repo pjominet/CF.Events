@@ -18,18 +18,21 @@ public class EventsController(EventsDbContext db) : ApiController
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId is null) return Unauthorized();
 
-        // Get all events where the user has an RSVP or is invited (for now, let's just use RSVPs as proxy for "invited")
-        // In a real system we'd have an Invite table. The prompt says "if they log in they can see the invite in their account".
-        // Let's assume an RSVP with Attending=false or null initially means "Invited but not yet responded".
-        // But the prompt also says "admins can create invites".
-        // Let's use the Rsvp table as the Invite table since it links User and Event.
-
         var myRsvps = await db.Rsvps
             .Where(r => r.UserId == userId)
             .Join(db.Events, r => r.EventId, e => e.Id, (r, e) => new { Rsvp = r, Event = e })
+            .Where(x => x.Event.IsActive)
             .ToListAsync();
 
         return Ok(myRsvps);
+    }
+
+    [HttpGet("all")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> GetAllEvents()
+    {
+        var events = await db.Events.ToListAsync();
+        return Ok(events);
     }
 
     [HttpGet("{id}")]
@@ -74,6 +77,45 @@ public class EventsController(EventsDbContext db) : ApiController
         db.Events.Add(ev);
         await db.SaveChangesAsync();
         return CreatedAtAction(nameof(GetEvent), new { id = ev.Id }, ev);
+    }
+
+    [HttpGet("invitation-files")]
+    [Authorize(Roles = Roles.Admin)]
+    public IActionResult GetInvitationFiles()
+    {
+        var wwwrootPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "CF.Events.Web", "wwwroot", "invitations");
+        if (!Directory.Exists(wwwrootPath))
+        {
+            // Fallback to local wwwroot if running in a way where it's merged or different
+            wwwrootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "invitations");
+        }
+
+        if (!Directory.Exists(wwwrootPath)) return Ok(Array.Empty<string>());
+
+        var files = Directory.GetFiles(wwwrootPath, "*.html")
+            .Select(Path.GetFileName)
+            .ToList();
+
+        return Ok(files);
+    }
+
+    [HttpPut("{id}")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> UpdateEvent(int id, Event updatedEvent)
+    {
+        var ev = await db.Events.FindAsync(id);
+        if (ev is null) return NotFound();
+
+        ev.Name = updatedEvent.Name;
+        ev.Type = updatedEvent.Type;
+        ev.Date = updatedEvent.Date;
+        ev.Description = updatedEvent.Description;
+        ev.Location = updatedEvent.Location;
+        ev.InvitationFileName = updatedEvent.InvitationFileName;
+        ev.IsActive = updatedEvent.IsActive;
+
+        await db.SaveChangesAsync();
+        return Ok(ev);
     }
 
     [HttpPost("{id}/invite")]
