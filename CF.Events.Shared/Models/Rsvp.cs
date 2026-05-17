@@ -7,8 +7,10 @@ public class Rsvp
     public int Id { get; init; }
 
     [Required]
-    [StringLength(100)]
-    public string Name { get; set; } = string.Empty;
+    public int EventId { get; set; }
+
+    [Required]
+    public string UserId { get; set; } = string.Empty;
 
     public bool Attending { get; set; } = true;
     public bool BringsPlusOne { get; set; }
@@ -17,9 +19,5 @@ public class Rsvp
     [StringLength(500)]
     public string? Comments { get; set; }
 
-    [Required]
-    [StringLength(6)]
-    public string AccessCode { get; set; } = "NONE";
-
-    public DateTime SubmittedAt { get; init; } = DateTime.UtcNow;
+    public DateTime SubmittedAt { get; set; } = DateTime.UtcNow;
 }

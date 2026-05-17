@@ -1,127 +1,93 @@
-@page "/engagement/admin"
+@page "/admin"
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 @attribute [Authorize(Roles = Roles.Admin)]
 
-<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center p-3">
-    <div class="card border-0 p-4 mx-auto bg-card-custom rounded-lg-custom admin-card-width admin-max-width-dashboard">
+<div class="container-fluid min-vh-100 p-3">
+    <div class="card border-0 p-4 shadow-sm">
         <h1 class="text-center mb-4">Admin Dashboard</h1>
 
-        @if (isLoading)
-        {
-            <div class="d-flex flex-column align-items-center justify-content-center py-5">
-                <p>Loading...</p>
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
-        }
-        else if (isApiOffline)
-        {
-            <div class="text-center py-4">
-                <p class="text-danger">@apiError</p>
-                <button class="btn btn-primary" @onclick="() => { isApiOffline = false; isLoading = true; StateHasChanged(); }">Retry</button>
-            </div>
-        }
-        else
-        {
-            <div id="rsvpList">
-                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-                    <div class="d-flex gap-3">
-                        <div class="bg-white-custom p-2 px-3 rounded shadow-sm">
-                            <span class="fw-bold text-primary">Total Attendance:</span>
-                            <span class="fw-bold ms-2 text-secondary">@totalAttendance</span>
-                        </div>
-                        <div class="bg-white-custom p-2 px-3 rounded shadow-sm">
-                            <span class="fw-bold text-primary">Dinner Guests:</span>
-                            <span class="fw-bold ms-2 text-secondary">@totalDinner</span>
-                        </div>
+        <div class="row g-4">
+            <!-- User Management -->
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Invite New User</h5>
                     </div>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-primary d-flex align-items-center gap-2" @onclick="LoadRsvps" disabled="@isRefreshing">
-                            @if (isRefreshing)
-                            {
-                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                <span>Refreshing...</span>
-                            }
-                            else
-                            {
-                                <span>Refresh Data</span>
-                            }
-                        </button>
-                        <button class="btn btn-danger" @onclick="Logout">Logout</button>
+                    <div class="card-body">
+                        <EditForm Model="registerRequest" OnValidSubmit="HandleInviteUser">
+                            <DataAnnotationsValidator />
+                            <div class="mb-3">
+                                <label class="form-label">Email Address</label>
+                                <InputText class="form-control" @bind-Value="registerRequest.Email" placeholder="guest@example.com" />
+                                <ValidationMessage For="@(() => registerRequest.Email)" class="text-danger" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Temporary Password</label>
+                                <div class="input-group">
+                                    <InputText class="form-control" @bind-Value="registerRequest.Password" />
+                                    <button class="btn btn-outline-secondary" type="button" @onclick="GeneratePassword">Generate</button>
+                                </div>
+                                <ValidationMessage For="@(() => registerRequest.Password)" class="text-danger" />
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100" disabled="@isInviting">
+                                @if (isInviting)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                }
+                                Send Invitation
+                            </button>
+                        </EditForm>
                     </div>
                 </div>
+            </div>
 
-                <div class="table-scroll-container">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Name</th>
-                                <th>Code</th>
-                                <th>Attending</th>
-                                <th>Plus One</th>
-                                <th>Dinner</th>
-                                <th>Comments</th>
-                                <th>Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <Virtualize Items="rsvps" Context="rsvp">
-                                <tr @key="rsvp.Id">
-                                    <td>@rsvp.Name</td>
-                                    <td>
-                                        <div @ref="copyBadgeRefs[rsvp.Id]"
-                                             @onclick="() => CopyCode(rsvp.AccessCode, rsvp.Id)"
-                                             class="copy-badge" style="width: 170px">
-                                            <code class="text-primary fw-bold">@rsvp.AccessCode</code>
-                                            <i class="bi bi-copy text-muted small"></i>
-                                        </div>
-                                    </td>
-                                    <td>@(rsvp.Attending ? "✅ Yes" : "❌ No")</td>
-                                    <td>@(rsvp is { Attending: true, BringsPlusOne: true } ? "👥 +1" : "-")</td>
-                                    <td>@(rsvp is { Attending: true, JoinForDinner: true } ? "🍴 Yes" : "-")</td>
-                                    <td class="text-muted small italic comments-cell">
-                                        @if (!string.IsNullOrEmpty(rsvp.Comments))
-                                        {
-                                            <span class="text-truncate d-inline-block" style="max-width: 150px;">@rsvp.Comments</span>
-                                        }
-                                        else
-                                        {
-                                            <span>-</span>
-                                        }
-                                    </td>
-                                    <td>@rsvp.SubmittedAt.ToLocalTime().ToShortDateString()</td>
-                                    <td>
-                                        <div class="d-flex gap-1">
-                                            <button class="btn btn-sm btn-info"
-                                                    @onclick="() => ShowDetails(rsvp)">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-danger"
-                                                    @onclick="() => RequestDelete(rsvp.Id)">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </Virtualize>
-                        </tbody>
-                    </table>
-                    @if (rsvps.Count is 0)
-                    {
-                        <p class="text-center text-muted py-4">No RSVPs received yet.</p>
-                    }
+            <!-- Event Management -->
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Create New Event</h5>
+                    </div>
+                    <div class="card-body">
+                        <EditForm Model="newEvent" OnValidSubmit="HandleCreateEvent">
+                            <DataAnnotationsValidator />
+                            <div class="mb-3">
+                                <label class="form-label">Event Name</label>
+                                <InputText class="form-control" @bind-Value="newEvent.Name" placeholder="Wedding" />
+                                <ValidationMessage For="@(() => newEvent.Name)" class="text-danger" />
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Type</label>
+                                    <InputSelect class="form-select" @bind-Value="newEvent.Type">
+                                        <option value="Wedding">Wedding</option>
+                                        <option value="Engagement">Engagement</option>
+                                        <option value="Other">Other</option>
+                                    </InputSelect>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Date</label>
+                                    <InputDate class="form-control" @bind-Value="newEvent.Date" />
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100" disabled="@isCreatingEvent">
+                                @if (isCreatingEvent)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                }
+                                Create Event
+                            </button>
+                        </EditForm>
+                    </div>
                 </div>
             </div>
-        }
+        </div>
+
+        <div class="mt-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3>Global RSVPs</h3>
+                <button class="btn btn-outline-secondary" @onclick="Logout">Logout</button>
+            </div>
+            <p class="text-muted">RSVP management and detailed guest list will be displayed here.</p>
+        </div>
     </div>
 </div>
-
-<ConfirmationDialog @ref="deleteConfirmation"
-                    Title="Delete RSVP"
-                    Message="Are you sure you want to delete this RSVP? This action cannot be undone."
-                    ConfirmText="Delete"
-                    OnConfirmation="HandleDeleteConfirmation" />
-
-<RsvpDetailModal @ref="detailModal" Rsvp="selectedRsvp" />

@@ -35,7 +35,28 @@ public class AuthResponse
     public string? Token { get; init; }
     public string? Error { get; init; }
     public string? Email { get; init; }
+    public bool MustChangePassword { get; init; }
     public IEnumerable<string>? Roles { get; init; }
+}
+
+public class SetupAccountRequest
+{
+    [Required]
+    [DataType(DataType.Password)]
+    public string CurrentPassword { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(100, MinimumLength = 3)]
+    public string DisplayName { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(100, MinimumLength = 8)]
+    [DataType(DataType.Password)]
+    public string NewPassword { get; set; } = string.Empty;
+
+    [DataType(DataType.Password)]
+    [Compare("NewPassword", ErrorMessage = "The password and confirmation password do not match.")]
+    public string ConfirmNewPassword { get; set; } = string.Empty;
 }
 
 public class UserDto

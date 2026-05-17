@@ -26,7 +26,15 @@ public partial class Login
         if (result is { Success: true, Token: not null })
         {
             await ((ApiAuthenticationStateProvider)AuthStateProvider).MarkUserAsAuthenticated(result.Token);
-            NavigationManager.NavigateTo("engagement/admin");
+
+            if (result.MustChangePassword)
+            {
+                NavigationManager.NavigateTo("account/setup");
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/");
+            }
         }
         else errorMessage = result.Error ?? "Invalid login attempt.";
     }

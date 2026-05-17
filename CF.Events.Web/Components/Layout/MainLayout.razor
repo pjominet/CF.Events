@@ -1,4 +1,38 @@
 @inherits LayoutComponentBase
 
-<ToastContainer />
-@Body
+<div class="page">
+    <AuthorizeView Context="layoutAuthContext">
+        <Authorized>
+            <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+                <div class="container">
+                    <a class="navbar-brand cursive fs-3" href="/">P&E Events</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav me-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="/">My Invites</a>
+                            </li>
+                            <AuthorizeView Roles="@Roles.Admin" Context="adminContext">
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/admin">Admin</a>
+                                </li>
+                            </AuthorizeView>
+                        </ul>
+                        <ul class="navbar-nav">
+                            <li class="nav-item">
+                                <a class="nav-link" href="/account/manage">Account</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </Authorized>
+    </AuthorizeView>
+
+    <main>
+        <ToastContainer />
+        @Body
+    </main>
+</div>

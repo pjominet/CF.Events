@@ -20,10 +20,10 @@ namespace CF.Events.API.Controllers;
 public class AuthController(UserManager<ApplicationUser> userManager, IConfiguration config, EventsDbContext db) : ApiController
 {
     [HttpPost("register")]
-    [EnableRateLimiting(RateLimiting.Strict)]
+    [Authorize(Roles = Roles.Admin)]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
-        var user = new ApplicationUser { UserName = request.Email, Email = request.Email };
+        var user = new ApplicationUser { UserName = request.Email, Email = request.Email, MustChangePassword = true };
         var result = await userManager.CreateAsync(user, request.Password);
 
         if (!result.Succeeded)
@@ -35,9 +35,7 @@ public class AuthController(UserManager<ApplicationUser> userManager, IConfigura
             });
         }
 
-        // By default, first user is Admin, others are User
-        var isFirstUser = await userManager.Users.CountAsync() is 1;
-        await userManager.AddToRoleAsync(user, isFirstUser ? Roles.Admin : Roles.User);
+        await userManager.AddToRoleAsync(user, Roles.User);
 
         return Ok(new AuthResponse { Success = true });
     }
@@ -61,6 +59,11 @@ public class AuthController(UserManager<ApplicationUser> userManager, IConfigura
         };
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
+        if (!string.IsNullOrEmpty(user.DisplayName))
+        {
+            claims.Add(new Claim("display_name", user.DisplayName));
+        }
+
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -77,8 +80,45 @@ public class AuthController(UserManager<ApplicationUser> userManager, IConfigura
             Success = true,
             Token = new JwtSecurityTokenHandler().WriteToken(token),
             Email = user.Email,
+            MustChangePassword = user.MustChangePassword,
             Roles = roles
         });
+    }
+
+    [Authorize]
+    [HttpPost("setup-account")]
+    public async Task<IActionResult> SetupAccount(SetupAccountRequest request)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId is null) return Unauthorized();
+
+        var user = await userManager.FindByIdAsync(userId);
+        if (user is null) return NotFound();
+
+        if (!user.MustChangePassword)
+        {
+            return BadRequest("Account is already set up.");
+        }
+
+        // 1. Change password
+        var passResult = await userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+        if (!passResult.Succeeded)
+        {
+            return BadRequest(new AuthResponse { Success = false, Error = string.Join(", ", passResult.Errors.Select(e => e.Description)) });
+        }
+
+        // 2. Set display name and clear flag
+        user.DisplayName = request.DisplayName;
+        user.UserName = request.DisplayName; // Use display name as username (optional, maybe keep email as username for consistency)
+        user.MustChangePassword = false;
+
+        var result = await userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            return BadRequest(new AuthResponse { Success = false, Error = string.Join(", ", result.Errors.Select(e => e.Description)) });
+        }
+
+        return Ok(new AuthResponse { Success = true });
     }
 
     [Authorize]

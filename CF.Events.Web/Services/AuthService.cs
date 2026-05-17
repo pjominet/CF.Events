@@ -84,4 +84,30 @@ public class AuthService(IHttpClientFactory httpClientFactory)
             };
         }
     }
+
+    public async Task<AuthResponse> SetupAccountAsync(SetupAccountRequest request, string token)
+    {
+        try
+        {
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var response = await httpClient.PostAsJsonAsync("api/auth/setup-account", request);
+            if (response.IsSuccessStatusCode)
+                return new AuthResponse { Success = true };
+
+            var error = await response.Content.ReadFromJsonAsync<AuthResponse>();
+            return error ?? new AuthResponse
+            {
+                Success = false,
+                Error = "Account setup failed."
+            };
+        }
+        catch (Exception ex)
+        {
+            return new AuthResponse
+            {
+                Success = false,
+                Error = ex.Message
+            };
+        }
+    }
 }

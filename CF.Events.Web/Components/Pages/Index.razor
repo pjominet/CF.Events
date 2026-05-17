@@ -1,9 +1,109 @@
 @page "/"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
-<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center p-3">
-    <div class="card border-0 align-items-center mx-auto bg-card-alt-custom">
-        <div class="card-image w-100">
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col">
+            <AuthorizeView Context="authContext">
+                <Authorized>
+                    <h2>Welcome, @(authContext.User.FindFirst("display_name")?.Value ?? authContext.User.Identity?.Name)!</h2>
+                    <p class="text-muted">Here are your invitations.</p>
+                </Authorized>
+            </AuthorizeView>
         </div>
-        <a class="rsvp-button" href="engagement/rsvp">RSVP NOW</a>
     </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (myInvites.Count is 0)
+    {
+        <div class="alert alert-info">
+            You don't have any invitations at the moment.
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var invite in myInvites)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">@invite.Event.Name</h5>
+                            <h6 class="card-subtitle mb-2 text-primary">@invite.Event.Type</h6>
+                            <p class="card-text">
+                                <i class="bi bi-calendar-event me-2"></i>@invite.Event.Date.ToString("MMM dd, yyyy")<br />
+                                <i class="bi bi-geo-alt me-2"></i>@invite.Event.Location
+                            </p>
+                            <hr />
+                            <p class="mb-3">
+                                <strong>Status:</strong>
+                                @if (invite.Rsvp.SubmittedAt > DateTime.MinValue.AddDays(1))
+                                {
+                                    <span class="badge bg-success">RSVP'd</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                }
+                            </p>
+                            <a href="events/@invite.Event.Id/rsvp" class="btn btn-outline-primary w-100">
+                                @(invite.Rsvp.SubmittedAt > DateTime.MinValue.AddDays(1) ? "Manage RSVP" : "RSVP Now")
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
 </div>
+
+@code {
+    private bool isLoading = true;
+    private List<UserInviteDto> myInvites = [];
+
+    [Inject] private IHttpClientFactory HttpClientFactory { get; set; } = null!;
+    [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadInvites();
+    }
+
+    private async Task LoadInvites()
+    {
+        isLoading = true;
+        try
+        {
+            var token = await ((ApiAuthenticationStateProvider)AuthStateProvider).GetTokenAsync();
+            var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.GetAsync("api/events");
+            if (response.IsSuccessStatusCode)
+            {
+                myInvites = await response.Content.ReadFromJsonAsync<List<UserInviteDto>>() ?? [];
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    public class UserInviteDto
+    {
+        public Event Event { get; set; } = null!;
+        public Rsvp Rsvp { get; set; } = null!;
+    }
+}
