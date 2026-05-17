@@ -21,6 +21,8 @@ public partial class InvitationPage
     [Inject] private NavigationManager NavigationManager { get; init; } = null!;
     [Inject] private IJSRuntime JS { get; init; } = null!;
 
+    [Inject] private IWebHostEnvironment WebHostEnvironment { get; init; } = null!;
+
     protected override async Task OnInitializedAsync()
     {
         await LoadEvent();
@@ -61,18 +63,24 @@ public partial class InvitationPage
     {
         try
         {
-            // We fetch the static HTML from wwwroot via HttpClient
-            var baseUrl = NavigationManager.BaseUri;
-            var htmlUrl = $"{baseUrl}invitations/{eventData!.InvitationFileName}/index.html";
-            var rawHtml = await new HttpClient().GetStringAsync(htmlUrl);
+            // Read the static HTML directly from the file system to avoid public access issues
+            var folderPath = Path.Combine(WebHostEnvironment.WebRootPath, "invitations", eventData!.InvitationFileName);
+            var filePath = Path.Combine(folderPath, "index.html");
 
-            // Replace placeholders
-            processedHtml = rawHtml
-                .Replace("[EventDate]", eventData.Date.ToString("MMMM dd, yyyy"))
-                .Replace("[EventLocation]", eventData.Location ?? "To be announced")
-                .Replace("[EventName]", eventData.Name);
+            if (File.Exists(filePath))
+            {
+                var rawHtml = await File.ReadAllTextAsync(filePath);
 
-            // Note: Since we are using Blazor Server, we'll need to hook the button after render
+                // Replace placeholders
+                processedHtml = rawHtml
+                    .Replace("[EventDate]", eventData.Date.ToString("MMMM dd, yyyy"))
+                    .Replace("[EventLocation]", eventData.Location ?? "To be announced")
+                    .Replace("[EventName]", eventData.Name);
+            }
+            else
+            {
+                processedHtml = "<div class='alert alert-warning'>Invitation content not found.</div>";
+            }
         }
         catch (Exception ex)
         {

@@ -15,7 +15,7 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStateProvider>();
-builder.Services.AddAuthorizationCore();
+builder.Services.AddAuthorization();
 
 builder.Services.AddSingleton<ToastService>();
 builder.Services.AddScoped<AuthService>();
@@ -37,7 +37,20 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseStaticFiles();
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        if (!ctx.Context.Request.Path.StartsWithSegments("/invitations") || ctx.Context.User.Identity is { IsAuthenticated: true })
+            return;
+
+        ctx.Context.Response.StatusCode = 403;
+        ctx.Context.Response.Body = Stream.Null;
+    }
+});
 
 app.UseSecurityHeaders(
     "default-src 'self'; " +
