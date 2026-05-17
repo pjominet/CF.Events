@@ -92,11 +92,12 @@ public class EventsController(EventsDbContext db) : ApiController
 
         if (!Directory.Exists(wwwrootPath)) return Ok(Array.Empty<string>());
 
-        var files = Directory.GetFiles(wwwrootPath, "*.html")
+        var folders = Directory.GetDirectories(wwwrootPath)
             .Select(Path.GetFileName)
+            .Where(f => System.IO.File.Exists(Path.Combine(wwwrootPath, f!, "index.html")))
             .ToList();
 
-        return Ok(files);
+        return Ok(folders);
     }
 
     [HttpPut("{id}")]

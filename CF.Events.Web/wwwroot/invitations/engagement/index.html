@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engagement Invitation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Domine:wght@400..700&family=Tangerine:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3e523e;
+            --secondary-color: #d68d8d;
+            --secondary-hover: #e2a5a5;
+            --bg-page: #fcfaf9;
+            --bg-card: #e8e3df;
+            --bg-card-alt: #e9e4e0;
+            --bg-button: #dcd4cf;
+            --font-serif: 'Domine', serif;
+            --font-cursive: 'Tangerine', cursive;
+            --card-width: 450px;
+            --card-shadow: 0 20px 45px rgba(0, 0, 0, 0.15), 0 10px 20px rgba(0, 0, 0, 0.1);
+            --transition-speed: 0.2s;
+            --transition-speed-slow: 0.3s;
+            --border-radius: 4px;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-page);
+            font-family: var(--font-serif);
+            color: var(--primary-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .card-container {
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .card {
+            background-color: var(--bg-card-alt);
+            width: var(--card-width);
+            max-width: 100%;
+            position: relative;
+            padding-bottom: 14px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .card-image {
+            width: 100%;
+            aspect-ratio: 1 / 1.414;
+            background-image: url('invitations/engagement/assets/invitation.jpeg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            position: relative;
+        }
+
+        .location-link {
+            position: absolute;
+            top: 42.5%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: auto;
+            min-width: 60%;
+            padding: 7px 14px;
+            text-decoration: none;
+            background-color: var(--bg-card);
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            font-weight: 500;
+            letter-spacing: 0.25rem;
+            text-align: center;
+            cursor: pointer;
+            z-index: 10;
+            border-radius: var(--border-radius);
+            transition: all var(--transition-speed) ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .location-icon {
+            width: 20px;
+            height: 24px;
+            opacity: 0.8;
+        }
+
+        .location-link:hover {
+            background-color: var(--bg-button);
+            transform: translateX(-50%) translateY(-1px);
+            box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.15);
+        }
+
+        .rsvp-container {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .rsvp-button {
+            padding: 10px 30px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-family: var(--font-serif);
+            font-size: 1.1rem;
+            letter-spacing: 0.05rem;
+            cursor: pointer;
+            box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.15);
+            transition: all var(--transition-speed-slow) ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .rsvp-button:hover {
+            background-color: var(--secondary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        @media (max-width: 500px) {
+            body {
+                background-color: var(--bg-card);
+            }
+            .card {
+                width: 100vw;
+                box-shadow: none;
+                padding-bottom: 40px;
+                min-height: 100vh;
+            }
+            .card-container {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card-container">
+        <div class="card">
+            <div class="card-image">
+                <a href="https://maps.app.goo.gl/YourLocationLink" target="_blank" class="location-link">
+                    <img src="invitations/engagement/assets/location.svg" alt="Location" class="location-icon">
+                    VIEW MAP
+                </a>
+            </div>
+            <div class="rsvp-container">
+                <a href="#" id="rsvp-button" class="rsvp-button">RSVP NOW</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

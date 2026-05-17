@@ -63,7 +63,7 @@ public partial class InvitationPage
         {
             // We fetch the static HTML from wwwroot via HttpClient
             var baseUrl = NavigationManager.BaseUri;
-            var htmlUrl = $"{baseUrl}invitations/{eventData!.InvitationFileName}";
+            var htmlUrl = $"{baseUrl}invitations/{eventData!.InvitationFileName}/index.html";
             var rawHtml = await new HttpClient().GetStringAsync(htmlUrl);
 
             // Replace placeholders
