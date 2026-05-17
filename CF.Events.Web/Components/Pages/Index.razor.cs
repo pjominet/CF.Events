@@ -15,7 +15,6 @@ public partial class Index : ComponentBase
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await JsRuntime.InvokeVoidAsync("initializeTooltips");
         if (firstRender) await CheckAndRedirect();
     }
 
