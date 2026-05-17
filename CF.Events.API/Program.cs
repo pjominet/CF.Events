@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Identity;
 using CF.Events.Shared.Models;
 using CF.Events.API.Data;
-using CF.Events.API.Endpoints;
 using CF.Events.API.Services;
 using CF.Events.Shared;
+using static CF.Events.Shared.Constants;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -18,6 +18,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo("/app/keys"));
 
+builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -55,12 +56,8 @@ builder.Services.AddAuthentication(options =>
             OnTokenValidated = async context =>
             {
                 var db = context.HttpContext.RequestServices.GetRequiredService<EventsDbContext>();
-                var token = context.SecurityToken as JwtSecurityToken;
-
-                if (token is not null && await db.RevokedTokens.AnyAsync(t => t.Token == token.RawData))
-                {
+                if (context.SecurityToken is JwtSecurityToken token && await db.RevokedTokens.AnyAsync(t => t.Token == token.RawData))
                     context.Fail("Token has been revoked.");
-                }
             }
         };
     });
@@ -98,14 +95,14 @@ if (!builder.Environment.IsDevelopment())
     {
         options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-        options.AddFixedWindowLimiter(Constants.RateLimiting.Fixed, opt =>
+        options.AddFixedWindowLimiter(RateLimiting.Fixed, opt =>
         {
             opt.Window = TimeSpan.FromSeconds(10);
             opt.PermitLimit = 10;
             opt.QueueLimit = 0;
         });
 
-        options.AddFixedWindowLimiter(Constants.RateLimiting.Strict, opt =>
+        options.AddFixedWindowLimiter(RateLimiting.Strict, opt =>
         {
             opt.Window = TimeSpan.FromMinutes(1);
             opt.PermitLimit = 5;
@@ -123,13 +120,11 @@ using (var scope = app.Services.CreateScope())
     db.Database.EnsureCreated();
 
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var roles = new[] { Constants.Roles.Admin, Constants.Roles.User };
+    var roles = new[] { Roles.Admin, Roles.User };
     foreach (var role in roles)
     {
         if (!await roleManager.RoleExistsAsync(role))
-        {
             await roleManager.CreateAsync(new IdentityRole(role));
-        }
     }
 }
 
@@ -159,7 +154,6 @@ if (!app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapAuthEndpoints();
-app.MapRsvpEndpoints();
+app.MapControllers();
 
 app.Run();

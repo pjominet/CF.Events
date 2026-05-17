@@ -1,6 +1,7 @@
 using CF.Events.Web.Services;
 using CF.Events.Web.Components.Layout;
 using CF.Events.Shared;
+using static CF.Events.Shared.Constants;
 using CF.Events.Shared.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -73,7 +74,7 @@ public partial class AdminPage : ComponentBase
         isRefreshing = true;
         var startTime = DateTime.UtcNow;
 
-        var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
+        var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenValueResult);
 
         try
@@ -116,7 +117,7 @@ public partial class AdminPage : ComponentBase
         {
             try
             {
-                var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
+                var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenValueResult);
                 await client.PostAsync("api/auth/logout", null);
             }
@@ -163,7 +164,7 @@ public partial class AdminPage : ComponentBase
         var tokenValueResult = await ((ApiAuthenticationStateProvider)AuthStateProvider).GetTokenAsync();
         if (string.IsNullOrEmpty(tokenValueResult)) return;
 
-        var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
+        var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenValueResult);
 
         try

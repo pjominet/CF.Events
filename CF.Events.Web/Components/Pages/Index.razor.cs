@@ -1,5 +1,6 @@
 using CF.Events.Web.Services;
 using CF.Events.Shared;
+using static CF.Events.Shared.Constants;
 using CF.Events.Shared.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -25,7 +26,7 @@ public partial class Index : ComponentBase
 
         if (string.IsNullOrEmpty(fingerprint) && string.IsNullOrEmpty(accessCode)) return;
 
-        var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
+        var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
 
         try
         {

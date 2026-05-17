@@ -1,6 +1,7 @@
 using CF.Events.Web.Services;
 using CF.Events.Web.Components.Layout;
 using CF.Events.Shared;
+using static CF.Events.Shared.Constants;
 using CF.Events.Shared.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -52,7 +53,7 @@ public partial class RsvpPage : ComponentBase
     {
         if (string.IsNullOrEmpty(savedAccessCode)) return;
 
-        var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
+        var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
         try
         {
             var response = await client.GetAsync($"api/events/engagement/rsvp/code/{savedAccessCode}");
@@ -74,7 +75,7 @@ public partial class RsvpPage : ComponentBase
         if (string.IsNullOrEmpty(accessCodeInput)) return;
 
         isRetrieving = true;
-        var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
+        var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
         try
         {
             var response = await client.GetAsync($"api/events/engagement/rsvp/code/{accessCodeInput.Trim().ToUpper()}");
@@ -109,7 +110,7 @@ public partial class RsvpPage : ComponentBase
 
     private async Task HandleSubmit()
     {
-        var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
+        var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
         try
         {
             HttpResponseMessage response;
@@ -171,7 +172,7 @@ public partial class RsvpPage : ComponentBase
     {
         if (currentRsvp is null) return;
 
-        var client = HttpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
+        var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
         try
         {
             var response = await client.DeleteAsync($"api/events/engagement/rsvp/{currentRsvp.Id}?accessCode={currentRsvp.AccessCode}");

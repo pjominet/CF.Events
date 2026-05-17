@@ -1,11 +1,12 @@
 using CF.Events.Shared;
+using static CF.Events.Shared.Constants;
 using CF.Events.Shared.DTOs;
 
 namespace CF.Events.Web.Services;
 
 public class AuthService(IHttpClientFactory httpClientFactory)
 {
-    private readonly HttpClient httpClient = httpClientFactory.CreateClient(Constants.HttpClients.EventsApi);
+    private readonly HttpClient httpClient = httpClientFactory.CreateClient(HttpClients.EventsApi);
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
     {

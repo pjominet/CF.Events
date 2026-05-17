@@ -1,5 +1,6 @@
 using CF.Events.Web.Services;
 using CF.Events.Shared;
+using static CF.Events.Shared.Constants;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 
@@ -19,7 +20,7 @@ builder.Services.AddAuthorizationCore();
 builder.Services.AddSingleton<ToastService>();
 builder.Services.AddScoped<AuthService>();
 
-builder.Services.AddHttpClient(Constants.HttpClients.EventsApi, client =>
+builder.Services.AddHttpClient(HttpClients.EventsApi, client =>
 {
     var apiBaseUrl = builder.Configuration["EventsApi:BaseUrl"];
     if (string.IsNullOrEmpty(apiBaseUrl))
