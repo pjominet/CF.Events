@@ -15,6 +15,7 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStateProvider>();
+builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
 
 builder.Services.AddSingleton<ToastService>();

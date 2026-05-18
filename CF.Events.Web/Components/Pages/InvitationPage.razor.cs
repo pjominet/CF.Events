@@ -64,7 +64,14 @@ public partial class InvitationPage
         try
         {
             // Read the static HTML directly from the file system to avoid public access issues
-            var folderPath = Path.Combine(WebHostEnvironment.WebRootPath, "invitations", eventData!.InvitationFileName);
+            var fileName = eventData?.InvitationFileName;
+            if (string.IsNullOrEmpty(fileName))
+            {
+                processedHtml = "<div class='alert alert-warning'>No invitation design assigned to this event.</div>";
+                return;
+            }
+
+            var folderPath = Path.Combine(WebHostEnvironment.WebRootPath, "invitations", fileName);
             var filePath = Path.Combine(folderPath, "index.html");
 
             if (File.Exists(filePath))
