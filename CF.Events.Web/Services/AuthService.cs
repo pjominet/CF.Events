@@ -111,6 +111,19 @@ public class AuthService(IHttpClientFactory httpClientFactory)
         }
     }
 
+    public async Task<List<UserDto>> GetUsersAsync(string token)
+    {
+        try
+        {
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            return await httpClient.GetFromJsonAsync<List<UserDto>>("auth/users") ?? [];
+        }
+        catch
+        {
+            return [];
+        }
+    }
+
     public async Task LogoutAsync(string token)
     {
         try

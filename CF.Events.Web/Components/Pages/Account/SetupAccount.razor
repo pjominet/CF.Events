@@ -41,5 +41,12 @@
                 Complete Setup
             </button>
         </EditForm>
+
+        @if (!mustChangePassword)
+        {
+            <div class="text-center mt-3">
+                <a href="/" class="btn btn-link">Cancel</a>
+            </div>
+        }
     </div>
 </div>

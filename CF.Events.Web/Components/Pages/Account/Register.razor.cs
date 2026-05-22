@@ -26,7 +26,7 @@ public partial class Register
         {
             if (user.IsInRole(Constants.Roles.Admin))
             {
-                NavigationManager.NavigateTo("admin");
+                NavigationManager.NavigateTo("admin/events");
             }
             else
             {

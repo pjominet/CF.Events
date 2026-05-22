@@ -30,6 +30,10 @@ public partial class Manage
             userEmail = user.Identity.Name ?? "Unknown";
             userRoles = user.Claims.Where(c => c.Type is ClaimTypes.Role).Select(c => c.Value).ToList();
         }
+        else
+        {
+            NavigationManager.NavigateTo("account/login");
+        }
     }
 
     private async Task HandleChangePassword()

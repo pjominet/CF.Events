@@ -1,22 +1,52 @@
 using CF.Events.Web.Services;
-using CF.Events.Shared.Models;
 using CF.Events.Shared.DTOs;
 using Microsoft.AspNetCore.Components;
-using static CF.Events.Shared.Constants;
+using Microsoft.AspNetCore.Components.Authorization;
 
 namespace CF.Events.Web.Components.Pages.Admin;
 
 public partial class Users : ComponentBase
 {
+    private bool isLoading = true;
     private bool isInviting;
+    private bool showInviteModal;
     private RegisterRequest registerRequest = new();
+    private List<UserDto> allUsers = [];
 
     [Inject] private AuthService AuthService { get; set; } = null!;
     [Inject] private ToastService ToastService { get; set; } = null!;
+    [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         GeneratePassword();
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
+        isLoading = true;
+        var token = await ((ApiAuthenticationStateProvider)AuthStateProvider).GetTokenAsync();
+        if (!string.IsNullOrEmpty(token))
+        {
+            allUsers = await AuthService.GetUsersAsync(token);
+        }
+        isLoading = false;
+    }
+
+    private void ShowInviteModal()
+    {
+        registerRequest = new RegisterRequest();
+        GeneratePassword();
+        showInviteModal = true;
+    }
+
+    private void CloseInviteModal() => showInviteModal = false;
+
+    private void EditUser(UserDto user)
+    {
+        // Placeholder for edit functionality
+        ToastService.Show($"Edit user {user.Email} - Not implemented yet.", ToastType.Info);
     }
 
     private void GeneratePassword()
@@ -34,8 +64,8 @@ public partial class Users : ComponentBase
         if (result.Success)
         {
             ToastService.Show($"Invitation sent to {email}", ToastType.Success);
-            registerRequest = new RegisterRequest();
-            GeneratePassword();
+            showInviteModal = false;
+            await LoadUsers();
         }
         else
         {

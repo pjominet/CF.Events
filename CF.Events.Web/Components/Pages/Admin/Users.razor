@@ -14,22 +14,86 @@
                 </nav>
                 <h1 class="cursive fs-1">Manage Users</h1>
             </div>
-            <a href="/admin" class="btn btn-outline-secondary btn-sm">Back to Dashboard</a>
+            <button class="btn btn-primary" @onclick="ShowInviteModal">
+                <i class="bi bi-envelope-plus me-2"></i>Invite User
+            </button>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-6 mx-auto">
-            <div class="card shadow-sm border-0 p-4">
-                <div class="card-header bg-primary text-white border-0 rounded-3 mb-4">
-                    <h5 class="mb-0 p-2">Invite New User</h5>
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height: 70vh; overflow-y: auto;">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th>Display Name</th>
+                                <th>Email</th>
+                                <th>Roles</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <Virtualize Items="@allUsers" Context="user">
+                                <tr>
+                                    <td class="fw-bold">@user.DisplayName</td>
+                                    <td>@user.Email</td>
+                                    <td>
+                                        @foreach (var role in user.Roles)
+                                        {
+                                            <span class="badge bg-info text-dark me-1">@role</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <button class="btn btn-outline-primary btn-sm" @onclick="() => EditUser(user)">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </Virtualize>
+                        </tbody>
+                    </table>
                 </div>
-                <div class="card-body p-0">
+                @if (allUsers.Count == 0)
+                {
+                    <div class="text-center py-4 text-muted">
+                        No users found.
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@if (showInviteModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Invite New User</h5>
+                    <button type="button" class="btn-close" @onclick="CloseInviteModal"></button>
+                </div>
+                <div class="modal-body">
                     <EditForm Model="registerRequest" OnValidSubmit="HandleInviteUser" FormName="inviteUserForm">
                         <DataAnnotationsValidator />
                         <div class="mb-3">
+                            <label class="form-label fw-bold">Display Name</label>
+                            <InputText class="form-control" @bind-Value="registerRequest.DisplayName" placeholder="John Doe" />
+                            <ValidationMessage For="@(() => registerRequest.DisplayName)" class="text-danger" />
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label fw-bold">Email Address</label>
-                            <InputText class="form-control form-control-lg" @bind-Value="registerRequest.Email" placeholder="guest@example.com" />
+                            <InputText class="form-control" @bind-Value="registerRequest.Email" placeholder="guest@example.com" />
                             <ValidationMessage For="@(() => registerRequest.Email)" class="text-danger" />
                         </div>
                         <div class="mb-4">
@@ -43,20 +107,19 @@
                             <div class="form-text mt-2">The user will be asked to change this password on their first login.</div>
                             <ValidationMessage For="@(() => registerRequest.Password)" class="text-danger" />
                         </div>
-                        <button type="submit" class="btn btn-primary btn-lg w-100" disabled="@isInviting">
-                            @if (isInviting)
-                            {
-                                <span class="spinner-border spinner-border-sm me-2"></span>
-                                <span>Sending...</span>
-                            }
-                            else
-                            {
-                                <i class="bi bi-envelope-plus me-2"></i><span>Send Invitation</span>
-                            }
-                        </button>
+                        <div class="modal-footer px-0 pb-0">
+                            <button type="button" class="btn btn-secondary" @onclick="CloseInviteModal">Cancel</button>
+                            <button type="submit" class="btn btn-primary" disabled="@isInviting">
+                                @if (isInviting)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                }
+                                Send Invitation
+                            </button>
+                        </div>
                     </EditForm>
                 </div>
             </div>
         </div>
     </div>
-</div>
+}

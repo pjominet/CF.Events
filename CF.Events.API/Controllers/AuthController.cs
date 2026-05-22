@@ -49,6 +49,23 @@ public class AuthController(UserManager<ApplicationUser> userManager, IConfigura
         return Ok(new AuthResponse { Success = true });
     }
 
+    [HttpGet("users")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> GetUsers()
+    {
+        var users = await db.Users.Select(u => new UserDto
+        {
+            Id = u.Id,
+            Email = u.Email!,
+            DisplayName = u.DisplayName,
+            Roles = db.UserRoles.Where(ur => ur.UserId == u.Id)
+                .Join(db.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name!)
+                .ToList()
+        }).ToListAsync();
+
+        return Ok(users);
+    }
+
     [HttpPost("login")]
     [EnableRateLimiting(RateLimiting.Strict)]
     public async Task<IActionResult> Login(LoginRequest request)
@@ -64,7 +81,8 @@ public class AuthController(UserManager<ApplicationUser> userManager, IConfigura
         {
             new(ClaimTypes.Name, user.Email!),
             new(ClaimTypes.NameIdentifier, user.Id),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new("must_change_password", user.MustChangePassword.ToString().ToLower())
         };
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 

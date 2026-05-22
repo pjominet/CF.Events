@@ -25,7 +25,7 @@ public partial class Login
         {
             if (user.IsInRole(Constants.Roles.Admin))
             {
-                NavigationManager.NavigateTo("admin");
+                NavigationManager.NavigateTo("admin/events");
             }
             else
             {
@@ -55,7 +55,7 @@ public partial class Login
                 var authState = await AuthStateProvider.GetAuthenticationStateAsync();
                 if (authState.User.IsInRole(Constants.Roles.Admin))
                 {
-                    NavigationManager.NavigateTo("admin");
+                    NavigationManager.NavigateTo("admin/events");
                 }
                 else
                 {

@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using CF.Events.Shared.Models;
 using CF.Events.Web.Services;
 using static CF.Events.Shared.Constants;
@@ -80,7 +79,7 @@ public partial class InvitationPage
 
                 // Replace placeholders
                 processedHtml = rawHtml
-                    .Replace("[EventDate]", eventData.Date.ToString("MMMM dd, yyyy"))
+                    .Replace("[EventDate]", eventData!.Date.ToString("MMMM dd, yyyy"))
                     .Replace("[EventLocation]", eventData.Location ?? "To be announced")
                     .Replace("[EventName]", eventData.Name);
             }

@@ -12,6 +12,7 @@ public partial class Events : ComponentBase
 {
     private bool isLoading = true;
     private bool isCreatingEvent;
+    private bool showCreateModal;
     private Event newEvent = new() { Date = DateTime.Today.AddMonths(1) };
     private List<string> invitationFiles = [];
     private List<Event> allEvents = [];
@@ -54,6 +55,9 @@ public partial class Events : ComponentBase
         }
     }
 
+    private void ShowCreateModal() => showCreateModal = true;
+    private void CloseCreateModal() => showCreateModal = false;
+
     private async Task HandleCreateEvent()
     {
         isCreatingEvent = true;
@@ -68,6 +72,7 @@ public partial class Events : ComponentBase
             {
                 ToastService.Show("Event created successfully!", ToastType.Success);
                 newEvent = new Event { Date = DateTime.Today.AddMonths(1) };
+                showCreateModal = false;
                 await LoadData();
             }
             else

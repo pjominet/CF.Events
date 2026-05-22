@@ -1,5 +1,4 @@
 @page "/"
-@using CF.Events.Shared
 
 <div class="container py-5 text-center">
     <div class="spinner-border text-primary" role="status">
@@ -23,8 +22,8 @@
         {
             if (user.IsInRole(Constants.Roles.Admin))
             {
-                statusMessage = "Redirecting to admin dashboard...";
-                Nav.NavigateTo("admin");
+                statusMessage = "Redirecting to admin events...";
+                Nav.NavigateTo("admin/events");
             }
             else
             {

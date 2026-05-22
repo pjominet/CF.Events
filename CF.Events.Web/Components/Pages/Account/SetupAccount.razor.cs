@@ -15,6 +15,13 @@ public partial class SetupAccount
     private readonly SetupAccountRequest setupRequest = new();
     private string? errorMessage;
     private bool isSubmitting;
+    private bool mustChangePassword;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        mustChangePassword = authState.User.FindFirst("must_change_password")?.Value == "true";
+    }
 
     private async Task HandleSetup()
     {
