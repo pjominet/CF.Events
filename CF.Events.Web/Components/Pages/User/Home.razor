@@ -1,5 +1,6 @@
 @page "/invites"
-@attribute [Authorize]
+@using CF.Events.Shared
+@attribute [Authorize(Roles = Constants.Roles.User)]
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <div class="container py-4">

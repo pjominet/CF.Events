@@ -12,7 +12,7 @@ public class AuthService(IHttpClientFactory httpClientFactory)
     {
         try
         {
-            var response = await httpClient.PostAsJsonAsync("api/auth/register", request);
+            var response = await httpClient.PostAsJsonAsync("auth/register", request);
             if (response.IsSuccessStatusCode)
                 return new AuthResponse { Success = true };
 
@@ -37,7 +37,7 @@ public class AuthService(IHttpClientFactory httpClientFactory)
     {
         try
         {
-            var response = await httpClient.PostAsJsonAsync("api/auth/login", request);
+            var response = await httpClient.PostAsJsonAsync("auth/login", request);
             if (!response.IsSuccessStatusCode)
                 return new AuthResponse
                 {
@@ -64,7 +64,7 @@ public class AuthService(IHttpClientFactory httpClientFactory)
         try
         {
             httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            var response = await httpClient.PostAsJsonAsync("api/auth/change-password", request);
+            var response = await httpClient.PostAsJsonAsync("auth/change-password", request);
             if (response.IsSuccessStatusCode)
                 return new AuthResponse { Success = true };
 
@@ -90,7 +90,7 @@ public class AuthService(IHttpClientFactory httpClientFactory)
         try
         {
             httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            var response = await httpClient.PostAsJsonAsync("api/auth/setup-account", request);
+            var response = await httpClient.PostAsJsonAsync("auth/setup-account", request);
             if (response.IsSuccessStatusCode)
                 return new AuthResponse { Success = true };
 
@@ -108,6 +108,19 @@ public class AuthService(IHttpClientFactory httpClientFactory)
                 Success = false,
                 Error = ex.Message
             };
+        }
+    }
+
+    public async Task LogoutAsync(string token)
+    {
+        try
+        {
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            await httpClient.PostAsync("auth/logout", null);
+        }
+        catch
+        {
+            // Best effort
         }
     }
 }

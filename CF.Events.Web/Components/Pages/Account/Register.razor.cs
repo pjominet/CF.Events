@@ -1,6 +1,8 @@
+using CF.Events.Shared;
 using CF.Events.Shared.DTOs;
 using CF.Events.Web.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 
 namespace CF.Events.Web.Components.Pages.Account;
 
@@ -9,10 +11,29 @@ public partial class Register
     [Inject] private AuthService AuthService { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
     [Inject] private ToastService ToastService { get; set; } = null!;
+    [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
 
     private readonly RegisterRequest registerRequest = new();
     private string? errorMessage;
     private bool isSubmitting;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated is true)
+        {
+            if (user.IsInRole(Constants.Roles.Admin))
+            {
+                NavigationManager.NavigateTo("admin");
+            }
+            else
+            {
+                NavigationManager.NavigateTo("invites");
+            }
+        }
+    }
 
     private async Task HandleRegister()
     {

@@ -19,11 +19,19 @@ namespace CF.Events.API.Controllers;
 [EnableRateLimiting(RateLimiting.Fixed)]
 public class AuthController(UserManager<ApplicationUser> userManager, IConfiguration config, EventsDbContext db) : ApiController
 {
+    [AllowAnonymous]
     [HttpPost("register")]
-    [Authorize(Roles = Roles.Admin)]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
-        var user = new ApplicationUser { UserName = request.Email, Email = request.Email, MustChangePassword = true };
+        var firstLaunch = !await db.Users.AnyAsync();
+
+        var user = new ApplicationUser
+        {
+            UserName = request.Email,
+            Email = request.Email,
+            DisplayName = request.DisplayName
+        };
+
         var result = await userManager.CreateAsync(user, request.Password);
 
         if (!result.Succeeded)
@@ -35,7 +43,8 @@ public class AuthController(UserManager<ApplicationUser> userManager, IConfigura
             });
         }
 
-        await userManager.AddToRoleAsync(user, Roles.User);
+        if (firstLaunch)
+            await userManager.AddToRoleAsync(user, Roles.Admin);
 
         return Ok(new AuthResponse { Success = true });
     }
@@ -107,9 +116,7 @@ public class AuthController(UserManager<ApplicationUser> userManager, IConfigura
             return BadRequest(new AuthResponse { Success = false, Error = string.Join(", ", passResult.Errors.Select(e => e.Description)) });
         }
 
-        // 2. Set display name and clear flag
-        user.DisplayName = request.DisplayName;
-        user.UserName = request.DisplayName; // Use display name as username (optional, maybe keep email as username for consistency)
+        // 2. Clear flag
         user.MustChangePassword = false;
 
         var result = await userManager.UpdateAsync(user);

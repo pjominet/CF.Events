@@ -10,6 +10,7 @@ public partial class Manage
 {
     [Inject] private AuthService AuthService { get; set; } = null!;
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = null!;
     [Inject] private ToastService ToastService { get; set; } = null!;
 
     private UpdatePasswordRequest passwordRequest = new();
@@ -56,5 +57,17 @@ public partial class Manage
         }
         else
             errorMessage = result.Error ?? "Failed to change password.";
+    }
+
+    private async Task HandleLogout()
+    {
+        var provider = (ApiAuthenticationStateProvider)AuthStateProvider;
+        var token = await provider.GetTokenAsync();
+        if (!string.IsNullOrEmpty(token))
+        {
+            await AuthService.LogoutAsync(token);
+        }
+        await provider.MarkUserAsLoggedOut();
+        NavigationManager.NavigateTo("/account/login");
     }
 }

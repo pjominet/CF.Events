@@ -9,7 +9,14 @@
         <div class="mb-4">
             <h5>User Information</h5>
             <p><strong>Email:</strong> @userEmail</p>
-            <p><strong>Roles:</strong> @string.Join(", ", userRoles)</p>
+            @if (userRoles.Any())
+            {
+                <p><strong>Roles:</strong> @string.Join(", ", userRoles)</p>
+            }
+            else
+            {
+                <p><strong>Roles:</strong> User</p>
+            }
         </div>
 
         <hr />
@@ -57,8 +64,9 @@
             </EditForm>
         </div>
 
-        <div class="text-center mt-3">
+        <div class="text-center mt-3 d-flex justify-content-between">
             <a href="engagement/admin" class="btn btn-outline-secondary">Back to Dashboard</a>
+            <button class="btn btn-outline-danger" @onclick="HandleLogout">Logout</button>
         </div>
     </div>
 </div>

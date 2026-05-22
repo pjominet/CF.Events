@@ -15,19 +15,42 @@ using Microsoft.AspNetCore.DataProtection;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+var keysPath = Path.Combine(builder.Environment.ContentRootPath, "keys");
+if (builder.Environment.IsProduction() && Directory.Exists("/app"))
+{
+    keysPath = "/app/keys";
+}
+
+if (!Directory.Exists(keysPath))
+{
+    Directory.CreateDirectory(keysPath);
+}
+
 builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo("/app/keys"));
+    .PersistKeysToFileSystem(new DirectoryInfo(keysPath))
+    .SetApplicationName("CF.Events.API");
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
-        options.Password.RequireDigit = true;
-        options.Password.RequireLowercase = true;
-        options.Password.RequireUppercase = true;
-        options.Password.RequireNonAlphanumeric = true;
-        options.Password.RequiredLength = 8;
+        if (builder.Environment.IsDevelopment())
+        {
+            options.Password.RequireDigit = false;
+            options.Password.RequireLowercase = false;
+            options.Password.RequireUppercase = false;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequiredLength = 6;
+        }
+        else
+        {
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireNonAlphanumeric = true;
+            options.Password.RequiredLength = 8;
+        }
         options.User.RequireUniqueEmail = true;
     })
     .AddEntityFrameworkStores<EventsDbContext>()
@@ -120,7 +143,7 @@ using (var scope = app.Services.CreateScope())
     db.Database.EnsureCreated();
 
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var roles = new[] { Roles.Admin, Roles.User };
+    var roles = new[] { Roles.Admin };
     foreach (var role in roles)
     {
         if (!await roleManager.RoleExistsAsync(role))

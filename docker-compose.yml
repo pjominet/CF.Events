@@ -4,9 +4,13 @@
       context: .
       dockerfile: CF.Events.API/Dockerfile
     image: cf-events-api
+    volumes:
+      - ./keys/api:/app/keys
 
   cf-events-web:
     build:
       context: .
       dockerfile: CF.Events.Web/Dockerfile
     image: cf-events-web
+    volumes:
+      - ./keys/web:/app/keys
