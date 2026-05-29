@@ -34,10 +34,14 @@ public partial class Home : ComponentBase
             var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
             client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-            var response = await client.GetAsync("api/events");
+            var response = await client.GetAsync("events");
             if (response.IsSuccessStatusCode)
             {
                 myInvites = await response.Content.ReadFromJsonAsync<List<UserInviteDto>>() ?? [];
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                NavigationManager.NavigateTo("account/login");
             }
         }
         catch (Exception ex)

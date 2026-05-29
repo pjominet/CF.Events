@@ -10,7 +10,7 @@
         </div>
     </div>
 }
-else if (eventData is null)
+else if (eventData is null && string.IsNullOrEmpty(processedHtml))
 {
     <div class="container py-5">
         <div class="alert alert-danger">Event not found or you are not invited.</div>
@@ -20,7 +20,7 @@ else if (eventData is null)
 else
 {
     <div class="invitation-wrapper">
-        @if (string.IsNullOrEmpty(eventData.InvitationFileName))
+        @if (eventData is not null && string.IsNullOrEmpty(eventData.InvitationFileName))
         {
             <div class="container py-5 text-center">
                 <h1>@eventData.Name</h1>
@@ -30,7 +30,7 @@ else
                 <a href="events/@eventData.Id/rsvp" class="btn btn-primary btn-lg mt-4">RSVP NOW</a>
             </div>
         }
-        else
+        else if (!string.IsNullOrEmpty(processedHtml))
         {
             <div id="invitation-container">
                 @((MarkupString)processedHtml)

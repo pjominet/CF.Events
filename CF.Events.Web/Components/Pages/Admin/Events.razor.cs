@@ -37,9 +37,7 @@ public partial class Events : ComponentBase
             var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            invitationFiles = await client.GetFromJsonAsync<List<string>>("api/events/invitation-files") ?? [];
-
-            var eventsResponse = await client.GetAsync("api/events/all");
+            var eventsResponse = await client.GetAsync("events/all");
             if (eventsResponse.IsSuccessStatusCode)
             {
                 allEvents = await eventsResponse.Content.ReadFromJsonAsync<List<Event>>() ?? [];
@@ -55,7 +53,22 @@ public partial class Events : ComponentBase
         }
     }
 
-    private void ShowCreateModal() => showCreateModal = true;
+    private async Task ShowCreateModal()
+    {
+        showCreateModal = true;
+        if (invitationFiles.Count == 0)
+        {
+            var token = await ((ApiAuthenticationStateProvider)AuthStateProvider).GetTokenAsync();
+            var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.GetAsync("events/invitation-files");
+            if (response.IsSuccessStatusCode)
+            {
+                invitationFiles = await response.Content.ReadFromJsonAsync<List<string>>() ?? [];
+            }
+        }
+    }
     private void CloseCreateModal() => showCreateModal = false;
 
     private async Task HandleCreateEvent()
@@ -67,11 +80,14 @@ public partial class Events : ComponentBase
             var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await client.PostAsJsonAsync("api/events", newEvent);
+            var response = await client.PostAsJsonAsync("events", newEvent);
             if (response.IsSuccessStatusCode)
             {
                 ToastService.Show("Event created successfully!", ToastType.Success);
-                newEvent = new Event { Date = DateTime.Today.AddMonths(1) };
+                newEvent = new Event
+                {
+                    Date = DateTime.Today.AddMonths(1)
+                };
                 showCreateModal = false;
                 await LoadData();
             }
@@ -99,7 +115,7 @@ public partial class Events : ComponentBase
             var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await client.PutAsJsonAsync($"api/events/{ev.Id}", ev);
+            var response = await client.PutAsJsonAsync($"events/{ev.Id}", ev);
             if (!response.IsSuccessStatusCode)
             {
                 ev.IsActive = !ev.IsActive;
@@ -131,7 +147,7 @@ public partial class Events : ComponentBase
             var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await client.PostAsJsonAsync($"api/events/{selectedEventId}/invite", inviteEmail);
+            var response = await client.PostAsJsonAsync($"events/{selectedEventId}/invite", inviteEmail);
             if (response.IsSuccessStatusCode)
             {
                 ToastService.Show($"User invited successfully", ToastType.Success);
@@ -140,7 +156,7 @@ public partial class Events : ComponentBase
             else
             {
                 var error = await response.Content.ReadAsStringAsync();
-                ToastService.Show(error ?? "Failed to invite user", ToastType.Error);
+                ToastService.Show(error, ToastType.Error);
             }
         }
         catch (Exception ex)

@@ -49,7 +49,7 @@ public partial class RsvpPage : ComponentBase
         var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
         client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-        var response = await client.GetAsync($"api/events/{EventId}");
+        var response = await client.GetAsync($"events/{EventId}");
         if (response.IsSuccessStatusCode)
         {
             var data = await response.Content.ReadFromJsonAsync<EventRsvpDto>();
@@ -58,6 +58,10 @@ public partial class RsvpPage : ComponentBase
                 eventData = data.Event;
                 rsvpModel = data.Rsvp ?? new Rsvp { EventId = EventId };
             }
+        }
+        else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            NavigationManager.NavigateTo("account/login");
         }
         else
         {
@@ -74,7 +78,7 @@ public partial class RsvpPage : ComponentBase
             var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
             client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-            var response = await client.PostAsJsonAsync($"api/events/{EventId}/rsvp", rsvpModel);
+            var response = await client.PostAsJsonAsync($"events/{EventId}/rsvp", rsvpModel);
             if (response.IsSuccessStatusCode)
             {
                 ToastService.Show("Thank you for your response!", ToastType.Success);

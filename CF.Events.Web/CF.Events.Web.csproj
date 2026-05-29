@@ -13,5 +13,11 @@
     <ItemGroup>
       <ProjectReference Include="..\CF.Events.Shared\CF.Events.Shared.csproj" />
     </ItemGroup>
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="wwwroot\invitations\engagement\assets\invitation.jpeg" />
+      <_ContentIncludedByDefault Remove="wwwroot\invitations\engagement\assets\location.svg" />
+      <_ContentIncludedByDefault Remove="wwwroot\invitations\engagement\index.html" />
+      <_ContentIncludedByDefault Remove="wwwroot\invitations\sample\index.html" />
+    </ItemGroup>
 
 </Project>

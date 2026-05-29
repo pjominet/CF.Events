@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using CF.Events.API.Data;
+using CF.Events.API.Infrastructure.Attributes;
 using CF.Events.API.Models;
 using CF.Events.Shared.DTOs;
 using CF.Events.Shared.Models;
@@ -15,8 +16,8 @@ using static CF.Events.Shared.Constants;
 
 namespace CF.Events.API.Controllers;
 
-[Route("auth")]
 [EnableRateLimiting(RateLimiting.Fixed)]
+[ApiRoute("auth")]
 public class AuthController(UserManager<ApplicationUser> userManager, IConfiguration config, EventsDbContext db) : ApiController
 {
     [AllowAnonymous]

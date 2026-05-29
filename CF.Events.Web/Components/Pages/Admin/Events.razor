@@ -41,6 +41,7 @@
                                 <th class="text-center">Design</th>
                                 <th class="text-center">Active</th>
                                 <th>Quick Invite</th>
+                                <th class="text-end">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -49,9 +50,16 @@
                                     <td class="fw-bold">@ev.Name <br/><small class="text-muted fw-normal">@ev.Type</small></td>
                                     <td>@ev.Date.ToShortDateString()</td>
                                     <td class="text-center">
-                                        <span class="badge @(string.IsNullOrEmpty(ev.InvitationFileName) ? "bg-secondary" : "bg-primary")">
-                                            @(ev.InvitationFileName ?? "None")
-                                        </span>
+                                        @if (!string.IsNullOrEmpty(ev.InvitationFileName))
+                                        {
+                                            <span class="badge bg-primary">
+                                                @ev.InvitationFileName
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">None</span>
+                                        }
                                     </td>
                                     <td class="text-center">
                                         <div class="form-check form-switch d-inline-block">
@@ -66,6 +74,11 @@
                                                 <i class="bi bi-person-plus"></i>
                                             </button>
                                         </div>
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="/events/@ev.Id/invitation" class="btn btn-outline-info btn-sm" title="Preview Invitation" target="_blank">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
                                     </td>
                                 </tr>
                             </Virtualize>

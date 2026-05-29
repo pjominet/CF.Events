@@ -1,4 +1,3 @@
-using CF.Events.Shared;
 using static CF.Events.Shared.Constants;
 using CF.Events.Shared.DTOs;
 

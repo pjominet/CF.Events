@@ -1,9 +1,10 @@
+using CF.Events.Shared.DTOs;
+using CF.Events.Shared.Models;
+using CF.Events.Web.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 using System.Net.Http.Headers;
-using CF.Events.Shared.Models;
-using CF.Events.Web.Services;
 using static CF.Events.Shared.Constants;
 
 namespace CF.Events.Web.Components.Pages;
@@ -20,8 +21,6 @@ public partial class InvitationPage
     [Inject] private NavigationManager NavigationManager { get; init; } = null!;
     [Inject] private IJSRuntime JS { get; init; } = null!;
 
-    [Inject] private IWebHostEnvironment WebHostEnvironment { get; init; } = null!;
-
     protected override async Task OnInitializedAsync()
     {
         await LoadEvent();
@@ -36,7 +35,7 @@ public partial class InvitationPage
             var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await client.GetAsync($"api/events/{EventId}");
+            var response = await client.GetAsync($"events/{EventId}");
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadFromJsonAsync<EventDetailDto>();
@@ -46,6 +45,15 @@ public partial class InvitationPage
                 {
                     await LoadInvitationHtml();
                 }
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                // Try to load invitation content anyway (maybe it's an admin previewing)
+                await LoadInvitationHtml();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                NavigationManager.NavigateTo("account/login");
             }
         }
         catch (Exception ex)
@@ -62,30 +70,27 @@ public partial class InvitationPage
     {
         try
         {
-            // Read the static HTML directly from the file system to avoid public access issues
-            var fileName = eventData?.InvitationFileName;
-            if (string.IsNullOrEmpty(fileName))
+            var token = await ((ApiAuthenticationStateProvider)AuthStateProvider).GetTokenAsync();
+            var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.GetAsync($"events/{EventId}/invitation-content");
+            if (response.IsSuccessStatusCode)
             {
-                processedHtml = "<div class='alert alert-warning'>No invitation design assigned to this event.</div>";
-                return;
+                var content = await response.Content.ReadFromJsonAsync<InvitationContentDto>();
+                processedHtml = content?.HtmlContent ?? "<div class='alert alert-warning'>Invitation content is empty.</div>";
             }
-
-            var folderPath = Path.Combine(WebHostEnvironment.WebRootPath, "invitations", fileName);
-            var filePath = Path.Combine(folderPath, "index.html");
-
-            if (File.Exists(filePath))
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
-                var rawHtml = await File.ReadAllTextAsync(filePath);
-
-                // Replace placeholders
-                processedHtml = rawHtml
-                    .Replace("[EventDate]", eventData!.Date.ToString("MMMM dd, yyyy"))
-                    .Replace("[EventLocation]", eventData.Location ?? "To be announced")
-                    .Replace("[EventName]", eventData.Name);
+                NavigationManager.NavigateTo("account/login");
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                processedHtml = "<div class='alert alert-danger'>You do not have permission to view this invitation.</div>";
             }
             else
             {
-                processedHtml = "<div class='alert alert-warning'>Invitation content not found.</div>";
+                processedHtml = "<div class='alert alert-warning'>Invitation content not found or access denied.</div>";
             }
         }
         catch (Exception ex)

@@ -24,14 +24,7 @@ public partial class Register
 
         if (user.Identity?.IsAuthenticated is true)
         {
-            if (user.IsInRole(Constants.Roles.Admin))
-            {
-                NavigationManager.NavigateTo("admin/events");
-            }
-            else
-            {
-                NavigationManager.NavigateTo("invites");
-            }
+            NavigationManager.NavigateTo(user.IsInRole(Constants.Roles.Admin) ? "admin/events" : "invites");
         }
     }
 

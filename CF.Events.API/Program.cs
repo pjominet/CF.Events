@@ -17,14 +17,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 var keysPath = Path.Combine(builder.Environment.ContentRootPath, "keys");
 if (builder.Environment.IsProduction() && Directory.Exists("/app"))
-{
     keysPath = "/app/keys";
-}
 
 if (!Directory.Exists(keysPath))
-{
     Directory.CreateDirectory(keysPath);
-}
 
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(keysPath))

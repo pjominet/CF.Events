@@ -58,8 +58,8 @@ builder.Services.AddHttpClient(HttpClients.EventsApi, client =>
 {
     var apiBaseUrl = builder.Configuration["EventsApi:BaseUrl"];
     if (string.IsNullOrEmpty(apiBaseUrl))
-        apiBaseUrl = "http://localhost:5041";
-    client.BaseAddress = new Uri(apiBaseUrl);
+        apiBaseUrl = "http://localhost:5041/api";
+    client.BaseAddress = new Uri(apiBaseUrl.EndsWith('/') ? apiBaseUrl : $"{apiBaseUrl}/");
 });
 
 var app = builder.Build();
@@ -74,17 +74,7 @@ if (!app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseStaticFiles(new StaticFileOptions
-{
-    OnPrepareResponse = ctx =>
-    {
-        if (ctx.Context.User.Identity is { IsAuthenticated: true }) return;
-        if (!ctx.Context.Request.Path.StartsWithSegments("/invitations")) return;
-
-        ctx.Context.Response.StatusCode = 403;
-        ctx.Context.Response.Body = Stream.Null;
-    }
-});
+app.UseStaticFiles();
 
 app.UseSecurityHeaders(
     "default-src 'self'; " +
