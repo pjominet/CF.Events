@@ -33,9 +33,7 @@ public partial class Events : ComponentBase
         isLoading = true;
         try
         {
-            var token = await ((ApiAuthenticationStateProvider)AuthStateProvider).GetTokenAsync();
             var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var eventsResponse = await client.GetAsync("events/all");
             if (eventsResponse.IsSuccessStatusCode)
@@ -58,9 +56,7 @@ public partial class Events : ComponentBase
         showCreateModal = true;
         if (invitationFiles.Count == 0)
         {
-            var token = await ((ApiAuthenticationStateProvider)AuthStateProvider).GetTokenAsync();
             var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var response = await client.GetAsync("events/invitation-files");
             if (response.IsSuccessStatusCode)
@@ -76,9 +72,7 @@ public partial class Events : ComponentBase
         isCreatingEvent = true;
         try
         {
-            var token = await ((ApiAuthenticationStateProvider)AuthStateProvider).GetTokenAsync();
             var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var response = await client.PostAsJsonAsync("events", newEvent);
             if (response.IsSuccessStatusCode)
@@ -111,9 +105,7 @@ public partial class Events : ComponentBase
         ev.IsActive = !ev.IsActive;
         try
         {
-            var token = await ((ApiAuthenticationStateProvider)AuthStateProvider).GetTokenAsync();
             var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var response = await client.PutAsJsonAsync($"events/{ev.Id}", ev);
             if (!response.IsSuccessStatusCode)
@@ -143,9 +135,7 @@ public partial class Events : ComponentBase
 
         try
         {
-            var token = await ((ApiAuthenticationStateProvider)AuthStateProvider).GetTokenAsync();
             var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var response = await client.PostAsJsonAsync($"events/{selectedEventId}/invite", inviteEmail);
             if (response.IsSuccessStatusCode)

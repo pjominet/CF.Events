@@ -26,11 +26,7 @@ public partial class Users : ComponentBase
     private async Task LoadUsers()
     {
         isLoading = true;
-        var token = await ((ApiAuthenticationStateProvider)AuthStateProvider).GetTokenAsync();
-        if (!string.IsNullOrEmpty(token))
-        {
-            allUsers = await AuthService.GetUsersAsync(token);
-        }
+        allUsers = await AuthService.GetUsersAsync();
         isLoading = false;
     }
 

@@ -45,9 +45,7 @@ public partial class RsvpPage : ComponentBase
 
     private async Task LoadData()
     {
-        var token = await ((ApiAuthenticationStateProvider)AuthStateProvider).GetTokenAsync();
         var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
-        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
         var response = await client.GetAsync($"events/{EventId}");
         if (response.IsSuccessStatusCode)
@@ -74,9 +72,7 @@ public partial class RsvpPage : ComponentBase
         isSubmitting = true;
         try
         {
-            var token = await ((ApiAuthenticationStateProvider)AuthStateProvider).GetTokenAsync();
             var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
-            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
             var response = await client.PostAsJsonAsync($"events/{EventId}/rsvp", rsvpModel);
             if (response.IsSuccessStatusCode)

@@ -1,10 +1,9 @@
+using System.Net;
 using CF.Events.Shared.DTOs;
 using CF.Events.Shared.Models;
-using CF.Events.Web.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
-using System.Net.Http.Headers;
 using static CF.Events.Shared.Constants;
 
 namespace CF.Events.Web.Components.Pages;
@@ -31,9 +30,7 @@ public partial class InvitationPage
         isLoading = true;
         try
         {
-            var token = await ((ApiAuthenticationStateProvider)AuthStateProvider).GetTokenAsync();
             var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var response = await client.GetAsync($"events/{EventId}");
             if (response.IsSuccessStatusCode)
@@ -46,12 +43,7 @@ public partial class InvitationPage
                     await LoadInvitationHtml();
                 }
             }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
-            {
-                // Try to load invitation content anyway (maybe it's an admin previewing)
-                await LoadInvitationHtml();
-            }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            else if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
                 NavigationManager.NavigateTo("account/login");
             }
@@ -70,9 +62,7 @@ public partial class InvitationPage
     {
         try
         {
-            var token = await ((ApiAuthenticationStateProvider)AuthStateProvider).GetTokenAsync();
             var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var response = await client.GetAsync($"events/{EventId}/invitation-content");
             if (response.IsSuccessStatusCode)
@@ -80,17 +70,17 @@ public partial class InvitationPage
                 var content = await response.Content.ReadFromJsonAsync<InvitationContentDto>();
                 processedHtml = content?.HtmlContent ?? "<div class='alert alert-warning'>Invitation content is empty.</div>";
             }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            else switch (response.StatusCode)
             {
-                NavigationManager.NavigateTo("account/login");
-            }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
-            {
-                processedHtml = "<div class='alert alert-danger'>You do not have permission to view this invitation.</div>";
-            }
-            else
-            {
-                processedHtml = "<div class='alert alert-warning'>Invitation content not found or access denied.</div>";
+                case HttpStatusCode.Unauthorized:
+                    NavigationManager.NavigateTo("account/login");
+                    break;
+                case HttpStatusCode.Forbidden:
+                    processedHtml = "<div class='alert alert-danger'>You do not have permission to view this invitation.</div>";
+                    break;
+                default:
+                    processedHtml = "<div class='alert alert-warning'>Invitation content not found or access denied.</div>";
+                    break;
             }
         }
         catch (Exception ex)
@@ -103,8 +93,15 @@ public partial class InvitationPage
     {
         if (eventData is not null && !string.IsNullOrEmpty(processedHtml))
         {
-            // Hook the RSVP button via JS
-            await JS.InvokeVoidAsync("hookRsvpButton", "rsvp-button", $"events/{eventData.Id}/rsvp");
+            try
+            {
+                // Hook the RSVP button via JS
+                await JS.InvokeVoidAsync("hookRsvpButton", "rsvp-button", $"events/{eventData.Id}/rsvp");
+            }
+            catch (InvalidOperationException)
+            {
+                // JavaScript interop calls cannot be issued at this time.
+            }
         }
     }
 

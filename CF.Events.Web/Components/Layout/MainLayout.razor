@@ -63,11 +63,7 @@
     private async Task HandleLogout()
     {
         var provider = (ApiAuthenticationStateProvider)AuthStateProvider;
-        var token = await provider.GetTokenAsync();
-        if (!string.IsNullOrEmpty(token))
-        {
-            await AuthService.LogoutAsync(token);
-        }
+        await AuthService.LogoutAsync();
         await provider.MarkUserAsLoggedOut();
         NavigationManager.NavigateTo("/account/login");
     }

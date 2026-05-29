@@ -30,9 +30,7 @@ public partial class Home : ComponentBase
         isLoading = true;
         try
         {
-            var token = await ((ApiAuthenticationStateProvider)AuthStateProvider).GetTokenAsync();
             var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
-            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
             var response = await client.GetAsync("events");
             if (response.IsSuccessStatusCode)

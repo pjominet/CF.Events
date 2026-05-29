@@ -1,20 +1,18 @@
-<CascadingAuthenticationState>
-    <Router AppAssembly="@typeof(App).Assembly" NotFoundPage="@typeof(NotFound)">
-        <Found Context="routeData">
-            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
-                <NotAuthorized>
-                    <LayoutView Layout="@typeof(MainLayout)">
-                        <div class="container d-flex align-items-center justify-content-center min-vh-100">
-                            <div class="card p-4 text-center">
-                                <h2 class="text-danger">Not Authorized</h2>
-                                <p>You are not authorized to access this page. Please log in.</p>
-                                <a href="account/login" class="btn btn-primary">Go to Login</a>
-                            </div>
-                        </div>
-                    </LayoutView>
-                </NotAuthorized>
-            </AuthorizeRouteView>
-            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-        </Found>
-    </Router>
-</CascadingAuthenticationState>
+<Router AppAssembly="@typeof(Program).Assembly">
+    <Found Context="routeData">
+        <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+    </Found>
+    <NotFound>
+        <CascadingAuthenticationState>
+            <LayoutView Layout="@typeof(MainLayout)">
+                <div class="container d-flex align-items-center justify-content-center min-vh-100">
+                    <div class="card p-4 text-center">
+                        <h2 class="text-danger">Not Authorized</h2>
+                        <p>You are not authorized to access this page. Please log in.</p>
+                        <a href="account/login" class="btn btn-primary">Go to Login</a>
+                    </div>
+                </div>
+            </LayoutView>
+        </CascadingAuthenticationState>
+    </NotFound>
+</Router>

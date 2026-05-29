@@ -5,12 +5,13 @@ namespace CF.Events.Web.Services;
 
 public class AuthService(IHttpClientFactory httpClientFactory)
 {
-    private readonly HttpClient httpClient = httpClientFactory.CreateClient(HttpClients.EventsApi);
+    private HttpClient CreateClient() => httpClientFactory.CreateClient(HttpClients.EventsApi);
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
     {
         try
         {
+            var httpClient = CreateClient();
             var response = await httpClient.PostAsJsonAsync("auth/register", request);
             if (response.IsSuccessStatusCode)
                 return new AuthResponse { Success = true };
@@ -36,6 +37,7 @@ public class AuthService(IHttpClientFactory httpClientFactory)
     {
         try
         {
+            var httpClient = CreateClient();
             var response = await httpClient.PostAsJsonAsync("auth/login", request);
             if (!response.IsSuccessStatusCode)
                 return new AuthResponse
@@ -58,11 +60,11 @@ public class AuthService(IHttpClientFactory httpClientFactory)
         }
     }
 
-    public async Task<AuthResponse> ChangePasswordAsync(UpdatePasswordRequest request, string token)
+    public async Task<AuthResponse> ChangePasswordAsync(UpdatePasswordRequest request)
     {
         try
         {
-            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var httpClient = CreateClient();
             var response = await httpClient.PostAsJsonAsync("auth/change-password", request);
             if (response.IsSuccessStatusCode)
                 return new AuthResponse { Success = true };
@@ -84,11 +86,11 @@ public class AuthService(IHttpClientFactory httpClientFactory)
         }
     }
 
-    public async Task<AuthResponse> SetupAccountAsync(SetupAccountRequest request, string token)
+    public async Task<AuthResponse> SetupAccountAsync(SetupAccountRequest request)
     {
         try
         {
-            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var httpClient = CreateClient();
             var response = await httpClient.PostAsJsonAsync("auth/setup-account", request);
             if (response.IsSuccessStatusCode)
                 return new AuthResponse { Success = true };
@@ -110,11 +112,11 @@ public class AuthService(IHttpClientFactory httpClientFactory)
         }
     }
 
-    public async Task<List<UserDto>> GetUsersAsync(string token)
+    public async Task<List<UserDto>> GetUsersAsync()
     {
         try
         {
-            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var httpClient = CreateClient();
             return await httpClient.GetFromJsonAsync<List<UserDto>>("auth/users") ?? [];
         }
         catch
@@ -123,11 +125,11 @@ public class AuthService(IHttpClientFactory httpClientFactory)
         }
     }
 
-    public async Task LogoutAsync(string token)
+    public async Task LogoutAsync()
     {
         try
         {
-            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var httpClient = CreateClient();
             await httpClient.PostAsync("auth/logout", null);
         }
         catch

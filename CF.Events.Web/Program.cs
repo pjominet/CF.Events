@@ -11,15 +11,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 var keysPath = Path.Combine(builder.Environment.ContentRootPath, "keys");
-if (builder.Environment.IsProduction() && Directory.Exists("/app"))
-{
-    keysPath = "/app/keys";
-}
+if (builder.Environment.IsProduction() && Directory.Exists("/app")) keysPath = "/app/keys";
 
-if (!Directory.Exists(keysPath))
-{
-    Directory.CreateDirectory(keysPath);
-}
+if (!Directory.Exists(keysPath)) Directory.CreateDirectory(keysPath);
 
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(keysPath))
@@ -28,27 +22,28 @@ builder.Services.AddDataProtection()
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStateProvider>();
 builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,
-        ValidateIssuerSigningKey = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
-        ClockSkew = TimeSpan.Zero
-    };
-});
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateIssuerSigningKey = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+            ClockSkew = TimeSpan.Zero
+        };
+    });
 builder.Services.AddAuthorization();
 
 builder.Services.AddSingleton<ToastService>();
@@ -60,7 +55,9 @@ builder.Services.AddHttpClient(HttpClients.EventsApi, client =>
     if (string.IsNullOrEmpty(apiBaseUrl))
         apiBaseUrl = "http://localhost:5041/api";
     client.BaseAddress = new Uri(apiBaseUrl.EndsWith('/') ? apiBaseUrl : $"{apiBaseUrl}/");
-});
+}).AddHttpMessageHandler<ApiAuthorizationMessageHandler>();
+
+builder.Services.AddTransient<ApiAuthorizationMessageHandler>();
 
 var app = builder.Build();
 

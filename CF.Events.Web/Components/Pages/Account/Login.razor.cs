@@ -23,14 +23,7 @@ public partial class Login
 
         if (user.Identity?.IsAuthenticated is true)
         {
-            if (user.IsInRole(Constants.Roles.Admin))
-            {
-                NavigationManager.NavigateTo("admin/events");
-            }
-            else
-            {
-                NavigationManager.NavigateTo("invites");
-            }
+            NavigationManager.NavigateTo(user.IsInRole(Constants.Roles.Admin) ? "admin/events" : "invites");
         }
     }
 
@@ -53,14 +46,7 @@ public partial class Login
             else
             {
                 var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-                if (authState.User.IsInRole(Constants.Roles.Admin))
-                {
-                    NavigationManager.NavigateTo("admin/events");
-                }
-                else
-                {
-                    NavigationManager.NavigateTo("invites");
-                }
+                NavigationManager.NavigateTo(authState.User.IsInRole(Constants.Roles.Admin) ? "admin/events" : "invites");
             }
         }
         else errorMessage = result.Error ?? "Invalid login attempt.";

@@ -28,15 +28,7 @@ public partial class SetupAccount
         errorMessage = null;
         isSubmitting = true;
 
-        var token = await ((ApiAuthenticationStateProvider)AuthStateProvider).GetTokenAsync();
-        if (string.IsNullOrEmpty(token))
-        {
-            errorMessage = "Session expired. Please login again.";
-            isSubmitting = false;
-            return;
-        }
-
-        var result = await AuthService.SetupAccountAsync(setupRequest, token);
+        var result = await AuthService.SetupAccountAsync(setupRequest);
         isSubmitting = false;
 
         if (result.Success)

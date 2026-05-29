@@ -42,15 +42,7 @@ public partial class Manage
         successMessage = null;
         isSubmitting = true;
 
-        var token = await ((ApiAuthenticationStateProvider)AuthStateProvider).GetTokenAsync();
-        if (string.IsNullOrEmpty(token))
-        {
-            errorMessage = "Session expired. Please login again.";
-            isSubmitting = false;
-            return;
-        }
-
-        var result = await AuthService.ChangePasswordAsync(passwordRequest, token);
+        var result = await AuthService.ChangePasswordAsync(passwordRequest);
         isSubmitting = false;
 
         if (result.Success)
@@ -66,11 +58,7 @@ public partial class Manage
     private async Task HandleLogout()
     {
         var provider = (ApiAuthenticationStateProvider)AuthStateProvider;
-        var token = await provider.GetTokenAsync();
-        if (!string.IsNullOrEmpty(token))
-        {
-            await AuthService.LogoutAsync(token);
-        }
+        await AuthService.LogoutAsync();
         await provider.MarkUserAsLoggedOut();
         NavigationManager.NavigateTo("/account/login");
     }
