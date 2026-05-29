@@ -64,7 +64,7 @@ public class ApiAuthenticationStateProvider(ProtectedLocalStorage localStorage) 
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(anonymous)));
     }
 
-    internal async Task<string?> GetTokenAsync()
+    public async Task<string?> GetTokenAsync()
     {
         try
         {
@@ -80,31 +80,46 @@ public class ApiAuthenticationStateProvider(ProtectedLocalStorage localStorage) 
 
     private static List<Claim> ParseClaimsFromJwt(string jwt)
     {
-        var claims = new List<Claim>();
         var payload = jwt.Split('.')[1];
         var jsonBytes = ParseBase64WithoutPadding(payload);
         var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonBytes);
 
+        var claims = new List<Claim>();
         if (keyValuePairs is null) return claims;
 
-        keyValuePairs.TryGetValue(ClaimTypes.Role, out var roles);
-
-        if (roles is not null)
-        {
-            var rolesString = roles.ToString()!.Trim();
-            if (rolesString.StartsWith('['))
-            {
-                var parsedRoles = JsonSerializer.Deserialize<string[]>(rolesString);
-                claims.AddRange(parsedRoles?.Select(parsedRole => new Claim(ClaimTypes.Role, parsedRole)) ?? []);
-            }
-            else claims.Add(new Claim(ClaimTypes.Role, rolesString));
-
-            keyValuePairs.Remove(ClaimTypes.Role);
-        }
+        ExtractClaim(keyValuePairs, claims, ClaimTypes.Role, ClaimTypes.Role, "role", "roles");
+        ExtractClaim(keyValuePairs, claims, ClaimTypes.Name, ClaimTypes.Name, "unique_name");
+        ExtractClaim(keyValuePairs, claims, ClaimTypes.NameIdentifier, ClaimTypes.NameIdentifier, "sub");
 
         claims.AddRange(keyValuePairs.Select(kvp => new Claim(kvp.Key, kvp.Value.ToString()!)));
 
         return claims;
+    }
+
+    private static void ExtractClaim(Dictionary<string, object> keyValuePairs, List<Claim> claims, string targetClaimType, params string[] sourceKeys)
+    {
+        foreach (var key in sourceKeys)
+        {
+            if (!keyValuePairs.TryGetValue(key, out var value)) continue;
+
+            var valueString = value.ToString()!.Trim();
+            if (valueString.StartsWith('['))
+            {
+                try
+                {
+                    var parsedValues = JsonSerializer.Deserialize<string[]>(valueString);
+                    claims.AddRange(parsedValues?.Select(v => new Claim(targetClaimType, v)) ?? []);
+                }
+                catch
+                {
+                    claims.Add(new Claim(targetClaimType, valueString));
+                }
+            }
+            else claims.Add(new Claim(targetClaimType, valueString));
+
+            foreach (var k in sourceKeys) keyValuePairs.Remove(k);
+            return;
+        }
     }
 
     private static byte[] ParseBase64WithoutPadding(string base64)

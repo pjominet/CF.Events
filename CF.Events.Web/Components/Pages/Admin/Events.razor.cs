@@ -1,9 +1,6 @@
 using CF.Events.Web.Services;
 using CF.Events.Shared.Models;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using static CF.Events.Shared.Constants;
 
 namespace CF.Events.Web.Components.Pages.Admin;
@@ -21,7 +18,6 @@ public partial class Events : ComponentBase
 
     [Inject] private IHttpClientFactory HttpClientFactory { get; set; } = null!;
     [Inject] private ToastService ToastService { get; set; } = null!;
-    [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
