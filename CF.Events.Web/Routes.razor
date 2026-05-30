@@ -1,18 +1,26 @@
 <Router AppAssembly="@typeof(Program).Assembly">
     <Found Context="routeData">
-        <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+            <Authorizing>
+                <div class="container py-5 text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3">Checking authorization...</p>
+                </div>
+            </Authorizing>
+            <NotAuthorized>
+
+            </NotAuthorized>
+        </AuthorizeRouteView>
     </Found>
     <NotFound>
-        <CascadingAuthenticationState>
-            <LayoutView Layout="@typeof(MainLayout)">
-                <div class="container d-flex align-items-center justify-content-center min-vh-100">
-                    <div class="card p-4 text-center">
-                        <h2 class="text-danger">Not Authorized</h2>
-                        <p>You are not authorized to access this page. Please log in.</p>
-                        <a href="account/login" class="btn btn-primary">Go to Login</a>
-                    </div>
-                </div>
-            </LayoutView>
-        </CascadingAuthenticationState>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <p role="alert">Sorry, there's nothing at this address.</p>
+        </LayoutView>
     </NotFound>
 </Router>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+}

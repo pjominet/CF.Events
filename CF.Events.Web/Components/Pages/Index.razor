@@ -13,27 +13,32 @@
 
     private string statusMessage = "Loading...";
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-
-        if (user.Identity?.IsAuthenticated is true)
+        if (firstRender)
         {
-            if (user.IsInRole(Constants.Roles.Admin))
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity?.IsAuthenticated is true)
             {
-                statusMessage = "Redirecting to admin events...";
-                Nav.NavigateTo("admin/events");
+                if (user.IsInRole(Constants.Roles.Admin))
+                {
+                    statusMessage = "Redirecting to admin events...";
+                    Nav.NavigateTo("admin/events");
+                }
+                else
+                {
+                    statusMessage = "Redirecting to your invitations...";
+                    Nav.NavigateTo("invites");
+                }
             }
             else
             {
-                statusMessage = "Redirecting to your invitations...";
-                Nav.NavigateTo("invites");
+                statusMessage = "Redirecting to login...";
+                Nav.NavigateTo("account/login");
             }
-            return;
+            StateHasChanged();
         }
-
-        statusMessage = "Redirecting to login...";
-        Nav.NavigateTo("account/login");
     }
 }

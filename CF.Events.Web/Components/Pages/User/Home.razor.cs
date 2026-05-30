@@ -1,8 +1,6 @@
-using CF.Events.Web.Services;
 using CF.Events.Shared.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using System.Net.Http.Json;
 using static CF.Events.Shared.Constants;
 
 namespace CF.Events.Web.Components.Pages.User;
@@ -31,15 +29,10 @@ public partial class Home : ComponentBase
         try
         {
             var client = HttpClientFactory.CreateClient(HttpClients.EventsApi);
-
             var response = await client.GetAsync("events");
             if (response.IsSuccessStatusCode)
             {
                 myInvites = await response.Content.ReadFromJsonAsync<List<UserInviteDto>>() ?? [];
-            }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-            {
-                NavigationManager.NavigateTo("account/login");
             }
         }
         catch (Exception ex)

@@ -22,6 +22,11 @@ public class RegisterRequest
     public string ConfirmPassword { get; set; } = string.Empty;
 }
 
+public class RegisterResponse
+{
+    public bool Success { get; init; }
+}
+
 public class LoginRequest
 {
     [Required]
@@ -33,14 +38,23 @@ public class LoginRequest
     public string Password { get; set; } = string.Empty;
 }
 
+public class LoginResponse
+{
+    public bool Success { get; init; }
+    public string? Token { get; init; }
+    public string? RefreshToken { get; init; }
+    public string? Email { get; init; }
+    public bool MustChangePassword { get; init; }
+}
+
 public class AuthResponse
 {
     public bool Success { get; init; }
     public string? Token { get; init; }
+    public string? RefreshToken { get; init; }
     public string? Error { get; init; }
     public string? Email { get; init; }
     public bool MustChangePassword { get; init; }
-    public IEnumerable<string>? Roles { get; init; }
 }
 
 public class SetupAccountRequest

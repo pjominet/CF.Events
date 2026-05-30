@@ -1,3 +1,4 @@
+@using CF.Events.Web.Providers
 @inherits LayoutComponentBase
 
 <div class="page">
@@ -59,10 +60,12 @@
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
     [Inject] private AuthService AuthService { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
+    [Inject] private IJSRuntime JS { get; set; } = null!;
 
     private async Task HandleLogout()
     {
         var provider = (ApiAuthenticationStateProvider)AuthStateProvider;
+        await JS.InvokeVoidAsync("eval", "document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; samesite=strict'");
         await AuthService.LogoutAsync();
         await provider.MarkUserAsLoggedOut();
         NavigationManager.NavigateTo("/account/login");

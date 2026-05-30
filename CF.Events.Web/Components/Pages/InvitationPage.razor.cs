@@ -43,10 +43,6 @@ public partial class InvitationPage
                     await LoadInvitationHtml();
                 }
             }
-            else if (response.StatusCode == HttpStatusCode.Unauthorized)
-            {
-                NavigationManager.NavigateTo("account/login");
-            }
         }
         catch (Exception ex)
         {
@@ -70,18 +66,11 @@ public partial class InvitationPage
                 var content = await response.Content.ReadFromJsonAsync<InvitationContentDto>();
                 processedHtml = content?.HtmlContent ?? "<div class='alert alert-warning'>Invitation content is empty.</div>";
             }
-            else switch (response.StatusCode)
+            else if (response.StatusCode == HttpStatusCode.Forbidden)
             {
-                case HttpStatusCode.Unauthorized:
-                    NavigationManager.NavigateTo("account/login");
-                    break;
-                case HttpStatusCode.Forbidden:
-                    processedHtml = "<div class='alert alert-danger'>You do not have permission to view this invitation.</div>";
-                    break;
-                default:
-                    processedHtml = "<div class='alert alert-warning'>Invitation content not found or access denied.</div>";
-                    break;
+                processedHtml = "<div class='alert alert-danger'>You do not have permission to view this invitation.</div>";
             }
+            else processedHtml = "<div class='alert alert-warning'>Invitation content not found or access denied.</div>";
         }
         catch (Exception ex)
         {

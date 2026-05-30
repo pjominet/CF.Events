@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using CF.Events.Shared.DTOs;
+using CF.Events.Web.Providers;
 using CF.Events.Web.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
