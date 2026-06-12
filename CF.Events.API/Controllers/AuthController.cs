@@ -17,13 +17,13 @@ namespace CF.Events.API.Controllers;
 
 [EnableRateLimiting(RateLimiting.Fixed)]
 [ApiRoute("auth")]
-public class AuthController(UserManager<ApplicationUser> userManager, TokenService tokenService, EventsDbContext dbContext, ILogger<AuthController> logger) : ApiController
+public class AuthController(UserManager<ApplicationUser> userManager, TokenService tokenService, EventsDbContext db, ILogger<AuthController> logger) : ApiController
 {
     [AllowAnonymous]
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
-        var firstLaunch = !await dbContext.Users.AnyAsync();
+        var firstLaunch = !await db.Users.AnyAsync();
 
         var user = new ApplicationUser
         {
@@ -92,16 +92,16 @@ public class AuthController(UserManager<ApplicationUser> userManager, TokenServi
 
         var jwtToken = handler.ReadJwtToken(token);
 
-        if (await dbContext.RevokedTokens.AnyAsync(t => t.Token == token))
+        if (await db.RevokedTokens.AnyAsync(t => t.Token == token))
             return NoContent();
 
-        dbContext.RevokedTokens.Add(new RevokedToken
+        db.RevokedTokens.Add(new RevokedToken
         {
             Token = token,
             ExpiryDate = jwtToken.ValidTo
         });
 
-        await dbContext.SaveChangesAsync();
+        await db.SaveChangesAsync();
         return NoContent();
     }
 
@@ -137,13 +137,13 @@ public class AuthController(UserManager<ApplicationUser> userManager, TokenServi
     [Authorize(Roles = Roles.Admin)]
     public async Task<IActionResult> GetUsers()
     {
-        var users = await dbContext.Users.Select(u => new UserDto
+        var users = await db.Users.Select(u => new UserDto
         {
             Id = u.Id,
             Email = u.Email!,
             DisplayName = u.DisplayName!,
-            Roles = dbContext.UserRoles.Where(ur => ur.UserId == u.Id)
-                .Join(dbContext.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name!)
+            Roles = db.UserRoles.Where(ur => ur.UserId == u.Id)
+                .Join(db.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name!)
                 .ToList()
         }).ToListAsync();
 

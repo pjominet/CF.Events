@@ -14,6 +14,8 @@ try
 
     builder.ConfigureLogging();
 
+    startup.ConfigureServices(builder.Services);
+
     var app = builder.Build();
 
     await startup.EnsureDatabaseSeeded(app.Services);

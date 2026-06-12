@@ -1,6 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using CF.Events.API.Data;
 using CF.Events.API.Infrastructure;
+using CF.Events.API.Infrastructure.Exceptions;
 using CF.Events.Shared;
 using Microsoft.AspNetCore.Identity;
 using static CF.Events.Shared.Constants;
@@ -36,12 +37,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
                         .AllowAnyHeader()
                         .AllowAnyMethod();
                 }
-                else
-                {
-                    policy.AllowAnyOrigin()
-                        .AllowAnyHeader()
-                        .AllowAnyMethod();
-                }
+                else throw new BootstrappingException("AllowedOrigins not configured in appsettings.json.");
             });
         });
 

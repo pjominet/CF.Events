@@ -16,10 +16,10 @@ public class PersistingServerAuthenticationStateProvider : AuthenticationStatePr
         ApiAuthenticationStateProvider apiAuthenticationStateProvider)
     {
         this.state = state;
-        this.authenticationStateProvider = apiAuthenticationStateProvider;
+        authenticationStateProvider = apiAuthenticationStateProvider;
 
-        authenticationStateTask = this.authenticationStateProvider.GetAuthenticationStateAsync();
-        this.authenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+        authenticationStateTask = authenticationStateProvider.GetAuthenticationStateAsync();
+        authenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
         subscription = this.state.RegisterOnPersisting(OnPersistingAsync);
     }
 
@@ -31,9 +31,7 @@ public class PersistingServerAuthenticationStateProvider : AuthenticationStatePr
     private async Task OnPersistingAsync()
     {
         if (authenticationStateTask is null)
-        {
             return;
-        }
 
         var authenticationState = await authenticationStateTask;
         var principal = authenticationState.User;
@@ -42,18 +40,10 @@ public class PersistingServerAuthenticationStateProvider : AuthenticationStatePr
         {
             var token = await ((ApiAuthenticationStateProvider)authenticationStateProvider).GetTokenAsync();
             if (token is not null)
-            {
                 state.PersistAsJson("authToken", token);
-            }
-            else
-            {
-                Console.WriteLine("[DEBUG_LOG] OnPersistingAsync: Token is null, cannot persist");
-            }
+            else Console.WriteLine("[DEBUG_LOG] OnPersistingAsync: Token is null, cannot persist");
         }
-        else
-        {
-            Console.WriteLine("[DEBUG_LOG] OnPersistingAsync: User is NOT authenticated");
-        }
+        else Console.WriteLine("[DEBUG_LOG] OnPersistingAsync: User is NOT authenticated");
     }
 
     public override Task<AuthenticationState> GetAuthenticationStateAsync() => authenticationStateProvider.GetAuthenticationStateAsync();
