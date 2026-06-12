@@ -13,7 +13,10 @@ public static class WebAppBuilderExtensions
             .MinimumLevel.Override("Microsoft", builder.Environment.IsDevelopment() ? LogEventLevel.Information : LogEventLevel.Warning)
             .Enrich.FromLogContext()
             .WriteTo.Console(theme: AnsiConsoleTheme.Code)
-            .WriteTo.File("logs/cf-events-.txt", rollingInterval: RollingInterval.Day)
+            .WriteTo.File(
+                "logs/cf-events-.log",
+                restrictedToMinimumLevel: LogEventLevel.Information,
+                rollingInterval: RollingInterval.Day)
             .CreateLogger();
 
         builder.Host.UseSerilog();
