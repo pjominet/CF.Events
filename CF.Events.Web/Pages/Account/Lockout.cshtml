@@ -1,0 +1,11 @@
+﻿@page
+@attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+@{
+    ViewData["Title"] = "Locked out";
+}
+
+<div class="container py-5 text-center">
+    <h1 class="cursive fs-1 text-danger">Locked out</h1>
+    <p class="text-muted">This account has been locked out. Please try again later.</p>
+    <a href="/Account/Login" class="btn btn-primary mt-3">Back to login</a>
+</div>

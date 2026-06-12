@@ -1,0 +1,58 @@
+﻿@page "/events/{eventId:int}/invitation"
+@model CF.Events.Web.Pages.Events.InvitationModel
+@{
+    ViewData["Title"] = "Invitation";
+}
+
+@if (Model.NotFoundOrForbidden)
+{
+    <div class="container py-5">
+        <div class="alert alert-danger">Event not found or you are not invited.</div>
+        <a href="/" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+}
+else
+{
+    <div class="invitation-wrapper">
+        @if (Model.EventData is not null && string.IsNullOrEmpty(Model.EventData.InvitationFileName))
+        {
+            <div class="container py-5 text-center">
+                <h1>@Model.EventData.Name</h1>
+                <p>@Model.EventData.Type - @Model.EventData.Date.ToLongDateString()</p>
+                <p>@Model.EventData.Location</p>
+                <p>@Model.EventData.Description</p>
+                <a href="/events/@Model.EventData.Id/rsvp" class="btn btn-primary btn-lg mt-4">RSVP NOW</a>
+            </div>
+        }
+        else if (Model.ProcessedHtml is not null)
+        {
+            <div id="invitation-container">
+                @Model.ProcessedHtml
+            </div>
+        }
+    </div>
+}
+
+<style>
+    .invitation-wrapper {
+        min-height: 100vh;
+        width: 100%;
+    }
+</style>
+
+@section Scripts {
+    @if (Model.EventData is not null && Model.ProcessedHtml is not null)
+    {
+        <script>
+            (function () {
+                var btn = document.getElementById("rsvp-button");
+                if (btn) {
+                    btn.addEventListener("click", function (e) {
+                        e.preventDefault();
+                        window.location.href = "/events/@Model.EventData.Id/rsvp";
+                    });
+                }
+            })();
+        </script>
+    }
+}

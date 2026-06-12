@@ -247,3 +247,6 @@ _Pvt_Extensions
 # Data Protection keys
 **/keys/
 
+#Logfiles
+**/logs/
+

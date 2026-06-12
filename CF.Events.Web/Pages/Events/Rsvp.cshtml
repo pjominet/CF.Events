@@ -1,0 +1,72 @@
+﻿@page "/events/{eventId:int}/rsvp"
+@model CF.Events.Web.Pages.Events.RsvpModel
+@{
+    ViewData["Title"] = "RSVP";
+}
+
+<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center p-3">
+    <div class="card border-0 p-4 mx-auto bg-card-custom rounded-lg-custom shadow-sm" style="max-width: 500px; width: 100%;">
+        <h2 class="cursive text-center mb-4">RSVP for @Model.EventData?.Name</h2>
+
+        <p class="text-center mb-4">Will you be joining us?</p>
+        <form method="post" id="rsvpForm" class="d-flex flex-column gap-3">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="d-flex justify-content-center gap-4 my-2">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" asp-for="Input.Attending" value="true" id="accept" />
+                    <label class="form-check-label" for="accept">Happily Accept</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" asp-for="Input.Attending" value="false" id="decline" />
+                    <label class="form-check-label" for="decline">Regretfully Decline</label>
+                </div>
+            </div>
+
+            <div id="additionalOptions" class="d-flex flex-column gap-3 mt-2" style="@(Model.Input.Attending ? "" : "display:none;")">
+                <div class="row g-3 justify-content-center">
+                    <div class="col-auto">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" asp-for="Input.BringsPlusOne" id="plusOne" />
+                            <label class="form-check-label" for="plusOne">Bringing a +1?</label>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" asp-for="Input.JoinForDinner" id="dinner" />
+                            <label class="form-check-label" for="dinner">Join us for dinner?</label>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <textarea asp-for="Input.Comments" class="form-control" maxlength="500" placeholder="Add a comment... (optional)" rows="3"></textarea>
+                </div>
+            </div>
+
+            <p class="d-flex justify-content-center my-2 text-muted text-center" style="font-size: 0.8rem;">
+                Information will be stored confidentially and is only visible to the event organizers.
+            </p>
+
+            <div class="d-flex justify-content-center gap-2">
+                <button class="btn btn-primary flex-grow-1" type="submit">
+                    @(Model.HasResponded ? "Update RSVP" : "Send Response")
+                </button>
+                <a href="/" class="btn btn-secondary flex-grow-1 d-flex align-items-center justify-content-center">Back</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            var options = document.getElementById("additionalOptions");
+            document.querySelectorAll('input[name="Input.Attending"]').forEach(function (radio) {
+                radio.addEventListener("change", function () {
+                    options.style.display = (this.value === "true" || this.value === "True") ? "" : "none";
+                });
+            });
+        })();
+    </script>
+}
