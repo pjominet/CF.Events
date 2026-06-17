@@ -8,7 +8,6 @@ namespace CF.Events.Web.Controllers;
 public class AccountController(SignInManager<ApplicationUser> signInManager, ILogger<AccountController> logger) : Controller
 {
     [HttpGet("logout")]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout(string? returnUrl = null)
     {
         var username = HttpContext.User.Identity?.Name;

@@ -1,170 +1,47 @@
 ﻿@page "/events/{eventId:int}/invitation"
 @model CF.Events.Web.Pages.Events.InvitationModel
 @{
-    Layout = null;
+    Layout = "_NoNavLayout";
+    ViewData["Title"] = Model.EventData?.Name ?? "Invitation";
 }
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@(Model.EventData?.Name ?? "Invitation")</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Domine:wght@@400..700&family=Tangerine:wght@@400;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>❤️</text></svg>" />
-    <style>
-        :root {
-            --primary-color: #3e523e;
-            --secondary-color: #d68d8d;
-            --secondary-hover: #e2a5a5;
-            --bg-page: #fcfaf9;
-            --bg-card: #e8e3df;
-            --font-serif: 'Domine', serif;
-            --font-cursive: 'Tangerine', cursive;
-            --card-width: 450px;
-            --card-shadow: 0 20px 45px rgba(0, 0, 0, 0.15), 0 10px 20px rgba(0, 0, 0, 0.1);
-            --border-radius: 6px;
-        }
 
-        * { box-sizing: border-box; }
-
-        body {
-            margin: 0;
-            padding: 20px;
-            background-color: var(--bg-page);
-            font-family: var(--font-serif);
-            color: var(--primary-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .invite-card {
-            background-color: var(--bg-card);
-            width: var(--card-width);
-            max-width: 100%;
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            box-shadow: var(--card-shadow);
-        }
-
-        .invite-image {
-            width: 100%;
-            /* Always portrait; larger images are cropped to fit. */
-            aspect-ratio: 1 / 1.414;
-            object-fit: cover;
-            object-position: center;
-            display: block;
-        }
-
-        .invite-fallback {
-            aspect-ratio: 1 / 1.414;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 30px;
-        }
-
-        .invite-fallback h1 {
-            font-family: var(--font-cursive);
-            font-size: 3.5rem;
-            margin: 0 0 10px;
-        }
-
-        .invite-footer {
-            display: flex;
-            gap: 12px;
-            padding: 18px;
-        }
-
-        .invite-btn {
-            flex: 1 1 0;
-            padding: 12px 20px;
-            border-radius: var(--border-radius);
-            font-family: var(--font-serif);
-            font-size: 1.05rem;
-            letter-spacing: 0.03rem;
-            text-align: center;
-            text-decoration: none;
-            cursor: pointer;
-            border: none;
-            transition: all 0.25s ease;
-        }
-
-        .invite-btn-back {
-            background-color: var(--bg-page);
-            color: var(--primary-color);
-            border: 1px solid var(--primary-color);
-        }
-
-        .invite-btn-back:hover {
-            background-color: var(--primary-color);
-            color: #fff;
-        }
-
-        .invite-btn-rsvp {
-            background-color: var(--secondary-color);
-            color: #fff;
-            box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.15);
-        }
-
-        .invite-btn-rsvp:hover {
-            background-color: var(--secondary-hover);
-            transform: translateY(-1px);
-        }
-
-        .invite-error {
-            text-align: center;
-            max-width: 450px;
-        }
-
-        @@media (max-width: 500px) {
-            body { padding: 0; background-color: var(--bg-card); }
-            .invite-card { width: 100vw; min-height: 100vh; border-radius: 0; box-shadow: none; display: flex; flex-direction: column; }
-            .invite-image, .invite-fallback { flex: 1 1 auto; aspect-ratio: auto; }
-        }
-    </style>
-</head>
-<body>
-@if (Model.NotFoundOrForbidden)
-{
-    <div class="invite-error">
-        <h1 class="cursive" style="font-family: var(--font-cursive); font-size: 3rem;">Oops</h1>
-        <p>Event not found or you are not invited.</p>
-        <a href="/" class="invite-btn invite-btn-back" style="display:inline-block;">Back to Dashboard</a>
-    </div>
-}
-else
-{
-    <div class="invite-card">
-        @if (Model.ImageUrl is not null)
-        {
-            <img class="invite-image" src="@Model.ImageUrl" alt="@Model.EventData!.Name invitation" />
-        }
-        else
-        {
-            <div class="invite-fallback">
-                <h1>@Model.EventData!.Name</h1>
-                <p>@Model.EventData.Date.ToLongDateString()</p>
-                @if (!string.IsNullOrEmpty(Model.EventData.Location))
-                {
-                    <p>@Model.EventData.Location</p>
-                }
-                @if (!string.IsNullOrEmpty(Model.EventData.Description))
-                {
-                    <p>@Model.EventData.Description</p>
-                }
-            </div>
-        }
-        <div class="invite-footer">
-            <a href="@Model.BackUrl" class="invite-btn invite-btn-back">Back</a>
-            <a href="/events/@Model.EventData!.Id/rsvp" class="invite-btn invite-btn-rsvp">RSVP</a>
+<div class="invite-page">
+    @if (Model.NotFoundOrForbidden)
+    {
+        <div class="invite-error">
+            <h1>Oops</h1>
+            <p>Event not found or you are not invited.</p>
+            <a href="/" class="invite-btn invite-btn-back" style="display:inline-block;">Back to Dashboard</a>
         </div>
-    </div>
-}
-</body>
-</html>
+    }
+    else
+    {
+        <div class="invite-card">
+            <a href="@Model.BackUrl" class="invite-close">
+                <i class="bi bi-x-lg"></i>
+            </a>
+            @if (Model.ImageUrl is not null)
+            {
+                <img class="invite-image" src="@Model.ImageUrl" alt="@Model.EventData!.Name invitation"/>
+            }
+            else
+            {
+                <div class="invite-fallback">
+                    <h1>@Model.EventData!.Name</h1>
+                    <p>@Model.EventData.Date.ToLongDateString()</p>
+                    @if (!string.IsNullOrEmpty(Model.EventData.Location))
+                    {
+                        <p>@Model.EventData.Location</p>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.EventData.Description))
+                    {
+                        <p>@Model.EventData.Description</p>
+                    }
+                </div>
+            }
+            <div class="d-flex justify-content-center py-3 flex-grow-0">
+                <a href="/events/@Model.EventData!.Id/rsvp" class="invite-btn invite-btn-rsvp">RSVP</a>
+            </div>
+        </div>
+    }
+</div>

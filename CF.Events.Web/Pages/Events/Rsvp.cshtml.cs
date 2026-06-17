@@ -1,6 +1,6 @@
-﻿using System.Security.Claims;
+﻿using System.ComponentModel.DataAnnotations;
 using CF.Events.Web.Data;
-using CF.Events.Web.Infrastructure;
+using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,34 +20,33 @@ public class RsvpModel(EventsDbContext db) : PageModel
 
     public async Task<IActionResult> OnGetAsync(int eventId)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId is null)
+        var userId = User.GetId();
+        if (string.IsNullOrWhiteSpace(userId))
             return Challenge();
 
         var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
-        if (rsvp is null && !User.IsInRole(Constants.Roles.Admin))
+        if (rsvp is null && !User.IsAdmin())
             return Redirect("/");
 
         EventData = await db.Events.FindAsync(eventId);
         if (EventData is null)
             return Redirect("/");
 
-        if (rsvp is not null)
-        {
-            HasResponded = rsvp.SubmittedAt > DateTime.MinValue.AddDays(1);
-            Input.Attending = rsvp.Attending;
-            Input.BringsPlusOne = rsvp.BringsPlusOne;
-            Input.JoinForDinner = rsvp.JoinForDinner;
-            Input.Comments = rsvp.Comments;
-        }
+        if (rsvp is null) return Page();
+
+        HasResponded = rsvp.SubmittedAt > DateTime.MinValue.AddDays(1);
+        Input.Attending = rsvp.Attending;
+        Input.BringsPlusOne = rsvp.BringsPlusOne;
+        Input.JoinForDinner = rsvp.JoinForDinner;
+        Input.Comments = rsvp.Comments;
 
         return Page();
     }
 
     public async Task<IActionResult> OnPostAsync(int eventId)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId is null)
+        var userId = User.GetId();
+        if (string.IsNullOrWhiteSpace(userId))
             return Challenge();
 
         var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
@@ -59,8 +58,8 @@ public class RsvpModel(EventsDbContext db) : PageModel
         }
 
         rsvp.Attending = Input.Attending;
-        rsvp.BringsPlusOne = Input.Attending && Input.BringsPlusOne;
-        rsvp.JoinForDinner = Input.Attending && Input.JoinForDinner;
+        rsvp.BringsPlusOne = Input is { Attending: true, BringsPlusOne: true };
+        rsvp.JoinForDinner = Input is { Attending: true, JoinForDinner: true };
         rsvp.Comments = Input.Comments;
         rsvp.SubmittedAt = DateTime.UtcNow;
 
@@ -76,7 +75,7 @@ public class RsvpModel(EventsDbContext db) : PageModel
         public bool Attending { get; set; } = true;
         public bool BringsPlusOne { get; set; }
         public bool JoinForDinner { get; set; }
-        [System.ComponentModel.DataAnnotations.StringLength(500)]
+        [StringLength(500)]
         public string? Comments { get; set; }
     }
 }

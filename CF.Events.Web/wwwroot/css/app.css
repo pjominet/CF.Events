@@ -29,6 +29,7 @@
 
     /* Shadows */
     --card-shadow: 0 20px 45px rgba(0, 0, 0, 0.15), 0 10px 20px rgba(0, 0, 0, 0.1);
+    --secondary-hover: #e2a5a5;
 
     /* Bootstrap Overrides */
     --bs-primary: var(--primary-color);
@@ -40,7 +41,6 @@
 
     /* Button State Colors */
     --primary-hover: #2d3c2d;
-    --secondary-hover: #e2a5a5;
     --danger-hover: #c9302c;
     --info-hover: #265a78;
 }
@@ -325,5 +325,122 @@ h1:focus {
     to {
         transform: translateX(0);
         opacity: 1;
+    }
+}
+
+/* Invitation Page Styles */
+
+.invite-page {
+    margin: 0;
+    padding: 20px;
+    background-color: var(--bg-page);
+    font-family: var(--font-serif);
+    color: var(--primary-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.invite-card {
+    position: relative;
+    background-color: var(--bg-card);
+    width: var(--card-width);
+    max-width: 100%;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+}
+
+.invite-image {
+    width: 100%;
+    /* Always portrait; larger images are cropped to fit. */
+    aspect-ratio: 1 / 1.414;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
+.invite-fallback {
+    aspect-ratio: 1 / 1.414;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 30px;
+}
+
+.invite-fallback h1 {
+    font-family: var(--font-cursive);
+    font-size: 3.5rem;
+    margin: 0 0 10px;
+}
+
+.invite-close {
+    position: absolute;
+    top: .5rem;
+    right: .75rem;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    color: var(--danger-color);
+}
+
+.invite-close:hover {
+    color: var(--danger-hover);
+}
+
+.invite-btn {
+    padding: 12px 20px;
+    border-radius: var(--border-radius);
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    letter-spacing: 0.03rem;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: all 0.25s ease;
+}
+
+.invite-btn-rsvp {
+    background-color: var(--secondary-color);
+    color: #fff;
+    box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.15);
+}
+
+.invite-btn-rsvp:hover {
+    background-color: var(--secondary-hover);
+    transform: translateY(-1px);
+}
+
+.invite-error {
+    text-align: center;
+    max-width: 450px;
+}
+
+.invite-error h1 {
+    font-family: var(--font-cursive);
+    font-size: 3rem;
+}
+
+@media (max-width: 500px) {
+    .invite-page {
+        padding: 0;
+        background-color: var(--bg-card);
+    }
+    .invite-card {
+        width: 100vw;
+        min-height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+        display: flex;
+        flex-direction: column;
+    }
+    .invite-image, .invite-fallback {
+        flex: 1 1 auto;
+        aspect-ratio: auto;
     }
 }
