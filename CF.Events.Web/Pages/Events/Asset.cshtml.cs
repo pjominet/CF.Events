@@ -13,11 +13,8 @@ namespace CF.Events.Web.Pages.Events;
 [Authorize]
 public class AssetModel(EventsDbContext db, IWebHostEnvironment env) : PageModel
 {
-    public async Task<IActionResult> OnGetAsync(int eventId, string? assetPath)
+    public async Task<IActionResult> OnGetAsync(int eventId)
     {
-        if (string.IsNullOrEmpty(assetPath))
-            return NotFound();
-
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var isInvited = await db.Rsvps.AnyAsync(r => r.EventId == eventId && r.UserId == userId);
         if (!isInvited && !User.IsInRole(Constants.Roles.Admin))
@@ -27,12 +24,13 @@ public class AssetModel(EventsDbContext db, IWebHostEnvironment env) : PageModel
         if (ev is null || string.IsNullOrEmpty(ev.InvitationFileName))
             return NotFound();
 
-        var designRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources", "Invitations", ev.InvitationFileName));
-        var requested = Path.GetFullPath(Path.Combine(designRoot, assetPath.Replace('/', Path.DirectorySeparatorChar)));
+        // The full path is built dynamically from the event Id (folder) and the
+        // stored technical file name.
+        var invitationsRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources", "Invitations"));
+        var requested = Path.GetFullPath(Path.Combine(invitationsRoot, eventId.ToString(), ev.InvitationFileName));
 
-        // Prevent path traversal outside the design folder.
-        if (!requested.StartsWith(designRoot + Path.DirectorySeparatorChar, StringComparison.Ordinal) &&
-            !requested.Equals(designRoot, StringComparison.Ordinal))
+        // Prevent path traversal outside the invitations folder.
+        if (!requested.StartsWith(invitationsRoot + Path.DirectorySeparatorChar, StringComparison.Ordinal))
             return Forbid();
 
         if (!System.IO.File.Exists(requested))

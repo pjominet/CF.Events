@@ -89,6 +89,27 @@
         });
     };
 
+    window.fetchNewTempPassword = async function () {
+        const response = await fetch("/api/generate-password", {
+            headers: { "Accept": "text/plain" }
+        });
+        if (!response.ok) {
+            throw new Error("Failed to generate password: " + response.status);
+        }
+        return (await response.text()).trim();
+    };
+
+    // Fill an input (by element id) with a freshly generated password.
+    window.fillTempPassword = function (inputId) {
+        window.fetchNewTempPassword().then(function (password) {
+            const input = document.getElementById(inputId);
+            if (input) input.value = password;
+        }).catch(function (err) {
+            console.error(err);
+            if (window.showToast) window.showToast("Could not generate a password", "error");
+        });
+    };
+
     // Lightweight confirm wrapper for elements with data-confirm="message".
     function initConfirms() {
         document.querySelectorAll('[data-confirm]').forEach(function (el) {

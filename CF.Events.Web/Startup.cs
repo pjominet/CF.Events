@@ -42,9 +42,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         }
 
         if (app.Environment.IsDevelopment())
-        {
             app.UseMigrationsEndPoint();
-        }
 
         app.UseStatusCodePagesWithReExecute("/Error", "?code={0}");
 
@@ -61,5 +59,8 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         app.UseAuthorization();
 
         app.MapRazorPages();
+
+        app.MapGet("/api/generate-password", () => Results.Text(TempPasswordGenerator.Generate()))
+            .RequireAuthorization();
     }
 }

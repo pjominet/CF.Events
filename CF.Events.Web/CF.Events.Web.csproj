@@ -23,5 +23,8 @@
       <_ContentIncludedByDefault Remove="wwwroot\invitations\engagement\index.html" />
       <_ContentIncludedByDefault Remove="wwwroot\invitations\sample\index.html" />
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="logs\" />
+    </ItemGroup>
 
 </Project>

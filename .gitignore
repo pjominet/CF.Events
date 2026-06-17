@@ -250,3 +250,6 @@ _Pvt_Extensions
 #Logfiles
 **/logs/
 
+#App Files
+**/Resources/Invitations/
+

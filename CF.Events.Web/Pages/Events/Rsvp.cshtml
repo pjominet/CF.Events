@@ -51,7 +51,7 @@
                 <button class="btn btn-primary flex-grow-1" type="submit">
                     @(Model.HasResponded ? "Update RSVP" : "Send Response")
                 </button>
-                <a href="/" class="btn btn-secondary flex-grow-1 d-flex align-items-center justify-content-center">Back</a>
+                <a href="/events/@Model.EventData?.Id/invitation" class="btn btn-secondary flex-grow-1 d-flex align-items-center justify-content-center">Back</a>
             </div>
         </form>
     </div>

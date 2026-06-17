@@ -1,0 +1,116 @@
+﻿@page "/admin/events/{id:int}/invitees"
+@model CF.Events.Web.Pages.Admin.EventInviteesModel
+@{
+    ViewData["Title"] = "Manage Invitees";
+    ViewData["InviteModalShow"] = Model.ShowInviteModal;
+    ViewData["InviteEventId"] = Model.EventData?.Id;
+    ViewData["InviteDisplayName"] = Model.Invite.DisplayName;
+    ViewData["InviteEmail"] = Model.Invite.Email;
+    ViewData["InvitePassword"] = Model.Invite.Password;
+}
+
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col d-flex justify-content-between align-items-center">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="/admin">Admin</a></li>
+                        <li class="breadcrumb-item"><a href="/admin/events">Events</a></li>
+                        <li class="breadcrumb-item active">Invitees</li>
+                    </ol>
+                </nav>
+                <h1 class="cursive fs-1">@Model.EventData?.Name</h1>
+                <p class="text-muted mb-0">@Model.EventData?.Date.ToLongDateString()</p>
+            </div>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#inviteUserModal">
+                <i class="bi bi-person-plus me-2"></i>Invite New Person
+            </button>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Add an existing user</h5>
+            @if (Model.AvailableUsers.Count == 0)
+            {
+                <p class="text-muted mb-0">All registered users are already invited. Use "Invite New Person" to add someone new.</p>
+            }
+            else
+            {
+                <form method="post" asp-page-handler="Add" asp-route-id="@Model.EventData!.Id" class="row g-2 align-items-center">
+                    <div class="col-md-8">
+                        <select name="userId" class="form-select" required>
+                            <option value="">Select a user to invite&hellip;</option>
+                            @foreach (var u in Model.AvailableUsers)
+                            {
+                                <option value="@u.Id">@u.DisplayName (@u.Email)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-plus-lg me-1"></i>Add to event
+                        </button>
+                    </div>
+                </form>
+            }
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive" style="max-height: 60vh; overflow-y: auto;">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light sticky-top">
+                        <tr>
+                            <th>Display Name</th>
+                            <th>Email</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var invitee in Model.Invitees)
+                    {
+                        <tr>
+                            <td class="fw-bold">@invitee.DisplayName</td>
+                            <td>@invitee.Email</td>
+                            <td class="text-center">
+                                @{
+                                    var badge = invitee.Status switch
+                                    {
+                                        "Attending" => "bg-success",
+                                        "Declined" => "bg-danger",
+                                        _ => "bg-secondary"
+                                    };
+                                }
+                                <span class="badge @badge">@invitee.Status</span>
+                            </td>
+                            <td class="text-end">
+                                <form method="post" asp-page-handler="Remove" asp-route-id="@Model.EventData!.Id" class="d-inline"
+                                      onsubmit="return confirm('Remove @invitee.DisplayName from this event?');">
+                                    <input type="hidden" name="userId" value="@invitee.UserId" />
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Remove invitee">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+            @if (Model.Invitees.Count == 0)
+            {
+                <div class="text-center py-4 text-muted">No one is invited yet.</div>
+            }
+        </div>
+    </div>
+</div>
+
+<partial name="_InviteUserModal" />
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
