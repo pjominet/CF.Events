@@ -63,7 +63,7 @@
         });
     }
 
-    // Copy-to-clipboard helper for badges (kept from the original Blazor app).
+    // Copy-to-clipboard helper for badges
     window.copyToClipboard = function (text, element) {
         if (!element) return;
 

@@ -1,6 +1,5 @@
-﻿using System.Security.Claims;
-using CF.Events.Web.Data;
-using CF.Events.Web.Infrastructure;
+﻿using CF.Events.Web.Data;
+using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,9 +18,9 @@ public class InvitationModel(EventsDbContext db) : PageModel
 
     public async Task<IActionResult> OnGetAsync(int eventId)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = User.GetId();
         var isInvited = await db.Rsvps.AnyAsync(r => r.EventId == eventId && r.UserId == userId);
-        var isAdmin = User.IsInRole(Constants.Roles.Admin);
+        var isAdmin = User.IsAdmin();
         if (!isInvited && !isAdmin)
         {
             NotFoundOrForbidden = true;
@@ -35,8 +34,7 @@ public class InvitationModel(EventsDbContext db) : PageModel
             return Page();
         }
 
-        // Admins reach this page by previewing from the events list, regular
-        // users from their invitations list.
+        // Admins reach this page by previewing from the events list, regular users from their invitation list.
         BackUrl = isAdmin && !isInvited ? "/admin/events" : "/invites";
 
         if (!string.IsNullOrEmpty(EventData.InvitationFileName))

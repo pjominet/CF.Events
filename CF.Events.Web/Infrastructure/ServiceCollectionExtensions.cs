@@ -1,5 +1,6 @@
 ﻿using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure.Factories;
+using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Models;
 using CF.Events.Web.Services;
 using Microsoft.AspNetCore.DataProtection;
@@ -53,6 +54,11 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddSingleton<IEmailSender<ApplicationUser>, NoOpEmailSender>();
+    }
+
+    public static void AddAppSettings(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<AppSettings>(configuration.GetSection(nameof(AppSettings)));
     }
 
     public static void AddAppServices(this IServiceCollection services)

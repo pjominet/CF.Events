@@ -7,7 +7,7 @@ namespace CF.Events.Web.Controllers;
 [Route("account")]
 public class AccountController(SignInManager<ApplicationUser> signInManager, ILogger<AccountController> logger) : Controller
 {
-    [HttpPost("logout")]
+    [HttpGet("logout")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout(string? returnUrl = null)
     {

@@ -1,23 +1,20 @@
-﻿using System.Security.Claims;
-using CF.Events.Web.Data;
-using CF.Events.Web.Infrastructure;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
+﻿using CF.Events.Web.Data;
+using CF.Events.Web.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 
-namespace CF.Events.Web.Pages.Events;
+namespace CF.Events.Web.Controllers;
 
-[Authorize]
-public class AssetModel(EventsDbContext db, IWebHostEnvironment env) : PageModel
+[Route("events")]
+public class EventController(EventsDbContext db, IWebHostEnvironment env) : Controller
 {
-    public async Task<IActionResult> OnGetAsync(int eventId)
+    [HttpGet("{eventId:int}/asset")]
+    public async Task<IActionResult> Get(int eventId)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = User.GetId();
         var isInvited = await db.Rsvps.AnyAsync(r => r.EventId == eventId && r.UserId == userId);
-        if (!isInvited && !User.IsInRole(Constants.Roles.Admin))
+        if (!isInvited && !User.IsAdmin())
             return Forbid();
 
         var ev = await db.Events.FindAsync(eventId);
