@@ -16,6 +16,8 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         services.AddAppDataProtection(environment);
 
         services.AddRazorPages();
+        services.AddControllersWithViews();
+        services.AddRouting(options => options.LowercaseUrls = true);
     }
 
     public async Task EnsureDatabaseSeeded(IServiceProvider serviceProvider)
@@ -58,6 +60,8 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         app.UseAuthentication();
         app.UseAuthorization();
 
+        app.UseUrlTransformer();
+        app.MapControllers();
         app.MapRazorPages();
 
         app.MapGet("/api/generate-password", () => Results.Text(TempPasswordGenerator.Generate()))

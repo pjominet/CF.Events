@@ -46,22 +46,16 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="accountDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">@(User.GetDisplayName())</a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdown">
-                                <li><a class="dropdown-item" href="/Account/Manage">Profile</a></li>
+                                <li><a class="dropdown-item" href="/account/manage">Profile</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <form action="/Account/Logout" method="post">
+                                    <form action="/account/logout" method="post">
                                         @Html.AntiForgeryToken()
                                         <button type="submit" class="dropdown-item text-danger">Logout</button>
                                     </form>
                                 </li>
                             </ul>
                         </li>
-                    </ul>
-                }
-                else
-                {
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item"><a class="nav-link" href="/Account/Login">Login</a></li>
                     </ul>
                 }
             </div>
