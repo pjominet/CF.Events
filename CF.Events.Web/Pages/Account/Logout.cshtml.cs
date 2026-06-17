@@ -13,12 +13,13 @@ public class LogoutModel(SignInManager<ApplicationUser> signInManager, ILogger<L
 
     public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
     {
+        var username = HttpContext.User.Identity?.Name;
         await signInManager.SignOutAsync();
-        logger.LogInformation("User logged out.");
+        logger.LogInformation("User {Username} logged out", username);
 
         if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
             return LocalRedirect(returnUrl);
 
-        return Page();
+        return RedirectToPage("./Login");
     }
 }

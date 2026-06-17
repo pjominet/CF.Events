@@ -1,4 +1,5 @@
 ﻿using CF.Events.Web.Data;
+using CF.Events.Web.Infrastructure.Factories;
 using CF.Events.Web.Models;
 using CF.Events.Web.Services;
 using Microsoft.AspNetCore.DataProtection;
@@ -38,6 +39,7 @@ public static class ServiceCollectionExtensions
                 options.User.RequireUniqueEmail = true;
             })
             .AddEntityFrameworkStores<EventsDbContext>()
+            .AddClaimsPrincipalFactory<ApplicationUserClaimsPrincipalFactory>()
             .AddSignInManager()
             .AddDefaultTokenProviders();
 
