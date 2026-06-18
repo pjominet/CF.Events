@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text;
+using CF.Events.Web.Infrastructure.Attributes;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -21,7 +22,7 @@ public class ResetPasswordModel(UserManager<ApplicationUser> userManager) : Page
             return BadRequest("A code must be supplied for password reset.");
 
         Input.Code = code;
-        Input.Email = email ?? "";
+        Input.Email = email ?? string.Empty;
         return Page();
     }
 
@@ -51,19 +52,19 @@ public class ResetPasswordModel(UserManager<ApplicationUser> userManager) : Page
     {
         [Required]
         [EmailAddress]
-        public string Email { get; set; } = "";
+        public string Email { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [PasswordValidation]
         [DataType(DataType.Password)]
-        public string Password { get; set; } = "";
+        public string Password { get; init; } = string.Empty;
 
         [DataType(DataType.Password)]
         [Display(Name = "Confirm password")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
-        public string ConfirmPassword { get; set; } = "";
+        public string ConfirmPassword { get; init; } = string.Empty;
 
         [Required]
-        public string Code { get; set; } = "";
+        public string Code { get; set; } = string.Empty;
     }
 }
