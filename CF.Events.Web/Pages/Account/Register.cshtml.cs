@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text;
 using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Infrastructure.Attributes;
 using CF.Events.Web.Models;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace CF.Events.Web.Pages.Account;
 
@@ -13,6 +15,7 @@ namespace CF.Events.Web.Pages.Account;
 public class RegisterModel(
     UserManager<ApplicationUser> userManager,
     SignInManager<ApplicationUser> signInManager,
+    IEmailSender<ApplicationUser> emailSender,
     ILogger<RegisterModel> logger) : PageModel
 {
     [BindProperty]
@@ -49,8 +52,28 @@ public class RegisterModel(
 
         await userManager.AddToRoleAsync(user, isFirstUser ? Constants.Roles.Admin : Constants.Roles.User);
 
-        await signInManager.SignInAsync(user, isPersistent: false);
-        return LocalRedirect(returnUrl ?? "/");
+        // First user: auto-confirm and sign in
+        if (isFirstUser)
+        {
+            user.EmailConfirmed = true;
+            await userManager.UpdateAsync(user);
+            await signInManager.SignInAsync(user, isPersistent: false);
+            return LocalRedirect(returnUrl ?? "/");
+        }
+
+        // Non-first users: send confirmation email, do NOT sign in
+        var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+        var callbackUrl = Url.Page(
+            "./EmailConfirmation",
+            pageHandler: null,
+            values: new { userId = user.Id, code },
+            protocol: Request.Scheme)!;
+
+        await emailSender.SendConfirmationLinkAsync(user, Input.Email, callbackUrl);
+
+        return RedirectToPage("./RegisterConfirmation");
     }
 
     public sealed class InputModel
