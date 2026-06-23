@@ -10,7 +10,7 @@
         ports:
             - "3245:5432"
         volumes:
-            - /volume2/docker/configs/cf.events/data:/var/lib/postgresql
+            - /volume2/docker/configs/cf.events/data:/var/lib/postgresql:rw
         networks:
             - events-net
         healthcheck:

@@ -52,43 +52,53 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
 
     public async Task EnsureDatabase(IServiceProvider serviceProvider)
     {
-        try
+        const int maxRetries = 10;
+        const int retryDelaySeconds = 5;
+
+        for (var attempt = 1; attempt <= maxRetries; attempt++)
         {
-            using var scope = serviceProvider.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<EventsDbContext>();
-
-            // Simple retry logic without Polly
-            const int maxRetries = 5;
-            const int retryDelaySeconds = 5;
-
-            for (var i = 0; i < maxRetries; i++)
+            try
             {
-                try
-                {
-                    await db.Database.MigrateAsync();
-                    Console.WriteLine("Database migrations applied successfully");
-                    break; // Success - exit retry loop
-                }
-                catch (Exception ex) when (i < maxRetries - 1)
-                {
-                    Console.WriteLine($"Migration attempt {i + 1} failed: {ex.Message}. Retrying in {retryDelaySeconds} seconds...");
-                    await Task.Delay(retryDelaySeconds * 1000);
-                }
-            }
+                using var scope = serviceProvider.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<EventsDbContext>();
 
-            // Seed roles
-            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-            var roles = new[] { Roles.Admin, Roles.User };
-            foreach (var role in roles)
-            {
-                if (!await roleManager.RoleExistsAsync(role))
+                // Test connection first
+                await db.Database.OpenConnectionAsync();
+                Console.WriteLine($"Connection test successful (attempt {attempt})");
+
+                // Apply migrations
+                Console.WriteLine("Applying database migrations...");
+                await db.Database.MigrateAsync();
+                Console.WriteLine("Migrations applied successfully");
+
+                // Seed roles - with connection retry
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+                var roles = new[] { Roles.Admin, Roles.User };
+
+                foreach (var role in roles)
+                {
+                    if (await roleManager.RoleExistsAsync(role))
+                        continue;
+
+                    Console.WriteLine($"Creating role: {role}");
                     await roleManager.CreateAsync(new IdentityRole(role));
+                }
+
+                Console.WriteLine("Database initialization complete");
+                return; // Success - exit the method
             }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"EnsureDatabase failed: {ex}");
-            throw; // Re-throw to fail the container
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Database initialization attempt {attempt} failed: {ex.Message}");
+
+                if (attempt == maxRetries)
+                {
+                    Console.WriteLine("Max retries reached. Failing...");
+                    throw; // This will crash the container, triggering Docker restart
+                }
+
+                await Task.Delay(retryDelaySeconds * 1000);
+            }
         }
     }
 
