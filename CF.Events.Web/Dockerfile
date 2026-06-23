@@ -1,5 +1,8 @@
 ﻿# Use the SDK image to build the application
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+# Add PostgreSQL client dependencies
+RUN apt-get update && apt-get install -y libpq5
+
 WORKDIR /src
 
 # Copy the project files and restore dependencies
