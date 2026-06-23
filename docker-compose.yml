@@ -1,14 +1,23 @@
 ﻿services:
     postgres:
         image: postgres:15
+        container_name: events-web-db
+        mem_limit: 4g
         environment:
             - POSTGRES_DB=${POSTGRES_DB}
             - POSTGRES_USER=${POSTGRES_USER}
             - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
         ports:
-            - "5432:5432"
+            - "3245:5432"
         volumes:
             - /volume2/docker/configs/cf.events/data:/var/lib/postgresql/data
+        networks:
+            - events-net
+        healthcheck:
+            test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+            interval: 5s
+            timeout: 5s
+            retries: 5
         restart: unless-stopped
 
     cf-events-web:
@@ -27,8 +36,11 @@
             - postgres
         networks:
             - proxy-net
+            - events-net
         restart: unless-stopped
 
 networks:
+    events-net:
+        external: true
     proxy-net:
         external: true
