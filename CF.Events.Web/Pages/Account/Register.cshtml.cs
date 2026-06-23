@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using CF.Events.Web.Infrastructure;
+using CF.Events.Web.Infrastructure.Attributes;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -44,7 +45,7 @@ public class RegisterModel(
             return Page();
         }
 
-        logger.LogInformation("User created a new account with password.");
+        logger.LogInformation("User created a new account with password");
 
         await userManager.AddToRoleAsync(user, isFirstUser ? Constants.Roles.Admin : Constants.Roles.User);
 
@@ -56,22 +57,22 @@ public class RegisterModel(
     {
         [Required]
         [Display(Name = "Display Name")]
-        public string DisplayName { get; set; } = "";
+        public string DisplayName { get; init; } = string.Empty;
 
         [Required]
         [EmailAddress]
         [Display(Name = "Email")]
-        public string Email { get; set; } = "";
+        public string Email { get; init; } = string.Empty;
 
         [Required]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [PasswordValidation]
         [DataType(DataType.Password)]
         [Display(Name = "Password")]
-        public string Password { get; set; } = "";
+        public string Password { get; init; } = string.Empty;
 
         [DataType(DataType.Password)]
         [Display(Name = "Confirm password")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
-        public string ConfirmPassword { get; set; } = "";
+        public string ConfirmPassword { get; init; } = string.Empty;
     }
 }

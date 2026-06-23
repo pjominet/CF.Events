@@ -14,7 +14,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         services.AddAppSettings(configuration);
         services.AddAppDatabases(configuration);
         services.AddAppServices();
-        services.AddAppAuthentication(environment);
+        services.AddAppAuthentication(environment, configuration);
         services.AddAppDataProtection(environment);
         services.AddHttpClients(configuration);
 

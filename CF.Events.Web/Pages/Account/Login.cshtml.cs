@@ -39,7 +39,7 @@ public class LoginModel(
 
         if (result.Succeeded)
         {
-            logger.LogInformation("User logged in.");
+            logger.LogInformation("User logged in");
 
             var user = await userManager.FindByEmailAsync(Input.Email);
             if (user is { MustChangePassword: true })
@@ -50,7 +50,7 @@ public class LoginModel(
 
         if (result.IsLockedOut)
         {
-            logger.LogWarning("User account locked out.");
+            logger.LogWarning("User account locked out");
             return RedirectToPage("./Lockout");
         }
 
@@ -62,13 +62,13 @@ public class LoginModel(
     {
         [Required]
         [EmailAddress]
-        public string Email { get; set; } = "";
+        public string Email { get; init; } = string.Empty;
 
         [Required]
         [DataType(DataType.Password)]
-        public string Password { get; set; } = "";
+        public string Password { get; init; } = string.Empty;
 
         [Display(Name = "Remember me?")]
-        public bool RememberMe { get; set; }
+        public bool RememberMe { get; init; }
     }
 }

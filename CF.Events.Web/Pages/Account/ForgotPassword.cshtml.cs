@@ -40,6 +40,6 @@ public class ForgotPasswordModel(UserManager<ApplicationUser> userManager) : Pag
     {
         [Required]
         [EmailAddress]
-        public string Email { get; set; } = "";
+        public string Email { get; init; } = string.Empty;
     }
 }

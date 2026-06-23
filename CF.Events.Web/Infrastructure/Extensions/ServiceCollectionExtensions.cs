@@ -18,7 +18,7 @@ public static class ServiceCollectionExtensions
             => options.UseSqlite(configuration.GetConnectionString("DefaultConnection") ?? "Data Source=events.db"));
     }
 
-    public static void AddAppAuthentication(this IServiceCollection services, IWebHostEnvironment environment)
+    public static void AddAppAuthentication(this IServiceCollection services, IWebHostEnvironment environment, IConfiguration configuration)
     {
         services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
@@ -28,7 +28,7 @@ public static class ServiceCollectionExtensions
                     options.Password.RequireLowercase = false;
                     options.Password.RequireUppercase = false;
                     options.Password.RequireNonAlphanumeric = false;
-                    options.Password.RequiredLength = 6;
+                    options.Password.RequiredLength = configuration.GetSection("AppSettings:PasswordLength").Get<int>();
                 }
                 else
                 {
@@ -36,7 +36,7 @@ public static class ServiceCollectionExtensions
                     options.Password.RequireLowercase = true;
                     options.Password.RequireUppercase = true;
                     options.Password.RequireNonAlphanumeric = true;
-                    options.Password.RequiredLength = 8;
+                    options.Password.RequiredLength = configuration.GetSection("AppSettings:PasswordLength").Get<int>();
                 }
 
                 options.User.RequireUniqueEmail = true;
