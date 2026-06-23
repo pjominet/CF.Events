@@ -27,7 +27,9 @@
       <_ContentIncludedByDefault Remove="wwwroot\invitations\sample\index.html" />
     </ItemGroup>
     <ItemGroup>
+      <Folder Include="Data\Migrations\" />
       <Folder Include="logs\" />
+      <Folder Include="keys\" />
     </ItemGroup>
 
 </Project>
