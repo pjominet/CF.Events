@@ -15,14 +15,11 @@ namespace CF.Events.Web.Infrastructure.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static void AddAppDatabases(this IServiceCollection services, IWebHostEnvironment environment, IConfiguration configuration)
+    public static void AddAppDatabases(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
-        if (!environment.IsDevelopment())
-            services.AddDbContext<EventsDbContext>(options
-                => options.UseNpgsql(connectionString ?? throw new BootstrappingException("Missing DB connection string")));
-        else services.AddDbContext<EventsDbContext>(options
-            => options.UseSqlite(connectionString ?? "Data Source=events.db"));
+        services.AddDbContext<EventsDbContext>(options
+            => options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")
+                                 ?? throw new BootstrappingException("Missing DB connection string")));
     }
 
     public static void AddAppAuthentication(this IServiceCollection services, IWebHostEnvironment environment, IConfiguration configuration)

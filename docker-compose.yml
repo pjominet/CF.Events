@@ -1,6 +1,6 @@
 ﻿services:
     postgres:
-        image: postgres:15
+        image: postgres:18
         container_name: events-web-db
         mem_limit: 4g
         environment:
@@ -27,6 +27,8 @@
         environment:
             - ASPNETCORE_ENVIRONMENT=Production
             - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+            - AppSettings__Mailjet__ApiKey=${MAILJET_API_KEY}
+            - AppSettings__Mailjet__ApiSecret=${MAILJET_API_SECRET}
         volumes:
             - /volume2/docker/configs/cf.events/keys:/app/keys:rw
             - /volume2/docker/configs/cf.events/logs:/app/logs:rw
