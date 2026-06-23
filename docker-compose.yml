@@ -8,7 +8,7 @@
         ports:
             - "5432:5432"
         volumes:
-            - postgres_data:/var/lib/postgresql/data
+            - /volume2/docker/configs/cf.events/data:/var/lib/postgresql/data
         restart: unless-stopped
 
     cf-events-web:
@@ -19,8 +19,8 @@
             - ASPNETCORE_ENVIRONMENT=Production
             - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
         volumes:
-            - web_keys:/app/keys:rw
-            - web_logs:/app/logs:rw
+            - /volume2/docker/configs/cf.events/keys:/app/keys:rw
+            - /volume2/docker/configs/cf.events/logs:/app/logs:rw
         ports:
             - 5019:8082
         depends_on:
@@ -32,11 +32,3 @@
 networks:
     proxy-net:
         external: true
-
-volumes:
-    postgres_data:
-        /volume2/docker/configs/cf.events/data
-    web_keys:
-        /volume2/docker/configs/cf.events/keys
-    web_logs:
-        /volume2/docker/configs/cf.events/logs
