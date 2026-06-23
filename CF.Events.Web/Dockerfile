@@ -23,6 +23,12 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
+# Install PostgreSQL and Kerberos libraries
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    libkrb5-3 \
+    && rm -rf /var/lib/apt/lists/*
+
 # Create directories for keys and logs
 RUN mkdir -p /app/keys /app/logs
 
