@@ -6,6 +6,7 @@ using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Infrastructure.Middlewares;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.EntityFrameworkCore;
 using NToastNotify;
 using static CF.Events.Web.Infrastructure.Constants;
 
@@ -48,11 +49,11 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         });
     }
 
-    public async Task EnsureDatabaseSeeded(IServiceProvider serviceProvider)
+    public async Task EnsureDatabase(IServiceProvider serviceProvider)
     {
         using var scope = serviceProvider.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<EventsDbContext>();
-        await db.Database.EnsureCreatedAsync();
+        await db.Database.MigrateAsync();
 
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var roles = new[] { Roles.Admin, Roles.User };
@@ -71,16 +72,9 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
             app.UseHsts();
         }
 
-        if (app.Environment.IsDevelopment())
-            app.UseMigrationsEndPoint();
-
         app.UseStatusCodePagesWithReExecute("/error", "?code={0}");
 
         app.UseSecurityHeaders();
-
-        if (!app.Environment.IsDevelopment())
-            app.UseRateLimiter();
-
         app.UseStaticFiles();
 
         app.UseRouting();

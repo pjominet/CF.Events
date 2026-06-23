@@ -1,5 +1,4 @@
 using CF.Events.Web;
-using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Infrastructure.Extensions;
 using Serilog;
 
@@ -25,7 +24,7 @@ try
 
     startup.Configure(app);
 
-    await startup.EnsureDatabaseSeeded(app.Services);
+    await startup.EnsureDatabase(app.Services);
 
     app.Run();
 }
