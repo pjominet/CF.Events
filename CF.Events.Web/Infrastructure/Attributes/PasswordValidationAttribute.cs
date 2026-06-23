@@ -5,9 +5,9 @@ using Microsoft.Extensions.Options;
 namespace CF.Events.Web.Infrastructure.Attributes;
 
 [AttributeUsage(AttributeTargets.Property)]
-public class PasswordValidationAttribute(int? maxLength = null) : ValidationAttribute
+public class PasswordValidationAttribute(int maxLength = 6) : ValidationAttribute
 {
-    private int? MaxLength { get; } = maxLength;
+    private int MaxLength { get; } = maxLength;
 
     protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
     {
@@ -16,7 +16,7 @@ public class PasswordValidationAttribute(int? maxLength = null) : ValidationAttr
             return ValidationResult.Success;
 
         var options = validationContext.GetService<IOptions<AppSettings>>();
-        var minLength = options?.Value.PasswordLength ?? 6;
+        var minLength = options?.Value.PasswordLength ?? MaxLength;
 
         if (password.Length < minLength)
             return new ValidationResult($"The password  must be at least {minLength} characters long.");
