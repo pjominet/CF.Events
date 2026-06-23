@@ -39,10 +39,15 @@ public class LoginModel(
 
         if (result.Succeeded)
         {
-            logger.LogInformation("User logged in");
-
             var user = await userManager.FindByEmailAsync(Input.Email);
-            if (user is { MustChangePassword: true })
+            if (user is null)
+                return NotFound();
+
+            user.LastLogin = DateTime.UtcNow;
+            await userManager.UpdateAsync(user);
+            logger.LogInformation("User {UserName} logged in", user.UserName);
+
+            if (user.MustChangePassword)
                 return RedirectToPage("./Manage/FirstLogin", new { returnUrl });
 
             return LocalRedirect(returnUrl ?? "/");

@@ -32,14 +32,14 @@ public class ForgotPasswordModel(
             return RedirectToPage("./ForgotPasswordConfirmation");
         }
 
-        var code = await userManager.GeneratePasswordResetTokenAsync(user);
-        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+        var token = await userManager.GeneratePasswordResetTokenAsync(user);
+        token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
         // Generate the reset link
         var callbackUrl = Url.Page(
-            "./ResetPassword",
+            "/account/reset-password",
             pageHandler: null,
-            values: new { code, email = Input.Email },
+            values: new { token, email = Input.Email },
             protocol: Request.Scheme)!;
 
         if (environment.IsDevelopment())

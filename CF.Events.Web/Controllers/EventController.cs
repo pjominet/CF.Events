@@ -10,7 +10,7 @@ namespace CF.Events.Web.Controllers;
 public class EventController(EventsDbContext db, IWebHostEnvironment env) : Controller
 {
     [HttpGet("{eventId:int}/asset")]
-    public async Task<IActionResult> Get(int eventId)
+    public async Task<IActionResult> Get([FromRoute] int eventId)
     {
         var userId = User.GetId();
         var isInvited = await db.Rsvps.AnyAsync(r => r.EventId == eventId && r.UserId == userId);
@@ -21,7 +21,7 @@ public class EventController(EventsDbContext db, IWebHostEnvironment env) : Cont
         if (ev is null || string.IsNullOrEmpty(ev.InvitationFileName))
             return NotFound();
 
-        // The full path is built dynamically from the event Id (folder) and the
+        // The full path is built dynamically from the event ID (folder) and the
         // stored technical file name.
         var invitationsRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources", "Invitations"));
         var requested = Path.GetFullPath(Path.Combine(invitationsRoot, eventId.ToString(), ev.InvitationFileName));
