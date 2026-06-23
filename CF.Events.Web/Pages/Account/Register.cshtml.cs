@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Text;
 using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Infrastructure.Attributes;
 using CF.Events.Web.Models;
@@ -7,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.WebUtilities;
+using NToastNotify;
 
 namespace CF.Events.Web.Pages.Account;
 
@@ -16,6 +15,7 @@ public class RegisterModel(
     UserManager<ApplicationUser> userManager,
     SignInManager<ApplicationUser> signInManager,
     IEmailSender<ApplicationUser> emailSender,
+    IToastNotification toastNotification,
     IWebHostEnvironment environment,
     ILogger<RegisterModel> logger) : PageModel
 {
@@ -58,24 +58,23 @@ public class RegisterModel(
         {
             user.EmailConfirmed = true;
             await userManager.UpdateAsync(user);
-            await signInManager.SignInAsync(user, isPersistent: false);
+            await signInManager.SignInAsync(user, isPersistent: true);
             return LocalRedirect(returnUrl ?? "/");
         }
 
         // Non-first users: send confirmation email, do NOT sign in
-        var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
-        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+        var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
 
-        var callbackUrl = Url.Page(
-            "./EmailConfirmation",
-            pageHandler: null,
-            values: new { userId = user.Id, code },
+        var callbackUrl = Url.Action(
+            "ConfirmEmail", "Account",
+            values: new { userId = user.Id, token },
             protocol: Request.Scheme)!;
 
         if (environment.IsDevelopment())
             TempData["RegistrationLink"] = callbackUrl;
         else await emailSender.SendConfirmationLinkAsync(user, Input.Email, callbackUrl);
 
+        toastNotification.AddSuccessToastMessage("Initial registration successful.");
         return RedirectToPage("./RegisterConfirmation");
     }
 

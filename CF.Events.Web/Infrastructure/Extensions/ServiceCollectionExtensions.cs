@@ -1,5 +1,6 @@
 ﻿using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure.Factories;
+using CF.Events.Web.Infrastructure.Providers;
 using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Models;
 using CF.Events.Web.Services;
@@ -7,6 +8,7 @@ using Mailjet.Client;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web.Infrastructure.Extensions;
 
@@ -39,12 +41,15 @@ public static class ServiceCollectionExtensions
                     options.Password.RequiredLength = configuration.GetSection("AppSettings:PasswordLength").Get<int>();
                 }
 
+                options.SignIn.RequireConfirmedEmail = true;
                 options.User.RequireUniqueEmail = true;
+                options.Tokens.EmailConfirmationTokenProvider = ProviderNames.EmailConfirmation;
             })
             .AddEntityFrameworkStores<EventsDbContext>()
             .AddClaimsPrincipalFactory<ApplicationUserClaimsPrincipalFactory>()
             .AddSignInManager()
-            .AddDefaultTokenProviders();
+            .AddDefaultTokenProviders()
+            .AddTokenProvider<EmailConfirmationTokenProvider<ApplicationUser>>(ProviderNames.EmailConfirmation);
 
         services.AddAuthorization();
 
@@ -52,7 +57,7 @@ public static class ServiceCollectionExtensions
         {
             options.LoginPath = "/Account/Login";
             options.LogoutPath = "/Account/Logout";
-            options.AccessDeniedPath = "/Account/AccessDenied";
+            options.AccessDeniedPath = "/AccessDenied";
         });
 
         if (environment.IsDevelopment())

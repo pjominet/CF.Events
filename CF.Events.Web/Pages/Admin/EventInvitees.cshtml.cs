@@ -6,13 +6,15 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using NToastNotify;
 
 namespace CF.Events.Web.Pages.Admin;
 
 [Authorize(Roles = Constants.Roles.Admin)]
 public class EventInviteesModel(
     EventsDbContext db,
-    UserManager<ApplicationUser> userManager) : PageModel
+    UserManager<ApplicationUser> userManager,
+    IToastNotification toastNotification) : PageModel
 {
     public Event? EventData { get; private set; }
 
@@ -39,25 +41,25 @@ public class EventInviteesModel(
         var ev = await db.Events.FindAsync(id);
         if (ev is null)
         {
-            SetToast("Event not found", "error");
+            toastNotification.AddWarningToastMessage("Event not found");
             return RedirectToPage(new { id });
         }
 
         if (string.IsNullOrWhiteSpace(userId))
         {
-            SetToast("Please select a user", "info");
+            toastNotification.AddWarningToastMessage("User not found");
             return RedirectToPage(new { id });
         }
 
         var user = await userManager.FindByIdAsync(userId);
         if (user is null)
         {
-            SetToast("User not found", "error");
+            toastNotification.AddWarningToastMessage("User not found");
             return RedirectToPage(new { id });
         }
 
         await InviteUserToEventAsync(id, user);
-        SetToast($"{user.DisplayName ?? user.Email} invited", "success");
+        toastNotification.AddSuccessToastMessage($"{user.DisplayName ?? user.Email} successfully invited");
         return RedirectToPage(new { id });
     }
 
@@ -66,13 +68,14 @@ public class EventInviteesModel(
         var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.EventId == id && r.UserId == userId);
         if (rsvp is null)
         {
-            SetToast("Invitee not found", "error");
+            toastNotification.AddWarningToastMessage("Invitee not found");
             return RedirectToPage(new { id });
         }
 
         db.Rsvps.Remove(rsvp);
         await db.SaveChangesAsync();
-        SetToast("Invitee removed", "success");
+
+        toastNotification.AddSuccessToastMessage("Invitee successfully removed");
         return RedirectToPage(new { id });
     }
 
@@ -81,7 +84,7 @@ public class EventInviteesModel(
         var ev = await db.Events.FindAsync(id);
         if (ev is null)
         {
-            SetToast("Event not found", "error");
+            toastNotification.AddWarningToastMessage("Event not found");
             return RedirectToPage(new { id });
         }
 
@@ -96,7 +99,7 @@ public class EventInviteesModel(
         if (existing is not null)
         {
             await InviteUserToEventAsync(id, existing);
-            SetToast($"{existing.DisplayName ?? existing.Email} was already registered and has been invited", "success");
+            toastNotification.AddSuccessToastMessage($"{existing.DisplayName ?? existing.Email} was already registered and has been invited");
             return RedirectToPage(new { id });
         }
 
@@ -119,7 +122,7 @@ public class EventInviteesModel(
         }
 
         await InviteUserToEventAsync(id, user);
-        SetToast($"Invitation created for {Invite.Email}. Temporary password: {Invite.Password}", "success");
+        toastNotification.AddSuccessToastMessage($"Invitation created for {Invite.Email}. Temporary password: {Invite.Password}");
         return RedirectToPage(new { id });
     }
 
@@ -176,12 +179,6 @@ public class EventInviteesModel(
             .ToList();
 
         return true;
-    }
-
-    private void SetToast(string message, string type)
-    {
-        TempData["Toast"] = message;
-        TempData["ToastType"] = type;
     }
 
     public record InviteeRow(string UserId, string DisplayName, string Email, string Status);

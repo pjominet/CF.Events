@@ -16,12 +16,12 @@ public class ResetPasswordModel(UserManager<ApplicationUser> userManager) : Page
     [BindProperty]
     public InputModel Input { get; set; } = new();
 
-    public IActionResult OnGet(string? code = null, string? email = null)
+    public IActionResult OnGet(string? token = null, string? email = null)
     {
-        if (code is null)
+        if (token is null)
             return BadRequest("A code must be supplied for password reset.");
 
-        Input.Code = code;
+        Input.Token = token;
         Input.Email = email ?? string.Empty;
         return Page();
     }
@@ -38,8 +38,8 @@ public class ResetPasswordModel(UserManager<ApplicationUser> userManager) : Page
             return RedirectToPage("./ResetPasswordConfirmation");
         }
 
-        var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Input.Code));
-        var result = await userManager.ResetPasswordAsync(user, code, Input.Password);
+        var token = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Input.Token));
+        var result = await userManager.ResetPasswordAsync(user, token, Input.Password);
         if (result.Succeeded)
             return RedirectToPage("./ResetPasswordConfirmation");
 
@@ -65,6 +65,6 @@ public class ResetPasswordModel(UserManager<ApplicationUser> userManager) : Page
         public string ConfirmPassword { get; init; } = string.Empty;
 
         [Required]
-        public string Code { get; set; } = string.Empty;
+        public string Token { get; set; } = string.Empty;
     }
 }

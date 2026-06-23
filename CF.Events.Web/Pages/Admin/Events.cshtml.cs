@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using NToastNotify;
 
 namespace CF.Events.Web.Pages.Admin;
 
@@ -14,6 +15,7 @@ namespace CF.Events.Web.Pages.Admin;
 public class EventsModel(
     EventsDbContext db,
     UserManager<ApplicationUser> userManager,
+    IToastNotification toastNotification,
     IWebHostEnvironment env) : PageModel
 {
     public List<Event> AllEvents { get; private set; } = [];
@@ -65,7 +67,7 @@ public class EventsModel(
         if (technicalName is not null)
             await SaveInvitationImageAsync(ev.Id, NewEvent.InvitationImage!, technicalName);
 
-        SetToast("Event created successfully!", "success");
+        toastNotification.AddSuccessToastMessage("Event created successfully!");
         return RedirectToPage();
     }
 
@@ -74,42 +76,42 @@ public class EventsModel(
         var ev = await db.Events.FindAsync(id);
         if (ev is null)
         {
-            SetToast("Event not found", "error");
+            toastNotification.AddWarningToastMessage("Event not found");
             return RedirectToPage();
         }
 
         ev.IsActive = !ev.IsActive;
         await db.SaveChangesAsync();
-        SetToast($"Event {(ev.IsActive ? "activated" : "deactivated")} successfully", "success");
+        toastNotification.AddSuccessToastMessage($"Event {(ev.IsActive ? "activated" : "deactivated")} successfully");
         return RedirectToPage();
     }
 
     public async Task<IActionResult> OnPostInviteAsync(int id, string? userId)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            SetToast("Please select a user", "info");
-            return RedirectToPage();
-        }
-
         var ev = await db.Events.FindAsync(id);
         if (ev is null)
         {
-            SetToast("Event not found", "error");
+            toastNotification.AddWarningToastMessage("Event not found");
+            return RedirectToPage();
+        }
+
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            toastNotification.AddWarningToastMessage("User not found");
             return RedirectToPage();
         }
 
         var user = await userManager.FindByIdAsync(userId);
         if (user is null)
         {
-            SetToast("User not found", "error");
+            toastNotification.AddWarningToastMessage("User not found");
             return RedirectToPage();
         }
 
         var alreadyInvited = await db.Rsvps.AnyAsync(r => r.EventId == id && r.UserId == user.Id);
         if (alreadyInvited)
         {
-            SetToast("User already invited", "error");
+            toastNotification.AddWarningToastMessage("User already invited");
             return RedirectToPage();
         }
 
@@ -125,7 +127,7 @@ public class EventsModel(
         if (!await userManager.IsInRoleAsync(user, Constants.Roles.User))
             await userManager.AddToRoleAsync(user, Constants.Roles.User);
 
-        SetToast("User invited successfully", "success");
+        toastNotification.AddSuccessToastMessage($"{user.DisplayName ?? user.Email} invited successfully");
         return RedirectToPage();
     }
 
@@ -134,7 +136,7 @@ public class EventsModel(
         var ev = await db.Events.FindAsync(id);
         if (ev is null)
         {
-            SetToast("Event not found", "error");
+            toastNotification.AddWarningToastMessage("Event not found");
             return RedirectToPage();
         }
 
@@ -145,7 +147,7 @@ public class EventsModel(
 
         DeleteInvitationImage(ev.Id);
 
-        SetToast("Event deleted successfully", "success");
+        toastNotification.AddSuccessToastMessage("Event deleted successfully");
         return RedirectToPage();
     }
 
@@ -223,27 +225,21 @@ public class EventsModel(
         await file.CopyToAsync(stream);
     }
 
-    private void SetToast(string message, string type)
-    {
-        TempData["Toast"] = message;
-        TempData["ToastType"] = type;
-    }
-
     public record UserOption(string Id, string DisplayName, string Email);
 
     public sealed class InputModel
     {
         [Required]
         [StringLength(100)]
-        public string Name { get; set; } = "";
+        public string Name { get; init; } = string.Empty;
 
-        public DateTime Date { get; set; }
+        public DateTime Date { get; init; }
 
-        public string? Location { get; set; }
+        public string? Location { get; init; }
 
         [StringLength(500)]
-        public string? Description { get; set; }
+        public string? Description { get; init; }
 
-        public IFormFile? InvitationImage { get; set; }
+        public IFormFile? InvitationImage { get; init; }
     }
 }

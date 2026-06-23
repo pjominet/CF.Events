@@ -6,11 +6,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using NToastNotify;
 
 namespace CF.Events.Web.Pages.Events;
 
 [Authorize]
-public class RsvpModel(EventsDbContext db) : PageModel
+public class RsvpModel(EventsDbContext db, IToastNotification toastNotification) : PageModel
 {
     public Event? EventData { get; private set; }
     public bool HasResponded { get; private set; }
@@ -52,8 +53,7 @@ public class RsvpModel(EventsDbContext db) : PageModel
         var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
         if (rsvp is null)
         {
-            TempData["Toast"] = "You are not invited to this event.";
-            TempData["ToastType"] = "error";
+            toastNotification.AddWarningToastMessage("You are not invited to this event.");
             return Redirect("/");
         }
 
@@ -65,8 +65,7 @@ public class RsvpModel(EventsDbContext db) : PageModel
 
         await db.SaveChangesAsync();
 
-        TempData["Toast"] = "Thank you for your response!";
-        TempData["ToastType"] = "success";
+        toastNotification.AddSuccessToastMessage("Thank you for your response!");
         return Redirect("/");
     }
 
