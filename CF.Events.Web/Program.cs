@@ -22,9 +22,9 @@ try
 
     var app = builder.Build();
 
-    startup.Configure(app);
-
     await startup.EnsureDatabase(app.Services);
+
+    startup.Configure(app);
 
     app.Run();
 }
