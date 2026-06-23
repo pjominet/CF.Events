@@ -19,12 +19,14 @@ try
     builder.ConfigureLogging();
 
     startup.ConfigureServices(builder.Services);
+    Log.Information("Service provider configured");
 
     var app = builder.Build();
 
     await startup.EnsureDatabase(app.Services);
 
     startup.Configure(app);
+    Log.Information("Application configured and ready to run");
 
     app.Run();
 }

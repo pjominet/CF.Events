@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using NToastNotify;
+using Serilog;
 using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web;
@@ -64,32 +65,36 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
 
                 // Test connection first
                 await db.Database.OpenConnectionAsync();
-                Console.WriteLine($"Connection test successful (attempt {attempt})");
+                Log.Information("Connection test successful (attempt {Attempt})", attempt);
 
                 // Apply migrations
-                Console.WriteLine("Applying database migrations...");
+                Log.Information("Applying database migrations...");
                 await db.Database.MigrateAsync();
-                Console.WriteLine("Migrations applied successfully");
+                Log.Information("Migrations applied successfully");
 
-                // Seed roles - with connection retry
+                // Seed roles
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
                 var roles = new[] { Roles.Admin, Roles.User };
 
+                Log.Information("Seeding roles...");
                 foreach (var role in roles)
                 {
                     if (await roleManager.RoleExistsAsync(role))
+                    {
+                        Log.Information("Role {Role} already exists, continuing...", role);
                         continue;
+                    }
 
-                    Console.WriteLine($"Creating role: {role}");
+                    Log.Information("Creating role: {Role}", role);
                     await roleManager.CreateAsync(new IdentityRole(role));
                 }
 
-                Console.WriteLine("Database initialization complete");
+                Log.Information("Database initialization complete");
                 return; // Success - exit the method
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Database initialization attempt {attempt} failed: {ex.Message}");
+                Log.Error("Database initialization attempt {Attempt} failed: {Message}", attempt, ex.Message);
 
                 if (attempt == maxRetries)
                 {
