@@ -1,0 +1,47 @@
+﻿@page "/events/{eventId:int}/invitation"
+@model CF.Events.Web.Pages.Events.InvitationModel
+@{
+    Layout = "_NoNavLayout";
+    ViewData["Title"] = Model.EventData?.Name ?? "Invitation";
+}
+
+<div class="invite-page">
+    @if (Model.NotFoundOrForbidden)
+    {
+        <div class="invite-error">
+            <h1>Oops</h1>
+            <p>Event not found or you are not invited.</p>
+            <a href="/" class="invite-btn invite-btn-back" style="display:inline-block;">Back to Dashboard</a>
+        </div>
+    }
+    else
+    {
+        <div class="invite-card">
+            <a href="@Model.BackUrl" class="invite-close">
+                <i class="bi bi-x-lg"></i>
+            </a>
+            @if (Model.ImageUrl is not null)
+            {
+                <img class="invite-image" src="@Model.ImageUrl" alt="@Model.EventData!.Name invitation"/>
+            }
+            else
+            {
+                <div class="invite-fallback">
+                    <h1>@Model.EventData!.Name</h1>
+                    <p>@Model.EventData.Date.ToLongDateString()</p>
+                    @if (!string.IsNullOrEmpty(Model.EventData.Location))
+                    {
+                        <p>@Model.EventData.Location</p>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.EventData.Description))
+                    {
+                        <p>@Model.EventData.Description</p>
+                    }
+                </div>
+            }
+            <div class="d-flex justify-content-center py-3 flex-grow-0">
+                <a href="/events/@Model.EventData!.Id/rsvp" class="invite-btn invite-btn-rsvp">RSVP</a>
+            </div>
+        </div>
+    }
+</div>

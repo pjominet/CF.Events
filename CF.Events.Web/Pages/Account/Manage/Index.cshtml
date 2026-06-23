@@ -1,0 +1,38 @@
+﻿@page "/account/manage"
+@model CF.Events.Web.Pages.Account.Manage.IndexModel
+@{
+    ViewData["Title"] = "My Account";
+}
+
+<h3>Profile</h3>
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <ul class="nav nav-pills mb-3">
+            <li class="nav-item"><a class="nav-link active" asp-page="./Index">Profile</a></li>
+            <li class="nav-item"><a class="nav-link" asp-page="./ChangePassword">Password</a></li>
+        </ul>
+        <form method="post">
+            <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+            <div class="form-floating mb-3">
+                <input value="@Model.Username" class="form-control" disabled />
+                <label class="form-label">Email</label>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.DisplayName" class="form-control" placeholder="Display name" />
+                <label asp-for="Input.DisplayName" class="form-label">Display name</label>
+                <span asp-validation-for="Input.DisplayName" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Phone number" />
+                <label asp-for="Input.PhoneNumber" class="form-label">Phone number</label>
+                <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+            </div>
+            <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

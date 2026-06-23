@@ -1,0 +1,11 @@
+﻿@page
+@model ErrorModel
+@{
+    ViewData["Title"] = "Error";
+}
+
+<div class="container py-5 text-center">
+    <h1 class="cursive fs-1">@Model.Title</h1>
+    <p class="text-muted">@Model.Detail</p>
+    <a href="/" class="btn btn-primary mt-3">Back to home</a>
+</div>

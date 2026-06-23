@@ -1,0 +1,3 @@
+﻿-- This file needs updating to match the new ApplicationUser and Event based RSVP system.
+-- For now, it's disabled as it doesn't match the new schema.
+-- INSERT INTO Rsvps (EventId, UserId, Attending, BringsPlusOne, JoinForDinner, Comments, SubmittedAt) VALUES ...

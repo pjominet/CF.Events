@@ -1,47 +1,43 @@
-using CF.Events.Web.Services;
-using CF.Events.Shared;
-using Microsoft.AspNetCore.DataProtection;
+using CF.Events.Web;
+using CF.Events.Web.Infrastructure.Extensions;
+using Serilog;
 
-var builder = WebApplication.CreateBuilder(args);
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
 
-// Add services to the container.
-builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo("/app/keys"));
-
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
-
-builder.Services.AddSingleton<ToastService>();
-
-builder.Services.AddHttpClient(Constants.HttpClients.EventsApi, client =>
+try
 {
-    var apiBaseUrl = builder.Configuration["EventsApi:BaseUrl"];
-    if (string.IsNullOrEmpty(apiBaseUrl))
-        apiBaseUrl = "http://localhost:5041";
-    client.BaseAddress = new Uri(apiBaseUrl);
-});
+    var builder = WebApplication.CreateBuilder(args);
+    builder.WebHost.ConfigureKestrel(options =>
+    {
+        options.AddServerHeader = false;
+    });
 
-var app = builder.Build();
+    var startup = new Startup(builder.Configuration, builder.Environment);
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    app.UseHsts();
+    builder.ConfigureLogging();
+
+    startup.ConfigureServices(builder.Services);
+
+    var app = builder.Build();
+
+    startup.Configure(app);
+
+    await startup.EnsureDatabase(app.Services);
+
+    app.Run();
 }
-
-app.UseStaticFiles();
-
-app.UseSecurityHeaders(
-    "default-src 'self'; " +
-    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " +
-    "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; " +
-    "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; " +
-    "img-src 'self' data:; " +
-    "connect-src 'self' ws: wss: http://localhost:5041;"); // Allow WebSocket for Blazor Server and API connection
-
-app.UseAntiforgery();
-app.MapRazorComponents<CF.Events.Web.App>()
-    .AddInteractiveServerRenderMode();
-
-app.Run();
+catch (OperationCanceledException)
+{
+    Log.Information("Application shutdown requested via OperationCanceledException");
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "An unhandled exception occurred during app bootstrapping");
+}
+finally
+{
+    Log.Information("Closing and flushing logger in finally block");
+    Log.CloseAndFlush();
+}
