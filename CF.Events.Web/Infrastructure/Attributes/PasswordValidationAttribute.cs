@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 namespace CF.Events.Web.Infrastructure.Attributes;
 
 [AttributeUsage(AttributeTargets.Property)]
-public class PasswordValidationAttribute(int maxLength = 6) : ValidationAttribute
+public class PasswordValidationAttribute(int maxLength = 100) : ValidationAttribute
 {
     private int MaxLength { get; } = maxLength;
 
