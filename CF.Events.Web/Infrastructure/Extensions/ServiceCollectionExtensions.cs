@@ -3,11 +3,12 @@ using CF.Events.Web.Infrastructure.Factories;
 using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Models;
 using CF.Events.Web.Services;
+using Mailjet.Client;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace CF.Events.Web.Infrastructure;
+namespace CF.Events.Web.Infrastructure.Extensions;
 
 public static class ServiceCollectionExtensions
 {
@@ -37,6 +38,7 @@ public static class ServiceCollectionExtensions
                     options.Password.RequireNonAlphanumeric = true;
                     options.Password.RequiredLength = configuration.GetSection("AppSettings:PasswordLength").Get<int>();
                 }
+
                 options.User.RequireUniqueEmail = true;
             })
             .AddEntityFrameworkStores<EventsDbContext>()
@@ -53,7 +55,9 @@ public static class ServiceCollectionExtensions
             options.AccessDeniedPath = "/Account/AccessDenied";
         });
 
-        services.AddSingleton<IEmailSender<ApplicationUser>, NoOpEmailSender>();
+        if (environment.IsDevelopment())
+            services.AddSingleton<IEmailSender<ApplicationUser>, NoOpEmailSender>();
+        else services.AddSingleton<IEmailSender<ApplicationUser>, MailjetEmailSender>();
     }
 
     public static void AddAppSettings(this IServiceCollection services, IConfiguration configuration)
@@ -77,5 +81,18 @@ public static class ServiceCollectionExtensions
         services.AddDataProtection()
             .PersistKeysToFileSystem(new DirectoryInfo(keysPath))
             .SetApplicationName("CF.Events.Web");
+    }
+
+    public static void AddHttpClients(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddHttpClient<IMailjetClient, MailjetClient>(client =>
+        {
+            //set BaseAddress, MediaType, UserAgent
+            client.SetDefaultSettings();
+
+            var apiKey = configuration["AppSettings:Mailjet:ApiKey"];
+            var apiSecret = configuration["AppSettings:Mailjet:ApiSecret"];
+            client.UseBasicAuthentication(apiKey, apiSecret);
+        });
     }
 }

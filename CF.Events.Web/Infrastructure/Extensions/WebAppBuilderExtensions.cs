@@ -2,7 +2,7 @@
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
 
-namespace CF.Events.Web.Infrastructure;
+namespace CF.Events.Web.Infrastructure.Extensions;
 
 public static class WebAppBuilderExtensions
 {

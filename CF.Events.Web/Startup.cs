@@ -1,5 +1,6 @@
 ﻿using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure;
+using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Infrastructure.Middlewares;
 using Microsoft.AspNetCore.Identity;
 using static CF.Events.Web.Infrastructure.Constants;
@@ -15,6 +16,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         services.AddAppServices();
         services.AddAppAuthentication(environment, configuration);
         services.AddAppDataProtection(environment);
+        services.AddHttpClients(configuration);
 
         services.AddRazorPages();
         services.AddControllersWithViews();

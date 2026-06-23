@@ -1,5 +1,6 @@
 using CF.Events.Web;
 using CF.Events.Web.Infrastructure;
+using CF.Events.Web.Infrastructure.Extensions;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
