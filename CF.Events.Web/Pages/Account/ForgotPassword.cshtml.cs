@@ -10,7 +10,10 @@ using Microsoft.AspNetCore.WebUtilities;
 namespace CF.Events.Web.Pages.Account;
 
 [AllowAnonymous]
-public class ForgotPasswordModel(UserManager<ApplicationUser> userManager) : PageModel
+public class ForgotPasswordModel(
+    UserManager<ApplicationUser> userManager,
+    IEmailSender<ApplicationUser> emailSender,
+    IWebHostEnvironment environment) : PageModel
 {
     [BindProperty]
     public InputModel Input { get; set; } = new();
@@ -29,11 +32,21 @@ public class ForgotPasswordModel(UserManager<ApplicationUser> userManager) : Pag
             return RedirectToPage("./ForgotPasswordConfirmation");
         }
 
-        // Self-contained app: no email delivery, so redirect directly to the reset page with the token.
         var code = await userManager.GeneratePasswordResetTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
-        return RedirectToPage("./ResetPassword", new { code, email = Input.Email });
+        // Generate the reset link
+        var callbackUrl = Url.Page(
+            "./ResetPassword",
+            pageHandler: null,
+            values: new { code, email = Input.Email },
+            protocol: Request.Scheme)!;
+
+        if (environment.IsDevelopment())
+            TempData["ResetPasswordLink"] = callbackUrl;
+        else await emailSender.SendPasswordResetLinkAsync(user, Input.Email, callbackUrl);
+
+        return RedirectToPage("./ForgotPasswordConfirmation");
     }
 
     public sealed class InputModel

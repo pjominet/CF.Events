@@ -47,7 +47,7 @@ public class ChangePasswordModel(
         }
 
         await signInManager.RefreshSignInAsync(user);
-        logger.LogInformation("User changed their password successfully.");
+        logger.LogInformation("User {UserName} changed their password successfully", user.UserName);
         TempData["Toast"] = "Your password has been changed";
         TempData["ToastType"] = "success";
         return RedirectToPage();
