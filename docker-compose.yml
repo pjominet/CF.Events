@@ -1,16 +1,39 @@
 ﻿services:
-  cf-events-api:
-    build:
-      context: .
-      dockerfile: CF.Events.API/Dockerfile
-    image: cf-events-api
-    volumes:
-      - ./keys/api:/app/keys
+    postgres:
+        image: postgres:15
+        environment:
+            - POSTGRES_DB=
+            - POSTGRES_USER=
+            - POSTGRES_PASSWORD=
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        restart: unless-stopped
 
-  cf-events-web:
-    build:
-      context: .
-      dockerfile: CF.Events.Web/Dockerfile
-    image: cf-events-web
-    volumes:
-      - ./keys/web:/app/keys
+    cf-events-web:
+        image: ghcr.io/pjominet/cf.events-web:latest
+        container_name: events-web
+        mem_limit: 1g
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Production
+            - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+        volumes:
+            - web_keys:/app/keys:rw
+        ports:
+            - 5019:8082
+        depends_on:
+            - postgres
+        networks:
+            - proxy-net
+        restart: unless-stopped
+
+networks:
+    proxy-net:
+        external: true
+
+volumes:
+    postgres_data:
+        /volume2/docker/configs/cf.events/data
+    web_keys:
+        /volume2/docker/configs/cf.events/keys
