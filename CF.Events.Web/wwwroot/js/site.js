@@ -63,6 +63,34 @@
         });
     }
 
+    // Copy-to-clipboard handler
+    function copyToClipboardAndShowFeedback(elementId, button, duration = 750) {
+        const source = document.getElementById(elementId);
+        if (!source) {
+            console.error(`Element with ID '${elementId}' not found`);
+            return;
+        }
+
+        const textToCopy = source.value || source.textContent || '';
+        if (!textToCopy.trim()) {
+            console.error('No text to copy');
+            return;
+        }
+
+        const originalText = button.textContent;
+        button.textContent = 'Copied!';
+
+        navigator.clipboard.writeText(textToCopy)
+            .catch(err => {
+                console.error('Failed to copy:', err);
+                button.textContent = originalText;
+            });
+
+        setTimeout(() => {
+            button.textContent = originalText;
+        }, duration);
+    }
+
     // Copy-to-clipboard helper for badges
     window.copyToClipboard = function (text, element) {
         if (!element) return;

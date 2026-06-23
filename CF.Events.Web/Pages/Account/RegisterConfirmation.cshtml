@@ -11,8 +11,24 @@
         </section>
         <hr/>
         <section class="card-body">
-            <p>Please check your email for a confirmation link to complete your registration.</p>
-            <a href="/Account/Login" class="btn btn-primary">Back to login</a>
+            @if (TempData["RegistrationLink"] is string registrationLink)
+            {
+                <div class="alert alert-info mt-3">
+                    <p><strong>Development test mode:</strong></p>
+                    <div class="input-group mt-2">
+                        <input type="text" class="form-control" value="@registrationLink" id="registrationLinkInput" readonly>
+                        <button class="btn btn-outline-secondary" type="button"
+                                onclick="copyToClipboardAndShowFeedback('registrationLinkInput', this)">
+                            Copy
+                        </button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <p>Please check your email for a confirmation link to complete your registration.</p>
+            }
+            <a href="/Account/Login" class="btn btn-primary mt-3">Back to login</a>
         </section>
     </div>
 </div>

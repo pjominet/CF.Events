@@ -16,6 +16,7 @@ public class RegisterModel(
     UserManager<ApplicationUser> userManager,
     SignInManager<ApplicationUser> signInManager,
     IEmailSender<ApplicationUser> emailSender,
+    IWebHostEnvironment environment,
     ILogger<RegisterModel> logger) : PageModel
 {
     [BindProperty]
@@ -71,7 +72,9 @@ public class RegisterModel(
             values: new { userId = user.Id, code },
             protocol: Request.Scheme)!;
 
-        await emailSender.SendConfirmationLinkAsync(user, Input.Email, callbackUrl);
+        if (environment.IsDevelopment())
+            TempData["RegistrationLink"] = callbackUrl;
+        else await emailSender.SendConfirmationLinkAsync(user, Input.Email, callbackUrl);
 
         return RedirectToPage("./RegisterConfirmation");
     }
