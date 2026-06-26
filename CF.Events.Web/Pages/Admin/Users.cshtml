@@ -55,6 +55,13 @@
                                     {
                                         if (!user.Roles.Contains(Roles.Admin))
                                         {
+                                            <div data-bs-toggle="tooltip" data-bs-title="Regenerate Password">
+                                                <button class="btn btn-sm btn-outline-warning" type="button"
+                                                        data-bs-toggle="modal" data-bs-target="#regenPasswordModal">
+                                                    <i class="bi bi-key"></i>
+                                                </button>
+                                            </div>
+
                                             <form method="post" asp-page-handler="Promote" asp-route-userId="@user.Id"
                                                   class="d-flex align-items-center justify-content-center">
                                                 <button class="btn btn-sm btn-outline-success" type="submit"
@@ -103,6 +110,11 @@
     ViewData["InvitePassword"] = Model.Invite.Password;
 }
 <partial name="_InviteUserModal"/>
+
+@{
+    ViewData["RegenPasswordModalShow"] = Model.ShowRegenPasswordModal;
+}
+<partial name="_RegenPasswordModal"/>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial"/>

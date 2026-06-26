@@ -1,5 +1,6 @@
 ﻿using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Models;
+using CF.Events.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +19,7 @@ public class UsersModel(
     public List<UserRow> AllUsers { get; private set; } = [];
 
     public bool ShowInviteModal { get; private set; }
+    public bool ShowRegenPasswordModal { get; private set; }
 
     [BindProperty] public InviteUserInput Invite { get; set; } = new();
 
@@ -70,7 +72,13 @@ public class UsersModel(
         foreach (var u in users)
         {
             var roles = await userManager.GetRolesAsync(u);
-            AllUsers.Add(new UserRow(u.Id, u.Email ?? "undefined", u.DisplayName ?? "undefined", u.IsActive, roles));
+            AllUsers.Add(new UserRow(
+                u.Id,
+                u.Email ?? "undefined",
+                u.DisplayName ?? "undefined",
+                u.IsActive,
+                roles,
+                u.MustChangePassword));
         }
     }
 
@@ -126,5 +134,46 @@ public class UsersModel(
         return RedirectToPage();
     }
 
-    public record UserRow(string Id, string Email, string DisplayName, bool IsActive, IList<string> Roles);
+    public async Task<IActionResult> OnPostRegeneratePasswordAsync(string userId, string tempPassword)
+    {
+        var user = await userManager.FindByIdAsync(userId);
+        if (user is null)
+        {
+            ShowRegenPasswordModal = true;
+            toastNotification.AddWarningToastMessage("User not found");
+            return RedirectToPage();
+        }
+
+        var newPassword = TempPasswordGenerator.Generate();
+        user.MustChangePassword = true;
+
+        var result = await userManager.RemovePasswordAsync(user);
+        if (!result.Succeeded)
+        {
+            ShowRegenPasswordModal = true;
+            toastNotification.AddErrorToastMessage("Failed to reset password");
+            return RedirectToPage();
+        }
+
+        result = await userManager.AddPasswordAsync(user, newPassword);
+        if (!result.Succeeded)
+        {
+            ShowRegenPasswordModal = true;
+            toastNotification.AddErrorToastMessage("Failed to set new password");
+            return RedirectToPage();
+        }
+
+        result = await userManager.UpdateAsync(user);
+        if (result.Succeeded)
+            toastNotification.AddSuccessToastMessage("Password regenerated successfully");
+        else
+        {
+            ShowRegenPasswordModal = true;
+            toastNotification.AddErrorToastMessage("Failed to update user");
+        }
+
+        return RedirectToPage();
+    }
+
+    public record UserRow(string Id, string Email, string DisplayName, bool IsActive, IList<string> Roles, bool MustChangePassword);
 }

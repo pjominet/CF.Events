@@ -95,9 +95,13 @@
             if (input) input.value = password;
         }).catch(function (err) {
             console.error(err);
-            if (window.showToast) window.showToast("Could not generate a password", "error");
         });
     };
+
+    document.getElementById('regenPasswordModal')
+        .addEventListener('show.bs.modal', function () {
+            fillTempPassword('regenPassword');
+    })
 
     // Lightweight confirm wrapper for elements with data-confirm="message".
     function initConfirms() {

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace CF.Events.Web.Models;
+namespace CF.Events.Web.ViewModels;
 
 public sealed class InviteUserInput
 {
