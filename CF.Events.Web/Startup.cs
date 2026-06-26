@@ -63,10 +63,6 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
                 using var scope = serviceProvider.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<EventsDbContext>();
 
-                // Test connection first
-                await db.Database.OpenConnectionAsync();
-                Log.Information("Connection test successful (attempt {Attempt})", attempt);
-
                 // Apply migrations
                 Log.Information("Applying database migrations...");
                 await db.Database.MigrateAsync();
