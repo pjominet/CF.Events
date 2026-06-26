@@ -19,8 +19,7 @@ public class UsersModel(
 
     public bool ShowInviteModal { get; private set; }
 
-    [BindProperty]
-    public InviteUserInput Invite { get; set; } = new();
+    [BindProperty] public InviteUserInput Invite { get; set; } = new();
 
     public async Task OnGetAsync()
     {
@@ -56,9 +55,11 @@ public class UsersModel(
             return Page();
         }
 
-        await userManager.AddToRoleAsync(user, Roles.User);
+        result = await userManager.AddToRoleAsync(user, Roles.User);
+        if (result.Succeeded)
+            toastNotification.AddSuccessToastMessage($"Invitation created for {Invite.Email}. Temporary password: {Invite.Password}");
+        else toastNotification.AddErrorToastMessage($"Invitation failed for {Invite.Email}");
 
-        toastNotification.AddSuccessToastMessage($"Invitation created for {Invite.Email}. Temporary password: {Invite.Password}");
         return RedirectToPage();
     }
 
@@ -69,7 +70,7 @@ public class UsersModel(
         foreach (var u in users)
         {
             var roles = await userManager.GetRolesAsync(u);
-            AllUsers.Add(new UserRow(u.Id, u.Email ?? "undefined", u.DisplayName ?? "undefined", roles));
+            AllUsers.Add(new UserRow(u.Id, u.Email ?? "undefined", u.DisplayName ?? "undefined", u.IsActive, roles));
         }
     }
 
@@ -82,8 +83,11 @@ public class UsersModel(
             return RedirectToPage();
         }
 
-        await userManager.AddToRoleAsync(user, Roles.Admin);
-        toastNotification.AddSuccessToastMessage("User promotion successfully");
+        var result = await userManager.AddToRoleAsync(user, Roles.Admin);
+        if (result.Succeeded)
+            toastNotification.AddSuccessToastMessage("User promotion successfully");
+        else toastNotification.AddErrorToastMessage("User promotion failed");
+
         return RedirectToPage();
     }
 
@@ -96,10 +100,31 @@ public class UsersModel(
             return RedirectToPage();
         }
 
-        await userManager.RemoveFromRoleAsync(user, Roles.Admin);
-        toastNotification.AddSuccessToastMessage("User demotion successfully");
+        var result = await userManager.RemoveFromRoleAsync(user, Roles.Admin);
+        if (result.Succeeded)
+            toastNotification.AddSuccessToastMessage("User demotion successfully");
+        else toastNotification.AddErrorToastMessage("User demotion failed");
+
         return RedirectToPage();
     }
 
-    public record UserRow(string Id, string Email, string DisplayName, IList<string> Roles);
+    public async Task<IActionResult> OnPostToggleAsync(string userId)
+    {
+        var user = await userManager.FindByIdAsync(userId);
+        if (user is null)
+        {
+            toastNotification.AddWarningToastMessage("User not found");
+            return RedirectToPage();
+        }
+
+        user.IsActive = !user.IsActive;
+        var result = await userManager.UpdateAsync(user);
+        if (result.Succeeded)
+            toastNotification.AddSuccessToastMessage("User toggled successfully");
+        else toastNotification.AddErrorToastMessage("User toggle failed");
+
+        return RedirectToPage();
+    }
+
+    public record UserRow(string Id, string Email, string DisplayName, bool IsActive, IList<string> Roles);
 }

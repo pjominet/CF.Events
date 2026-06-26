@@ -36,7 +36,7 @@ catch (OperationCanceledException)
 {
     Log.Information("Application shutdown requested via OperationCanceledException");
 }
-catch (Exception ex)
+catch (Exception ex) when (ex is not HostAbortedException && ex.Source != "Microsoft.EntityFrameworkCore.Design")
 {
     Log.Fatal(ex, "An unhandled exception occurred during app bootstrapping");
 }

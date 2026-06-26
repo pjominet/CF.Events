@@ -12,7 +12,7 @@ public class IndexModel : PageModel
             return Redirect("/account/login");
 
         return User.IsInRole(Constants.Roles.Admin)
-            ? Redirect("/admin/dashbaord")
+            ? Redirect("/admin")
             : Redirect("/invites");
     }
 }

@@ -28,11 +28,12 @@
             <div class="table-responsive" style="max-height: 70vh; overflow-y: auto;">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light sticky-top">
-                        <tr>
-                            <th>Display Name</th>
-                            <th>Email</th>
-                            <th>Roles</th>
-                        </tr>
+                    <tr>
+                        <th>Display Name</th>
+                        <th>Email</th>
+                        <th>Roles</th>
+                        <th>Actions</th>
+                    </tr>
                     </thead>
                     <tbody>
                     @foreach (var user in Model.AllUsers)
@@ -41,11 +42,15 @@
                             <td class="fw-bold">@user.DisplayName</td>
                             <td>@user.Email</td>
                             <td>
-                                <div class="d-flex align-items-center">
+                                <div class="d-flex align-items-center gap-1">
                                     @foreach (var role in user.Roles)
                                     {
                                         <span class="badge bg-info me-1">@role</span>
                                     }
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
                                     @if (User.IsAdmin() && User.GetId() != user.Id)
                                     {
                                         if (!user.Roles.Contains(Roles.Admin))
@@ -68,6 +73,13 @@
                                                 </button>
                                             </form>
                                         }
+
+                                        <form method="post" asp-page-handler="Toggle" asp-route-userId="@user.Id"
+                                              class="d-flex align-items-center justify-content-center">
+                                            <div class="form-check form-switch d-inline-block">
+                                                <input class="form-check-input" type="checkbox" checked="@user.IsActive" onchange="this.form.submit()">
+                                            </div>
+                                        </form>
                                     }
                                 </div>
                             </td>
@@ -90,8 +102,8 @@
     ViewData["InviteEmail"] = Model.Invite.Email;
     ViewData["InvitePassword"] = Model.Invite.Password;
 }
-<partial name="_InviteUserModal" />
+<partial name="_InviteUserModal"/>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    <partial name="_ValidationScriptsPartial"/>
 }
