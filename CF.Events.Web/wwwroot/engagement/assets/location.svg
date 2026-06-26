@@ -1,5 +1,0 @@
-<svg width="40" height="48" viewBox="0 0 40 48" xmlns="http://www.w3.org/2000/svg">
-    <!-- Slightly elongated pin path -->
-    <path d="M20,43 C20,43 32,30 32,17 C32,9 26.5,5 20,5 C13.5,5 8,9 8,17 C8,30 20,43 20,43 Z" fill="none" stroke="#2d3e2d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="20" cy="17" r="4" fill="none" stroke="#2d3e2d" stroke-width="1.2"/>
-</svg>

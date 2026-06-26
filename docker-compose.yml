@@ -1,12 +1,49 @@
 ﻿services:
-  cf-events-api:
-    build:
-      context: .
-      dockerfile: CF.Events.API/Dockerfile
-    image: cf-events-api
+    postgres:
+        image: postgres:18
+        container_name: events-web-db
+        mem_limit: 4g
+        environment:
+            - POSTGRES_DB=${POSTGRES_DB}
+            - POSTGRES_USER=${POSTGRES_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+        ports:
+            - "3245:5432"
+        volumes:
+            - /volume2/docker/configs/cf.events/data:/var/lib/postgresql:rw
+        networks:
+            - events-net
+        healthcheck:
+            test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+            start_period: 30s
 
-  cf-events-web:
-    build:
-      context: .
-      dockerfile: CF.Events.Web/Dockerfile
-    image: cf-events-web
+    cf-events-web:
+        image: ghcr.io/pjominet/cf.events-web:latest
+        container_name: events-web
+        mem_limit: 1g
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Production
+            - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+            - AppSettings__Mailjet__ApiKey=${MAILJET_API_KEY}
+            - AppSettings__Mailjet__ApiSecret=${MAILJET_API_SECRET}
+        volumes:
+            - /volume2/docker/configs/cf.events/keys:/app/keys:rw
+            - /volume2/docker/configs/cf.events/logs:/app/logs:rw
+        ports:
+            - 5019:8082
+        depends_on:
+            postgres:
+                condition: service_healthy
+        networks:
+            - proxy-net
+            - events-net
+        restart: unless-stopped
+
+networks:
+    events-net:
+        external: true
+    proxy-net:
+        external: true

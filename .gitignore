@@ -244,3 +244,12 @@ _Pvt_Extensions
 #outputs
 *.tar
 
+# Data Protection keys
+**/keys/
+
+#Logfiles
+**/logs/
+
+#App Files
+**/Resources/Invitations/
+

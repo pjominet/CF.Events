@@ -1,15 +1,16 @@
 ﻿# Use the SDK image to build the application
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+# Add PostgreSQL client dependencies
+RUN apt-get update && apt-get install -y libpq5
+
 WORKDIR /src
 
 # Copy the project files and restore dependencies
 COPY ["CF.Events.Web/CF.Events.Web.csproj", "CF.Events.Web/"]
-COPY ["CF.Events.Shared/CF.Events.Shared.csproj", "CF.Events.Shared/"]
 RUN dotnet restore "CF.Events.Web/CF.Events.Web.csproj"
 
 # Copy the rest of the code and build the application
 COPY CF.Events.Web/ CF.Events.Web/
-COPY CF.Events.Shared/ CF.Events.Shared/
 WORKDIR "/src/CF.Events.Web"
 RUN dotnet build "CF.Events.Web.csproj" -c Release -o /app/build
 
@@ -22,11 +23,18 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-# Create a directory for Data Protection keys
-RUN mkdir -p /app/keys
+# Install PostgreSQL and Kerberos libraries
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    libkrb5-3 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create directories for keys and logs
+RUN mkdir -p /app/keys /app/logs
 
 # Set custom port
-ENV ASPNETCORE_HTTP_PORTS=8082
+ENV ASPNETCORE_HTTP_PORTS=8082ENV
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
 EXPOSE 8082
 ENTRYPOINT ["dotnet", "CF.Events.Web.dll"]

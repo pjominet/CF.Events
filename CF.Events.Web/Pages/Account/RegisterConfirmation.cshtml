@@ -1,0 +1,34 @@
+﻿@page "/account/register-confirmation"
+@attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+@{
+    ViewData["Title"] = "Registration confirmation";
+}
+
+<div class="container-fluid d-flex align-items-center justify-content-center p-3">
+    <div class="card border-0 p-4 mx-auto bg-card-custom rounded-lg-custom shadow-sm" style="max-width: 500px; width: 100%;">
+        <section class="text-center">
+            <h1>Registration confirmation</h1>
+        </section>
+        <hr/>
+        <section class="card-body">
+            @if (TempData["RegistrationLink"] is string registrationLink)
+            {
+                <div class="alert alert-info mt-3">
+                    <p><strong>Development test mode:</strong></p>
+                    <div class="input-group mt-2">
+                        <input type="text" class="form-control" value="@registrationLink" id="registrationLinkInput" readonly>
+                        <button class="btn btn-outline-secondary" type="button"
+                                onclick="copyToClipboardAndShowFeedback('registrationLinkInput', this)">
+                            Copy
+                        </button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <p>Please check your email for a confirmation link to complete your registration.</p>
+            }
+            <a href="/Account/Login" class="btn btn-primary mt-3">Back to login</a>
+        </section>
+    </div>
+</div>
