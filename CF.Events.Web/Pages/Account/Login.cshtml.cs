@@ -22,11 +22,15 @@ public class LoginModel(
     [TempData]
     public string? ErrorMessage { get; set; }
 
-    public async Task OnGetAsync(string? returnUrl = null)
+    public async Task<IActionResult> OnGetAsync(string? returnUrl = null)
     {
         // Clear any existing external cookie to ensure a clean login process.
         await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+        if (!userManager.Users.Any())
+            return RedirectToPage("./Register");
+
         ReturnUrl = returnUrl;
+        return Page();
     }
 
     public async Task<IActionResult> OnPostAsync(string? returnUrl = null)

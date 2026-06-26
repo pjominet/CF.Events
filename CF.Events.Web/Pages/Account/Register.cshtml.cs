@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Infrastructure.Attributes;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -7,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using NToastNotify;
+using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web.Pages.Account;
 
@@ -38,7 +38,8 @@ public class RegisterModel(
         {
             UserName = Input.Email,
             Email = Input.Email,
-            DisplayName = Input.DisplayName
+            DisplayName = Input.DisplayName,
+            EmailConfirmed = isFirstUser
         };
 
         var result = await userManager.CreateAsync(user, Input.Password);
@@ -51,13 +52,11 @@ public class RegisterModel(
 
         logger.LogInformation("User created a new account with password");
 
-        await userManager.AddToRoleAsync(user, isFirstUser ? Constants.Roles.Admin : Constants.Roles.User);
-
-        // First user: auto-confirm and sign in
+        await userManager.AddToRoleAsync(user, Roles.User);
         if (isFirstUser)
         {
-            user.EmailConfirmed = true;
-            await userManager.UpdateAsync(user);
+            // First user: auto-add admin role and sign in
+            await userManager.AddToRoleAsync(user, Roles.Admin);
             await signInManager.SignInAsync(user, isPersistent: true);
             return LocalRedirect(returnUrl ?? "/");
         }
