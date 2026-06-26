@@ -17,7 +17,7 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<EventsDbCo
             .Build();
 
         var builder = new DbContextOptionsBuilder<EventsDbContext>();
-        builder.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
+        builder.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
 
         return new EventsDbContext(builder.Options);
     }

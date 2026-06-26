@@ -18,8 +18,8 @@ public static class ServiceCollectionExtensions
     public static void AddAppDatabases(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<EventsDbContext>(options
-            => options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")
-                                 ?? throw new BootstrappingException("Missing DB connection string")));
+            => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")
+                                    ?? throw new BootstrappingException("Missing DB connection string")));
     }
 
     public static void AddAppAuthentication(this IServiceCollection services, IWebHostEnvironment environment, IConfiguration configuration)

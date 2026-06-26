@@ -1,4 +1,5 @@
 using CF.Events.Web.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,8 +14,19 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
     {
         base.OnModelCreating(builder);
 
-        builder.Entity<Rsvp>()
-            .HasIndex(r => new { r.EventId, r.UserId })
-            .IsUnique();
+        builder.HasDefaultSchema("app");
+
+        builder.Entity<ApplicationUser>().ToTable("Users", "identity");
+        builder.Entity<IdentityRole>().ToTable("Roles", "identity");
+        builder.Entity<IdentityUserRole<string>>().ToTable("UserRoles", "identity");
+        builder.Entity<IdentityUserClaim<string>>().ToTable("UserClaims", "identity");
+        builder.Entity<IdentityUserLogin<string>>().ToTable("UserLogins", "identity");
+        builder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims", "identity");
+        builder.Entity<IdentityUserToken<string>>().ToTable("UserTokens", "identity");
+
+        builder.Entity<Rsvp>(e =>
+        {
+            e.HasIndex(r => new { r.EventId, r.UserId }).IsUnique();
+        });
     }
 }
