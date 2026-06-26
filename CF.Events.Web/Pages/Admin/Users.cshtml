@@ -8,7 +8,7 @@
 <div class="container py-4">
     <div class="row mb-4">
         <div class="col d-flex justify-content-between align-items-center">
-            <div>
+            <section>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-1">
                         <li class="breadcrumb-item"><a href="/admin">Admin</a></li>
@@ -16,10 +16,15 @@
                     </ol>
                 </nav>
                 <h1 class="cursive fs-1">Manage Users</h1>
-            </div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#inviteUserModal">
-                <i class="bi bi-envelope-plus me-2"></i>Invite User
-            </button>
+            </section>
+            <section class="d-flex gap-2">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#inviteUserModal">
+                    <i class="bi bi-envelope-plus me-2"></i>Invite User
+                </button>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#importUsersModal">
+                    <i class="bi bi-upload me-2"></i>Import Users
+                </button>
+            </section>
         </div>
     </div>
 
@@ -57,7 +62,8 @@
                                         {
                                             <div data-bs-toggle="tooltip" data-bs-title="Regenerate Password">
                                                 <button class="btn btn-sm btn-outline-warning" type="button"
-                                                        data-bs-toggle="modal" data-bs-target="#regenPasswordModal">
+                                                        data-bs-toggle="modal" data-bs-target="#regenPasswordModal"
+                                                        data-user-id="@user.Id">
                                                     <i class="bi bi-key"></i>
                                                 </button>
                                             </div>
@@ -97,7 +103,7 @@
             </div>
             @if (Model.AllUsers.Count == 0)
             {
-                <div class="text-center py-4 text-muted">No users found.</div>
+                <div class="text-center py-4 text-muted">No users yet.</div>
             }
         </div>
     </div>
@@ -115,6 +121,8 @@
     ViewData["RegenPasswordModalShow"] = Model.ShowRegenPasswordModal;
 }
 <partial name="_RegenPasswordModal"/>
+
+<partial name="_ImportUsersModal"/>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial"/>

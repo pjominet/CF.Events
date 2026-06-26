@@ -25,7 +25,7 @@
     }
 
     // Copy-to-clipboard handler
-    window.copyToClipboardAndShowFeedback = function(elementId, button, duration = 750) {
+    window.copyToClipboardAndShowFeedback = function (elementId, button, duration = 750) {
         const source = document.getElementById(elementId);
         if (!source) {
             console.error(`Element with ID '${elementId}' not found`);
@@ -80,7 +80,7 @@
 
     window.fetchNewTempPassword = async function () {
         const response = await fetch("/api/generate-password", {
-            headers: { "Accept": "text/plain" }
+            headers: {"Accept": "text/plain"}
         });
         if (!response.ok) {
             throw new Error("Failed to generate password: " + response.status);
@@ -98,10 +98,12 @@
         });
     };
 
-    document.getElementById('regenPasswordModal')
-        .addEventListener('show.bs.modal', function () {
-            fillTempPassword('regenPassword');
-    })
+    const regenPasswordModal = document.getElementById('regenPasswordModal')
+    regenPasswordModal.addEventListener('show.bs.modal', function (event) {
+        fillTempPassword('regenPassword');
+        regenPasswordModal.querySelector('input[name="userId"]')
+            .value = event.relatedTarget.getAttribute('data-user-id');
+    });
 
     // Lightweight confirm wrapper for elements with data-confirm="message".
     function initConfirms() {
