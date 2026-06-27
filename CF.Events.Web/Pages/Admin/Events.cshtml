@@ -33,6 +33,7 @@
                             <th class="text-center">Design</th>
                             <th class="text-center">Invitees</th>
                             <th class="text-center">Active</th>
+                            <th>Invite Code</th>
                             <th>Quick Invite</th>
                             <th class="text-end">Actions</th>
                         </tr>
@@ -64,6 +65,16 @@
                                         <input class="form-check-input" type="checkbox" checked="@ev.IsActive" onchange="this.form.submit()">
                                     </div>
                                 </form>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <code class="me-2">@Model.CurrentInviteCodes[ev.Id]</code>
+                                    <form method="post" asp-page-handler="RegenerateCode" asp-route-id="@ev.Id">
+                                        <button type="submit" class="btn btn-outline-secondary btn-sm" title="Regenerate Code">
+                                            <i class="bi bi-arrow-clockwise"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                             <td>
                                 @{ var noUsers = Model.AvailableUsers.Count == 0; }

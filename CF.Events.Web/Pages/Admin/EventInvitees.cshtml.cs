@@ -18,6 +18,7 @@ public class EventInviteesModel(
     IToastNotification toastNotification) : PageModel
 {
     public Event? EventData { get; private set; }
+    public string CurrentInviteCode { get; private set; } = "No valid code";
 
     public List<InviteeRow> Invitees { get; private set; } = [];
 
@@ -47,11 +48,43 @@ public class EventInviteesModel(
         return RedirectToPage(new { id });
     }
 
+    public async Task<IActionResult> OnPostRegenerateCodeAsync(int id)
+    {
+        var ev = await db.Events.Include(e => e.InviteCodes).FirstOrDefaultAsync(e => e.Id == id);
+        if (ev is null)
+        {
+            toastNotification.AddWarningToastMessage("Event not found");
+            return RedirectToPage(new { id });
+        }
+
+        var newCode = new InviteCode
+        {
+            EventId = id,
+            Code = Guid.NewGuid().ToString("N").Substring(0, 8).ToUpperInvariant(),
+            ValidUntil = DateTime.UtcNow.AddDays(7),
+            CreatedAt = DateTime.UtcNow
+        };
+
+        db.InviteCodes.Add(newCode);
+        await db.SaveChangesAsync();
+
+        toastNotification.AddSuccessToastMessage("New invite code generated");
+        return RedirectToPage(new { id });
+    }
+
     private async Task<bool> LoadAsync(int id)
     {
-        EventData = await db.Events.FindAsync(id);
+        EventData = await db.Events
+            .Include(e => e.InviteCodes)
+            .FirstOrDefaultAsync(e => e.Id == id);
+
         if (EventData is null)
             return false;
+
+        CurrentInviteCode = EventData.InviteCodes
+            .Where(c => c.ValidUntil > DateTime.UtcNow)
+            .OrderByDescending(c => c.CreatedAt)
+            .FirstOrDefault()?.Code ?? "No valid code";
 
         var rsvps = await db.Rsvps.Where(r => r.EventId == id).ToListAsync();
         var invitedUserIds = rsvps.Select(r => r.UserId).ToHashSet();

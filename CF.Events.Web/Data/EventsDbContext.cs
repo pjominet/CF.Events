@@ -8,6 +8,7 @@ namespace CF.Events.Web.Data;
 public class EventsDbContext(DbContextOptions<EventsDbContext> options) : IdentityDbContext<AppUser>(options)
 {
     public DbSet<Event> Events => Set<Event>();
+    public DbSet<InviteCode> InviteCodes => Set<InviteCode>();
     public DbSet<UserEvent> UserEvents => Set<UserEvent>();
     public DbSet<Rsvp> Rsvps => Set<Rsvp>();
 
@@ -48,6 +49,13 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
 
             e.HasOne(r => r.Event)
                 .WithMany(r => r.EventUsers)
+                .HasForeignKey(r => r.EventId);
+        });
+
+        builder.Entity<InviteCode>(e =>
+        {
+            e.HasOne(r => r.Event)
+                .WithMany(r => r.InviteCodes)
                 .HasForeignKey(r => r.EventId);
         });
     }

@@ -151,14 +151,48 @@ public class EventsModel(
         return RedirectToPage();
     }
 
+    public Dictionary<int, string> CurrentInviteCodes { get; private set; } = [];
+
+    public async Task<IActionResult> OnPostRegenerateCodeAsync(int id)
+    {
+        var eventExists = await db.Events.AnyAsync(e => e.Id == id);
+        if (!eventExists)
+        {
+            toastNotification.AddWarningToastMessage("Event not found");
+            return RedirectToPage();
+        }
+
+        var newCode = new InviteCode
+        {
+            EventId = id,
+            Code = CodeGenerator.Generate(64),
+            ValidUntil = DateTime.UtcNow.AddDays(7),
+            CreatedAt = DateTime.UtcNow
+        };
+
+        db.InviteCodes.Add(newCode);
+        await db.SaveChangesAsync();
+
+        toastNotification.AddSuccessToastMessage("New invite code generated");
+        return RedirectToPage();
+    }
+
     private async Task LoadAsync()
     {
-        AllEvents = await db.Events.OrderByDescending(e => e.Date).ToListAsync();
+        AllEvents = await db.Events.Include(e => e.InviteCodes).OrderByDescending(e => e.Date).ToListAsync();
 
         var rsvps = await db.Rsvps.ToListAsync();
         InviteeCounts = rsvps
             .GroupBy(r => r.EventId)
             .ToDictionary(g => g.Key, g => g.Count());
+
+        CurrentInviteCodes = AllEvents.ToDictionary(
+            e => e.Id,
+            e => e.InviteCodes
+                .Where(c => c.ValidUntil > DateTime.UtcNow)
+                .OrderByDescending(c => c.CreatedAt)
+                .FirstOrDefault()?.Code ?? "No valid code"
+        );
 
         var allUsers = await userManager.Users
             .OrderBy(u => u.DisplayName)

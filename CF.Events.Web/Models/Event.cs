@@ -6,8 +6,7 @@ public class Event
 {
     public int Id { get; init; }
 
-    [StringLength(100)]
-    public string InviteCode { get; set; } = string.Empty;
+    public List<InviteCode> InviteCodes { get; set; } = [];
 
     [Required]
     [StringLength(100)]

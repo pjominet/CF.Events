@@ -105,8 +105,5 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         app.UseUrlTransformer();
         app.MapControllers();
         app.MapRazorPages();
-
-        app.MapGet("/api/generate-password", () => Results.Text(CodeGenerator.Generate()))
-            .RequireAuthorization();
     }
 }

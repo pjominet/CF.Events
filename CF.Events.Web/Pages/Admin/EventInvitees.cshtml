@@ -18,6 +18,17 @@
                 <h1 class="cursive fs-1 mt-3">@Model.EventData?.Name</h1>
                 <p class="text-muted mb-0">@Model.EventData?.Date.ToLongDateString()</p>
             </div>
+            <div class="d-flex align-items-center bg-light p-2 rounded border">
+                <div class="me-3">
+                    <span class="text-muted small d-block">Current Invite Code</span>
+                    <code class="fs-5">@Model.CurrentInviteCode</code>
+                </div>
+                <form method="post" asp-page-handler="RegenerateCode" asp-route-id="@Model.EventData!.Id">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm" title="Regenerate Code">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Regenerate
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 

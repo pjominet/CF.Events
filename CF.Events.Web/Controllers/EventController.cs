@@ -52,16 +52,29 @@ public class EventController(
 
     [HttpPost("{eventId:int}/invite")]
     [Authorize(Roles = Roles.Admin)]
-    public async Task<IActionResult> InviteUsers([FromRoute] int eventId, [FromForm] List<string> userIds)
+    public async Task<IActionResult> InviteUsers([FromRoute] int eventId, [FromForm] List<string> userIds, [FromForm] int inviteCodeId)
     {
         var eventData = await db.Events
             .Where(e => e.Id == eventId && e.IsActive)
-            .Select(e => new { e.Id, e.Name, e.InviteCode, e.EventUsers })
+            .Include(e => e.EventUsers)
+            .Include(e => e.InviteCodes)
             .FirstOrDefaultAsync();
 
         if (eventData is null)
         {
             toastNotification.AddWarningToastMessage("Event not found");
+            return RedirectToPage($"/admin/events/{eventId}");
+        }
+
+        var inviteCode = eventData.InviteCodes
+            .Where(c => c.Id == inviteCodeId && c.ValidUntil > DateTime.UtcNow)
+            .OrderByDescending(c => c.CreatedAt)
+            .Select(c => c.Code)
+            .FirstOrDefault();
+
+        if (string.IsNullOrWhiteSpace(inviteCode))
+        {
+            toastNotification.AddWarningToastMessage("Invalid or expired invite code");
             return RedirectToPage($"/admin/events/{eventId}");
         }
 
@@ -89,7 +102,7 @@ public class EventController(
             foreach (var user in newUsers)
             {
                 logger.LogInformation("Sending invitation to {Email}", user.Email);
-                await mailService.SendInvitationAsync(eventData.Name, user.DisplayName!, user.Email!, eventData.InviteCode);
+                await mailService.SendInvitationAsync(eventData.Name, user.DisplayName!, user.Email!, inviteCode);
             }
 
             toastNotification.AddSuccessToastMessage($"Successfully created {count} invitations");
