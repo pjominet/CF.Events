@@ -1,5 +1,4 @@
-﻿using CF.Events.Web.Infrastructure;
-using CF.Events.Web.Models;
+﻿using CF.Events.Web.Models;
 using CF.Events.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -18,29 +17,27 @@ public class UsersModel(
 {
     public List<UserRow> AllUsers { get; private set; } = [];
 
-    public bool ShowAddModal { get; private set; }
-
-    [BindProperty] public AddUserModel AddModel { get; set; } = new();
+    [BindProperty] public AddUserViewModel AddViewModel { get; set; } = new();
 
     public async Task OnGetAsync()
     {
         await LoadAsync();
     }
 
-    public async Task<IActionResult> OnPostInviteAsync()
+    public async Task<IActionResult> OnPostAddAsync()
     {
         if (!ModelState.IsValid)
         {
-            ShowAddModal = true;
+            ViewData[ViewDataKeys.ShowAddModal] = true;
             await LoadAsync();
             return Page();
         }
 
         var user = new ApplicationUser
         {
-            UserName = AddModel.Email,
-            Email = AddModel.Email,
-            DisplayName = AddModel.DisplayName,
+            UserName = AddViewModel.Email,
+            Email = AddViewModel.Email,
+            DisplayName = AddViewModel.DisplayName,
             MustChangePassword = true,
             EmailConfirmed = true
         };
@@ -50,15 +47,15 @@ public class UsersModel(
         {
             foreach (var error in result.Errors)
                 ModelState.AddModelError(string.Empty, error.Description);
-            ShowAddModal = true;
+            ViewData[ViewDataKeys.ShowAddModal] = true;
             await LoadAsync();
             return Page();
         }
 
         result = await userManager.AddToRoleAsync(user, Roles.User);
         if (result.Succeeded)
-            toastNotification.AddSuccessToastMessage($"Invitation created for {AddModel.Email}");
-        else toastNotification.AddErrorToastMessage($"Invitation failed for {AddModel.Email}");
+            toastNotification.AddSuccessToastMessage($"Added user {AddViewModel.Email}");
+        else toastNotification.AddErrorToastMessage($"Failed to add user {AddViewModel.Email}");
 
         return RedirectToPage();
     }
@@ -73,11 +70,13 @@ public class UsersModel(
             AllUsers.Add(new UserRow(
                 u.Id,
                 u.Email ?? "undefined",
+                u.PhoneNumber ?? "n/a",
                 u.DisplayName ?? "undefined",
                 u.IsActive,
                 roles,
                 u.MustChangePassword));
         }
+        AllUsers = AllUsers.OrderBy(u => u.DisplayName).ToList();
     }
 
     public async Task<IActionResult> OnPostPromoteAsync(string userId)
@@ -132,5 +131,5 @@ public class UsersModel(
         return RedirectToPage();
     }
 
-    public record UserRow(string Id, string Email, string DisplayName, bool IsActive, IList<string> Roles, bool MustChangePassword);
+    public record UserRow(string Id, string Email, string Phone, string DisplayName, bool IsActive, IList<string> Roles, bool MustChangePassword);
 }

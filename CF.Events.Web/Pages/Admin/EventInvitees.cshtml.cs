@@ -26,7 +26,7 @@ public class EventInviteesModel(
     public bool ShowInviteModal { get; private set; }
 
     [BindProperty]
-    public AddUserModel AddModel { get; set; } = new();
+    public AddUserViewModel AddViewModel { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
@@ -95,7 +95,7 @@ public class EventInviteesModel(
             return Page();
         }
 
-        var existing = await userManager.FindByEmailAsync(AddModel.Email);
+        var existing = await userManager.FindByEmailAsync(AddViewModel.Email);
         if (existing is not null)
         {
             await InviteUserToEventAsync(id, existing);
@@ -105,9 +105,9 @@ public class EventInviteesModel(
 
         var user = new ApplicationUser
         {
-            UserName = AddModel.Email,
-            Email = AddModel.Email,
-            DisplayName = AddModel.DisplayName,
+            UserName = AddViewModel.Email,
+            Email = AddViewModel.Email,
+            DisplayName = AddViewModel.DisplayName,
             MustChangePassword = true
         };
 
@@ -122,7 +122,7 @@ public class EventInviteesModel(
         }
 
         await InviteUserToEventAsync(id, user);
-        toastNotification.AddSuccessToastMessage($"Invitation created for {AddModel.Email}");
+        toastNotification.AddSuccessToastMessage($"Invitation created for {AddViewModel.Email}");
         return RedirectToPage(new { id });
     }
 

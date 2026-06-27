@@ -36,7 +36,9 @@
                     <tr>
                         <th>Display Name</th>
                         <th>Email</th>
+                        <th>Phone</th>
                         <th>Roles</th>
+                        <th>Is Active</th>
                         <th>Actions</th>
                     </tr>
                     </thead>
@@ -46,8 +48,9 @@
                         <tr>
                             <td class="fw-bold">@user.DisplayName</td>
                             <td>@user.Email</td>
+                            <td>@user.Phone</td>
                             <td>
-                                <div class="d-flex align-items-center gap-1">
+                                <div class="d-flex justify-content-start align-items-center gap-1">
                                     @foreach (var role in user.Roles)
                                     {
                                         <span class="badge bg-info me-1">@role</span>
@@ -55,7 +58,19 @@
                                 </div>
                             </td>
                             <td>
-                                <div class="d-flex align-items-center gap-2">
+                                <div class="d-flex justify-content-start align-items-center">
+                                    <form method="post" asp-page-handler="Toggle" asp-route-userId="@user.Id"
+                                          class="d-flex align-items-center justify-content-center">
+                                        <div class="form-check form-switch d-inline-block">
+                                            <input class="form-check-input" type="checkbox" checked="@user.IsActive"
+                                                   disabled="@(!User.IsAdmin() || User.GetId() == user.Id)"
+                                                   onchange="@(User.IsAdmin() && User.GetId() != user.Id ? "this.form.submit()" : string.Empty)">
+                                        </div>
+                                    </form>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex justify-content-start align-items-center gap-2">
                                     @if (User.IsAdmin() && User.GetId() != user.Id)
                                     {
                                         if (!user.Roles.Contains(Roles.Admin))
@@ -78,13 +93,6 @@
                                                 </button>
                                             </form>
                                         }
-
-                                        <form method="post" asp-page-handler="Toggle" asp-route-userId="@user.Id"
-                                              class="d-flex align-items-center justify-content-center">
-                                            <div class="form-check form-switch d-inline-block">
-                                                <input class="form-check-input" type="checkbox" checked="@user.IsActive" onchange="this.form.submit()">
-                                            </div>
-                                        </form>
                                     }
                                 </div>
                             </td>
@@ -101,13 +109,7 @@
     </div>
 </div>
 
-@{
-    ViewData["AddUSerModalShow"] = Model.ShowAddModal;
-    ViewData["UserDisplayName"] = Model.AddModel.DisplayName;
-    ViewData["UserEmail"] = Model.AddModel.Email;
-}
-<partial name="_AddUserModal"/>
-
+<partial name="_AddUserModal" model="Model.AddViewModel"/>
 <partial name="_ImportUsersModal"/>
 
 @section Scripts {

@@ -4,8 +4,8 @@
     ViewData["Title"] = "Manage Invitees";
     ViewData["InviteModalShow"] = Model.ShowInviteModal;
     ViewData["InviteEventId"] = Model.EventData?.Id;
-    ViewData["InviteDisplayName"] = Model.AddModel.DisplayName;
-    ViewData["InviteEmail"] = Model.AddModel.Email;
+    ViewData["InviteDisplayName"] = Model.AddViewModel.DisplayName;
+    ViewData["InviteEmail"] = Model.AddViewModel.Email;
 }
 
 <div class="container py-4">
@@ -23,7 +23,7 @@
                 <p class="text-muted mb-0">@Model.EventData?.Date.ToLongDateString()</p>
             </div>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#inviteUserModal">
-                <i class="bi bi-person-plus me-2"></i>Invite New Person
+                <i class="bi bi-person-plus me-2"></i>Invite New Guest
             </button>
         </div>
     </div>

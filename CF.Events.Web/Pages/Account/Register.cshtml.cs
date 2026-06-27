@@ -56,6 +56,7 @@ public class RegisterModel(
         if (isFirstUser)
         {
             // First user: auto-add admin role and sign in
+            logger.LogInformation("First user created with admin role, no email confirmation required");
             await userManager.AddToRoleAsync(user, Roles.Admin);
             await signInManager.SignInAsync(user, isPersistent: true);
             return LocalRedirect(returnUrl ?? "/");
