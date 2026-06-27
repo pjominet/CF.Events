@@ -23,11 +23,11 @@
                     <span class="text-muted small d-block">Current Invite Code</span>
                     <code class="fs-5">@Model.CurrentInviteCode</code>
                 </div>
-                <form method="post" asp-page-handler="RegenerateCode" asp-route-id="@Model.EventData!.Id">
-                    <button type="submit" class="btn btn-outline-secondary btn-sm" title="Regenerate Code">
-                        <i class="bi bi-arrow-clockwise me-1"></i>Regenerate
-                    </button>
-                </form>
+                <button type="button" class="btn btn-outline-secondary btn-sm" title="Regenerate Code"
+                        data-bs-toggle="modal" data-bs-target="#regenerateCodeModal"
+                        data-bs-event-id="@Model.EventData!.Id" data-bs-event-name="@Model.EventData!.Name">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Regenerate
+                </button>
             </div>
         </div>
     </div>
@@ -41,8 +41,9 @@
             }
             else
             {
-                <form method="post" action="/events/@Model.EventData!.Id/invite" class="row g-2 align-items-center">
+                <form method="post" action="/events/@Model.EventData!.Id/invite-users" class="row g-2 align-items-center">
                     @Html.AntiForgeryToken()
+                    <input type="hidden" name="inviteCode" value="@Model.CurrentInviteCode" />
                     <div class="col-md-8">
                         <select name="userIds" asp-items="Model.AvailableUsers" class="form-select tom-select" required multiple placeholder="Select users to invite..."></select>
                     </div>
@@ -109,4 +110,5 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <partial name="_RegenerateCodeModal" />
 }

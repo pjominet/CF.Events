@@ -30,80 +30,62 @@
                         <tr>
                             <th>Name</th>
                             <th>Date</th>
-                            <th class="text-center">Design</th>
-                            <th class="text-center">Invitees</th>
-                            <th class="text-center">Active</th>
-                            <th>Invite Code</th>
-                            <th>Quick Invite</th>
-                            <th class="text-end">Actions</th>
+                            <th>Design</th>
+                            <th>Invitees</th>
+                            <th>Active</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                    @foreach (var ev in Model.AllEvents)
+                    @foreach (var eventData in Model.AllEvents)
                     {
                         <tr>
-                            <td class="fw-bold">@ev.Name</td>
-                            <td>@ev.Date.ToShortDateString()</td>
-                            <td class="text-center">
-                                @if (!string.IsNullOrEmpty(ev.InvitationFileName))
+                            <td class="fw-bold">@eventData.Name</td>
+                            <td>@eventData.Date.ToShortDateString()</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(eventData.InvitationFileName))
                                 {
-                                    <span class="badge bg-primary" title="@ev.OriginalInvitationFileName">@(ev.OriginalInvitationFileName ?? "Custom image")</span>
+                                    <span class="badge bg-primary" title="@eventData.OriginalInvitationFileName">@(eventData.OriginalInvitationFileName ?? "Custom image")</span>
                                 }
                                 else
                                 {
                                     <span class="badge bg-secondary">None</span>
                                 }
                             </td>
-                            <td class="text-center">
-                                <a href="/admin/events/@ev.Id/invitees" class="badge bg-info text-decoration-none" title="Manage Invitees">
-                                    @(Model.InviteeCounts.TryGetValue(ev.Id, out var count) ? count : 0)
+                            <td>
+                                <a href="/admin/events/@eventData.Id/invitees" class="badge bg-info text-decoration-none" title="Manage Invitees">
+                                    @(Model.InviteeCounts.TryGetValue(eventData.Id, out var count) ? count : 0)
                                 </a>
                             </td>
-                            <td class="text-center">
-                                <form method="post" asp-page-handler="Toggle" asp-route-id="@ev.Id" class="d-flex align-items-center justify-content-center">
+                            <td>
+                                <form method="post" asp-page-handler="Toggle" asp-route-id="@eventData.Id" class="d-flex align-items-center">
                                     <div class="form-check form-switch d-inline-block">
-                                        <input class="form-check-input" type="checkbox" checked="@ev.IsActive" onchange="this.form.submit()">
+                                        <input class="form-check-input" type="checkbox" checked="@eventData.IsActive" onchange="this.form.submit()">
                                     </div>
                                 </form>
                             </td>
                             <td>
-                                <div class="d-flex align-items-center">
-                                    <code class="me-2">@Model.CurrentInviteCodes[ev.Id]</code>
-                                    <form method="post" asp-page-handler="RegenerateCode" asp-route-id="@ev.Id">
-                                        <button type="submit" class="btn btn-outline-secondary btn-sm" title="Regenerate Code">
+                                <div class="btn-group">
+                                    <a href="/events/@eventData.Id/invitation" class="btn btn-info btn-sm" title="Preview Invitation" data-bs-toggle="tooltip">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="/admin/events/@eventData.Id/invitees" class="btn btn-primary btn-sm" title="Manage Invitees" data-bs-toggle="tooltip">
+                                        <i class="bi bi-people"></i>
+                                    </a>
+                                    <div data-bs-toggle="tooltip" title="Regenerate Code">
+                                        <button type="button" class="btn btn-warning btn-sm rounded-0"
+                                                data-bs-toggle="modal" data-bs-target="#regenerateCodeModal"
+                                                data-bs-event-id="@eventData.Id" data-bs-event-name="@eventData.Name">
                                             <i class="bi bi-arrow-clockwise"></i>
+                                        </button>
+                                    </div>
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@eventData.Id"
+                                          onsubmit="return confirm('Delete event &quot;@eventData.Name&quot; and all its invitations? This cannot be undone.');">
+                                        <button type="submit" class="btn btn-danger btn-sm rounded-start-0 rounded-end-1" title="Delete Event" data-bs-toggle="tooltip">
+                                            <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
                                 </div>
-                            </td>
-                            <td>
-                                @{ var noUsers = Model.AvailableUsers.Count == 0; }
-                                <form method="post" asp-page-handler="Invite" asp-route-id="@ev.Id" class="input-group input-group-sm">
-                                    <select name="userId" class="form-select tom-select" data-placeholder="Select users..." required disabled="@noUsers">
-                                        <option value=""></option>
-                                        @foreach (var u in Model.AvailableUsers)
-                                        {
-                                            <option value="@u.Id">@(string.IsNullOrWhiteSpace(u.DisplayName) ? u.Email : $"{u.DisplayName} ({u.Email})")</option>
-                                        }
-                                    </select>
-                                    <button class="btn btn-primary" type="submit" title="Invite to event" disabled="@noUsers">
-                                        <i class="bi bi-person-plus"></i>
-                                    </button>
-                                </form>
-                            </td>
-                            <td class="text-end">
-                                <form method="post" asp-page-handler="Delete" asp-route-id="@ev.Id" class="btn-group"
-                                      onsubmit="return confirm('Delete event &quot;@ev.Name&quot; and all its invitations? This cannot be undone.');">
-                                    <a href="/events/@ev.Id/invitation" class="btn btn-info btn-sm" title="Preview Invitation">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    <a href="/admin/events/@ev.Id/invitees" class="btn btn-primary btn-sm" title="Manage Invitees">
-                                        <i class="bi bi-people"></i>
-                                    </a>
-                                    <button type="submit" class="btn btn-danger btn-sm" title="Delete Event">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
                             </td>
                         </tr>
                     }
@@ -118,50 +100,8 @@
     </div>
 </div>
 
-<div class="modal fade" id="createEventModal" tabindex="-1" data-autoshow="@(Model.ShowCreateModal ? "true" : "false")">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="post" asp-page-handler="Create" enctype="multipart/form-data">
-                <div class="modal-header">
-                    <h5 class="modal-title">Create New Event</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Event Name</label>
-                        <input asp-for="NewEvent.Name" class="form-control" placeholder="Wedding" />
-                        <span asp-validation-for="NewEvent.Name" class="text-danger"></span>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Date</label>
-                        <input asp-for="NewEvent.Date" type="date" class="form-control" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Location</label>
-                        <input asp-for="NewEvent.Location" class="form-control" placeholder="Grand Hall" />
-                        <span asp-validation-for="NewEvent.Location" class="text-danger"></span>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Description</label>
-                        <textarea asp-for="NewEvent.Description" class="form-control" placeholder="Optional Description" rows="3"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Invitation Image</label>
-                        <input asp-for="NewEvent.InvitationImage" type="file" accept="image/*" class="form-control" />
-                        <span asp-validation-for="NewEvent.InvitationImage" class="text-danger"></span>
-                        <div class="form-text">Portrait images work best. Larger images are cropped to portrait for the invite card.</div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success">Create Event</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 @section Scripts {
+    <partial name="_CreateEventModal" model="Model.NewEvent"/>
+    <partial name="_RegenerateCodeModal" />
     <partial name="_ValidationScriptsPartial" />
 }

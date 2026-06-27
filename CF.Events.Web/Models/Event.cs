@@ -6,8 +6,6 @@ public class Event
 {
     public int Id { get; init; }
 
-    public List<InviteCode> InviteCodes { get; set; } = [];
-
     [Required]
     [StringLength(100)]
     public string Name { get; set; } = string.Empty;
@@ -31,4 +29,5 @@ public class Event
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 
     public List<UserEvent> EventUsers { get; set; } = [];
+    public List<InviteCode> InviteCodes { get; set; } = [];
 }

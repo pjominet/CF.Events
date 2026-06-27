@@ -1,4 +1,5 @@
 ﻿using CF.Events.Web.Data;
+using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Models;
 using CF.Events.Web.Services;
@@ -50,9 +51,9 @@ public class EventController(
         return PhysicalFile(requested, contentType);
     }
 
-    [HttpPost("{eventId:int}/invite")]
+    [HttpPost("{eventId:int}/invite-users")]
     [Authorize(Roles = Roles.Admin)]
-    public async Task<IActionResult> InviteUsers([FromRoute] int eventId, [FromForm] List<string> userIds, [FromForm] int inviteCodeId)
+    public async Task<IActionResult> InviteUsers([FromRoute] int eventId, [FromForm] List<string> userIds, [FromForm] string inviteCode)
     {
         var eventData = await db.Events
             .Where(e => e.Id == eventId && e.IsActive)
@@ -63,30 +64,30 @@ public class EventController(
         if (eventData is null)
         {
             toastNotification.AddWarningToastMessage("Event not found");
-            return RedirectToPage($"/admin/events/{eventId}");
+            return RedirectToPage($"/admin/events/{eventId}/invitees");
         }
 
-        var inviteCode = eventData.InviteCodes
-            .Where(c => c.Id == inviteCodeId && c.ValidUntil > DateTime.UtcNow)
+        var validCode = eventData.InviteCodes
+            .Where(c => c.Code == inviteCode && c.ValidUntil > DateTime.UtcNow)
             .OrderByDescending(c => c.CreatedAt)
             .Select(c => c.Code)
             .FirstOrDefault();
 
-        if (string.IsNullOrWhiteSpace(inviteCode))
+        if (string.IsNullOrWhiteSpace(validCode))
         {
             toastNotification.AddWarningToastMessage("Invalid or expired invite code");
-            return RedirectToPage($"/admin/events/{eventId}");
+            return RedirectToPage($"/admin/events/{eventId}/invitees");
         }
 
         var existingUserIds = eventData.EventUsers.Select(eu => eu.UserId).ToHashSet();
         var newUserIds = userIds.Where(userid => !existingUserIds.Contains(userid)).ToList();
 
-        foreach (var userid in newUserIds)
+        foreach (var userId in newUserIds)
         {
             eventData.EventUsers.Add(new UserEvent
             {
                 EventId = eventId,
-                UserId = userid
+                UserId = userId
             });
         }
 
@@ -102,16 +103,49 @@ public class EventController(
             foreach (var user in newUsers)
             {
                 logger.LogInformation("Sending invitation to {Email}", user.Email);
-                await mailService.SendInvitationAsync(eventData.Name, user.DisplayName!, user.Email!, inviteCode);
+                await mailService.SendInvitationAsync(eventData.Name, user.DisplayName!, user.Email!, validCode);
             }
 
             toastNotification.AddSuccessToastMessage($"Successfully created {count} invitations");
-            return RedirectToPage($"/admin/events/{eventId}");
+            return RedirectToPage($"/admin/events/{eventId}/invitees");
         }
         catch
         {
             toastNotification.AddErrorToastMessage("Invitations could not be created");
-            return RedirectToPage($"/admin/events/{eventId}");
+            return RedirectToPage($"/admin/events/{eventId}/invitees");
         }
+    }
+
+    [HttpPost("{eventId:int}/regenerate-code")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> RegenerateCode([FromRoute] int eventId, [FromForm] int validDays)
+    {
+        // Try to use referrer for redirect if possible, otherwise default to events list
+        var referrer = Request.Headers.Referer.ToString();
+        var eventExists = await db.Events.AnyAsync(e => e.Id == eventId);
+        if (!eventExists)
+        {
+            toastNotification.AddWarningToastMessage("Event not found");
+            if (!string.IsNullOrEmpty(referrer))
+                return Redirect(referrer);
+            return RedirectToPage("/admin/events");
+        }
+
+        var newCode = new InviteCode
+        {
+            EventId = eventId,
+            Code = CodeGenerator.Generate(64),
+            ValidUntil = DateTime.UtcNow.AddDays(validDays),
+            CreatedAt = DateTime.UtcNow
+        };
+
+        db.InviteCodes.Add(newCode);
+        await db.SaveChangesAsync();
+
+        toastNotification.AddSuccessToastMessage("New invite code generated");
+
+        if (!string.IsNullOrEmpty(referrer))
+            return Redirect(referrer);
+        return RedirectToPage("/admin/events");
     }
 }
