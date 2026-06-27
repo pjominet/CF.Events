@@ -1,14 +1,12 @@
 ﻿@{
-    var show = ViewData["InviteModalShow"] as bool? ?? false;
-    var eventId = ViewData["InviteEventId"] as int?;
-    var displayName = ViewData["InviteDisplayName"] as string ?? "";
-    var email = ViewData["InviteEmail"] as string ?? "";
-    var password = ViewData["InvitePassword"] as string ?? "";
+    var show = ViewData["AddUserModalShow"] as bool? ?? false;
+    var displayName = ViewData["UserDisplayName"] as string ?? "";
+    var email = ViewData["UserEmail"] as string ?? "";
 }
-<div class="modal fade" id="inviteUserModal" tabindex="-1" data-autoshow="@(show ? "true" : "false")">
+<div class="modal fade" id="addUserModal" tabindex="-1" data-autoshow="@(show ? "true" : "false")">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="post" asp-page-handler="Invite" asp-route-id="@eventId">
+            <form method="post" asp-page-handler="Invite">
                 <div class="modal-header">
                     <h5 class="modal-title">Invite New User</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -22,16 +20,6 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold">Email Address</label>
                         <input name="Invite.Email" type="email" value="@email" class="form-control" placeholder="guest@@example.com" required />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Temporary Password</label>
-                        <div class="input-group">
-                            <input name="Invite.Password" value="@password" id="tempPassword" class="form-control" />
-                            <button class="btn btn-outline-secondary" type="button" onclick="window.fillTempPassword('tempPassword');">
-                                <i class="bi bi-arrow-clockwise"></i> Generate
-                            </button>
-                        </div>
-                        <div class="form-text mt-2">The user will be asked to change this password on their first login.</div>
                     </div>
                 </div>
                 <div class="modal-footer">

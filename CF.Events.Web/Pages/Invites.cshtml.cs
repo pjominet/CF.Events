@@ -26,10 +26,6 @@ public class InvitesModel(EventsDbContext db) : PageModel
             .Select(x => new InviteRow(x.Event, x.Rsvp))
             .ToListAsync();
 
-        // Convenience: if the user has exactly one invitation, go straight to it.
-        if (MyInvites.Count == 1)
-            return Redirect($"/events/{MyInvites[0].Event.Id}/invitation");
-
         return Page();
     }
 

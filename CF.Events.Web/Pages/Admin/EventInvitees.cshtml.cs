@@ -26,14 +26,13 @@ public class EventInviteesModel(
     public bool ShowInviteModal { get; private set; }
 
     [BindProperty]
-    public InviteUserInput Invite { get; set; } = new();
+    public AddUserModel AddModel { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
         if (!await LoadAsync(id))
             return NotFound();
 
-        Invite.Password = TempPasswordGenerator.Generate();
         return Page();
     }
 
@@ -96,7 +95,7 @@ public class EventInviteesModel(
             return Page();
         }
 
-        var existing = await userManager.FindByEmailAsync(Invite.Email);
+        var existing = await userManager.FindByEmailAsync(AddModel.Email);
         if (existing is not null)
         {
             await InviteUserToEventAsync(id, existing);
@@ -106,13 +105,13 @@ public class EventInviteesModel(
 
         var user = new ApplicationUser
         {
-            UserName = Invite.Email,
-            Email = Invite.Email,
-            DisplayName = Invite.DisplayName,
+            UserName = AddModel.Email,
+            Email = AddModel.Email,
+            DisplayName = AddModel.DisplayName,
             MustChangePassword = true
         };
 
-        var result = await userManager.CreateAsync(user, Invite.Password);
+        var result = await userManager.CreateAsync(user);
         if (!result.Succeeded)
         {
             foreach (var error in result.Errors)
@@ -123,7 +122,7 @@ public class EventInviteesModel(
         }
 
         await InviteUserToEventAsync(id, user);
-        toastNotification.AddSuccessToastMessage($"Invitation created for {Invite.Email}. Temporary password: {Invite.Password}");
+        toastNotification.AddSuccessToastMessage($"Invitation created for {AddModel.Email}");
         return RedirectToPage(new { id });
     }
 

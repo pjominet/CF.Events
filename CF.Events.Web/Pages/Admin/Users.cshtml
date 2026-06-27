@@ -15,11 +15,11 @@
                         <li class="breadcrumb-item active">Users</li>
                     </ol>
                 </nav>
-                <h1 class="cursive fs-1">Manage Users</h1>
+                <h1 class="cursive fs-1">@ViewData["Title"]</h1>
             </section>
             <section class="d-flex gap-2">
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#inviteUserModal">
-                    <i class="bi bi-envelope-plus me-2"></i>Invite User
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                    <i class="bi bi-plus me-2"></i>Add User
                 </button>
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#importUsersModal">
                     <i class="bi bi-upload me-2"></i>Import Users
@@ -60,14 +60,6 @@
                                     {
                                         if (!user.Roles.Contains(Roles.Admin))
                                         {
-                                            <div data-bs-toggle="tooltip" data-bs-title="Regenerate Password">
-                                                <button class="btn btn-sm btn-outline-warning" type="button"
-                                                        data-bs-toggle="modal" data-bs-target="#regenPasswordModal"
-                                                        data-user-id="@user.Id">
-                                                    <i class="bi bi-key"></i>
-                                                </button>
-                                            </div>
-
                                             <form method="post" asp-page-handler="Promote" asp-route-userId="@user.Id"
                                                   class="d-flex align-items-center justify-content-center">
                                                 <button class="btn btn-sm btn-outline-success" type="submit"
@@ -103,24 +95,18 @@
             </div>
             @if (Model.AllUsers.Count == 0)
             {
-                <div class="text-center py-4 text-muted">No users yet.</div>
+                <div class="text-center py-4 text-muted">No users yet</div>
             }
         </div>
     </div>
 </div>
 
 @{
-    ViewData["InviteModalShow"] = Model.ShowInviteModal;
-    ViewData["InviteDisplayName"] = Model.Invite.DisplayName;
-    ViewData["InviteEmail"] = Model.Invite.Email;
-    ViewData["InvitePassword"] = Model.Invite.Password;
+    ViewData["AddUSerModalShow"] = Model.ShowAddModal;
+    ViewData["UserDisplayName"] = Model.AddModel.DisplayName;
+    ViewData["UserEmail"] = Model.AddModel.Email;
 }
-<partial name="_InviteUserModal"/>
-
-@{
-    ViewData["RegenPasswordModalShow"] = Model.ShowRegenPasswordModal;
-}
-<partial name="_RegenPasswordModal"/>
+<partial name="_AddUserModal"/>
 
 <partial name="_ImportUsersModal"/>
 

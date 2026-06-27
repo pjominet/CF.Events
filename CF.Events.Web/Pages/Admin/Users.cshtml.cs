@@ -18,14 +18,12 @@ public class UsersModel(
 {
     public List<UserRow> AllUsers { get; private set; } = [];
 
-    public bool ShowInviteModal { get; private set; }
-    public bool ShowRegenPasswordModal { get; private set; }
+    public bool ShowAddModal { get; private set; }
 
-    [BindProperty] public InviteUserInput Invite { get; set; } = new();
+    [BindProperty] public AddUserModel AddModel { get; set; } = new();
 
     public async Task OnGetAsync()
     {
-        Invite.Password = TempPasswordGenerator.Generate();
         await LoadAsync();
     }
 
@@ -33,34 +31,34 @@ public class UsersModel(
     {
         if (!ModelState.IsValid)
         {
-            ShowInviteModal = true;
+            ShowAddModal = true;
             await LoadAsync();
             return Page();
         }
 
         var user = new ApplicationUser
         {
-            UserName = Invite.Email,
-            Email = Invite.Email,
-            DisplayName = Invite.DisplayName,
+            UserName = AddModel.Email,
+            Email = AddModel.Email,
+            DisplayName = AddModel.DisplayName,
             MustChangePassword = true,
             EmailConfirmed = true
         };
 
-        var result = await userManager.CreateAsync(user, Invite.Password);
+        var result = await userManager.CreateAsync(user);
         if (!result.Succeeded)
         {
             foreach (var error in result.Errors)
                 ModelState.AddModelError(string.Empty, error.Description);
-            ShowInviteModal = true;
+            ShowAddModal = true;
             await LoadAsync();
             return Page();
         }
 
         result = await userManager.AddToRoleAsync(user, Roles.User);
         if (result.Succeeded)
-            toastNotification.AddSuccessToastMessage($"Invitation created for {Invite.Email}. Temporary password: {Invite.Password}");
-        else toastNotification.AddErrorToastMessage($"Invitation failed for {Invite.Email}");
+            toastNotification.AddSuccessToastMessage($"Invitation created for {AddModel.Email}");
+        else toastNotification.AddErrorToastMessage($"Invitation failed for {AddModel.Email}");
 
         return RedirectToPage();
     }
@@ -130,47 +128,6 @@ public class UsersModel(
         if (result.Succeeded)
             toastNotification.AddSuccessToastMessage("User toggled successfully");
         else toastNotification.AddErrorToastMessage("User toggle failed");
-
-        return RedirectToPage();
-    }
-
-    public async Task<IActionResult> OnPostRegeneratePasswordAsync(string userId, string tempPassword)
-    {
-        var user = await userManager.FindByIdAsync(userId);
-        if (user is null)
-        {
-            ShowRegenPasswordModal = true;
-            toastNotification.AddWarningToastMessage("User not found");
-            return RedirectToPage();
-        }
-
-        var newPassword = TempPasswordGenerator.Generate();
-        user.MustChangePassword = true;
-
-        var result = await userManager.RemovePasswordAsync(user);
-        if (!result.Succeeded)
-        {
-            ShowRegenPasswordModal = true;
-            toastNotification.AddErrorToastMessage("Failed to reset password");
-            return RedirectToPage();
-        }
-
-        result = await userManager.AddPasswordAsync(user, newPassword);
-        if (!result.Succeeded)
-        {
-            ShowRegenPasswordModal = true;
-            toastNotification.AddErrorToastMessage("Failed to set new password");
-            return RedirectToPage();
-        }
-
-        result = await userManager.UpdateAsync(user);
-        if (result.Succeeded)
-            toastNotification.AddSuccessToastMessage("Password regenerated successfully");
-        else
-        {
-            ShowRegenPasswordModal = true;
-            toastNotification.AddErrorToastMessage("Failed to update user");
-        }
 
         return RedirectToPage();
     }

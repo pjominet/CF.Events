@@ -7,20 +7,22 @@ using static CF.Events.Web.Infrastructure.Constants;
 namespace CF.Events.Web.Controllers;
 
 [Route("users")]
-[Authorize(Roles = Roles.User)]
+[Authorize(Roles = Roles.Admin)]
 public class UserController(
     UserManager<ApplicationUser> userManager,
     ILogger<UserController> logger) : Controller
 {
+    private readonly string[] allowedFileExtensions = { ".csv", ".txt" };
+
     [HttpPost("import")]
     public async Task<IActionResult> ImportUsers([FromBody] IFormFile? userList)
     {
         if (userList is null || userList.Length == 0)
             return BadRequest("No file uploaded");
 
-        // Ensure it's a CSV file
+        // Ensure it's a valid file type
         var extension = Path.GetExtension(userList.FileName).ToLowerInvariant();
-        if (extension != ".csv")
+        if (!allowedFileExtensions.Contains(extension))
             return BadRequest("Only CSV files are allowed");
 
         // Read all lines from the file

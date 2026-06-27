@@ -74,6 +74,7 @@ public static class ServiceCollectionExtensions
 
     public static void AddAppServices(this IServiceCollection services)
     {
+        services.AddTransient<MailjetService>();
     }
 
     public static void AddAppDataProtection(this IServiceCollection services, IWebHostEnvironment environment)
