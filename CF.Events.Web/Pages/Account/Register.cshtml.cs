@@ -12,9 +12,9 @@ namespace CF.Events.Web.Pages.Account;
 
 [AllowAnonymous]
 public class RegisterModel(
-    UserManager<ApplicationUser> userManager,
-    SignInManager<ApplicationUser> signInManager,
-    IEmailSender<ApplicationUser> emailSender,
+    UserManager<AppUser> userManager,
+    SignInManager<AppUser> signInManager,
+    IEmailSender<AppUser> emailSender,
     IToastNotification toastNotification,
     IWebHostEnvironment environment,
     ILogger<RegisterModel> logger) : PageModel
@@ -34,7 +34,7 @@ public class RegisterModel(
 
         var isFirstUser = !userManager.Users.Any();
 
-        var user = new ApplicationUser
+        var user = new AppUser
         {
             UserName = Input.Email,
             Email = Input.Email,

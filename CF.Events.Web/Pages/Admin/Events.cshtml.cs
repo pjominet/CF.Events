@@ -1,7 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
-using CF.Events.Web.Data;
+﻿using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Models;
+using CF.Events.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +14,7 @@ namespace CF.Events.Web.Pages.Admin;
 [Authorize(Roles = Constants.Roles.Admin)]
 public class EventsModel(
     EventsDbContext db,
-    UserManager<ApplicationUser> userManager,
+    UserManager<AppUser> userManager,
     IToastNotification toastNotification,
     IWebHostEnvironment env) : PageModel
 {
@@ -27,7 +27,7 @@ public class EventsModel(
     public bool ShowCreateModal { get; private set; }
 
     [BindProperty]
-    public InputModel NewEvent { get; set; } = new() { Date = DateTime.Today.AddMonths(1) };
+    public EventViewModel NewEvent { get; set; } = new() { Date = DateTime.Today.AddMonths(1) };
 
     public async Task OnGetAsync() => await LoadAsync();
 
@@ -216,20 +216,4 @@ public class EventsModel(
     }
 
     public record UserOption(string Id, string DisplayName, string Email);
-
-    public sealed class InputModel
-    {
-        [Required]
-        [StringLength(100)]
-        public string Name { get; init; } = string.Empty;
-
-        public DateTime Date { get; init; }
-
-        public string? Location { get; init; }
-
-        [StringLength(500)]
-        public string? Description { get; init; }
-
-        public IFormFile? InvitationImage { get; init; }
-    }
 }

@@ -12,7 +12,7 @@ namespace CF.Events.Web.Pages.Admin;
 
 [Authorize(Roles = Roles.Admin)]
 public class UsersModel(
-    UserManager<ApplicationUser> userManager,
+    UserManager<AppUser> userManager,
     IToastNotification toastNotification) : PageModel
 {
     public List<UserRow> AllUsers { get; private set; } = [];
@@ -33,7 +33,7 @@ public class UsersModel(
             return Page();
         }
 
-        var user = new ApplicationUser
+        var user = new AppUser
         {
             UserName = AddViewModel.Email,
             Email = AddViewModel.Email,

@@ -24,7 +24,7 @@ public static class ServiceCollectionExtensions
 
     public static void AddAppAuthentication(this IServiceCollection services, IWebHostEnvironment environment, IConfiguration configuration)
     {
-        services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+        services.AddIdentity<AppUser, IdentityRole>(options =>
             {
                 if (environment.IsDevelopment())
                 {
@@ -51,7 +51,7 @@ public static class ServiceCollectionExtensions
             .AddClaimsPrincipalFactory<ApplicationUserClaimsPrincipalFactory>()
             .AddSignInManager()
             .AddDefaultTokenProviders()
-            .AddTokenProvider<EmailConfirmationTokenProvider<ApplicationUser>>(ProviderNames.EmailConfirmation);
+            .AddTokenProvider<EmailConfirmationTokenProvider<AppUser>>(ProviderNames.EmailConfirmation);
 
         services.AddAuthorization();
 
@@ -72,12 +72,12 @@ public static class ServiceCollectionExtensions
     {
         if (environment.IsDevelopment())
         {
-            services.AddScoped<IEmailSender<ApplicationUser>, NoOpEmailSender>();
+            services.AddScoped<IEmailSender<AppUser>, NoOpEmailSender>();
             services.AddScoped<IMailService, NoOpMailService>();
         }
         else
         {
-            services.AddScoped<IEmailSender<ApplicationUser>, MailjetEmailSender>();
+            services.AddScoped<IEmailSender<AppUser>, MailjetEmailSender>();
             services.AddScoped<IMailService, MailService>();
         }
     }

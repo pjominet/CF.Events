@@ -11,7 +11,7 @@ namespace CF.Events.Web.Controllers;
 [Route("[area]/users")]
 [Authorize(Roles = Roles.Admin)]
 public class UserController(
-    UserManager<ApplicationUser> userManager,
+    UserManager<AppUser> userManager,
     IToastNotification toastNotification) : Controller
 {
     private readonly string[] _allowedFileExtensions = [".csv", ".txt"];
@@ -30,7 +30,7 @@ public class UserController(
         if (string.IsNullOrEmpty(delimiter)) delimiter = ",";
 
         // Read all lines from the file
-        var users = new List<ApplicationUser>();
+        var users = new List<AppUser>();
         using var reader = new StreamReader(userList.OpenReadStream());
 
         var currentRow = 0;
@@ -56,7 +56,7 @@ public class UserController(
             var name = parts.Length > 0 ? parts[0].Trim() : null;
             var phone = parts.Length > 2 ? parts[2].Trim() : null;
 
-            users.Add(new ApplicationUser
+            users.Add(new AppUser
             {
                 UserName = email,
                 Email = email,

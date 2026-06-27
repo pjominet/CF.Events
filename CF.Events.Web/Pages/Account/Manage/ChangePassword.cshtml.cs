@@ -9,8 +9,8 @@ namespace CF.Events.Web.Pages.Account.Manage;
 
 [Authorize]
 public class ChangePasswordModel(
-    UserManager<ApplicationUser> userManager,
-    SignInManager<ApplicationUser> signInManager,
+    UserManager<AppUser> userManager,
+    SignInManager<AppUser> signInManager,
     ILogger<ChangePasswordModel> logger) : PageModel
 {
     [BindProperty]

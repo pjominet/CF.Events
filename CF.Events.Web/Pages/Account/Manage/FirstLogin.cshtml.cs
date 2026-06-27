@@ -9,8 +9,8 @@ namespace CF.Events.Web.Pages.Account.Manage;
 
 [Authorize]
 public class FirstLoginModel(
-    UserManager<ApplicationUser> userManager,
-    SignInManager<ApplicationUser> signInManager) : PageModel
+    UserManager<AppUser> userManager,
+    SignInManager<AppUser> signInManager) : PageModel
 {
     [BindProperty]
     public InputModel Input { get; set; } = new();

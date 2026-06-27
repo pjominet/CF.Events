@@ -52,22 +52,25 @@ public class EventController(
 
     [HttpPost("{eventId:int}/invite")]
     [Authorize(Roles = Roles.Admin)]
-    public async Task<IActionResult> Get([FromRoute] int eventId, [FromBody] List<string> userIds)
+    public async Task<IActionResult> InviteUsers([FromRoute] int eventId, [FromForm] List<string> userIds)
     {
-        var @event = await db.Events
-            .Include(e => e.EventUsers)
-            .ThenInclude(eu => eu.User)
-            .FirstOrDefaultAsync(e => e.Id == eventId);
+        var eventData = await db.Events
+            .Where(e => e.Id == eventId && e.IsActive)
+            .Select(e => new { e.Id, e.Name, e.InviteCode, e.EventUsers })
+            .FirstOrDefaultAsync();
 
-        if (@event is null)
+        if (eventData is null)
         {
             toastNotification.AddWarningToastMessage("Event not found");
             return RedirectToPage($"/admin/events/{eventId}");
         }
 
-        foreach (var userid in userIds.Where(userid => @event.EventUsers.All(eu => eu.UserId != userid)))
+        var existingUserIds = eventData.EventUsers.Select(eu => eu.UserId).ToHashSet();
+        var newUserIds = userIds.Where(userid => !existingUserIds.Contains(userid)).ToList();
+
+        foreach (var userid in newUserIds)
         {
-            @event.EventUsers.Add(new UserEvent
+            eventData.EventUsers.Add(new UserEvent
             {
                 EventId = eventId,
                 UserId = userid
@@ -78,10 +81,15 @@ public class EventController(
         {
             var count = await db.SaveChangesAsync();
 
-            foreach (var userEvent in @event.EventUsers)
+            // Single query for ALL new users
+            var newUsers = await db.Users
+                .Where(u => newUserIds.Contains(u.Id))
+                .ToListAsync();
+
+            foreach (var user in newUsers)
             {
-                logger.LogInformation("Sending invitation to {Email}", userEvent.User.Email);
-                await mailService.SendInvitationAsync(@event.Name, userEvent.User.DisplayName!, userEvent.User.Email!, @event.InviteCode);
+                logger.LogInformation("Sending invitation to {Email}", user.Email);
+                await mailService.SendInvitationAsync(eventData.Name, user.DisplayName!, user.Email!, eventData.InviteCode);
             }
 
             toastNotification.AddSuccessToastMessage($"Successfully created {count} invitations");

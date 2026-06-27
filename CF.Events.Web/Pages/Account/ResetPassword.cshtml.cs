@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.WebUtilities;
 namespace CF.Events.Web.Pages.Account;
 
 [AllowAnonymous]
-public class ResetPasswordModel(UserManager<ApplicationUser> userManager) : PageModel
+public class ResetPasswordModel(UserManager<AppUser> userManager) : PageModel
 {
     [BindProperty]
     public InputModel Input { get; set; } = new();

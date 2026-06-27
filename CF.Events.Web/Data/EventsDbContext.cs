@@ -5,10 +5,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CF.Events.Web.Data;
 
-public class EventsDbContext(DbContextOptions<EventsDbContext> options) : IdentityDbContext<ApplicationUser>(options)
+public class EventsDbContext(DbContextOptions<EventsDbContext> options) : IdentityDbContext<AppUser>(options)
 {
     public DbSet<Event> Events => Set<Event>();
+    public DbSet<UserEvent> UserEvents => Set<UserEvent>();
     public DbSet<Rsvp> Rsvps => Set<Rsvp>();
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+#if DEBUG
+        optionsBuilder.EnableSensitiveDataLogging();
+        optionsBuilder.EnableDetailedErrors();
+#endif
+    }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -16,7 +25,7 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
 
         builder.HasDefaultSchema("app");
 
-        builder.Entity<ApplicationUser>().ToTable("Users", "identity");
+        builder.Entity<AppUser>().ToTable("Users", "identity");
         builder.Entity<IdentityRole>().ToTable("Roles", "identity");
         builder.Entity<IdentityUserRole<string>>().ToTable("UserRoles", "identity");
         builder.Entity<IdentityUserClaim<string>>().ToTable("UserClaims", "identity");

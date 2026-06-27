@@ -7,9 +7,9 @@ using Newtonsoft.Json.Linq;
 
 namespace CF.Events.Web.Services;
 
-public class MailjetEmailSender(IMailjetClient mailjetClient) : MailjetService(mailjetClient), IEmailSender<ApplicationUser>, IEmailSender
+public class MailjetEmailSender(IMailjetClient mailjetClient) : MailjetService(mailjetClient), IEmailSender<AppUser>, IEmailSender
 {
-    public async Task SendConfirmationLinkAsync(ApplicationUser user, string email, string confirmationLink)
+    public async Task SendConfirmationLinkAsync(AppUser user, string email, string confirmationLink)
     {
         var request = new MailjetRequest
             {
@@ -44,7 +44,7 @@ public class MailjetEmailSender(IMailjetClient mailjetClient) : MailjetService(m
         await SendMailjetEmailAsync(request);
     }
 
-    public async Task SendPasswordResetLinkAsync(ApplicationUser user, string email, string resetLink)
+    public async Task SendPasswordResetLinkAsync(AppUser user, string email, string resetLink)
     {
         var request = new MailjetRequest
             {
@@ -79,7 +79,7 @@ public class MailjetEmailSender(IMailjetClient mailjetClient) : MailjetService(m
         await SendMailjetEmailAsync(request);
     }
 
-    public async Task SendPasswordResetCodeAsync(ApplicationUser user, string email, string resetCode)
+    public async Task SendPasswordResetCodeAsync(AppUser user, string email, string resetCode)
     {
         var request = new MailjetRequest
             {

@@ -11,8 +11,8 @@ namespace CF.Events.Web.Pages.Account;
 
 [AllowAnonymous]
 public class ForgotPasswordModel(
-    UserManager<ApplicationUser> userManager,
-    IEmailSender<ApplicationUser> emailSender,
+    UserManager<AppUser> userManager,
+    IEmailSender<AppUser> emailSender,
     IWebHostEnvironment environment) : PageModel
 {
     [BindProperty]

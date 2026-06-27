@@ -30,7 +30,8 @@
             }
             else
             {
-                <form method="post" asp-action="/events/{@Model.EventData!.Id}/invite" class="row g-2 align-items-center">
+                <form method="post" action="/events/@Model.EventData!.Id/invite" class="row g-2 align-items-center">
+                    @Html.AntiForgeryToken()
                     <div class="col-md-8">
                         <select name="userIds" asp-items="Model.AvailableUsers" class="form-select tom-select" required multiple placeholder="Select users to invite..."></select>
                     </div>

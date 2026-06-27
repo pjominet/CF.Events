@@ -10,8 +10,8 @@ namespace CF.Events.Web.Pages.Account;
 
 [AllowAnonymous]
 public class LoginModel(
-    SignInManager<ApplicationUser> signInManager,
-    UserManager<ApplicationUser> userManager,
+    SignInManager<AppUser> signInManager,
+    UserManager<AppUser> userManager,
     ILogger<LoginModel> logger) : PageModel
 {
     [BindProperty]

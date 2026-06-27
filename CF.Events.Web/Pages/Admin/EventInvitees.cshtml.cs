@@ -14,7 +14,7 @@ namespace CF.Events.Web.Pages.Admin;
 [Authorize(Roles = Constants.Roles.Admin)]
 public class EventInviteesModel(
     EventsDbContext db,
-    UserManager<ApplicationUser> userManager,
+    UserManager<AppUser> userManager,
     IToastNotification toastNotification) : PageModel
 {
     public Event? EventData { get; private set; }
