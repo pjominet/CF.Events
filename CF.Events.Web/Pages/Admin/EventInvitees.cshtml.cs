@@ -1,11 +1,11 @@
 ﻿using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Models;
-using CF.Events.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using NToastNotify;
 
@@ -21,12 +21,7 @@ public class EventInviteesModel(
 
     public List<InviteeRow> Invitees { get; private set; } = [];
 
-    public List<UserOption> AvailableUsers { get; private set; } = [];
-
-    public bool ShowInviteModal { get; private set; }
-
-    [BindProperty]
-    public AddUserViewModel AddViewModel { get; set; } = new();
+    public List<SelectListItem> AvailableUsers { get; private set; } = [];
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
@@ -34,33 +29,6 @@ public class EventInviteesModel(
             return NotFound();
 
         return Page();
-    }
-
-    public async Task<IActionResult> OnPostAddAsync(int id, string? userId)
-    {
-        var ev = await db.Events.FindAsync(id);
-        if (ev is null)
-        {
-            toastNotification.AddWarningToastMessage("Event not found");
-            return RedirectToPage(new { id });
-        }
-
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            toastNotification.AddWarningToastMessage("User not found");
-            return RedirectToPage(new { id });
-        }
-
-        var user = await userManager.FindByIdAsync(userId);
-        if (user is null)
-        {
-            toastNotification.AddWarningToastMessage("User not found");
-            return RedirectToPage(new { id });
-        }
-
-        await InviteUserToEventAsync(id, user);
-        toastNotification.AddSuccessToastMessage($"{user.DisplayName ?? user.Email} successfully invited");
-        return RedirectToPage(new { id });
     }
 
     public async Task<IActionResult> OnPostRemoveAsync(int id, string? userId)
@@ -77,72 +45,6 @@ public class EventInviteesModel(
 
         toastNotification.AddSuccessToastMessage("Invitee successfully removed");
         return RedirectToPage(new { id });
-    }
-
-    public async Task<IActionResult> OnPostInviteAsync(int id)
-    {
-        var ev = await db.Events.FindAsync(id);
-        if (ev is null)
-        {
-            toastNotification.AddWarningToastMessage("Event not found");
-            return RedirectToPage(new { id });
-        }
-
-        if (!ModelState.IsValid)
-        {
-            await LoadAsync(id);
-            ShowInviteModal = true;
-            return Page();
-        }
-
-        var existing = await userManager.FindByEmailAsync(AddViewModel.Email);
-        if (existing is not null)
-        {
-            await InviteUserToEventAsync(id, existing);
-            toastNotification.AddSuccessToastMessage($"{existing.DisplayName ?? existing.Email} was already registered and has been invited");
-            return RedirectToPage(new { id });
-        }
-
-        var user = new ApplicationUser
-        {
-            UserName = AddViewModel.Email,
-            Email = AddViewModel.Email,
-            DisplayName = AddViewModel.DisplayName,
-            MustChangePassword = true
-        };
-
-        var result = await userManager.CreateAsync(user);
-        if (!result.Succeeded)
-        {
-            foreach (var error in result.Errors)
-                ModelState.AddModelError(string.Empty, error.Description);
-            await LoadAsync(id);
-            ShowInviteModal = true;
-            return Page();
-        }
-
-        await InviteUserToEventAsync(id, user);
-        toastNotification.AddSuccessToastMessage($"Invitation created for {AddViewModel.Email}");
-        return RedirectToPage(new { id });
-    }
-
-    private async Task InviteUserToEventAsync(int eventId, ApplicationUser user)
-    {
-        var alreadyInvited = await db.Rsvps.AnyAsync(r => r.EventId == eventId && r.UserId == user.Id);
-        if (!alreadyInvited)
-        {
-            db.Rsvps.Add(new Rsvp
-            {
-                EventId = eventId,
-                UserId = user.Id,
-                Attending = false,
-                SubmittedAt = DateTime.MinValue
-            });
-            await db.SaveChangesAsync();
-        }
-
-        if (!await userManager.IsInRoleAsync(user, Constants.Roles.User))
-            await userManager.AddToRoleAsync(user, Constants.Roles.User);
     }
 
     private async Task<bool> LoadAsync(int id)
@@ -175,13 +77,11 @@ public class EventInviteesModel(
         AvailableUsers = users
             .Where(u => !invitedUserIds.Contains(u.Id))
             .OrderBy(u => u.DisplayName)
-            .Select(u => new UserOption(u.Id, u.DisplayName ?? "", u.Email ?? ""))
+            .Select(u => new SelectListItem($"{u.DisplayName} ({u.Email})", u.Id))
             .ToList();
 
         return true;
     }
 
     public record InviteeRow(string UserId, string DisplayName, string Email, string Status);
-
-    public record UserOption(string Id, string DisplayName, string Email);
 }

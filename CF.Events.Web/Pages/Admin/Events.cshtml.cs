@@ -22,7 +22,7 @@ public class EventsModel(
 
     public Dictionary<int, int> InviteeCounts { get; private set; } = [];
 
-    public Dictionary<int, List<UserOption>> AvailableUsersByEvent { get; private set; } = [];
+    public List<UserOption> AvailableUsers { get; private set; } = [];
 
     public bool ShowCreateModal { get; private set; }
 
@@ -160,22 +160,12 @@ public class EventsModel(
             .GroupBy(r => r.EventId)
             .ToDictionary(g => g.Key, g => g.Count());
 
-        var invitedByEvent = rsvps
-            .GroupBy(r => r.EventId)
-            .ToDictionary(g => g.Key, g => g.Select(r => r.UserId).ToHashSet());
-
         var allUsers = await userManager.Users
             .OrderBy(u => u.DisplayName)
-            .Select(u => new UserOption(u.Id, u.DisplayName ?? "", u.Email ?? ""))
+            .Select(u => new UserOption(u.Id, u.DisplayName ?? "undefined", u.Email ?? "undefined"))
             .ToListAsync();
 
-        AvailableUsersByEvent = AllEvents.ToDictionary(
-            e => e.Id,
-            e =>
-            {
-                var invited = invitedByEvent.TryGetValue(e.Id, out var set) ? set : [];
-                return allUsers.Where(u => !invited.Contains(u.Id)).ToList();
-            });
+        AvailableUsers = allUsers;
     }
 
     private void DeleteInvitationImage(int eventId)

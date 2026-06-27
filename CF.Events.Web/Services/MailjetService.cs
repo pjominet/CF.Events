@@ -148,7 +148,7 @@ public class MailjetService(IMailjetClient mailjetClient)
         await SendMailjetEmailAsync(request);
     }
 
-    public async Task SendInvitationAsync(string displayName, string email, string invitationCode, string customDesign)
+    public async Task SendInvitationAsync(string eventName, string displayName, string email, string invitationCode, string? customDesign = null)
     {
         var request = new MailjetRequest
             {
@@ -175,6 +175,7 @@ public class MailjetService(IMailjetClient mailjetClient)
                             { "sender_sig", "Patrick & Éadaoin" },
                             { "invitation_code", invitationCode },
                             { "display_name", displayName },
+                            { "event_name", eventName },
                             { "custom_design", customDesign }
                         }
                     }

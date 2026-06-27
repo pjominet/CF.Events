@@ -66,15 +66,11 @@
                                 </form>
                             </td>
                             <td>
-                                @{
-                                    Model.AvailableUsersByEvent.TryGetValue(ev.Id, out var available);
-                                    available ??= [];
-                                    var noUsers = available.Count == 0;
-                                }
+                                @{ var noUsers = Model.AvailableUsers.Count == 0; }
                                 <form method="post" asp-page-handler="Invite" asp-route-id="@ev.Id" class="input-group input-group-sm">
-                                    <select name="userId" class="form-select user-lookup" data-placeholder="Select a user..." required disabled="@noUsers">
+                                    <select name="userId" class="form-select tom-select" data-placeholder="Select users..." required disabled="@noUsers">
                                         <option value=""></option>
-                                        @foreach (var u in available)
+                                        @foreach (var u in Model.AvailableUsers)
                                         {
                                             <option value="@u.Id">@(string.IsNullOrWhiteSpace(u.DisplayName) ? u.Email : $"{u.DisplayName} ({u.Email})")</option>
                                         }
@@ -157,26 +153,4 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.6.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.6.1/dist/js/tom-select.complete.min.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            document.querySelectorAll("select.user-lookup").forEach(function (el) {
-                if (el.disabled) return;
-
-                let settings = {
-                    plugins: ['remove_button'],
-                    placeholder: el.getAttribute("data-placeholder") || "Select a user...",
-                    hidePlaceholder: true,
-                    clearAfterSelect: true,
-                    closeAfterSelect: true,
-                    allowEmptyOption: false,
-                    maxOptions: null,
-                    maxItems: 1,
-                    dropdownParent: "body"
-                }
-                new TomSelect(el, settings);
-            });
-        });
-    </script>
 }

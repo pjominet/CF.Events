@@ -28,5 +28,18 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
         {
             e.HasIndex(r => new { r.EventId, r.UserId }).IsUnique();
         });
+
+        builder.Entity<UserEvent>(e =>
+        {
+            e.HasKey(r => new { r.EventId, r.UserId });
+
+            e.HasOne(r => r.User)
+                .WithMany(r => r.UserEvents)
+                .HasForeignKey(r => r.UserId);
+
+            e.HasOne(r => r.Event)
+                .WithMany(r => r.EventUsers)
+                .HasForeignKey(r => r.EventId);
+        });
     }
 }

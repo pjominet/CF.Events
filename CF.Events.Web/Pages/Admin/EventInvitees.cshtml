@@ -2,10 +2,6 @@
 @model CF.Events.Web.Pages.Admin.EventInviteesModel
 @{
     ViewData["Title"] = "Manage Invitees";
-    ViewData["InviteModalShow"] = Model.ShowInviteModal;
-    ViewData["InviteEventId"] = Model.EventData?.Id;
-    ViewData["InviteDisplayName"] = Model.AddViewModel.DisplayName;
-    ViewData["InviteEmail"] = Model.AddViewModel.Email;
 }
 
 <div class="container py-4">
@@ -19,12 +15,9 @@
                         <li class="breadcrumb-item active">Invitees</li>
                     </ol>
                 </nav>
-                <h1 class="cursive fs-1">@Model.EventData?.Name</h1>
+                <h1 class="cursive fs-1 mt-3">@Model.EventData?.Name</h1>
                 <p class="text-muted mb-0">@Model.EventData?.Date.ToLongDateString()</p>
             </div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#inviteUserModal">
-                <i class="bi bi-person-plus me-2"></i>Invite New Guest
-            </button>
         </div>
     </div>
 
@@ -37,19 +30,13 @@
             }
             else
             {
-                <form method="post" asp-page-handler="Add" asp-route-id="@Model.EventData!.Id" class="row g-2 align-items-center">
+                <form method="post" asp-action="/events/{@Model.EventData!.Id}/invite" class="row g-2 align-items-center">
                     <div class="col-md-8">
-                        <select name="userId" class="form-select" required>
-                            <option value="">Select a user to invite&hellip;</option>
-                            @foreach (var u in Model.AvailableUsers)
-                            {
-                                <option value="@u.Id">@u.DisplayName (@u.Email)</option>
-                            }
-                        </select>
+                        <select name="userIds" asp-items="Model.AvailableUsers" class="form-select tom-select" required multiple placeholder="Select users to invite..."></select>
                     </div>
                     <div class="col-md-4">
                         <button type="submit" class="btn btn-success w-100">
-                            <i class="bi bi-plus-lg me-1"></i>Add to event
+                            <i class="bi bi-plus-lg me-1"></i>Invite to event
                         </button>
                     </div>
                 </form>
@@ -107,8 +94,6 @@
         </div>
     </div>
 </div>
-
-<partial name="_AddUserModal" />
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

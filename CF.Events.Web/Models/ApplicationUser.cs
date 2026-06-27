@@ -11,4 +11,6 @@ public class ApplicationUser : IdentityUser
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
     public DateTime? LastLogin { get; set; }
     public bool IsActive { get; set; } = true;
+
+    public List<UserEvent> UserEvents { get; set; } = [];
 }

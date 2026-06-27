@@ -16,6 +16,7 @@ public static class Constants
     public static class ViewDataKeys
     {
         public const string ShowAddModal = "ShowAddModal";
+        public const string ShowInviteModal = "ShowInviteModal";
         public const string ImportErrors = "ImportErrors";
     }
 }

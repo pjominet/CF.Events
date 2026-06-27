@@ -24,6 +24,44 @@
         });
     }
 
+    // Lightweight confirm wrapper for elements with data-confirm="message".
+    function initConfirms() {
+        document.querySelectorAll('[data-confirm]').forEach(function (el) {
+            el.addEventListener("submit", function (e) {
+                if (!window.confirm(el.getAttribute("data-confirm"))) {
+                    e.preventDefault();
+                }
+            });
+        });
+    }
+
+    function initMultiSelects() {
+        document.querySelectorAll("select.tom-select").forEach(function (el) {
+            if (el.disabled) return;
+
+            let settings = {
+                placeholder: el.getAttribute("data-placeholder") || "Select...",
+                hidePlaceholder: true,
+                allowEmptyOption: false,
+                maxOptions: 20,
+                dropdownParent: "body"
+            }
+
+            if (!!el.getAttribute("multiple")) {
+                settings.plugins = ['remove_button'];
+                settings.maxItems = null;
+                settings.clearAfterSelect = false;
+                settings.closeAfterSelect = false;
+            } else {
+                settings.maxItems = 1;
+                settings.clearAfterSelect = true;
+                settings.closeAfterSelect = true;
+            }
+
+            new TomSelect(el, settings);
+        });
+    }
+
     // Copy-to-clipboard handler
     window.copyToClipboardAndShowFeedback = function (elementId, button, duration = 750) {
         const source = document.getElementById(elementId);
@@ -98,28 +136,11 @@
         });
     };
 
-    const regenPasswordModal = document.getElementById('regenPasswordModal')
-    regenPasswordModal.addEventListener('show.bs.modal', function (event) {
-        fillTempPassword('regenPassword');
-        regenPasswordModal.querySelector('input[name="userId"]')
-            .value = event.relatedTarget.getAttribute('data-user-id');
-    });
-
-    // Lightweight confirm wrapper for elements with data-confirm="message".
-    function initConfirms() {
-        document.querySelectorAll('[data-confirm]').forEach(function (el) {
-            el.addEventListener("submit", function (e) {
-                if (!window.confirm(el.getAttribute("data-confirm"))) {
-                    e.preventDefault();
-                }
-            });
-        });
-    }
-
     document.addEventListener("DOMContentLoaded", function () {
         initTooltips();
         initPopovers();
         initAutoShowModals();
         initConfirms();
+        initMultiSelects();
     });
 })();
