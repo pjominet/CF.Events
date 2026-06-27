@@ -47,7 +47,7 @@
                 dropdownParent: "body"
             }
 
-            if (!!el.getAttribute("multiple")) {
+            if (!!el.hasAttribute("multiple")) {
                 settings.plugins = ['remove_button'];
                 settings.maxItems = null;
                 settings.clearAfterSelect = false;
@@ -89,52 +89,6 @@
             button.textContent = originalText;
         }, duration);
     }
-
-    // Copy-to-clipboard helper for badges
-    window.copyToClipboard = function (text, element) {
-        if (!element) return;
-
-        navigator.clipboard.writeText(text).then(function () {
-            const codeElement = element.querySelector("code");
-            const originalText = codeElement ? codeElement.innerText : null;
-
-            if (codeElement) {
-                codeElement.innerText = "copied to clipboard";
-                codeElement.classList.add("copied-text");
-            }
-
-            element.classList.add("clicked");
-            setTimeout(function () {
-                element.classList.remove("clicked");
-                if (codeElement && originalText) {
-                    codeElement.innerText = originalText;
-                    codeElement.classList.remove("copied-text");
-                }
-            }, 700);
-        }).catch(function (err) {
-            console.error("Failed to copy:", err);
-        });
-    };
-
-    window.fetchNewTempPassword = async function () {
-        const response = await fetch("/api/generate-password", {
-            headers: {"Accept": "text/plain"}
-        });
-        if (!response.ok) {
-            throw new Error("Failed to generate password: " + response.status);
-        }
-        return (await response.text()).trim();
-    };
-
-    // Fill an input (by element id) with a freshly generated password.
-    window.fillTempPassword = function (inputId) {
-        window.fetchNewTempPassword().then(function (password) {
-            const input = document.getElementById(inputId);
-            if (input) input.value = password;
-        }).catch(function (err) {
-            console.error(err);
-        });
-    };
 
     document.addEventListener("DOMContentLoaded", function () {
         initTooltips();

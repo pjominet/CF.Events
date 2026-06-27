@@ -259,6 +259,10 @@ h1:focus {
     border-radius: 3px;
 }
 
+.ts-dropdown {
+    z-index: 1050;
+}
+
 /* Invitation Page Styles */
 
 .invite-page {
