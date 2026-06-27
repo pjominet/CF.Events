@@ -32,6 +32,7 @@
         volumes:
             - /volume2/docker/configs/cf.events/keys:/app/keys:rw
             - /volume2/docker/configs/cf.events/logs:/app/logs:rw
+            - /volume2/docker/configs/cf.events/resources:/app/Resources:rw
         ports:
             - 5019:8082
         depends_on:
