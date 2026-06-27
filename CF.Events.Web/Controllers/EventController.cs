@@ -1,5 +1,4 @@
 ﻿using CF.Events.Web.Data;
-using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Models;
 using CF.Events.Web.Services;
@@ -15,7 +14,7 @@ namespace CF.Events.Web.Controllers;
 [Route("events")]
 public class EventController(
     EventsDbContext db,
-    MailjetService mailjetService,
+    IMailService mailService,
     IToastNotification toastNotification,
     ILogger<EventController> logger,
     IWebHostEnvironment env) : Controller
@@ -82,7 +81,7 @@ public class EventController(
             foreach (var userEvent in @event.EventUsers)
             {
                 logger.LogInformation("Sending invitation to {Email}", userEvent.User.Email);
-                await mailjetService.SendInvitationAsync(@event.Name, userEvent.User.DisplayName!, userEvent.User.Email!, @event.InviteCode);
+                await mailService.SendInvitationAsync(@event.Name, userEvent.User.DisplayName!, userEvent.User.Email!, @event.InviteCode);
             }
 
             toastNotification.AddSuccessToastMessage($"Successfully created {count} invitations");

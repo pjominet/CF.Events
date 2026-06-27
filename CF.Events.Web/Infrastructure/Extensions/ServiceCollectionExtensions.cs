@@ -61,10 +61,6 @@ public static class ServiceCollectionExtensions
             options.LogoutPath = "/Account/Logout";
             options.AccessDeniedPath = "/AccessDenied";
         });
-
-        if (environment.IsDevelopment())
-            services.AddSingleton<IEmailSender<ApplicationUser>, NoOpEmailSender>();
-        else services.AddSingleton<IEmailSender<ApplicationUser>, MailjetEmailSender>();
     }
 
     public static void AddAppSettings(this IServiceCollection services, IConfiguration configuration)
@@ -72,9 +68,18 @@ public static class ServiceCollectionExtensions
         services.Configure<AppSettings>(configuration.GetSection(nameof(AppSettings)));
     }
 
-    public static void AddAppServices(this IServiceCollection services)
+    public static void AddAppServices(this IServiceCollection services, IWebHostEnvironment environment)
     {
-        services.AddTransient<MailjetService>();
+        if (environment.IsDevelopment())
+        {
+            services.AddScoped<IEmailSender<ApplicationUser>, NoOpEmailSender>();
+            services.AddScoped<IMailService, NoOpMailService>();
+        }
+        else
+        {
+            services.AddScoped<IEmailSender<ApplicationUser>, MailjetEmailSender>();
+            services.AddScoped<IMailService, MailService>();
+        }
     }
 
     public static void AddAppDataProtection(this IServiceCollection services, IWebHostEnvironment environment)
