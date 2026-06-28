@@ -22,21 +22,25 @@
     }
     else
     {
-        <div class="container-fluid p-0" style="max-height: 70vh; overflow-y: auto;">
-            <div class="row g-4 pb-4">
+        <div class="container-fluid p-0">
+            <div id="invitesGrid"
+                 class="row g-4 pb-4"
+                 data-page-size="@Model.PageSize"
+                 data-total-count="@Model.TotalCount"
+                 data-load-url="/invites">
                 @foreach (var invite in Model.MyInvites)
                 {
-                    <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 shadow-sm border-0">
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="card shadow-lg border-0">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <h5 class="card-title mb-0">@invite.Event.Name</h5>
                                 </div>
                                 <p class="card-text small text-muted mb-3">
-                                    <i class="bi bi-calendar-event me-2"></i>@invite.Event.Date.ToString("MMM dd, yyyy")<br />
+                                    <i class="bi bi-calendar-event me-2"></i>@invite.Event.Date.ToString("MMM dd, yyyy")<br/>
                                     <i class="bi bi-geo-alt me-2"></i>@invite.Event.Location
                                 </p>
-                                <hr class="text-muted opacity-25" />
+                                <hr class="text-muted opacity-25"/>
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <span class="small fw-bold">Status:</span>
                                     @if (invite.HasRsvped)
@@ -48,19 +52,27 @@
                                         <span class="badge bg-warning text-dark">Pending</span>
                                     }
                                 </div>
-                                <div class="d-grid gap-2">
+                                <div class="d-grid">
                                     <a href="/events/@invite.Event.Id/invitation" class="btn btn-primary">
                                         <i class="bi bi-eye me-2"></i>View Invitation
-                                    </a>
-                                    <a href="/events/@invite.Event.Id/rsvp" class="btn btn-outline-secondary">
-                                        <i class="bi bi-pencil-square me-2"></i>@(invite.HasRsvped ? "Edit RSVP" : "RSVP Now")
                                     </a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 }
+
+                <!-- Loading indicator -->
+                <div id="loadingSpinner" class="text-center py-4" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
             </div>
         </div>
     }
 </div>
+
+@section Scripts {
+    <script src="/js/invites.js" type="text/javascript" asp-append-version="true"></script>
+}

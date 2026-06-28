@@ -12,17 +12,29 @@ namespace CF.Events.Web.Pages;
 public class InvitesModel(EventsDbContext db) : PageModel
 {
     public List<InviteRow> MyInvites { get; private set; } = [];
+    public int TotalCount { get; private set; }
+    public int PageSize { get; } = 9;
+    public int PageNumber { get; set; } = 1;
 
-    public async Task<IActionResult> OnGetAsync()
+    public async Task<IActionResult> OnGetAsync(int pageNumber = 1)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId is null)
             return Challenge();
 
-        MyInvites = await db.UserEvents
+        PageNumber = pageNumber;
+
+        var query = db.UserEvents
             .Where(r => r.UserId == userId && r.Event.IsActive)
             .Include(r => r.Event)
             .Include(r => r.Rsvp)
+            .OrderBy(r => r.Event.Date);
+
+        TotalCount = await query.CountAsync();
+
+        MyInvites = await query
+            .Skip((pageNumber - 1) * PageSize)
+            .Take(PageSize)
             .Select(ue => new InviteRow(ue.Event, ue.Rsvp != null && ue.Rsvp.SubmittedAt > DateTime.UtcNow))
             .ToListAsync();
 

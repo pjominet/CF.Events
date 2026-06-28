@@ -24,11 +24,10 @@ public class EventController(
     IWebHostEnvironment env) : Controller
 {
     [HttpGet("{eventId:int}/asset")]
-    [Authorize]
-    public async Task<IActionResult> Get([FromRoute] int eventId)
+    public async Task<IActionResult> GetInvitationAsset([FromRoute] int eventId)
     {
         var userId = User.GetId();
-        var isInvited = await db.Rsvps.AnyAsync(r => r.EventId == eventId && r.UserId == userId);
+        var isInvited = await db.UserEvents.AnyAsync(r => r.EventId == eventId && r.UserId == userId);
         if (!isInvited && !User.IsAdmin())
             return Forbid();
 
