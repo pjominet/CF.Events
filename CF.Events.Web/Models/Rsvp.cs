@@ -4,8 +4,6 @@ namespace CF.Events.Web.Models;
 
 public class Rsvp
 {
-    public int Id { get; init; }
-
     [Required]
     public int EventId { get; set; }
 
@@ -20,4 +18,7 @@ public class Rsvp
     public string? Comments { get; set; }
 
     public DateTime SubmittedAt { get; set; } = DateTime.UtcNow;
+
+    // navigation properties
+    public UserEvent UserEvent { get; init; } = null!;
 }

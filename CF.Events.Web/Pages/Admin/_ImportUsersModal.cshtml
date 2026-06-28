@@ -1,0 +1,48 @@
+@{
+    var errors = TempData[ViewDataKeys.ImportErrors] as List<string> ?? [];
+}
+<div class="modal fade" id="importUsersModal" data-bs-backdrop="static" tabindex="-1" data-autoshow="@(errors.Count > 0 ? "true" : "false")">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-action="ImportUsers" asp-controller="User" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title">Import Users</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">User List</label>
+                        <input name="userList" type="file" accept="text/csv, text/plain" class="form-control" required autofocus/>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Skip Header Rows</label>
+                            <input name="skipRows" type="number" class="form-control" value="0" min="0"/>
+                            <div class="form-text">Number of rows to ignore at the top.</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Delimiter</label>
+                            <input name="delimiter" type="text" class="form-control" value="," maxlength="1"/>
+                            <div class="form-text">e.g., comma (,) or semicolon (;)</div>
+                        </div>
+                    </div>
+                    @if (errors.Count > 0)
+                    {
+                        <div class="alert alert-danger">
+                            <ul>
+                                @foreach (var error in errors)
+                                {
+                                    <li>@error</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -4,7 +4,9 @@
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <EntityFrameworkCoreDesignerOutputDirectory>Data/Migrations</EntityFrameworkCoreDesignerOutputDirectory>
     </PropertyGroup>
+
     <ItemGroup>
         <PackageReference Include="Mailjet.Api" Version="4.0.0" />
         <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.8" />
@@ -14,17 +16,12 @@
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.8" />
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.9" />
         <PackageReference Include="NToastNotify" Version="8.0.0" />
         <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
         <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     </ItemGroup>
-    <ItemGroup>
-      <_ContentIncludedByDefault Remove="wwwroot\invitations\engagement\assets\invitation.jpeg" />
-      <_ContentIncludedByDefault Remove="wwwroot\invitations\engagement\assets\location.svg" />
-      <_ContentIncludedByDefault Remove="wwwroot\invitations\engagement\index.html" />
-      <_ContentIncludedByDefault Remove="wwwroot\invitations\sample\index.html" />
-    </ItemGroup>
+
     <ItemGroup>
       <Folder Include="Data\Migrations\" />
       <Folder Include="logs\" />

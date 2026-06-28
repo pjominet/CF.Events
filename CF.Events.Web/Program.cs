@@ -12,7 +12,8 @@ try
     builder.WebHost.ConfigureKestrel(options =>
     {
         options.AddServerHeader = false;
-        options.ListenAnyIP(8082);
+        if (!builder.Environment.IsDevelopment())
+            options.ListenAnyIP(8082);
     });
 
     var startup = new Startup(builder.Configuration, builder.Environment);
@@ -35,7 +36,7 @@ catch (OperationCanceledException)
 {
     Log.Information("Application shutdown requested via OperationCanceledException");
 }
-catch (Exception ex)
+catch (Exception ex) when (ex is not HostAbortedException && ex.Source != "Microsoft.EntityFrameworkCore.Design")
 {
     Log.Fatal(ex, "An unhandled exception occurred during app bootstrapping");
 }

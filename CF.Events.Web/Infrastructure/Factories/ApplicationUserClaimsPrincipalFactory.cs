@@ -7,16 +7,17 @@ using Microsoft.Extensions.Options;
 namespace CF.Events.Web.Infrastructure.Factories;
 
 public class ApplicationUserClaimsPrincipalFactory(
-    UserManager<ApplicationUser> userManager,
+    UserManager<AppUser> userManager,
     RoleManager<IdentityRole> roleManager,
     IOptions<IdentityOptions> optionsAccessor)
-    : UserClaimsPrincipalFactory<ApplicationUser, IdentityRole>(userManager, roleManager, optionsAccessor)
+    : UserClaimsPrincipalFactory<AppUser, IdentityRole>(userManager, roleManager, optionsAccessor)
 {
-    protected override async Task<ClaimsIdentity> GenerateClaimsAsync(ApplicationUser user)
+    protected override async Task<ClaimsIdentity> GenerateClaimsAsync(AppUser user)
     {
         var identity = await base.GenerateClaimsAsync(user);
 
         _ = identity.TryAddClaim(EventClaims.DisplayName, user.DisplayName ?? string.Empty);
+        _ = identity.TryAddClaim(EventClaims.InitPassword, user.MustChangePassword.ToString());
 
         return identity;
     }
@@ -25,4 +26,5 @@ public class ApplicationUserClaimsPrincipalFactory(
 internal static class EventClaims
 {
     public const string DisplayName = "displayName";
+    public const string InitPassword = "init_pw";
 }

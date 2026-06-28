@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using CF.Events.Web.Data;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -10,8 +11,8 @@ namespace CF.Events.Web.Pages.Account;
 
 [AllowAnonymous]
 public class LoginModel(
-    SignInManager<ApplicationUser> signInManager,
-    UserManager<ApplicationUser> userManager,
+    SignInManager<AppUser> signInManager,
+    UserManager<AppUser> userManager,
     ILogger<LoginModel> logger) : PageModel
 {
     [BindProperty]
@@ -19,14 +20,18 @@ public class LoginModel(
 
     public string? ReturnUrl { get; set; }
 
-    [TempData]
-    public string? ErrorMessage { get; set; }
-
-    public async Task OnGetAsync(string? returnUrl = null)
+    public async Task<IActionResult> OnGetAsync(string? email = null, string? returnUrl = null)
     {
         // Clear any existing external cookie to ensure a clean login process.
         await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+        if (!userManager.Users.Any())
+            return RedirectToPage("./Register");
+
+        if (!string.IsNullOrEmpty(email))
+            Input.Email = email;
+
         ReturnUrl = returnUrl;
+        return Page();
     }
 
     public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
@@ -67,11 +72,11 @@ public class LoginModel(
     {
         [Required]
         [EmailAddress]
-        public string Email { get; init; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
 
         [Required]
         [DataType(DataType.Password)]
-        public string Password { get; init; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
 
         [Display(Name = "Remember me?")]
         public bool RememberMe { get; init; }

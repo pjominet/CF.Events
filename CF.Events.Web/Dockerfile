@@ -1,7 +1,5 @@
 ﻿# Use the SDK image to build the application
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
-# Add PostgreSQL client dependencies
-RUN apt-get update && apt-get install -y libpq5
 
 WORKDIR /src
 
@@ -22,12 +20,6 @@ RUN dotnet publish "CF.Events.Web.csproj" -c Release -o /app/publish /p:UseAppHo
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-
-# Install PostgreSQL and Kerberos libraries
-RUN apt-get update && apt-get install -y \
-    libpq5 \
-    libkrb5-3 \
-    && rm -rf /var/lib/apt/lists/*
 
 # Create directories for keys and logs
 RUN mkdir -p /app/keys /app/logs

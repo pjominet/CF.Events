@@ -1,30 +1,24 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using CF.Events.Web.Data;
-using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using NToastNotify;
+using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web.Pages.Admin;
 
-[Authorize(Roles = Constants.Roles.Admin)]
+[Authorize(Roles = Roles.Admin)]
 public class EventsModel(
     EventsDbContext db,
-    UserManager<ApplicationUser> userManager,
     IToastNotification toastNotification,
     IWebHostEnvironment env) : PageModel
 {
     public List<Event> AllEvents { get; private set; } = [];
 
     public Dictionary<int, int> InviteeCounts { get; private set; } = [];
-
-    public Dictionary<int, List<UserOption>> AvailableUsersByEvent { get; private set; } = [];
-
-    public bool ShowCreateModal { get; private set; }
 
     [BindProperty]
     public InputModel NewEvent { get; set; } = new() { Date = DateTime.Today.AddMonths(1) };
@@ -36,7 +30,7 @@ public class EventsModel(
         if (!ModelState.IsValid)
         {
             await LoadAsync();
-            ShowCreateModal = true;
+            ViewData[ViewDataKeys.ShowEventModal] = true;
             return Page();
         }
 
@@ -46,7 +40,7 @@ public class EventsModel(
         if (!ModelState.IsValid)
         {
             await LoadAsync();
-            ShowCreateModal = true;
+            ViewData[ViewDataKeys.ShowEventModal] = true;
             return Page();
         }
 
@@ -86,51 +80,6 @@ public class EventsModel(
         return RedirectToPage();
     }
 
-    public async Task<IActionResult> OnPostInviteAsync(int id, string? userId)
-    {
-        var ev = await db.Events.FindAsync(id);
-        if (ev is null)
-        {
-            toastNotification.AddWarningToastMessage("Event not found");
-            return RedirectToPage();
-        }
-
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            toastNotification.AddWarningToastMessage("User not found");
-            return RedirectToPage();
-        }
-
-        var user = await userManager.FindByIdAsync(userId);
-        if (user is null)
-        {
-            toastNotification.AddWarningToastMessage("User not found");
-            return RedirectToPage();
-        }
-
-        var alreadyInvited = await db.Rsvps.AnyAsync(r => r.EventId == id && r.UserId == user.Id);
-        if (alreadyInvited)
-        {
-            toastNotification.AddWarningToastMessage("User already invited");
-            return RedirectToPage();
-        }
-
-        db.Rsvps.Add(new Rsvp
-        {
-            EventId = id,
-            UserId = user.Id,
-            Attending = false,
-            SubmittedAt = DateTime.MinValue
-        });
-        await db.SaveChangesAsync();
-
-        if (!await userManager.IsInRoleAsync(user, Constants.Roles.User))
-            await userManager.AddToRoleAsync(user, Constants.Roles.User);
-
-        toastNotification.AddSuccessToastMessage($"{user.DisplayName ?? user.Email} invited successfully");
-        return RedirectToPage();
-    }
-
     public async Task<IActionResult> OnPostDeleteAsync(int id)
     {
         var ev = await db.Events.FindAsync(id);
@@ -151,31 +100,24 @@ public class EventsModel(
         return RedirectToPage();
     }
 
+    public Dictionary<int, string> CurrentInviteCodes { get; private set; } = [];
+
     private async Task LoadAsync()
     {
-        AllEvents = await db.Events.OrderByDescending(e => e.Date).ToListAsync();
+        AllEvents = await db.Events.Include(e => e.InviteCodes).OrderByDescending(e => e.Date).ToListAsync();
 
-        var rsvps = await db.Rsvps.ToListAsync();
-        InviteeCounts = rsvps
+        var eventUsers = await db.UserEvents.ToListAsync();
+        InviteeCounts = eventUsers
             .GroupBy(r => r.EventId)
             .ToDictionary(g => g.Key, g => g.Count());
 
-        var invitedByEvent = rsvps
-            .GroupBy(r => r.EventId)
-            .ToDictionary(g => g.Key, g => g.Select(r => r.UserId).ToHashSet());
-
-        var allUsers = await userManager.Users
-            .OrderBy(u => u.DisplayName)
-            .Select(u => new UserOption(u.Id, u.DisplayName ?? "", u.Email ?? ""))
-            .ToListAsync();
-
-        AvailableUsersByEvent = AllEvents.ToDictionary(
+        CurrentInviteCodes = AllEvents.ToDictionary(
             e => e.Id,
-            e =>
-            {
-                var invited = invitedByEvent.TryGetValue(e.Id, out var set) ? set : [];
-                return allUsers.Where(u => !invited.Contains(u.Id)).ToList();
-            });
+            e => e.InviteCodes
+                .Where(c => c.ValidUntil > DateTime.UtcNow)
+                .OrderByDescending(c => c.CreatedAt)
+                .FirstOrDefault()?.Code ?? "No valid code"
+        );
     }
 
     private void DeleteInvitationImage(int eventId)
@@ -224,8 +166,6 @@ public class EventsModel(
         await using var stream = System.IO.File.Create(fullPath);
         await file.CopyToAsync(stream);
     }
-
-    public record UserOption(string Id, string DisplayName, string Email);
 
     public sealed class InputModel
     {

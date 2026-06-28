@@ -7,29 +7,17 @@
 
     --bg-page: #fcfaf9;
     --bg-card: #e8e3df;
-    --bg-card-alt: #e9e4e0;
-    --bg-button: #dcd4cf;
-    --bg-button-hover: #f5f2f0;
-    --bg-light-grey: #c0c0c0;
-    --bg-light-grey-hover: #a9a9a9;
 
     /* Fonts */
-    --font-serif: 'Domine', serif;
-    --font-cursive: 'Tangerine', cursive;
+    --font-serif: "Domine", serif;
+    --font-cursive: "Kalam", cursive;
+    --font-brand: "Passion One", sans-serif;
     --font-sans: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
-    /* Spacing & Sizes */
-    --card-width: 450px;
-    --border-radius: 4px;
-    --border-radius-lg: 10px;
-    --transition-speed: 0.2s;
-    --transition-speed-slow: 0.3s;
-    --request-id-color: #666;
-    --request-id-bg: #eee;
-
-    /* Shadows */
-    --card-shadow: 0 20px 45px rgba(0, 0, 0, 0.15), 0 10px 20px rgba(0, 0, 0, 0.1);
-    --secondary-hover: #e2a5a5;
+    /* Button State Colors */
+    --primary-hover: #2d3c2d;
+    --danger-hover: #c9302c;
+    --info-hover: #265a78;
 
     /* Bootstrap Overrides */
     --bs-primary: var(--primary-color);
@@ -38,11 +26,6 @@
     --bs-danger-rgb: 217, 83, 79;
     --bs-info: var(--info-color);
     --bs-info-rgb: 49, 112, 143;
-
-    /* Button State Colors */
-    --primary-hover: #2d3c2d;
-    --danger-hover: #c9302c;
-    --info-hover: #265a78;
 }
 
 /* Bootstrap Button Overrides */
@@ -80,146 +63,31 @@ body {
     margin: 0;
     padding: 0;
     background-color: var(--bg-page);
-    font-family: var(--font-serif);
-    color: var(--primary-color);
+    font-family: var(--font-sans);
 }
 
 h1:focus {
     outline: none;
 }
 
-.cursive {
-    font-family: var(--font-cursive);
+.brand-name {
+    font-weight: 700;
+    font-family: var(--font-brand);
 }
 
-.modal-backdrop-custom {
-    background-color: rgba(0, 0, 0, 0.5);
-}
-
-.modal-content-custom {
-    background-color: var(--bg-card);
-    border-radius: var(--border-radius-lg);
+.serif {
+    font-family: var(--font-serif);
 }
 
 .bg-card-custom {
     background-color: var(--bg-card);
 }
 
-.bg-card-alt-custom {
-    background-color: var(--bg-card-alt);
-    width: var(--card-width);
+/* RSVP Form Styles */
+#rsvpForm {
+    max-width: 600px;
+    margin: 0 auto;
 }
-
-.bg-white-custom {
-    background-color: white;
-}
-
-.rounded-lg-custom {
-    border-radius: var(--border-radius-lg);
-}
-
-.admin-card-width {
-    width: 100%;
-}
-
-.admin-max-width-login {
-    max-width: 450px;
-}
-
-.admin-max-width-dashboard {
-    max-width: 1200px;
-}
-
-.admin-max-width-setup {
-    max-width: 400px;
-}
-
-.letter-spacing-1 {
-    letter-spacing: 0.1rem;
-}
-
-.letter-spacing-2 {
-    letter-spacing: 0.2rem;
-}
-
-.comments-cell {
-    max-width: 300px;
-    word-wrap: break-word;
-}
-
-/* Scrollable Table with Sticky Header */
-.table-scroll-container {
-    max-height: 65vh; /* Roughly 15 rows depending on content */
-    overflow-y: auto;
-    border-radius: var(--border-radius);
-    border: 1px solid rgba(0,0,0,0.1);
-}
-
-.table-scroll-container thead {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background-color: #212529; /* Explicitly set background for sticky header */
-}
-
-.table-scroll-container .table {
-    margin-bottom: 0;
-}
-
-.copy-badge {
-    cursor: pointer;
-    transition: all var(--transition-speed);
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 2px 8px;
-    border-radius: 4px;
-    background-color: rgba(var(--bs-primary-rgb), 0.05);
-    border: 2px solid transparent;
-    justify-content: center;
-}
-
-.copy-badge:hover {
-    background-color: rgba(var(--bs-primary-rgb), 0.1);
-}
-
-.copy-badge:active {
-    transform: translateY(0);
-}
-
-.copy-badge.clicked {
-    animation: clickSuccess 0.4s ease;
-}
-
-@keyframes clickSuccess {
-    0% {
-        transform: scale(1);
-        border: 2px solid transparent;
-    }
-    50% {
-        transform: scale(1.05);
-        background-color: rgba(var(--bs-primary-rgb), 0.2);
-        border: 2px solid var(--primary-color);
-    }
-    100% {
-        transform: scale(1);
-        border: 2px solid transparent;
-    }
-}
-
-.copy-badge code {
-    background: none !important;
-    padding: 0 !important;
-    font-family: inherit;
-}
-
-.copy-badge code.copied-text {
-    font-size: 0.8rem;
-    color: var(--primary-color) !important;
-    letter-spacing: normal;
-    font-weight: normal;
-}
-
 #rsvpForm textarea {
     resize: vertical;
 }
@@ -241,91 +109,13 @@ h1:focus {
     box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
 }
 
-.error-message {
-    color: var( --danger-color);
-    font-size: 1.2rem;
-    margin-bottom: 10px;
+.ts-dropdown {
+    z-index: 1050;
 }
 
-.request-id {
-    font-size: 0.85rem;
-    color: var(--request-id-color);
-    margin-top: 15px;
-}
-
-.request-id code {
-    background: var(--request-id-bg);
-    padding: 2px 5px;
-    border-radius: 3px;
-}
-
-/* Toast Notifications */
-.toast-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    pointer-events: none;
-}
-
-.toast {
-    pointer-events: auto;
-    min-width: 250px;
-    padding: 15px 20px;
-    border-radius: var(--border-radius);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    color: white;
-    font-family: var(--font-sans);
-    animation: slideIn 0.3s ease-out;
-}
-
-.toast.success {
-    background-color: var(--primary-color);
-}
-
-.toast.error {
-    background-color: var(--danger-color);
-}
-
-.toast.info {
-    background-color: var(--info-color);
-}
-
-.toast-message {
-    flex-grow: 1;
-    margin-right: 15px;
-}
-
-.toast-close {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 1.5rem;
-    line-height: 1;
-    cursor: pointer;
-    opacity: 0.7;
-    transition: opacity var(--transition-speed);
-}
-
-.toast-close:hover {
-    opacity: 1;
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
+#invitesGrid {
+    min-height: 60vh;
+    position: relative;
 }
 
 /* Invitation Page Styles */
@@ -345,11 +135,9 @@ h1:focus {
 .invite-card {
     position: relative;
     background-color: var(--bg-card);
-    width: var(--card-width);
-    max-width: 100%;
-    border-radius: var(--border-radius);
+    max-width: 500px;
+    border: none;
     overflow: hidden;
-    box-shadow: var(--card-shadow);
 }
 
 .invite-image {
@@ -369,61 +157,16 @@ h1:focus {
     justify-content: center;
     text-align: center;
     padding: 30px;
+    min-width: 450px;
 }
 
 .invite-fallback h1 {
     font-family: var(--font-cursive);
-    font-size: 3.5rem;
-    margin: 0 0 10px;
-}
-
-.invite-close {
-    position: absolute;
-    top: .5rem;
-    right: .75rem;
-    background: none;
-    border: none;
-    font-size: 2rem;
-    cursor: pointer;
-    color: var(--danger-color);
-}
-
-.invite-close:hover {
-    color: var(--danger-hover);
-}
-
-.invite-btn {
-    padding: 12px 20px;
-    border-radius: var(--border-radius);
-    font-family: var(--font-serif);
-    font-size: 1.05rem;
-    letter-spacing: 0.03rem;
-    text-align: center;
-    text-decoration: none;
-    cursor: pointer;
-    border: none;
-    transition: all 0.25s ease;
-}
-
-.invite-btn-rsvp {
-    background-color: var(--secondary-color);
-    color: #fff;
-    box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.15);
-}
-
-.invite-btn-rsvp:hover {
-    background-color: var(--secondary-hover);
-    transform: translateY(-1px);
 }
 
 .invite-error {
     text-align: center;
     max-width: 450px;
-}
-
-.invite-error h1 {
-    font-family: var(--font-cursive);
-    font-size: 3rem;
 }
 
 @media (max-width: 500px) {

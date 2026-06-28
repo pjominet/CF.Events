@@ -9,10 +9,10 @@ public class IndexModel : PageModel
     public IActionResult OnGet()
     {
         if (User.Identity?.IsAuthenticated != true)
-            return Redirect("/Account/Login");
+            return Redirect("/account/login");
 
         return User.IsInRole(Constants.Roles.Admin)
-            ? Redirect("/admin/events")
+            ? Redirect("/admin")
             : Redirect("/invites");
     }
 }

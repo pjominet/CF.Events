@@ -12,26 +12,34 @@ namespace CF.Events.Web.Pages;
 public class InvitesModel(EventsDbContext db) : PageModel
 {
     public List<InviteRow> MyInvites { get; private set; } = [];
+    public int TotalCount { get; private set; }
+    public int PageSize { get; } = 9;
+    public int PageNumber { get; set; } = 1;
 
-    public async Task<IActionResult> OnGetAsync()
+    public async Task<IActionResult> OnGetAsync(int pageNumber = 1)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId is null)
             return Challenge();
 
-        MyInvites = await db.Rsvps
-            .Where(r => r.UserId == userId)
-            .Join(db.Events, r => r.EventId, e => e.Id, (r, e) => new { Rsvp = r, Event = e })
-            .Where(x => x.Event.IsActive)
-            .Select(x => new InviteRow(x.Event, x.Rsvp))
-            .ToListAsync();
+        PageNumber = pageNumber;
 
-        // Convenience: if the user has exactly one invitation, go straight to it.
-        if (MyInvites.Count == 1)
-            return Redirect($"/events/{MyInvites[0].Event.Id}/invitation");
+        var query = db.UserEvents
+            .Where(r => r.UserId == userId && r.Event.IsActive)
+            .Include(r => r.Event)
+            .Include(r => r.Rsvp)
+            .OrderBy(r => r.Event.Date);
+
+        TotalCount = await query.CountAsync();
+
+        MyInvites = await query
+            .Skip((pageNumber - 1) * PageSize)
+            .Take(PageSize)
+            .Select(ue => new InviteRow(ue.Event, ue.Rsvp != null && ue.Rsvp.SubmittedAt > DateTime.UtcNow))
+            .ToListAsync();
 
         return Page();
     }
 
-    public record InviteRow(Event Event, Rsvp Rsvp);
+    public record InviteRow(Event Event, bool HasRsvped);
 }

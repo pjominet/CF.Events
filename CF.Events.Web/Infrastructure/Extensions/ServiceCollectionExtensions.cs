@@ -18,13 +18,13 @@ public static class ServiceCollectionExtensions
     public static void AddAppDatabases(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<EventsDbContext>(options
-            => options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")
-                                 ?? throw new BootstrappingException("Missing DB connection string")));
+            => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")
+                                    ?? throw new BootstrappingException("Missing DB connection string")));
     }
 
     public static void AddAppAuthentication(this IServiceCollection services, IWebHostEnvironment environment, IConfiguration configuration)
     {
-        services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+        services.AddIdentity<AppUser, IdentityRole>(options =>
             {
                 if (environment.IsDevelopment())
                 {
@@ -51,7 +51,7 @@ public static class ServiceCollectionExtensions
             .AddClaimsPrincipalFactory<ApplicationUserClaimsPrincipalFactory>()
             .AddSignInManager()
             .AddDefaultTokenProviders()
-            .AddTokenProvider<EmailConfirmationTokenProvider<ApplicationUser>>(ProviderNames.EmailConfirmation);
+            .AddTokenProvider<EmailConfirmationTokenProvider<AppUser>>(ProviderNames.EmailConfirmation);
 
         services.AddAuthorization();
 
@@ -61,10 +61,6 @@ public static class ServiceCollectionExtensions
             options.LogoutPath = "/Account/Logout";
             options.AccessDeniedPath = "/AccessDenied";
         });
-
-        if (environment.IsDevelopment())
-            services.AddSingleton<IEmailSender<ApplicationUser>, NoOpEmailSender>();
-        else services.AddSingleton<IEmailSender<ApplicationUser>, MailjetEmailSender>();
     }
 
     public static void AddAppSettings(this IServiceCollection services, IConfiguration configuration)
@@ -72,8 +68,18 @@ public static class ServiceCollectionExtensions
         services.Configure<AppSettings>(configuration.GetSection(nameof(AppSettings)));
     }
 
-    public static void AddAppServices(this IServiceCollection services)
+    public static void AddAppServices(this IServiceCollection services, IWebHostEnvironment environment)
     {
+        if (environment.IsDevelopment())
+        {
+            services.AddScoped<IEmailSender<AppUser>, NoOpEmailSender>();
+            services.AddScoped<IMailService, NoOpMailService>();
+        }
+        else
+        {
+            services.AddScoped<IEmailSender<AppUser>, MailjetEmailSender>();
+            services.AddScoped<IMailService, MailService>();
+        }
     }
 
     public static void AddAppDataProtection(this IServiceCollection services, IWebHostEnvironment environment)

@@ -7,8 +7,8 @@ namespace CF.Events.Web.Controllers;
 
 [Route("account")]
 public class AccountController(
-    SignInManager<ApplicationUser> signInManager,
-    UserManager<ApplicationUser> userManager,
+    SignInManager<AppUser> signInManager,
+    UserManager<AppUser> userManager,
     IToastNotification toastNotification,
     ILogger<AccountController> logger) : Controller
 {

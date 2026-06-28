@@ -7,7 +7,6 @@ using CF.Events.Web.Infrastructure.Middlewares;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 using NToastNotify;
 using Serilog;
 using static CF.Events.Web.Infrastructure.Constants;
@@ -20,30 +19,48 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
     {
         services.AddAppSettings(configuration);
         services.AddAppDatabases(configuration);
-        services.AddAppServices();
+        services.AddAppServices(environment);
         services.AddAppAuthentication(environment, configuration);
         services.AddAppDataProtection(environment);
         services.AddHttpClients(configuration);
 
-        services.AddRazorPages(options =>
+        services.AddRazorPages(options => { options.Conventions.Add(new PageRouteTransformerConvention(new PascalCaseRouteTransformer())); })
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+                options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            })
+            .AddNToastNotifyToastr(new ToastrOptions
+            {
+                ProgressBar = true,
+                PositionClass = ToastPositions.TopRight,
+                TapToDismiss = true,
+                TimeOut = 5000,
+                ExtendedTimeOut = 750
+            });
+
+        services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+                options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            })
+            .AddNToastNotifyToastr(new ToastrOptions
+            {
+                ProgressBar = true,
+                PositionClass = ToastPositions.TopRight,
+                TapToDismiss = true,
+                TimeOut = 5000,
+                ExtendedTimeOut = 750
+            });
+
+        services.AddSession(options =>
         {
-            options.Conventions.Add(new PageRouteTransformerConvention(new PascalCaseRouteTransformer()));
-        })
-        .AddJsonOptions(options =>
-        {
-            options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-            options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-        })
-        .AddNToastNotifyToastr(new ToastrOptions
-        {
-            ProgressBar = true,
-            PositionClass = ToastPositions.TopRight,
-            TapToDismiss = true,
-            TimeOut = 5000,
-            ExtendedTimeOut = 750
+            options.IdleTimeout = TimeSpan.FromMinutes(20);
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true;
         });
 
-        services.AddControllers();
         services.AddRouting(options =>
         {
             options.LowercaseUrls = true;
@@ -53,57 +70,39 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
 
     public async Task EnsureDatabase(IServiceProvider serviceProvider)
     {
-        const int maxRetries = 10;
-        const int retryDelaySeconds = 5;
-
-        for (var attempt = 1; attempt <= maxRetries; attempt++)
+        try
         {
-            try
+            using var scope = serviceProvider.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<EventsDbContext>();
+
+            // Apply migrations
+            Log.Information("Applying database migrations...");
+            await db.Database.MigrateAsync();
+            Log.Information("Migrations applied successfully");
+
+            // Seed roles
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var roles = new[] { Roles.Admin, Roles.User };
+
+            Log.Information("Seeding roles...");
+            foreach (var role in roles)
             {
-                using var scope = serviceProvider.CreateScope();
-                var db = scope.ServiceProvider.GetRequiredService<EventsDbContext>();
-
-                // Test connection first
-                await db.Database.OpenConnectionAsync();
-                Log.Information("Connection test successful (attempt {Attempt})", attempt);
-
-                // Apply migrations
-                Log.Information("Applying database migrations...");
-                await db.Database.MigrateAsync();
-                Log.Information("Migrations applied successfully");
-
-                // Seed roles
-                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-                var roles = new[] { Roles.Admin, Roles.User };
-
-                Log.Information("Seeding roles...");
-                foreach (var role in roles)
+                if (await roleManager.RoleExistsAsync(role))
                 {
-                    if (await roleManager.RoleExistsAsync(role))
-                    {
-                        Log.Information("Role {Role} already exists, continuing...", role);
-                        continue;
-                    }
-
-                    Log.Information("Creating role: {Role}", role);
-                    await roleManager.CreateAsync(new IdentityRole(role));
+                    Log.Information("Role {Role} already exists, continuing...", role);
+                    continue;
                 }
 
-                Log.Information("Database initialization complete");
-                return; // Success - exit the method
+                Log.Information("Creating role: {Role}", role);
+                await roleManager.CreateAsync(new IdentityRole(role));
             }
-            catch (Exception ex)
-            {
-                Log.Error("Database initialization attempt {Attempt} failed: {Message}", attempt, ex.Message);
 
-                if (attempt == maxRetries)
-                {
-                    Console.WriteLine("Max retries reached. Failing...");
-                    throw; // This will crash the container, triggering Docker restart
-                }
-
-                await Task.Delay(retryDelaySeconds * 1000);
-            }
+            Log.Information("Database initialization complete");
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Database initialization attempt failed: {Message}", ex.Message);
+            throw;
         }
     }
 
@@ -121,6 +120,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         app.UseStaticFiles();
 
         app.UseRouting();
+        app.UseSession();
 
         app.UseAuthentication();
         app.UseAuthorization();
@@ -128,8 +128,5 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         app.UseUrlTransformer();
         app.MapControllers();
         app.MapRazorPages();
-
-        app.MapGet("/api/generate-password", () => Results.Text(TempPasswordGenerator.Generate()))
-            .RequireAuthorization();
     }
 }

@@ -9,8 +9,8 @@ namespace CF.Events.Web.Pages.Account.Manage;
 
 [Authorize]
 public class IndexModel(
-    UserManager<ApplicationUser> userManager,
-    SignInManager<ApplicationUser> signInManager) : PageModel
+    UserManager<AppUser> userManager,
+    SignInManager<AppUser> signInManager) : PageModel
 {
     public string? Username { get; set; }
 
