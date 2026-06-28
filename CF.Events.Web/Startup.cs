@@ -39,7 +39,28 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
                 ExtendedTimeOut = 750
             });
 
-        services.AddControllers();
+        services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+                options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            })
+            .AddNToastNotifyToastr(new ToastrOptions
+            {
+                ProgressBar = true,
+                PositionClass = ToastPositions.TopRight,
+                TapToDismiss = true,
+                TimeOut = 5000,
+                ExtendedTimeOut = 750
+            });
+
+        services.AddSession(options =>
+        {
+            options.IdleTimeout = TimeSpan.FromMinutes(20);
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true;
+        });
+
         services.AddRouting(options =>
         {
             options.LowercaseUrls = true;
@@ -99,6 +120,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         app.UseStaticFiles();
 
         app.UseRouting();
+        app.UseSession();
 
         app.UseAuthentication();
         app.UseAuthorization();

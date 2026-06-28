@@ -2,7 +2,6 @@
 
 public class AppSettings
 {
-    public required string Name { get; init; }
     public required int PasswordLength { get; init; }
     public required MailjetSettings Mailjet { get; init; }
 }

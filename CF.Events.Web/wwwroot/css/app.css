@@ -9,8 +9,9 @@
     --bg-card: #e8e3df;
 
     /* Fonts */
-    --font-serif: 'Domine', serif;
-    --font-cursive: 'Tangerine', cursive;
+    --font-serif: "Domine", serif;
+    --font-cursive: "Kalam", cursive;
+    --font-brand: "Passion One", sans-serif;
     --font-sans: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
     /* Button State Colors */
@@ -62,16 +63,20 @@ body {
     margin: 0;
     padding: 0;
     background-color: var(--bg-page);
-    font-family: var(--font-serif);
-    color: var(--primary-color);
+    font-family: var(--font-sans);
 }
 
 h1:focus {
     outline: none;
 }
 
-.cursive {
-    font-family: var(--font-cursive);
+.brand-name {
+    font-weight: 700;
+    font-family: var(--font-brand);
+}
+
+.serif {
+    font-family: var(--font-serif);
 }
 
 .bg-card-custom {
