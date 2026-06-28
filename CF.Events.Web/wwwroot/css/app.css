@@ -7,24 +7,16 @@
 
     --bg-page: #fcfaf9;
     --bg-card: #e8e3df;
-    --bg-card-alt: #e9e4e0;
-    --bg-button: #dcd4cf;
-    --bg-button-hover: #f5f2f0;
-    --bg-light-grey: #c0c0c0;
-    --bg-light-grey-hover: #a9a9a9;
 
     /* Fonts */
     --font-serif: 'Domine', serif;
     --font-cursive: 'Tangerine', cursive;
     --font-sans: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
-    /* Spacing & Sizes */
-    --border-radius: 4px;
-    --border-radius-lg: 10px;
-    --transition-speed: 0.2s;
-    --transition-speed-slow: 0.3s;
-    --request-id-color: #666;
-    --request-id-bg: #eee;
+    /* Button State Colors */
+    --primary-hover: #2d3c2d;
+    --danger-hover: #c9302c;
+    --info-hover: #265a78;
 
     /* Bootstrap Overrides */
     --bs-primary: var(--primary-color);
@@ -33,11 +25,6 @@
     --bs-danger-rgb: 217, 83, 79;
     --bs-info: var(--info-color);
     --bs-info-rgb: 49, 112, 143;
-
-    /* Button State Colors */
-    --primary-hover: #2d3c2d;
-    --danger-hover: #c9302c;
-    --info-hover: #265a78;
 }
 
 /* Bootstrap Button Overrides */
