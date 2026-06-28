@@ -5,8 +5,7 @@ using NToastNotify;
 
 namespace CF.Events.Web.Controllers;
 
-[Area("account")]
-[Route("[area]")]
+[Route("account")]
 public class AccountController(
     SignInManager<AppUser> signInManager,
     UserManager<AppUser> userManager,

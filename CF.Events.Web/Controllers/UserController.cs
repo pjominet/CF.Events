@@ -75,6 +75,9 @@ public class UserController(
             var result = await userManager.CreateAsync(user);
             if (!result.Succeeded)
             {
+                if (result.Errors.Any(error => error.Code is "DuplicateUserName" or "DuplicateEmail"))
+                    continue;
+
                 importErrors.AddRange(result.Errors.Select(error => $"Error creating user {user.Email}: {error.Description}"));
                 continue;
             }
@@ -86,7 +89,7 @@ public class UserController(
             toastNotification.AddSuccessToastMessage("Users imported successfully");
         else toastNotification.AddWarningToastMessage("Import had issues");
 
-        ViewData[ViewDataKeys.ImportErrors] = importErrors;
+        TempData[ViewDataKeys.ImportErrors] = importErrors;
         return RedirectToPage("/admin/users");
     }
 }

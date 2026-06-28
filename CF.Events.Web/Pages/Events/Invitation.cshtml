@@ -21,11 +21,11 @@
             {
                 <img class="card-img-top invite-image" src="@Model.ImageUrl" alt="@Model.EventData!.Name invitation"/>
             }
-            <div class="card-body p-0">
+            <div class="card-body bg-body-tertiary p-0">
                 @if (Model.ImageUrl is null)
                 {
                     <div class="invite-fallback">
-                        <h1 class="invite-fallback">@Model.EventData!.Name</h1>
+                        <h1>@Model.EventData!.Name</h1>
                         <p>@Model.EventData.Date.ToLongDateString()</p>
                         @if (!string.IsNullOrEmpty(Model.EventData.Location))
                         {

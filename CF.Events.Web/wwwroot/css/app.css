@@ -297,6 +297,11 @@ h1:focus {
     justify-content: center;
     text-align: center;
     padding: 30px;
+    min-width: 450px;
+}
+
+.invite-fallback h1 {
+    font-family: var(--font-cursive);
 }
 
 .invite-error {

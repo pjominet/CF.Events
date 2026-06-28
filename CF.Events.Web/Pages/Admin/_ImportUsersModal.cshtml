@@ -1,14 +1,13 @@
 @{
-    var errors = ViewData[ViewDataKeys.ImportErrors] as List<string> ?? [];
+    var errors = TempData[ViewDataKeys.ImportErrors] as List<string> ?? [];
 }
-<div class="modal fade" id="importUsersModal" tabindex="-1" data-autoshow="@(errors.Count > 0 ? "true" : "false")">
+<div class="modal fade" id="importUsersModal" data-bs-backdrop="static" tabindex="-1" data-autoshow="@(errors.Count > 0 ? "true" : "false")">
     <div class="modal-dialog">
         <div class="modal-content">
             <form method="post" action="/admin/users/import" enctype="multipart/form-data">
                 @Html.AntiForgeryToken()
                 <div class="modal-header">
                     <h5 class="modal-title">Import Users</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
