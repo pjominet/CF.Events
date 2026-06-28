@@ -12,5 +12,6 @@ public class AppUser : IdentityUser
     public DateTime? LastLogin { get; set; }
     public bool IsActive { get; set; } = true;
 
-    public List<UserEvent> UserEvents { get; set; } = [];
+    // navigation properties
+    public HashSet<UserEvent> UserEvents { get; set; } = [];
 }

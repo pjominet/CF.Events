@@ -16,5 +16,6 @@ public class InviteCode
 
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 
-    public Event? Event { get; init; }
+    // navigation properties
+    public Event Event { get; init; } = null!;
 }

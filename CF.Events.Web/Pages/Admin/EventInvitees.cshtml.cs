@@ -60,7 +60,7 @@ public class EventInviteesModel(
             .OrderByDescending(c => c.CreatedAt)
             .FirstOrDefault()?.Code ?? "No valid code";
 
-        var invitedUsers = db.UserEvents.Where(ue => ue.EventId == id).Select(ue => ue.User).ToList();
+        var invitedUsers = db.UserEvents.Where(ue => ue.EventId == id).Select(ue => ue.User!).ToList();
         var rsvps = db.Rsvps.Where(r => r.EventId == id).ToList();
 
         Invitees = invitedUsers

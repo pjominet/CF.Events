@@ -28,6 +28,7 @@ public class Event
 
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 
-    public List<UserEvent> EventUsers { get; set; } = [];
-    public List<InviteCode> InviteCodes { get; set; } = [];
+    // navigation properties
+    public HashSet<UserEvent> EventUsers { get; set; } = [];
+    public HashSet<InviteCode> InviteCodes { get; set; } = [];
 }

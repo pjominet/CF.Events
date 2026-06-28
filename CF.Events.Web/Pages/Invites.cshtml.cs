@@ -19,15 +19,15 @@ public class InvitesModel(EventsDbContext db) : PageModel
         if (userId is null)
             return Challenge();
 
-        MyInvites = await db.Rsvps
-            .Where(r => r.UserId == userId)
-            .Join(db.Events, r => r.EventId, e => e.Id, (r, e) => new { Rsvp = r, Event = e })
-            .Where(x => x.Event.IsActive)
-            .Select(x => new InviteRow(x.Event, x.Rsvp))
+        MyInvites = await db.UserEvents
+            .Where(r => r.UserId == userId && r.Event.IsActive)
+            .Include(r => r.Event)
+            .Include(r => r.Rsvp)
+            .Select(ue => new InviteRow(ue.Event, ue.Rsvp != null && ue.Rsvp.SubmittedAt > DateTime.UtcNow))
             .ToListAsync();
 
         return Page();
     }
 
-    public record InviteRow(Event Event, Rsvp Rsvp);
+    public record InviteRow(Event Event, bool HasRsvped);
 }

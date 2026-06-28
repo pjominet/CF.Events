@@ -36,7 +36,12 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
 
         builder.Entity<Rsvp>(e =>
         {
-            e.HasIndex(r => new { r.EventId, r.UserId }).IsUnique();
+            e.HasKey(r => new { r.EventId, r.UserId });
+
+            e.HasOne(r => r.UserEvent)
+                .WithOne()
+                .HasForeignKey<Rsvp>(r => new { r.EventId, r.UserId })
+                .IsRequired(false);
         });
 
         builder.Entity<UserEvent>(e =>
@@ -45,18 +50,21 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
 
             e.HasOne(r => r.User)
                 .WithMany(r => r.UserEvents)
-                .HasForeignKey(r => r.UserId);
+                .HasForeignKey(r => r.UserId)
+                .IsRequired();
 
             e.HasOne(r => r.Event)
                 .WithMany(r => r.EventUsers)
-                .HasForeignKey(r => r.EventId);
+                .HasForeignKey(r => r.EventId)
+                .IsRequired();
         });
 
         builder.Entity<InviteCode>(e =>
         {
             e.HasOne(r => r.Event)
                 .WithMany(r => r.InviteCodes)
-                .HasForeignKey(r => r.EventId);
+                .HasForeignKey(r => r.EventId)
+                .IsRequired();
         });
     }
 }

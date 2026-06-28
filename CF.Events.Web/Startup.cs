@@ -81,6 +81,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         catch (Exception ex)
         {
             Log.Error("Database initialization attempt failed: {Message}", ex.Message);
+            throw;
         }
     }
 
