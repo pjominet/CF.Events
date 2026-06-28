@@ -87,129 +87,15 @@ h1:focus {
     font-family: var(--font-cursive);
 }
 
-.modal-backdrop-custom {
-    background-color: rgba(0, 0, 0, 0.5);
-}
-
-.modal-content-custom {
-    background-color: var(--bg-card);
-    border-radius: var(--border-radius-lg);
-}
-
 .bg-card-custom {
     background-color: var(--bg-card);
 }
 
-.bg-white-custom {
-    background-color: white;
+/* RSVP Form Styles */
+#rsvpForm {
+    max-width: 600px;
+    margin: 0 auto;
 }
-
-.rounded-lg-custom {
-    border-radius: var(--border-radius-lg);
-}
-
-.admin-card-width {
-    width: 100%;
-}
-
-.admin-max-width-login {
-    max-width: 450px;
-}
-
-.admin-max-width-dashboard {
-    max-width: 1200px;
-}
-
-.admin-max-width-setup {
-    max-width: 400px;
-}
-
-.letter-spacing-1 {
-    letter-spacing: 0.1rem;
-}
-
-.letter-spacing-2 {
-    letter-spacing: 0.2rem;
-}
-
-.comments-cell {
-    max-width: 300px;
-    word-wrap: break-word;
-}
-
-/* Scrollable Table with Sticky Header */
-.table-scroll-container {
-    max-height: 65vh; /* Roughly 15 rows depending on content */
-    overflow-y: auto;
-    border-radius: var(--border-radius);
-    border: 1px solid rgba(0,0,0,0.1);
-}
-
-.table-scroll-container thead {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background-color: #212529; /* Explicitly set background for sticky header */
-}
-
-.table-scroll-container .table {
-    margin-bottom: 0;
-}
-
-.copy-badge {
-    cursor: pointer;
-    transition: all var(--transition-speed);
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 2px 8px;
-    border-radius: 4px;
-    background-color: rgba(var(--bs-primary-rgb), 0.05);
-    border: 2px solid transparent;
-    justify-content: center;
-}
-
-.copy-badge:hover {
-    background-color: rgba(var(--bs-primary-rgb), 0.1);
-}
-
-.copy-badge:active {
-    transform: translateY(0);
-}
-
-.copy-badge.clicked {
-    animation: clickSuccess 0.4s ease;
-}
-
-@keyframes clickSuccess {
-    0% {
-        transform: scale(1);
-        border: 2px solid transparent;
-    }
-    50% {
-        transform: scale(1.05);
-        background-color: rgba(var(--bs-primary-rgb), 0.2);
-        border: 2px solid var(--primary-color);
-    }
-    100% {
-        transform: scale(1);
-        border: 2px solid transparent;
-    }
-}
-
-.copy-badge code {
-    background: none !important;
-    padding: 0 !important;
-    font-family: inherit;
-}
-
-.copy-badge code.copied-text {
-    font-size: 0.8rem;
-    color: var(--primary-color) !important;
-    letter-spacing: normal;
-    font-weight: normal;
-}
-
 #rsvpForm textarea {
     resize: vertical;
 }
@@ -229,24 +115,6 @@ h1:focus {
 .form-check-input:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
-}
-
-.error-message {
-    color: var( --danger-color);
-    font-size: 1.2rem;
-    margin-bottom: 10px;
-}
-
-.request-id {
-    font-size: 0.85rem;
-    color: var(--request-id-color);
-    margin-top: 15px;
-}
-
-.request-id code {
-    background: var(--request-id-bg);
-    padding: 2px 5px;
-    border-radius: 3px;
 }
 
 .ts-dropdown {

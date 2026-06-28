@@ -21,7 +21,7 @@
             {
                 <img class="card-img-top invite-image" src="@Model.ImageUrl" alt="@Model.EventData!.Name invitation"/>
             }
-            <div class="card-body bg-body-tertiary p-0">
+            <div class="card-body bg-card-custom p-0">
                 @if (Model.ImageUrl is null)
                 {
                     <div class="invite-fallback">
@@ -38,7 +38,7 @@
                     </div>
                 }
             </div>
-            <div class="card-footer bg-body-tertiary border-0 pb-3">
+            <div class="card-footer bg-card-custom border-0 pb-3">
                 <div class="d-flex justify-content-center gap-3">
                     <a href="@Model.BackUrl" class="btn btn-outline-secondary">Back</a>
                     <a href="/events/@Model.EventData!.Id/rsvp" class="btn btn-primary">RSVP</a>
