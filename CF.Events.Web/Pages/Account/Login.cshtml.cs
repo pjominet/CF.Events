@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using CF.Events.Web.Data;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -18,9 +19,6 @@ public class LoginModel(
     public InputModel Input { get; set; } = new();
 
     public string? ReturnUrl { get; set; }
-
-    [TempData]
-    public string? ErrorMessage { get; set; }
 
     public async Task<IActionResult> OnGetAsync(string? email = null, string? returnUrl = null)
     {

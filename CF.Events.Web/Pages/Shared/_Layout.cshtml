@@ -55,6 +55,7 @@
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form asp-action="Logout" asp-controller="Account" method="get">
+                                        @Html.AntiForgeryToken()
                                         <button type="submit" class="dropdown-item text-danger">Logout</button>
                                     </form>
                                 </li>
