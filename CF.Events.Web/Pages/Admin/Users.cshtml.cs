@@ -1,5 +1,5 @@
-﻿using CF.Events.Web.Models;
-using CF.Events.Web.ViewModels;
+﻿using System.ComponentModel.DataAnnotations;
+using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -17,7 +17,7 @@ public class UsersModel(
 {
     public List<UserRow> AllUsers { get; private set; } = [];
 
-    [BindProperty] public AddUserViewModel AddViewModel { get; set; } = new();
+    [BindProperty] public InputModel NewUser { get; set; } = new();
 
     public async Task OnGetAsync()
     {
@@ -35,9 +35,9 @@ public class UsersModel(
 
         var user = new AppUser
         {
-            UserName = AddViewModel.Email,
-            Email = AddViewModel.Email,
-            DisplayName = AddViewModel.DisplayName,
+            UserName = NewUser.Email,
+            Email = NewUser.Email,
+            DisplayName = NewUser.DisplayName,
             MustChangePassword = true,
             EmailConfirmed = true
         };
@@ -54,8 +54,8 @@ public class UsersModel(
 
         result = await userManager.AddToRoleAsync(user, Roles.User);
         if (result.Succeeded)
-            toastNotification.AddSuccessToastMessage($"Added user {AddViewModel.Email}");
-        else toastNotification.AddErrorToastMessage($"Failed to add user {AddViewModel.Email}");
+            toastNotification.AddSuccessToastMessage($"Added user {NewUser.Email}");
+        else toastNotification.AddErrorToastMessage($"Failed to add user {NewUser.Email}");
 
         return RedirectToPage();
     }
@@ -132,4 +132,15 @@ public class UsersModel(
     }
 
     public record UserRow(string Id, string Email, string Phone, string DisplayName, bool IsActive, IList<string> Roles, bool MustChangePassword);
+
+    public sealed class InputModel
+    {
+        [Required]
+        public string DisplayName { get; set; } = string.Empty;
+
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+    }
+
 }
