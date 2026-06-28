@@ -7,8 +7,7 @@ using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web.Controllers;
 
-[Area("admin")]
-[Route("[area]/users")]
+[Route("users")]
 [Authorize(Roles = Roles.Admin)]
 public class UserController(
     UserManager<AppUser> userManager,

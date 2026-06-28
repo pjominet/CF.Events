@@ -118,6 +118,47 @@ public class EventController(
         }
     }
 
+    [HttpPost("{eventId:int}/resend-invite")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> ResendInvite([FromRoute] int eventId, [FromForm] string userId, [FromForm] string inviteCode)
+    {
+        var user = await userManager.FindByIdAsync(userId);
+        if (user is null)
+        {
+            toastNotification.AddWarningToastMessage("User not found");
+            return LocalRedirect($"/admin/events/{eventId}/invitees");
+        }
+
+        var isInvited = await db.UserEvents.AnyAsync(eu => eu.EventId == eventId && eu.UserId == user.Id);
+        if (!isInvited)
+        {
+            toastNotification.AddWarningToastMessage("User is not invited to this event");
+            return LocalRedirect($"/admin/events/{eventId}/invitees");
+        }
+
+        var eventData = await db.Events.FindAsync(eventId);
+        if (eventData is null)
+        {
+            toastNotification.AddWarningToastMessage("Event not found");
+            return LocalRedirect($"/admin/events/{eventId}/invitees");
+        }
+
+        try
+        {
+            logger.LogInformation("Re-sending invitation to {Email}", user.Email);
+            var callbackUrl = Url.Action("InvitationCallback", "Event", new { code = inviteCode, email = user.Email }, Request.Scheme);
+            await mailService.SendInvitationAsync(eventData.Name, user.DisplayName!, user.Email!, callbackUrl!);
+
+            toastNotification.AddSuccessToastMessage("Successfully resent invitation");
+            return LocalRedirect($"/admin/events/{eventId}/invitees");
+        }
+        catch
+        {
+            toastNotification.AddErrorToastMessage("Invitations could not be created");
+            return LocalRedirect($"/admin/events/{eventId}/invitees");
+        }
+    }
+
     [HttpGet("invite-callback")]
     [AllowAnonymous]
     public async Task<IActionResult> InvitationCallback([FromQuery] string code, [FromQuery] string email)

@@ -87,10 +87,18 @@
                                 <span class="badge @badge">@invitee.Status</span>
                             </td>
                             <td class="text-end">
+                                <form method="post" asp-action="ResendInvite" asp-controller="Event" asp-route-eventId="@Model.EventData!.Id" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="userId" value="@invitee.UserId"/>
+                                    <input type="hidden" name="inviteCode" value="@Model.CurrentInviteCode"/>
+                                    <button type="submit" class="btn btn-info btn-sm" title="Resend invite" data-bs-toggle="tooltip">
+                                        <i class="bi bi-send"></i>
+                                    </button>
+                                </form>
                                 <form method="post" asp-page-handler="Remove" asp-route-id="@Model.EventData!.Id" class="d-inline"
                                       onsubmit="return confirm('Remove @invitee.DisplayName from this event?');">
-                                    <input type="hidden" name="userId" value="@invitee.UserId" />
-                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Remove invitee">
+                                    <input type="hidden" name="userId" value="@invitee.UserId"/>
+                                    <button type="submit" class="btn btn-danger btn-sm" title="Remove invitee" data-bs-toggle="tooltip">
                                         <i class="bi bi-x-lg"></i>
                                     </button>
                                 </form>
