@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using CF.Events.Web.Infrastructure.Attributes;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -26,8 +27,13 @@ public class FirstLoginModel(
 
         ReturnUrl = returnUrl;
 
+        // If user already has a display name and doesn't need to change password, they are done.
         if (!user.MustChangePassword && !string.IsNullOrEmpty(user.DisplayName))
-            return LocalRedirect(returnUrl ?? "/");
+        {
+            if (!string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl))
+                return LocalRedirect(ReturnUrl);
+            return LocalRedirect("/");
+        }
 
         Input.DisplayName = user.DisplayName ?? "";
         return Page();
@@ -70,24 +76,25 @@ public class FirstLoginModel(
         }
 
         await signInManager.RefreshSignInAsync(user);
-        return LocalRedirect(ReturnUrl ?? "/");
+
+        return LocalRedirect("/");
     }
 
     public sealed class InputModel
     {
         [Required]
         [Display(Name = "Display Name")]
-        public string DisplayName { get; set; } = "";
+        public string DisplayName { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [PasswordValidation]
         [DataType(DataType.Password)]
         [Display(Name = "New password")]
-        public string NewPassword { get; set; } = "";
+        public string NewPassword { get; init; } = string.Empty;
 
         [DataType(DataType.Password)]
         [Display(Name = "Confirm new password")]
         [Compare("NewPassword", ErrorMessage = "The new password and confirmation password do not match.")]
-        public string ConfirmPassword { get; set; } = "";
+        public string ConfirmPassword { get; init; } = string.Empty;
     }
 }

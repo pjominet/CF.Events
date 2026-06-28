@@ -32,14 +32,14 @@ public class EventInviteesModel(
 
     public async Task<IActionResult> OnPostRemoveAsync(int id, string? userId)
     {
-        var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.EventId == id && r.UserId == userId);
-        if (rsvp is null)
+        var userEvent = await db.UserEvents.FirstOrDefaultAsync(r => r.EventId == id && r.UserId == userId);
+        if (userEvent is null)
         {
             toastNotification.AddWarningToastMessage("Invitee not found");
             return RedirectToPage(new { id });
         }
 
-        db.Rsvps.Remove(rsvp);
+        db.UserEvents.Remove(userEvent);
         await db.SaveChangesAsync();
 
         toastNotification.AddSuccessToastMessage("Invitee successfully removed");

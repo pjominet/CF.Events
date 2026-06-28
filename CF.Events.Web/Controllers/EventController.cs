@@ -4,6 +4,7 @@ using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Models;
 using CF.Events.Web.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
@@ -15,12 +16,15 @@ namespace CF.Events.Web.Controllers;
 [Route("events")]
 public class EventController(
     EventsDbContext db,
+    UserManager<AppUser> userManager,
+    SignInManager<AppUser> signInManager,
     IMailService mailService,
     IToastNotification toastNotification,
     ILogger<EventController> logger,
     IWebHostEnvironment env) : Controller
 {
     [HttpGet("{eventId:int}/asset")]
+    [Authorize]
     public async Task<IActionResult> Get([FromRoute] int eventId)
     {
         var userId = User.GetId();
@@ -94,8 +98,6 @@ public class EventController(
         try
         {
             var count = await db.SaveChangesAsync();
-
-            // Single query for ALL new users
             var newUsers = await db.Users
                 .Where(u => newUserIds.Contains(u.Id))
                 .ToListAsync();
@@ -103,17 +105,54 @@ public class EventController(
             foreach (var user in newUsers)
             {
                 logger.LogInformation("Sending invitation to {Email}", user.Email);
-                await mailService.SendInvitationAsync(eventData.Name, user.DisplayName!, user.Email!, validCode);
+                var callbackUrl = Url.Action("InvitationCallback", "Event", new { code = inviteCode, email = user.Email }, Request.Scheme);
+                await mailService.SendInvitationAsync(eventData.Name, user.DisplayName!, user.Email!, callbackUrl!);
             }
 
             toastNotification.AddSuccessToastMessage($"Successfully created {count} invitations");
-            return RedirectToPage($"/admin/events/{eventId}/invitees");
+            return LocalRedirect($"/admin/events/{eventId}/invitees");
         }
         catch
         {
             toastNotification.AddErrorToastMessage("Invitations could not be created");
-            return RedirectToPage($"/admin/events/{eventId}/invitees");
+            return LocalRedirect($"/admin/events/{eventId}/invitees");
         }
+    }
+
+    [HttpGet("invite-callback")]
+    [AllowAnonymous]
+    public async Task<IActionResult> InvitationCallback([FromQuery] string code, [FromQuery] string email)
+    {
+        var inviteCode = await db.InviteCodes.FirstOrDefaultAsync(c => c.Code == code && c.ValidUntil > DateTime.UtcNow);
+        if (inviteCode is null)
+        {
+            logger.LogWarning("Invalid or expired invite code was used: {Code}", code);
+            return BadRequest();
+        }
+
+        var user = await userManager.FindByEmailAsync(email);
+        if (user is null || !user.IsActive)
+        {
+            logger.LogWarning("User with email {Email} not found or inactive", email);
+            return BadRequest();
+        }
+
+        var isInvited = await db.UserEvents.AnyAsync(eu => eu.EventId == inviteCode.EventId && eu.UserId == user.Id);
+        if (!isInvited)
+        {
+            logger.LogWarning("User with email {Email} was not invited to event {EventId}", email, inviteCode.EventId);
+            return BadRequest();
+        }
+
+        if (signInManager.IsSignedIn(User) && User.Identity?.Name == email)
+            return LocalRedirect("/");
+
+        await signInManager.SignInAsync(user, isPersistent: true);
+
+        if (await userManager.HasPasswordAsync(user) && !user.MustChangePassword)
+            return LocalRedirect("/");
+
+        return RedirectToPage("/account/manage/FirstLogin");
     }
 
     [HttpPost("{eventId:int}/regenerate-code")]

@@ -22,12 +22,15 @@ public class LoginModel(
     [TempData]
     public string? ErrorMessage { get; set; }
 
-    public async Task<IActionResult> OnGetAsync(string? returnUrl = null)
+    public async Task<IActionResult> OnGetAsync(string? email = null, string? returnUrl = null)
     {
         // Clear any existing external cookie to ensure a clean login process.
         await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
         if (!userManager.Users.Any())
             return RedirectToPage("./Register");
+
+        if (!string.IsNullOrEmpty(email))
+            Input.Email = email;
 
         ReturnUrl = returnUrl;
         return Page();
@@ -71,11 +74,11 @@ public class LoginModel(
     {
         [Required]
         [EmailAddress]
-        public string Email { get; init; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
 
         [Required]
         [DataType(DataType.Password)]
-        public string Password { get; init; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
 
         [Display(Name = "Remember me?")]
         public bool RememberMe { get; init; }

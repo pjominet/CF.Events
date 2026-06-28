@@ -16,13 +16,17 @@ public class ResetPasswordModel(UserManager<AppUser> userManager) : PageModel
     [BindProperty]
     public InputModel Input { get; set; } = new();
 
-    public IActionResult OnGet(string? token = null, string? email = null)
+    [BindProperty]
+    public string? ReturnUrl { get; set; }
+
+    public IActionResult OnGet(string? token = null, string? email = null, string? returnUrl = null)
     {
         if (token is null)
             return BadRequest("A code must be supplied for password reset.");
 
         Input.Token = token;
         Input.Email = email ?? string.Empty;
+        ReturnUrl = returnUrl;
         return Page();
     }
 
@@ -41,7 +45,7 @@ public class ResetPasswordModel(UserManager<AppUser> userManager) : PageModel
         var token = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Input.Token));
         var result = await userManager.ResetPasswordAsync(user, token, Input.Password);
         if (result.Succeeded)
-            return RedirectToPage("./ResetPasswordConfirmation");
+            return RedirectToPage("./ResetPasswordConfirmation", new { returnUrl = ReturnUrl });
 
         foreach (var error in result.Errors)
             ModelState.AddModelError(string.Empty, error.Description);
