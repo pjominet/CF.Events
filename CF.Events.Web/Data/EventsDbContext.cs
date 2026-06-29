@@ -1,3 +1,4 @@
+using CF.Events.Web.Data.Converters;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -11,6 +12,7 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
     public DbSet<InviteCode> InviteCodes => Set<InviteCode>();
     public DbSet<UserEvent> UserEvents => Set<UserEvent>();
     public DbSet<Rsvp> Rsvps => Set<Rsvp>();
+    public DbSet<EventConfig> RsvpConfigs => Set<EventConfig>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -34,9 +36,23 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
         builder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims", "identity");
         builder.Entity<IdentityUserToken<string>>().ToTable("UserTokens", "identity");
 
+        builder.Entity<EventConfig>(e =>
+        {
+            e.HasKey(r => r.EventId);
+
+            e.HasOne(r => r.Event)
+                .WithOne(r => r.EventConfig)
+                .HasForeignKey<EventConfig>(r => r.EventId)
+                .IsRequired(false);
+        });
+
         builder.Entity<Rsvp>(e =>
         {
             e.HasKey(r => new { r.EventId, r.UserId });
+
+            e.Property(r => r.CommonDietaryOptions)
+                .HasConversion(new EnumArrayConverter<DietaryOptions>())
+                .HasMaxLength(4000);
 
             e.HasOne(r => r.UserEvent)
                 .WithOne()

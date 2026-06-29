@@ -31,4 +31,5 @@ public class Event
     // navigation properties
     public HashSet<UserEvent> EventUsers { get; set; } = [];
     public HashSet<InviteCode> InviteCodes { get; set; } = [];
+    public EventConfig? EventConfig { get; set; }
 }

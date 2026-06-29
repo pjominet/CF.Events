@@ -38,7 +38,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
         HasResponded = rsvp.SubmittedAt > DateTime.MinValue.AddDays(1);
         Input.Attending = rsvp.Attending;
         Input.BringsPlusOne = rsvp.BringsPlusOne;
-        Input.JoinForDinner = rsvp.JoinForDinner;
+        Input.JoinForDinner = rsvp.JoinsForDinner;
         Input.Comments = rsvp.Comments;
 
         return Page();
@@ -59,7 +59,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
 
         rsvp.Attending = Input.Attending;
         rsvp.BringsPlusOne = Input is { Attending: true, BringsPlusOne: true };
-        rsvp.JoinForDinner = Input is { Attending: true, JoinForDinner: true };
+        rsvp.JoinsForDinner = Input is { Attending: true, JoinForDinner: true };
         rsvp.Comments = Input.Comments;
         rsvp.SubmittedAt = DateTime.UtcNow;
 
