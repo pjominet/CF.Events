@@ -36,7 +36,9 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
                 PositionClass = ToastPositions.TopRight,
                 TapToDismiss = true,
                 TimeOut = 5000,
-                ExtendedTimeOut = 750
+                ExtendedTimeOut = 750,
+                ShowMethod = "fadeIn",
+                HideMethod = "fadeOut"
             });
 
         services.AddControllers()
@@ -51,7 +53,9 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
                 PositionClass = ToastPositions.TopRight,
                 TapToDismiss = true,
                 TimeOut = 5000,
-                ExtendedTimeOut = 750
+                ExtendedTimeOut = 750,
+                ShowMethod = "fadeIn",
+                HideMethod = "fadeOut"
             });
 
         services.AddSession(options =>

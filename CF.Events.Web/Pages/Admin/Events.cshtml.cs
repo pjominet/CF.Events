@@ -43,73 +43,68 @@ public class EventsModel(
             return Page();
         }
 
-        Event ev;
-        bool isNew = NewEvent.Id == 0;
-
-        if (isNew)
+        Event? @event;
+        var createMode = NewEvent.Id == 0;
+        if (createMode)
         {
-            ev = new Event
-            {
-                CreatedAt = DateTime.UtcNow
-            };
-            db.Events.Add(ev);
+            @event = new Event { CreatedAt = DateTime.UtcNow };
+            db.Events.Add(@event);
         }
         else
         {
-            ev = await db.Events.Include(e => e.EventConfig).FirstOrDefaultAsync(e => e.Id == NewEvent.Id);
-            if (ev is null)
+            @event = await db.Events.Include(e => e.EventConfig).FirstOrDefaultAsync(e => e.Id == NewEvent.Id);
+            if (@event is null)
             {
                 toastNotification.AddErrorToastMessage("Event not found");
                 return RedirectToPage();
             }
         }
 
-        ev.Name = NewEvent.Name;
-        ev.Date = NewEvent.Date;
-        ev.Location = NewEvent.Location;
-        ev.Description = NewEvent.Description;
+        @event.Name = NewEvent.Name;
+        @event.Date = NewEvent.Date;
+        @event.Location = NewEvent.Location;
+        @event.Description = NewEvent.Description;
+        @event.AccommodationCode = NewEvent.AccommodationCode;
 
         if (technicalName is not null)
         {
-            if (!isNew && !string.IsNullOrEmpty(ev.InvitationFileName))
-            {
-                // Optional: Delete old image if replacing
-            }
-            ev.InvitationFileName = technicalName;
-            ev.OriginalInvitationFileName = originalName;
+            if (!createMode && !string.IsNullOrEmpty(@event.InvitationFileName))
+                DeleteInvitationImage(@event.Id, @event.InvitationFileName);
+            @event.InvitationFileName = technicalName;
+            @event.OriginalInvitationFileName = originalName;
         }
 
-        ev.EventConfig ??= new EventConfig { EventId = ev.Id };
-        ev.EventConfig.OfferDinner = NewEvent.OfferDinner;
-        ev.EventConfig.OfferLunch = NewEvent.OfferLunch;
-        ev.EventConfig.OfferBreakfast = NewEvent.OfferBreakfast;
-        ev.EventConfig.OfferBrunch = NewEvent.OfferBrunch;
-        ev.EventConfig.ShowAccommodationOptions = NewEvent.ShowAccommodationOptions;
-        ev.EventConfig.AllowComments = NewEvent.AllowComments;
-        ev.EventConfig.AllowPartners = NewEvent.AllowPartners;
-        ev.EventConfig.AllowKids = NewEvent.AllowKids;
+        @event.EventConfig ??= new EventConfig { EventId = @event.Id };
+        @event.EventConfig.OfferDinner = NewEvent.OfferDinner;
+        @event.EventConfig.OfferLunch = NewEvent.OfferLunch;
+        @event.EventConfig.OfferBreakfast = NewEvent.OfferBreakfast;
+        @event.EventConfig.OfferBrunch = NewEvent.OfferBrunch;
+        @event.EventConfig.ShowAccommodationOptions = NewEvent.ShowAccommodationOptions;
+        @event.EventConfig.AllowComments = NewEvent.AllowComments;
+        @event.EventConfig.AllowPartners = NewEvent.AllowPartners;
+        @event.EventConfig.AllowKids = NewEvent.AllowKids;
 
         await db.SaveChangesAsync();
 
         if (technicalName is not null)
-            await SaveInvitationImageAsync(ev.Id, NewEvent.InvitationImage!, technicalName);
+            await SaveInvitationImageAsync(@event.Id, NewEvent.InvitationImage!, technicalName);
 
-        toastNotification.AddSuccessToastMessage($"Event {(isNew ? "created" : "updated")} successfully!");
+        toastNotification.AddSuccessToastMessage($"Event {(createMode ? "created" : "updated")} successfully!");
         return RedirectToPage();
     }
 
     public async Task<IActionResult> OnPostToggleAsync(int id)
     {
-        var ev = await db.Events.FindAsync(id);
-        if (ev is null)
+        var @event = await db.Events.FindAsync(id);
+        if (@event is null)
         {
             toastNotification.AddWarningToastMessage("Event not found");
             return RedirectToPage();
         }
 
-        ev.IsActive = !ev.IsActive;
+        @event.IsActive = !@event.IsActive;
         await db.SaveChangesAsync();
-        toastNotification.AddSuccessToastMessage($"Event {(ev.IsActive ? "activated" : "deactivated")} successfully");
+        toastNotification.AddSuccessToastMessage($"Event {(@event.IsActive ? "activated" : "deactivated")} successfully");
         return RedirectToPage();
     }
 
@@ -133,23 +128,25 @@ public class EventsModel(
         return RedirectToPage();
     }
 
-    public string GetSerializedEvent(Event eventData)
+    public string GetSerializedEvent(Event @event)
     {
         return JsonSerializer.Serialize(new
         {
-            id = eventData.Id,
-            name = eventData.Name,
-            date = eventData.Date.ToString("yyyy-MM-dd"),
-            location = eventData.Location,
-            description = eventData.Description,
-            offerDinner = eventData.EventConfig?.OfferDinner ?? false,
-            offerLunch = eventData.EventConfig?.OfferLunch ?? false,
-            offerBreakfast = eventData.EventConfig?.OfferBreakfast ?? false,
-            offerBrunch = eventData.EventConfig?.OfferBrunch ?? false,
-            showAccommodationOptions = eventData.EventConfig?.ShowAccommodationOptions ?? false,
-            allowComments = eventData.EventConfig?.AllowComments ?? true,
-            allowPartners = eventData.EventConfig?.AllowPartners ?? true,
-            allowKids = eventData.EventConfig?.AllowKids ?? true
+            id = @event.Id,
+            name = @event.Name,
+            date = @event.Date.ToString("yyyy-MM-dd"),
+            location = @event.Location,
+            description = @event.Description,
+            offerDinner = @event.EventConfig?.OfferDinner ?? false,
+            offerLunch = @event.EventConfig?.OfferLunch ?? false,
+            offerBreakfast = @event.EventConfig?.OfferBreakfast ?? false,
+            offerBrunch = @event.EventConfig?.OfferBrunch ?? false,
+            accommodationCode = @event.AccommodationCode,
+            showAccommodationOptions = @event.EventConfig?.ShowAccommodationOptions ?? false,
+            allowComments = @event.EventConfig?.AllowComments ?? true,
+            allowPartners = @event.EventConfig?.AllowPartners ?? true,
+            allowKids = @event.EventConfig?.AllowKids ?? true,
+            originalInvitationFileName = @event.OriginalInvitationFileName
         });
     }
 
@@ -177,7 +174,7 @@ public class EventsModel(
         );
     }
 
-    private void DeleteInvitationImage(int eventId)
+    private void DeleteInvitationImage(int eventId, string? fileName = null)
     {
         try
         {
@@ -186,8 +183,17 @@ public class EventsModel(
             if (!dir.StartsWith(invitationsRoot + Path.DirectorySeparatorChar, StringComparison.Ordinal))
                 return;
 
-            if (Directory.Exists(dir))
-                Directory.Delete(dir, recursive: true);
+            if (string.IsNullOrEmpty(fileName))
+            {
+                if (Directory.Exists(dir))
+                    Directory.Delete(dir, recursive: true);
+            }
+            else
+            {
+                var filePath = Path.Combine(dir, fileName);
+                if (System.IO.File.Exists(filePath))
+                    System.IO.File.Delete(filePath);
+            }
         }
         catch
         {
@@ -238,6 +244,9 @@ public class EventsModel(
 
         [StringLength(500)]
         public string? Description { get; init; }
+
+        [StringLength(100)]
+        public string? AccommodationCode { get; init; }
 
         public IFormFile? InvitationImage { get; init; }
 

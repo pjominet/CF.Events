@@ -25,10 +25,11 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
         if (string.IsNullOrWhiteSpace(userId))
             return Challenge();
 
-        var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
-        if (rsvp is null && !User.IsAdmin())
+        var isInvited = await db.UserEvents.AnyAsync(r => r.EventId == eventId && r.UserId == userId);
+        if (!isInvited && !User.IsAdmin())
             return Redirect("/");
 
+        var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
         EventData = await db.Events
             .Include(e => e.EventConfig)
             .FirstOrDefaultAsync(e => e.Id == eventId);
@@ -39,14 +40,18 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
 
         HasResponded = rsvp.SubmittedAt > DateTime.MinValue.AddDays(1);
         Input.Attending = rsvp.Attending;
-        Input.BringsPlusOne = rsvp.BringsPlusOne;
-        Input.BringsKids = rsvp.BringsKids;
-        Input.JoinsForDinner = rsvp.JoinsForDinner;
-        Input.JoinsForLunch = rsvp.JoinsForLunch;
-        Input.JoinsForBreakfast = rsvp.JoinsForBreakfast;
-        Input.JoinsForBrunch = rsvp.JoinsForBrunch;
-        Input.NeedsAccommodation = rsvp.NeedsAccommodation;
+        Input.BringsPlusOne = rsvp.BringsPlusOne == true;
+        Input.BringsKids = rsvp.BringsKids == true;
+        Input.JoinsForDinner = rsvp.JoinsForDinner == true;
+        Input.JoinsForLunch = rsvp.JoinsForLunch == true;
+        Input.JoinsForBreakfast = rsvp.JoinsForBreakfast == true;
+        Input.JoinsForBrunch = rsvp.JoinsForBrunch == true;
+        Input.NeedsAccommodation = rsvp.NeedsAccommodation == true;
+        Input.AccommodationDuration = rsvp.AccommodationDuration;
+        Input.CommonDietaryOptions = rsvp.CommonDietaryOptions;
+        Input.OtherDietaryDetails = rsvp.OtherDietaryDetails;
         Input.Comments = rsvp.Comments;
+        Input.KidsDetails = rsvp.KidsDetails ?? new Dictionary<KidAgeBracket, int>();
 
         return Page();
     }
@@ -75,13 +80,21 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
         rsvp.SubmittedAt = DateTime.UtcNow;
         if (Input.Attending)
         {
-            rsvp.BringsPlusOne = eventConfig.AllowPartners && Input.BringsPlusOne == true;
-            rsvp.BringsKids = eventConfig.AllowKids && Input.BringsKids == true;
-            rsvp.JoinsForDinner = eventConfig.OfferDinner && Input.JoinsForDinner == true;
-            rsvp.JoinsForLunch = eventConfig.OfferLunch && Input.JoinsForLunch == true;
-            rsvp.JoinsForBreakfast = eventConfig.OfferBreakfast && Input.JoinsForBreakfast == true;
-            rsvp.JoinsForBrunch = eventConfig.OfferBrunch && Input.JoinsForBrunch == true;
-            rsvp.NeedsAccommodation = eventConfig.ShowAccommodationOptions && Input.NeedsAccommodation == true;
+            rsvp.BringsPlusOne = eventConfig.AllowPartners && Input.BringsPlusOne;
+            rsvp.BringsKids = eventConfig.AllowKids && Input.BringsKids;
+            rsvp.JoinsForDinner = eventConfig.OfferDinner && Input.JoinsForDinner;
+            rsvp.JoinsForLunch = eventConfig.OfferLunch && Input.JoinsForLunch;
+            rsvp.JoinsForBreakfast = eventConfig.OfferBreakfast && Input.JoinsForBreakfast;
+            rsvp.JoinsForBrunch = eventConfig.OfferBrunch && Input.JoinsForBrunch;
+            rsvp.NeedsAccommodation = eventConfig.ShowAccommodationOptions && Input.NeedsAccommodation;
+            rsvp.AccommodationDuration = rsvp.NeedsAccommodation == true ? Input.AccommodationDuration : null;
+
+            var offersFood = eventConfig.OfferDinner || eventConfig.OfferLunch || eventConfig.OfferBreakfast || eventConfig.OfferBrunch;
+            rsvp.CommonDietaryOptions = offersFood ? Input.CommonDietaryOptions : null;
+            rsvp.OtherDietaryDetails = offersFood ? Input.OtherDietaryDetails : null;
+
+            rsvp.KidsDetails = rsvp.BringsKids == true ? Input.KidsDetails : null;
+
             rsvp.Comments = eventConfig.AllowComments ? Input.Comments : null;
         }
 
@@ -94,13 +107,20 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
     public sealed class InputModel
     {
         public bool Attending { get; set; } = true;
-        public bool? BringsPlusOne { get; set; }
-        public bool? BringsKids { get; set; }
-        public bool? JoinsForDinner { get; set; }
-        public bool? JoinsForLunch { get; set; }
-        public bool? JoinsForBreakfast { get; set; }
-        public bool? JoinsForBrunch { get; set; }
-        public bool? NeedsAccommodation { get; set; }
+        public bool BringsPlusOne { get; set; }
+        public bool BringsKids { get; set; }
+        public bool JoinsForDinner { get; set; }
+        public bool JoinsForLunch { get; set; }
+        public bool JoinsForBreakfast { get; set; }
+        public bool JoinsForBrunch { get; set; }
+        public bool NeedsAccommodation { get; set; }
+        public int? AccommodationDuration { get; set; }
+
+        public DietaryOptions[]? CommonDietaryOptions { get; set; }
+        public string? OtherDietaryDetails { get; set; }
+
+        public Dictionary<KidAgeBracket, int> KidsDetails { get; set; } = new();
+
         [StringLength(500)]
         public string? Comments { get; set; }
     }

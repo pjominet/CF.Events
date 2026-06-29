@@ -51,8 +51,13 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
             e.HasKey(r => new { r.EventId, r.UserId });
 
             e.Property(r => r.CommonDietaryOptions)
-                .HasConversion(new EnumArrayConverter<DietaryOptions>())
-                .HasMaxLength(4000);
+                .HasConversion(new EnumArrayConverter<DietaryOptions>()!)
+                .HasMaxLength(4000)
+                .IsRequired(false);
+
+            e.Property(r => r.KidsDetails)
+                .HasConversion(new DictionaryConverter<KidAgeBracket, int>()!)
+                .IsRequired(false);
 
             e.HasOne(r => r.UserEvent)
                 .WithOne()

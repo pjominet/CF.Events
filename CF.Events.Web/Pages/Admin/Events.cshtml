@@ -32,6 +32,7 @@
                         <th>Name</th>
                         <th>Date</th>
                         <th>Design</th>
+                        <th>Accommodation Code</th>
                         <th>Invitees</th>
                         <th>Active</th>
                         <th>Actions</th>
@@ -46,7 +47,17 @@
                             <td>
                                 @if (!string.IsNullOrEmpty(eventData.InvitationFileName))
                                 {
-                                    <span class="badge bg-primary" title="@eventData.OriginalInvitationFileName">@(eventData.OriginalInvitationFileName ?? "Custom image")</span>
+                                    <span class="badge bg-primary">@(eventData.OriginalInvitationFileName ?? "Custom image")</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">None</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(eventData.AccommodationCode))
+                                {
+                                    <span class="badge bg-primary">@(eventData.AccommodationCode)</span>
                                 }
                                 else
                                 {
@@ -78,13 +89,6 @@
                                     <a href="/admin/events/@eventData.Id/invitees" class="btn btn-primary btn-sm" title="Manage Invitees" data-bs-toggle="tooltip">
                                         <i class="bi bi-people"></i>
                                     </a>
-                                    <div data-bs-toggle="tooltip" title="Regenerate Code">
-                                        <button type="button" class="btn btn-warning btn-sm rounded-0"
-                                                data-bs-toggle="modal" data-bs-target="#regenerateCodeModal"
-                                                data-bs-event-id="@eventData.Id" data-bs-event-name="@eventData.Name">
-                                            <i class="bi bi-arrow-clockwise"></i>
-                                        </button>
-                                    </div>
                                     <form method="post" asp-page-handler="Delete" asp-route-id="@eventData.Id"
                                           onsubmit="return confirm('Delete event &quot;@eventData.Name&quot; and all its invitations? This cannot be undone.');">
                                         <button type="submit" class="btn btn-danger btn-sm rounded-start-0 rounded-end-1" title="Delete Event" data-bs-toggle="tooltip">
@@ -107,9 +111,8 @@
 </div>
 
 <partial name="Shared/_EditEventModal" model="Model.NewEvent"/>
-<partial name="Shared/_RegenerateCodeModal" />
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script src="js/events.js" type="text/javascript" asp-append-version="true"></script>
+    <script src="/js/events.js" type="text/javascript" asp-append-version="true"></script>
 }

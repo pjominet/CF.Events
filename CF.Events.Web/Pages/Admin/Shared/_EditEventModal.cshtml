@@ -3,7 +3,7 @@
     var show = ViewData[ViewDataKeys.ShowEventModal] as bool? ?? false;
 }
 <div class="modal fade" id="editEventModal" data-bs-backdrop="static" tabindex="-1" data-autoshow="@(show ? "true" : "false")">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <form method="post" asp-page-handler="Save" enctype="multipart/form-data">
                 <input type="hidden" asp-for="Id" />
@@ -12,29 +12,45 @@
                 </div>
                 <div class="modal-body">
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Event Name</label>
-                        <input asp-for="Name" class="form-control" placeholder="Wedding" />
-                        <span asp-validation-for="Name" class="text-danger"></span>
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold">Event Name</label>
+                            <input asp-for="Name" class="form-control" placeholder="Wedding" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold">Date</label>
+                            <input asp-for="Date" type="date" class="form-control" />
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Date</label>
-                        <input asp-for="Date" type="date" class="form-control" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Location</label>
-                        <input asp-for="Location" class="form-control" placeholder="Grand Hall" />
-                        <span asp-validation-for="Location" class="text-danger"></span>
-                    </div>
+
                     <div class="mb-3">
                         <label class="form-label fw-bold">Description</label>
                         <textarea asp-for="Description" class="form-control" placeholder="Optional Description" rows="3"></textarea>
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label fw-bold">Invitation Image</label>
                         <input asp-for="InvitationImage" type="file" accept="image/*" class="form-control" />
                         <span asp-validation-for="InvitationImage" class="text-danger"></span>
+                        <div id="currentInvitationImageWrapper" class="mt-1" style="display: none;">
+                            <small class="text-muted">Current file: <span id="currentInvitationImageName" class="fw-bold"></span></small>
+                        </div>
                         <div class="form-text">Portrait images work best. Larger images are cropped to portrait for the invite card.</div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold">Location</label>
+                            <input asp-for="Location" class="form-control" placeholder="Grand Hall" />
+                            <span asp-validation-for="Location" class="text-danger"></span>
+                        </div>
+                        <div class="col-12 col-md-6" id="accommodationCodeWrapper" style="display: @(Model.ShowAccommodationOptions ? "block" : "none")">
+                            <label class="form-label fw-bold">Accommodation Code</label>
+                            <input asp-for="AccommodationCode" class="form-control" placeholder="WEDDING2026" />
+                            <span asp-validation-for="AccommodationCode" class="text-danger"></span>
+                            <div class="form-text">This code will be shown to guests if accommodations are enabled.</div>
+                        </div>
                     </div>
 
                     <hr />
