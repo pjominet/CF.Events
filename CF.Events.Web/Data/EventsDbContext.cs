@@ -12,7 +12,7 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
     public DbSet<InviteCode> InviteCodes => Set<InviteCode>();
     public DbSet<UserEvent> UserEvents => Set<UserEvent>();
     public DbSet<Rsvp> Rsvps => Set<Rsvp>();
-    public DbSet<EventConfig> RsvpConfigs => Set<EventConfig>();
+    public DbSet<EventConfig> EventConfigs => Set<EventConfig>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

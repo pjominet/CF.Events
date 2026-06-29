@@ -12,21 +12,21 @@ public class Rsvp
     public string UserId { get; set; } = string.Empty;
 
     public bool Attending { get; set; } = true;
-    public bool BringsPlusOne { get; set; }
-    public bool BringsKids { get; set; }
+    public bool? BringsPlusOne { get; set; }
+    public bool? BringsKids { get; set; }
     // number of kids per age bracket
-    public Dictionary<KidAgeBracket, int> KidsDetails { get; set; } = [];
+    public Dictionary<KidAgeBracket, int>? KidsDetails { get; set; }
 
-    public bool JoinsForDinner { get; set; }
-    public bool JoinsForLunch { get; set; }
-    public DietaryOptions[] CommonDietaryOptions { get; set; } = [];
+    public bool? JoinsForDinner { get; set; }
+    public bool? JoinsForLunch { get; set; }
+    public bool? JoinsForBreakfast { get; set; }
+    public bool? JoinsForBrunch { get; set; }
+    public DietaryOptions[]? CommonDietaryOptions { get; set; }
     [StringLength(500)]
     public string? OtherDietaryDetails { get; set; }
 
-    public bool NeedsAccommodation { get; set; }
-    [StringLength(100)]
-    public string? AccommodationCode { get; set; }
-    public int AccommodationDuration { get; set; }
+    public bool? NeedsAccommodation { get; set; }
+    public int? AccommodationDuration { get; set; }
 
     [StringLength(500)]
     public string? Comments { get; set; }

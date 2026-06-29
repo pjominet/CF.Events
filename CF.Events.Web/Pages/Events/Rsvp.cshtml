@@ -23,24 +23,85 @@
                 </div>
             </div>
 
-            <div id="additionalOptions" class="d-flex flex-column gap-3 mt-2" style="@(Model.Input.Attending ? "" : "display:none;")">
+            <div id="additionalOptions" class="d-flex flex-column gap-3 mt-2" style="display:@(Model.Input.Attending ? "block" : "none")">
                 <div class="row g-3 justify-content-center">
-                    <div class="col-auto">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" asp-for="Input.BringsPlusOne" id="plusOne" />
-                            <label class="form-check-label" for="plusOne">Bringing a +1?</label>
+                    @if (Model.EventData?.EventConfig?.AllowPartners == true)
+                    {
+                        <div class="col-auto">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" asp-for="Input.BringsPlusOne" id="plusOne" />
+                                <label class="form-check-label" for="plusOne">Bringing a +1?</label>
+                            </div>
+                        </div>
+                    }
+                    @if (Model.EventData?.EventConfig?.AllowKids == true)
+                    {
+                        <div class="col-auto">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" asp-for="Input.BringsKids" id="kids" />
+                                <label class="form-check-label" for="kids">Bringing kids?</label>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="row g-3 justify-content-center">
+                    @if (Model.EventData?.EventConfig?.OfferBreakfast == true)
+                    {
+                        <div class="col-auto">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" asp-for="Input.JoinsForBreakfast" id="breakfast" />
+                                <label class="form-check-label" for="breakfast">Breakfast?</label>
+                            </div>
+                        </div>
+                    }
+                    @if (Model.EventData?.EventConfig?.OfferBrunch == true)
+                    {
+                        <div class="col-auto">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" asp-for="Input.JoinsForBrunch" id="brunch" />
+                                <label class="form-check-label" for="brunch">Brunch?</label>
+                            </div>
+                        </div>
+                    }
+                    @if (Model.EventData?.EventConfig?.OfferLunch == true)
+                    {
+                        <div class="col-auto">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" asp-for="Input.JoinsForLunch" id="lunch" />
+                                <label class="form-check-label" for="lunch">Lunch?</label>
+                            </div>
+                        </div>
+                    }
+                    @if (Model.EventData?.EventConfig?.OfferDinner == true)
+                    {
+                        <div class="col-auto">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" asp-for="Input.JoinsForDinner" id="dinner" />
+                                <label class="form-check-label" for="dinner">Dinner?</label>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                @if (Model.EventData?.EventConfig?.ShowAccommodationOptions == true)
+                {
+                    <div class="row g-3 justify-content-center">
+                        <div class="col-auto">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" asp-for="Input.NeedsAccommodation" id="accommodation" />
+                                <label class="form-check-label" for="accommodation">Need Accommodation?</label>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-auto">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" asp-for="Input.JoinForDinner" id="dinner" />
-                            <label class="form-check-label" for="dinner">Join us for dinner?</label>
-                        </div>
+                }
+
+                @if (Model.EventData?.EventConfig?.AllowComments == true)
+                {
+                    <div>
+                        <textarea asp-for="Input.Comments" class="form-control" maxlength="500" placeholder="Add a comment... (optional)" rows="3"></textarea>
                     </div>
-                </div>
-                <div>
-                    <textarea asp-for="Input.Comments" class="form-control" maxlength="500" placeholder="Add a comment... (optional)" rows="3"></textarea>
-                </div>
+                }
             </div>
 
             <p class="d-flex justify-content-center my-2 text-muted text-center" style="font-size: 0.8rem;">
@@ -59,14 +120,14 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>
-        (function () {
-            var options = document.getElementById("additionalOptions");
-            document.querySelectorAll('input[name="Input.Attending"]').forEach(function (radio) {
-                radio.addEventListener("change", function () {
-                    options.style.display = (this.value === "true" || this.value === "True") ? "" : "none";
-                });
-            });
-        })();
-    </script>
+            <script>
+                (function () {
+                    var options = document.getElementById("additionalOptions");
+                    document.querySelectorAll('input[name="Input.Attending"]').forEach(function (radio) {
+                        radio.addEventListener("change", function () {
+                            options.style.display = (this.value === "true" || this.value === "True") ? "block" : "none";
+                        });
+                    });
+                })();
+            </script>
 }

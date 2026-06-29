@@ -18,6 +18,9 @@ public class Event
     [StringLength(100)]
     public string? Location { get; set; }
 
+    [StringLength(100)]
+    public string? AccommodationCode { get; set; }
+
     [StringLength(255)]
     public string? InvitationFileName { get; set; }
 
