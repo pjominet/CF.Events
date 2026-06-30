@@ -54,8 +54,11 @@
                 settings.closeAfterSelect = false;
             } else {
                 settings.maxItems = 1;
-                settings.clearAfterSelect = true;
+                settings.clearAfterSelect = false;
                 settings.closeAfterSelect = true;
+                settings.onItemAdd = function() {
+                    this.blur();
+                };
             }
 
             if (el.classList.contains("tom-select-html")) {

@@ -84,6 +84,8 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
         {
             e.HasIndex(r => r.Code).IsUnique();
 
+            e.Property(r => r.Label).IsRequired();
+
             e.HasOne(r => r.Event)
                 .WithMany(r => r.InviteCodes)
                 .HasForeignKey(r => r.EventId)

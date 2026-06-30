@@ -4,11 +4,14 @@ namespace CF.Events.Web.Models;
 
 public class InviteCode
 {
-    public int Id { get; set; }
+    public int Id { get; init; }
 
     [Required]
     [StringLength(100)]
     public required string Code { get; init; }
+
+    [StringLength(100)]
+    public string? Label { get; init; }
 
     public int EventId { get; init; }
 

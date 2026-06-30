@@ -63,7 +63,7 @@ public class EventController(
         if (!eventExists)
         {
             toastNotification.AddWarningToastMessage("Event not found or not active anymore");
-            return RedirectToPage($"/admin/events/{eventId}/invitees");
+            return LocalRedirect($"/admin/events/{eventId}/invitees");
         }
 
         // Get only the invite codes needed for validation
@@ -74,7 +74,7 @@ public class EventController(
         if (!IsValidCode(existingCodes, invite.InviteCode, out var validCode))
         {
             toastNotification.AddWarningToastMessage("Invalid or expired invite code");
-            return RedirectToPage($"/admin/events/{eventId}/invitees");
+            return LocalRedirect($"/admin/events/{eventId}/invitees");
         }
 
         // Get users who are already invited to this event
@@ -91,7 +91,7 @@ public class EventController(
         if (newUserIds.Count == 0)
         {
             toastNotification.AddWarningToastMessage("All selected users are already invited to this event");
-            return RedirectToPage($"/admin/events/{eventId}/invitees");
+            return LocalRedirect($"/admin/events/{eventId}/invitees");
         }
 
         string? accommodationCode = null;
@@ -237,12 +237,12 @@ public class EventController(
 
     [HttpPost("{eventId:int}/regenerate-code")]
     [Authorize(Roles = Roles.Admin)]
-    public async Task<IActionResult> RegenerateCode([FromRoute] int eventId, [FromForm] int validDays)
+    public async Task<IActionResult> RegenerateCode([FromRoute] int eventId, [FromForm] int validDays, [FromForm] string? label)
     {
         // Try to use referrer for redirect if possible, otherwise default to events list
         var referrer = Request.Headers.Referer.ToString();
-        var eventExists = await db.Events.AnyAsync(e => e.Id == eventId);
-        if (!eventExists)
+        var @event = await db.Events.FirstOrDefaultAsync(e => e.Id == eventId);
+        if (@event is null)
         {
             toastNotification.AddWarningToastMessage("Event not found");
             if (!string.IsNullOrEmpty(referrer))
@@ -250,10 +250,17 @@ public class EventController(
             return RedirectToPage("/admin/events");
         }
 
+        if (string.IsNullOrWhiteSpace(label))
+        {
+            var firstWord = @event.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "EVENT";
+            label = $"{firstWord.ToUpper()}{@event.Date.Year}";
+        }
+
         var newCode = new InviteCode
         {
             EventId = eventId,
-            Code = CodeGenerator.Generate(16),
+            Code = CodeGenerator.Generate(32),
+            Label = label,
             ValidUntil = DateTime.UtcNow.AddDays(validDays),
             CreatedAt = DateTime.UtcNow
         };
@@ -261,7 +268,7 @@ public class EventController(
         db.InviteCodes.Add(newCode);
         await db.SaveChangesAsync();
 
-        toastNotification.AddSuccessToastMessage("New invite code generated");
+        toastNotification.AddSuccessToastMessage($"New invite code '{label}' generated");
 
         if (!string.IsNullOrEmpty(referrer))
             return Redirect(referrer);
