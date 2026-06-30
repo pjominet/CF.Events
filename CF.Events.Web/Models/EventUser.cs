@@ -2,7 +2,7 @@
 
 namespace CF.Events.Web.Models;
 
-public class UserEvent
+public class EventUser
 {
     [StringLength(450)]
     public required string UserId { get; set; }

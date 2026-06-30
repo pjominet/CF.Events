@@ -160,7 +160,7 @@ public class EventsModel(
             .OrderByDescending(e => e.Date)
             .ToListAsync();
 
-        var eventUsers = await db.UserEvents.ToListAsync();
+        var eventUsers = await db.EventUsers.ToListAsync();
         InviteeCounts = eventUsers
             .GroupBy(r => r.EventId)
             .ToDictionary(g => g.Key, g => g.Count());

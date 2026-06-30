@@ -34,7 +34,7 @@ public class Rsvp
     public DateTime SubmittedAt { get; set; } = DateTime.UtcNow;
 
     // navigation properties
-    public UserEvent UserEvent { get; init; } = null!;
+    public EventUser EventUser { get; init; } = null!;
 }
 
 public enum DietaryOptions

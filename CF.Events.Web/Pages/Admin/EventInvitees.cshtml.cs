@@ -35,14 +35,14 @@ public class EventInviteesModel(
 
     public async Task<IActionResult> OnPostRemoveAsync(int id, string? userId)
     {
-        var userEvent = await db.UserEvents.FirstOrDefaultAsync(r => r.EventId == id && r.UserId == userId);
+        var userEvent = await db.EventUsers.FirstOrDefaultAsync(r => r.EventId == id && r.UserId == userId);
         if (userEvent is null)
         {
             toastNotification.AddWarningToastMessage("Invitee not found");
             return RedirectToPage(new { id });
         }
 
-        db.UserEvents.Remove(userEvent);
+        db.EventUsers.Remove(userEvent);
         await db.SaveChangesAsync();
 
         toastNotification.AddSuccessToastMessage("Invitee successfully removed");
@@ -63,7 +63,7 @@ public class EventInviteesModel(
             .OrderByDescending(c => c.CreatedAt)
             .FirstOrDefault()?.Code ?? "No valid code";
 
-        var invitedUsers = db.UserEvents
+        var invitedUsers = db.EventUsers
             .Where(ue => ue.EventId == id)
             .Include(ue => ue.User)
             .Select(ue => new { ue.AssignedAccommodationCode, ue.User, InvitationEmailSent = ue.InviteEmailSent, ue.ScheduledFor })

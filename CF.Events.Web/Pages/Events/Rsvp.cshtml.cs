@@ -26,7 +26,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
         if (string.IsNullOrWhiteSpace(userId))
             return Challenge();
 
-        var userEvent = await db.UserEvents.FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
+        var userEvent = await db.EventUsers.FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
         if (userEvent is null && !User.IsAdmin())
             return Redirect("/");
 

@@ -10,7 +10,7 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
 {
     public DbSet<Event> Events => Set<Event>();
     public DbSet<InviteCode> InviteCodes => Set<InviteCode>();
-    public DbSet<UserEvent> UserEvents => Set<UserEvent>();
+    public DbSet<EventUser> EventUsers => Set<EventUser>();
     public DbSet<Rsvp> Rsvps => Set<Rsvp>();
     public DbSet<EventConfig> EventConfigs => Set<EventConfig>();
 
@@ -59,13 +59,13 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
                 .HasConversion(new DictionaryConverter<KidAgeBracket, int>()!)
                 .IsRequired(false);
 
-            e.HasOne(r => r.UserEvent)
+            e.HasOne(r => r.EventUser)
                 .WithOne(u => u.Rsvp)
                 .HasForeignKey<Rsvp>(r => new { r.EventId, r.UserId })
                 .IsRequired(false);
         });
 
-        builder.Entity<UserEvent>(e =>
+        builder.Entity<EventUser>(e =>
         {
             e.HasKey(r => new { r.EventId, r.UserId });
 

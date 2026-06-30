@@ -24,7 +24,7 @@ public class InvitesModel(EventsDbContext db) : PageModel
 
         PageNumber = pageNumber;
 
-        var query = db.UserEvents
+        var query = db.EventUsers
             .Where(r => r.UserId == userId && r.Event.IsActive)
             .Include(r => r.Event)
             .Include(r => r.Rsvp)

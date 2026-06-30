@@ -1,6 +1,6 @@
 ﻿namespace CF.Events.Web.Models;
 
-public class BulkInvite
+public record UserInvites
 {
     public required List<string> UserIds { get; init; }
     public required string InviteCode { get; init; }
