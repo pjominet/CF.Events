@@ -60,7 +60,7 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
                 .IsRequired(false);
 
             e.HasOne(r => r.UserEvent)
-                .WithOne()
+                .WithOne(u => u.Rsvp)
                 .HasForeignKey<Rsvp>(r => new { r.EventId, r.UserId })
                 .IsRequired(false);
         });
