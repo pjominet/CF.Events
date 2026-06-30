@@ -58,6 +58,17 @@
                 settings.closeAfterSelect = true;
             }
 
+            if (el.classList.contains("tom-select-html")) {
+                settings.render = {
+                    option: function(data, escape) {
+                        return '<div>' + (data.html || escape(data.text)) + '</div>';
+                    },
+                    item: function(data, escape) {
+                        return '<div>' + (data.html || escape(data.text)) + '</div>';
+                    }
+                };
+            }
+
             new TomSelect(el, settings);
         });
     }

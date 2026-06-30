@@ -70,7 +70,8 @@
                                         <option value=""></option>
                                         @foreach (var (inviteCode, validUntil) in Model.CurrentInviteCodes)
                                         {
-                                            <option value="@inviteCode">@inviteCode (<i class="bi bi-clock-history"></i> @validUntil.ToString("g"))</option>
+                                            var validDays = (int)Math.Round((validUntil - DateTime.UtcNow).TotalDays);
+                                            <option value="@inviteCode">@inviteCode (valid @validDays days)</option>
                                         }
                                     </select>
                                 </div>
