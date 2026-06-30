@@ -46,7 +46,7 @@
                 }
                 else
                 {
-                    <form method="post" asp-action="InviteUsers" asp-controller="Event" asp-route-eventId="@Model.EventData!.Id" class="row g-2 align-items-center">
+                    <form method="post" asp-action="InviteUsers" asp-controller="Event" asp-route-eventId="@Model.EventData!.Id" class="row g-2 align-items-center" onsubmit="showLoadingOverlay()">
                         @Html.AntiForgeryToken()
                         <div class="col-12 mb-3">
                             <select name="UserIds" asp-items="Model.AvailableUsers" class="form-select tom-select" required multiple placeholder="Select users to invite..."></select>
