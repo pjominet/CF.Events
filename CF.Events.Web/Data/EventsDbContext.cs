@@ -1,3 +1,4 @@
+using CF.Events.Web.Data.Comparers;
 using CF.Events.Web.Data.Converters;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Identity;
@@ -52,12 +53,12 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
             e.HasKey(r => new { r.EventId, r.UserId });
 
             e.Property(r => r.CommonDietaryOptions)
-                .HasConversion(new EnumArrayConverter<DietaryOptions>()!)
+                .HasConversion(new EnumArrayConverter<DietaryOptions>()!, new EnumArrayComparer<DietaryOptions>())
                 .HasMaxLength(4000)
                 .IsRequired(false);
 
             e.Property(r => r.KidsDetails)
-                .HasConversion(new DictionaryConverter<KidAgeBracket, int>()!)
+                .HasConversion(new DictionaryConverter<KidAgeBracket, int>()!, new DictionaryComparer<KidAgeBracket, int>())
                 .IsRequired(false);
 
             e.HasOne(r => r.EventUser)
