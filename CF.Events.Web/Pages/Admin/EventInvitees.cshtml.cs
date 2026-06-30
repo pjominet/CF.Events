@@ -17,6 +17,8 @@ public class EventInviteesModel(
 {
     public Event? EventData { get; private set; }
     public string CurrentInviteCode { get; private set; } = "No valid code";
+    public bool SendEmailsOnInvite { get; set; } = true;
+    public bool AllowUseOfAccommodationCode { get; set; }
 
     public List<InviteeRow> Invitees { get; private set; } = [];
 
@@ -60,25 +62,28 @@ public class EventInviteesModel(
             .OrderByDescending(c => c.CreatedAt)
             .FirstOrDefault()?.Code ?? "No valid code";
 
-        var invitedUsers = db.UserEvents.Where(ue => ue.EventId == id).Select(ue => ue.User!).ToList();
+        var invitedUsers = db.UserEvents.Where(ue => ue.EventId == id).Select(ue => new {ue.AssignedAccommodationCode, ue.User}).ToList();
         var rsvps = db.Rsvps.Where(r => r.EventId == id).ToList();
 
+        var unavailableUsers = new HashSet<string>();
         Invitees = invitedUsers
-            .Select(u =>
+            .Select(iu =>
             {
-                var rsvp = rsvps.FirstOrDefault(r => r.UserId == u.Id);
+                var user = iu.User;
+                var rsvp = rsvps.FirstOrDefault(r => r.UserId == user.Id);
                 var responded = rsvp?.SubmittedAt > DateTime.MinValue.AddDays(1);
                 var status = responded ? (rsvp?.Attending == true ? "Attending" : "Declined") : "Pending";
+                unavailableUsers.Add(user.Id);
                 return new InviteeRow(
-                    u.Id,
-                    u.DisplayName!,
-                    u.Email!,
+                    user.Id,
+                    user.DisplayName!,
+                    user.Email!,
+                    iu.AssignedAccommodationCode,
                     status);
             })
             .OrderBy(i => i.DisplayName)
             .ToList();
 
-        var unavailableUsers = invitedUsers.Select(i => i.Id);
         AvailableUsers = await db.Users
             .Where(u => u.IsActive && !unavailableUsers.Contains(u.Id))
             .OrderBy(u => u.DisplayName)
@@ -88,5 +93,5 @@ public class EventInviteesModel(
         return true;
     }
 
-    public record InviteeRow(string UserId, string DisplayName, string Email, string Status);
+    public record InviteeRow(string UserId, string DisplayName, string Email, string? AssignedAccommodationCode, string Status);
 }

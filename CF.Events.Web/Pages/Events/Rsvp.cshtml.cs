@@ -15,6 +15,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
 {
     public Event? EventData { get; private set; }
     public bool HasResponded { get; private set; }
+    public string? AssignedAccommodationCode { get; private set; }
 
     [BindProperty]
     public InputModel Input { get; set; } = new();
@@ -25,8 +26,8 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
         if (string.IsNullOrWhiteSpace(userId))
             return Challenge();
 
-        var isInvited = await db.UserEvents.AnyAsync(r => r.EventId == eventId && r.UserId == userId);
-        if (!isInvited && !User.IsAdmin())
+        var userEvent = await db.UserEvents.FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
+        if (userEvent is null && !User.IsAdmin())
             return Redirect("/");
 
         var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
@@ -38,6 +39,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
 
         if (rsvp is null) return Page();
 
+        AssignedAccommodationCode = userEvent?.AssignedAccommodationCode;
         HasResponded = rsvp.SubmittedAt > DateTime.MinValue.AddDays(1);
         Input.Attending = rsvp.Attending;
         Input.BringsPlusOne = rsvp.BringsPlusOne == true;

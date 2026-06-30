@@ -56,7 +56,7 @@ public class EventController(
 
     [HttpPost("{eventId:int}/invite-users")]
     [Authorize(Roles = Roles.Admin)]
-    public async Task<IActionResult> InviteUsers([FromRoute] int eventId, [FromForm] List<string> userIds, [FromForm] string inviteCode)
+    public async Task<IActionResult> InviteUsers([FromRoute] int eventId, [FromForm] BulkInvite invite)
     {
         var eventData = await db.Events
             .Where(e => e.Id == eventId && e.IsActive)
@@ -71,7 +71,7 @@ public class EventController(
         }
 
         var validCode = eventData.InviteCodes
-            .Where(c => c.Code == inviteCode && c.ValidUntil > DateTime.UtcNow)
+            .Where(c => c.Code == invite.InviteCode && c.ValidUntil > DateTime.UtcNow)
             .OrderByDescending(c => c.CreatedAt)
             .Select(c => c.Code)
             .FirstOrDefault();
@@ -83,29 +83,34 @@ public class EventController(
         }
 
         var existingUserIds = eventData.EventUsers.Select(eu => eu.UserId).ToHashSet();
-        var newUserIds = userIds.Where(userid => !existingUserIds.Contains(userid)).ToList();
+        var newUserIds = invite.UserIds.Where(userid => !existingUserIds.Contains(userid)).ToList();
 
         foreach (var userId in newUserIds)
         {
             eventData.EventUsers.Add(new UserEvent
             {
                 EventId = eventId,
-                UserId = userId
+                UserId = userId,
+                AssignedAccommodationCode = invite.AllowUseOfAccommodationCode ? eventData.AccommodationCode : null
             });
         }
 
         try
         {
             var count = await db.SaveChangesAsync();
-            var newUsers = await db.Users
-                .Where(u => newUserIds.Contains(u.Id))
-                .ToListAsync();
 
-            foreach (var user in newUsers)
+            if (invite.SendEmailsOnInvite)
             {
-                logger.LogInformation("Sending invitation to {Email}", user.Email);
-                var callbackUrl = Url.Action("InvitationCallback", "Event", new { code = inviteCode, email = user.Email }, Request.Scheme);
-                await mailService.SendInvitationAsync(eventData.Name, user.DisplayName!, user.Email!, callbackUrl!);
+                var newUsers = await db.Users
+                    .Where(u => newUserIds.Contains(u.Id))
+                    .ToListAsync();
+
+                foreach (var user in newUsers)
+                {
+                    logger.LogInformation("Sending invitation to {Email}", user.Email);
+                    var callbackUrl = Url.Action("InvitationCallback", "Event", new { code = invite.InviteCode, email = user.Email }, Request.Scheme);
+                    await mailService.SendInvitationAsync(eventData.Name, user.DisplayName!, user.Email!, callbackUrl!);
+                }
             }
 
             toastNotification.AddSuccessToastMessage($"Successfully created {count} invitations");
