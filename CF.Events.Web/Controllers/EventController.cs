@@ -253,7 +253,7 @@ public class EventController(
         var newCode = new InviteCode
         {
             EventId = eventId,
-            Code = CodeGenerator.Generate(64),
+            Code = CodeGenerator.Generate(16),
             ValidUntil = DateTime.UtcNow.AddDays(validDays),
             CreatedAt = DateTime.UtcNow
         };

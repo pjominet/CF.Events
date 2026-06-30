@@ -16,7 +16,7 @@ public class EventInviteesModel(
     IToastNotification toastNotification) : PageModel
 {
     public Event? EventData { get; private set; }
-    public string CurrentInviteCode { get; private set; } = "No valid code";
+    public Dictionary<string, DateTime> CurrentInviteCodes { get; private set; } = [];
     public bool SendEmailsOnInvite { get; set; } = true;
     public DateTime? ScheduledFor { get; set; }
     public bool AllowUseOfAccommodationCode { get; set; }
@@ -58,10 +58,11 @@ public class EventInviteesModel(
         if (EventData is null)
             return false;
 
-        CurrentInviteCode = EventData.InviteCodes
+        CurrentInviteCodes = EventData.InviteCodes
             .Where(c => c.ValidUntil > DateTime.UtcNow)
             .OrderByDescending(c => c.CreatedAt)
-            .FirstOrDefault()?.Code ?? "No valid code";
+            .Select(ic => new { ic.Code, ic.ValidUntil })
+            .ToDictionary(ic => ic.Code, ic => ic.ValidUntil);
 
         var invitedUsers = db.EventUsers
             .Where(ue => ue.EventId == id)

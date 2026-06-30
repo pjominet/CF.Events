@@ -18,15 +18,11 @@
                 <h1 class="serif fs-1 mt-3">@Model.EventData?.Name</h1>
                 <p class="text-muted mb-0">@Model.EventData?.Date.ToLongDateString()</p>
             </div>
-            <div class="d-flex mt-auto alert alert-primary mb-0">
-                <div class="me-3">
-                    <span class="text-muted small d-block">Current Invite Code</span>
-                    <code class="fs-5">@Model.CurrentInviteCode</code>
-                </div>
-                <button type="button" class="btn btn-outline-primary btn-sm" title="Regenerate Code"
+            <div class="d-flex mt-auto mb-0">
+                <button type="button" class="btn btn-outline-primary" title="Regenerate Code"
                         data-bs-toggle="modal" data-bs-target="#regenerateCodeModal"
                         data-bs-event-id="@Model.EventData!.Id" data-bs-event-name="@Model.EventData!.Name">
-                    <i class="bi bi-arrow-clockwise me-1"></i>Regenerate
+                    <i class="bi bi-key-fill me-1"></i>Generate invite code
                 </button>
             </div>
         </div>
@@ -43,28 +39,46 @@
             {
                 <form method="post" action="/events/@Model.EventData!.Id/invite-users" class="row g-2 align-items-center">
                     @Html.AntiForgeryToken()
-                    <input type="hidden" name="inviteCode" value="@Model.CurrentInviteCode" />
-                    <div class="col-12">
-                        <select name="userIds" asp-items="Model.AvailableUsers" class="form-select tom-select" required multiple placeholder="Select users to invite..."></select>
+                    <input type="hidden" name="inviteCode" value="@Model.CurrentInviteCodes"/>
+                    <div class="col-12 mb-3">
+                        <select name="UserIds" asp-items="Model.AvailableUsers" class="form-select tom-select" required multiple placeholder="Select users to invite..."></select>
                     </div>
-                    <div class="col-8">
-                        <div class="d-flex flex-wrap gap-4">
-                            <div>
-                                <input type="checkbox" asp-for="SendEmailsOnInvite" class="me-2" id="sendEmailsCheckbox"/>Immediately send invitation email on invite
+                    <div class="col-9 row">
+                        <div class="col-6 flex-column gap-2">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" asp-for="SendEmailsOnInvite" id="sendNowRadio" value="true"/>
+                                <label class="form-check-label" for="sendNowRadio">
+                                    Immediately send email on invite
+                                </label>
                             </div>
-                            <div id="scheduleContainer">
-                                <label class="me-2">Or schedule for:</label>
-                                <input type="datetime-local" asp-for="ScheduledFor" class="form-control d-inline-block w-auto form-control-sm"/>
+                            <div class="form-check d-flex align-items-center gap-2">
+                                <input class="form-check-input" type="radio" asp-for="SendEmailsOnInvite" id="scheduleRadio" value="false"/>
+                                <label class="form-check-label mb-0" for="scheduleRadio">
+                                    Schedule for:
+                                </label>
+                                <input type="datetime-local" asp-for="ScheduledFor" class="form-control form-control-sm w-auto"/>
                             </div>
-                            @if (!string.IsNullOrWhiteSpace(Model.EventData?.AccommodationCode))
-                            {
-                                <div>
-                                    <input type="checkbox" asp-for="AllowUseOfAccommodationCode" class="me-2"/>Allow using accommodation code: <span class="alert alert-info p-1">@Model.EventData!.AccommodationCode</span>
-                                </div>
-                            }
                         </div>
+                        @if (!string.IsNullOrWhiteSpace(Model.EventData?.AccommodationCode))
+                        {
+                            <div class="col-6">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <label class="form-check-label text-nowrap mb-0" for="scheduleRadio">
+                                        Use Code:
+                                    </label>
+                                    <select name="InviteCode" class="form-select tom-select form-select-sm w-100" required>
+                                        <option value=""></option>
+                                        @foreach (var (inviteCode, validUntil) in Model.CurrentInviteCodes)
+                                        {
+                                            <option value="@inviteCode">@inviteCode (<i class="bi bi-clock-history"></i> @validUntil.ToString("g"))</option>
+                                        }
+                                    </select>
+                                </div>
+                                <input type="checkbox" asp-for="AllowUseOfAccommodationCode" class="me-2"/>Allow using accommodation code: <span class="alert alert-info p-1">@Model.EventData!.AccommodationCode</span>
+                            </div>
+                        }
                     </div>
-                    <div class="col-4">
+                    <div class="col-3 mt-0">
                         <button type="submit" class="btn btn-success w-100">
                             <i class="bi bi-plus-lg me-1"></i>Invite to event
                         </button>
@@ -79,14 +93,14 @@
             <div class="table-responsive" style="max-height: 60vh; overflow-y: auto;">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-success sticky-top">
-                        <tr>
-                            <th>Display Name</th>
-                            <th>Email</th>
-                            <th>Assigned Accommodation Code</th>
-                            <th class="text-center">Email Sent</th>
-                            <th class="text-center">Status</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
+                    <tr>
+                        <th>Display Name</th>
+                        <th>Email</th>
+                        <th>Assigned Accommodation Code</th>
+                        <th class="text-center">Email Sent</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
                     </thead>
                     <tbody>
                     @foreach (var invitee in Model.Invitees)
@@ -105,7 +119,7 @@
                                 else if (invitee.ScheduledFor != null)
                                 {
                                     <div class="d-flex flex-column align-items-center">
-                                        <span class="badge bg-info text-dark" title="Scheduled to be sent"><i class="bi bi-calendar-event me-1"></i>Scheduled</span>
+                                        <span class="badge bg-info" title="Scheduled to be sent"><i class="bi bi-calendar-event me-1"></i>Scheduled</span>
                                         <small class="text-muted mt-1" style="font-size: 0.75rem;">@invitee.ScheduledFor.Value.ToString("g")</small>
                                     </div>
                                 }
@@ -129,7 +143,7 @@
                                 <form method="post" asp-action="ResendInvite" asp-controller="Event" asp-route-eventId="@Model.EventData!.Id" class="d-inline">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="userId" value="@invitee.UserId"/>
-                                    <input type="hidden" name="inviteCode" value="@Model.CurrentInviteCode"/>
+                                    <input type="hidden" name="inviteCode" value="@Model.CurrentInviteCodes"/>
                                     <button type="submit" class="btn btn-info btn-sm" title="Resend invite" data-bs-toggle="tooltip">
                                         <i class="bi bi-send"></i>
                                     </button>
@@ -155,26 +169,9 @@
     </div>
 </div>
 
+<partial name="Shared/_RegenerateCodeModal"/>
+
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-    <partial name="Shared/_RegenerateCodeModal" />
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const checkbox = document.getElementById('sendEmailsCheckbox');
-            const scheduleInput = document.querySelector('input[name="ScheduledFor"]');
-
-            checkbox.addEventListener('change', function() {
-                if (this.checked) {
-                    scheduleInput.value = '';
-                }
-            });
-
-            scheduleInput.addEventListener('change', function() {
-                if (this.value) {
-                    checkbox.checked = false;
-                }
-            });
-        });
-    </script>
+    <partial name="_ValidationScriptsPartial"/>
+    <script src="/js/invitees.js" type="text/javascript" asp-append-version="true"></script>
 }
