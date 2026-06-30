@@ -43,6 +43,7 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
             e.HasOne(r => r.Event)
                 .WithOne(r => r.EventConfig)
                 .HasForeignKey<EventConfig>(r => r.EventId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired(false);
         });
 
@@ -62,6 +63,7 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
             e.HasOne(r => r.EventUser)
                 .WithOne(u => u.Rsvp)
                 .HasForeignKey<Rsvp>(r => new { r.EventId, r.UserId })
+                .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired(false);
         });
 
@@ -72,11 +74,19 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
             e.HasOne(r => r.User)
                 .WithMany(r => r.UserEvents)
                 .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
 
             e.HasOne(r => r.Event)
                 .WithMany(r => r.EventUsers)
                 .HasForeignKey(r => r.EventId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+
+            e.HasOne(r => r.InviteCode)
+                .WithMany(r => r.EventUsers)
+                .HasForeignKey(r => r.InviteCodeId)
+                .OnDelete(DeleteBehavior.NoAction)
                 .IsRequired();
         });
 
@@ -89,6 +99,7 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
             e.HasOne(r => r.Event)
                 .WithMany(r => r.InviteCodes)
                 .HasForeignKey(r => r.EventId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
         });
     }

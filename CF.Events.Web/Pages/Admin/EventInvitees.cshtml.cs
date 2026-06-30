@@ -17,6 +17,7 @@ public class EventInviteesModel(
 {
     public Event? EventData { get; private set; }
     public List<SelectListItem> CurrentInviteCodes { get; private set; } = [];
+    public int InviteCodeId { get; set; }
     public bool SendEmailsOnInvite { get; set; } = true;
     public DateTime? ScheduledFor { get; set; }
     public bool AllowUseOfAccommodationCode { get; set; }
@@ -59,13 +60,12 @@ public class EventInviteesModel(
             return false;
 
         CurrentInviteCodes = EventData.InviteCodes
-            .Where(c => c.ValidUntil > DateTime.UtcNow)
-            .OrderByDescending(c => c.CreatedAt)
+            .Where(ic => ic.ValidUntil > DateTime.UtcNow)
             .Select(ic =>
             {
                 var validDays = (int)Math.Round((ic.ValidUntil - DateTime.UtcNow).TotalDays);
                 var label = string.IsNullOrWhiteSpace(ic.Label) ? ic.Code : ic.Label;
-                return new SelectListItem($"{label} (valid {validDays} days)", ic.Code);
+                return new SelectListItem($"{label} (valid {validDays} days)", ic.Id.ToString(), ic.Id == InviteCodeId);
             })
             .ToList();
 

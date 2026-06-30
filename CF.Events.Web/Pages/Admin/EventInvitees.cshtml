@@ -46,7 +46,7 @@
                 }
                 else
                 {
-                    <form method="post" action="/events/@Model.EventData!.Id/invite-users" class="row g-2 align-items-center">
+                    <form method="post" asp-action="InviteUsers" asp-controller="Event" asp-route-eventId="@Model.EventData!.Id" class="row g-2 align-items-center">
                         @Html.AntiForgeryToken()
                         <div class="col-12 mb-3">
                             <select name="UserIds" asp-items="Model.AvailableUsers" class="form-select tom-select" required multiple placeholder="Select users to invite..."></select>
@@ -74,7 +74,7 @@
                                         <label class="form-check-label text-nowrap mb-0" for="scheduleRadio">
                                             Use Code:
                                         </label>
-                                        <select name="InviteCode" asp-items="Model.CurrentInviteCodes" class="form-select tom-select form-select-sm w-100" required>
+                                        <select asp-for="InviteCodeId" asp-items="Model.CurrentInviteCodes" class="form-select tom-select form-select-sm w-100" required>
                                             <option value="" disabled selected hidden>Select an invite code</option>
                                         </select>
                                     </div>
@@ -148,7 +148,6 @@
                                 <form method="post" asp-action="ResendInvite" asp-controller="Event" asp-route-eventId="@Model.EventData!.Id" class="d-inline">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="userId" value="@invitee.UserId"/>
-                                    <input type="hidden" name="inviteCode" value="@(Model.CurrentInviteCodes.FirstOrDefault()?.Value)"/>
                                     <button type="submit" class="btn btn-info btn-sm" title="Resend invite" data-bs-toggle="tooltip">
                                         <i class="bi bi-send"></i>
                                     </button>
