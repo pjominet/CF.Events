@@ -18,12 +18,12 @@
                 <h1 class="serif fs-1 mt-3">@Model.EventData?.Name</h1>
                 <p class="text-muted mb-0">@Model.EventData?.Date.ToLongDateString()</p>
             </div>
-            <div class="d-flex align-items-center bg-light p-2 rounded border">
+            <div class="d-flex mt-auto alert alert-primary mb-0">
                 <div class="me-3">
                     <span class="text-muted small d-block">Current Invite Code</span>
                     <code class="fs-5">@Model.CurrentInviteCode</code>
                 </div>
-                <button type="button" class="btn btn-outline-secondary btn-sm" title="Regenerate Code"
+                <button type="button" class="btn btn-outline-primary btn-sm" title="Regenerate Code"
                         data-bs-toggle="modal" data-bs-target="#regenerateCodeModal"
                         data-bs-event-id="@Model.EventData!.Id" data-bs-event-name="@Model.EventData!.Name">
                     <i class="bi bi-arrow-clockwise me-1"></i>Regenerate
@@ -74,7 +74,7 @@
         <div class="card-body p-0">
             <div class="table-responsive" style="max-height: 60vh; overflow-y: auto;">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light sticky-top">
+                    <thead class="table-success sticky-top">
                         <tr>
                             <th>Display Name</th>
                             <th>Email</th>
@@ -89,7 +89,9 @@
                         <tr>
                             <td class="fw-bold">@invitee.DisplayName</td>
                             <td>@invitee.Email</td>
-                            <td>@invitee.AssignedAccommodationCode</td>
+                            <td>
+                                <div class="badge bg-info p-1">@invitee.AssignedAccommodationCode</div>
+                            </td>
                             <td class="text-center">
                                 @{
                                     var badge = invitee.Status switch

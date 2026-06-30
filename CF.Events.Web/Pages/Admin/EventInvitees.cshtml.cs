@@ -17,7 +17,7 @@ public class EventInviteesModel(
 {
     public Event? EventData { get; private set; }
     public string CurrentInviteCode { get; private set; } = "No valid code";
-    public bool SendEmailsOnInvite { get; set; } = true;
+    public bool SendEmailsOnInvite { get; set; }
     public bool AllowUseOfAccommodationCode { get; set; }
 
     public List<InviteeRow> Invitees { get; private set; } = [];
