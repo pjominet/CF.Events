@@ -25,7 +25,7 @@ public class InvitationService(
         string EventName,
         string UserDisplayName,
         string UserEmail,
-        string? InvitationInviteCode);
+        string? InviteCode);
 
     public async Task<int> ProcessPendingInvitationsAsync(CancellationToken stoppingToken = default)
     {
@@ -58,87 +58,69 @@ public class InvitationService(
     {
         var batchSize = _appSettings.EmailBatchSize ?? int.MaxValue;
 
-        // Fetch user events that haven't been sent yet for this event and these users
-        var userEvents = await db.UserEvents
-            .Where(ue => ue.EventId == eventId && userIds.Contains(ue.UserId) && !ue.InviteEmailSent)
-            .Include(ue => ue.User)
-            .Include(ue => ue.Event)
-            .AsSplitQuery()
+        // Fetch event users that haven't been sent an invitation yet for this event
+        var query = db.UserEvents.Where(ue => ue.EventId == eventId && userIds.Contains(ue.UserId) && !ue.InviteEmailSent);
+        var eventUsers = await query
+            .Select(ue => new InvitationInfo(
+                ue.EventId,
+                ue.UserId,
+                ue.Event.Name,
+                ue.User.DisplayName!,
+                ue.User.Email!,
+                inviteCode))
             .ToListAsync(stoppingToken);
 
-        if (userEvents.Count == 0) return;
+        if (eventUsers.Count == 0) return;
 
         List<InvitationInfo> toSend;
-        if (userEvents.Count > batchSize)
+        if (eventUsers.Count > batchSize)
         {
-            logger.LogInformation("Immediate invite count {Count} exceeds batch size {BatchSize}. Sending first batch and scheduling remaining for worker", userEvents.Count, batchSize);
+            logger.LogInformation("Immediate invite count {Count} exceeds batch size {BatchSize}. Sending first batch and scheduling remaining for worker", eventUsers.Count, batchSize);
 
-            foreach (var ue in userEvents)
-            {
-                // Set ScheduledFor to UtcNow for all, so the worker picks up the rest
-                ue.ScheduledFor ??= DateTime.UtcNow;
-            }
+            // Set ScheduledFor to UtcNow for all event users, so the worker picks up the rest
+            await query.ExecuteUpdateAsync(s => s.SetProperty(ue => ue.ScheduledFor, DateTime.UtcNow), stoppingToken);
 
-            await db.SaveChangesAsync(stoppingToken);
-
-            // Send the first batch immediately.
-            toSend = userEvents
-                .Take(batchSize)
-                .Select(ue => new InvitationInfo(
-                    ue.EventId,
-                    ue.UserId,
-                    ue.Event.Name,
-                    ue.User.DisplayName!,
-                    ue.User.Email!,
-                    inviteCode))
-                .ToList();
+            // Send the only first batch immediately
+            toSend = eventUsers.Take(batchSize).ToList();
         }
         else
         {
             // Send all immediately
-            toSend = userEvents
-                .Select(ue => new InvitationInfo(
-                    ue.EventId,
-                    ue.UserId,
-                    ue.Event.Name,
-                    ue.User.DisplayName!,
-                    ue.User.Email!,
-                    inviteCode))
-                .ToList();
+            toSend = eventUsers.ToList();
         }
 
         await SendInvitationEmailsAsync(toSend, stoppingToken);
     }
 
-    private async Task<int> SendInvitationEmailsAsync(List<InvitationInfo> projections, CancellationToken stoppingToken)
+    private async Task<int> SendInvitationEmailsAsync(List<InvitationInfo> invites, CancellationToken stoppingToken)
     {
         var sentCount = 0;
         var baseUrl = _appSettings.BaseUrl?.TrimEnd('/');
 
-        foreach (var proj in projections)
+        foreach (var invite in invites)
         {
             if (stoppingToken.IsCancellationRequested) break;
 
             try
             {
-                var callbackUrl = $"{baseUrl}/events/invite-callback?code={proj.InvitationInviteCode}&email={proj.UserEmail}";
+                var callbackUrl = $"{baseUrl}/events/invite-callback?code={invite.InviteCode}&email={invite.UserEmail}";
 
                 await mailService.SendInvitationAsync(
-                    proj.EventName,
-                    proj.UserDisplayName,
-                    proj.UserEmail,
+                    invite.EventName,
+                    invite.UserDisplayName,
+                    invite.UserEmail,
                     callbackUrl);
 
                 await db.UserEvents
-                    .Where(ue => ue.EventId == proj.EventId && ue.UserId == proj.UserId)
+                    .Where(ue => ue.EventId == invite.EventId && ue.UserId == invite.UserId)
                     .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.InviteEmailSent, true), stoppingToken);
 
                 sentCount++;
-                logger.LogInformation("Sent invitation email to {Email} for event {EventName}", proj.UserEmail, proj.EventName);
+                logger.LogInformation("Sent invitation email to {Email} for event {EventName}", invite.UserEmail, invite.EventName);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Failed to send invitation email to {Email}", proj.UserEmail);
+                logger.LogError(ex, "Failed to send invitation email to {Email}", invite.UserEmail);
             }
         }
 
