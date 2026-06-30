@@ -19,6 +19,7 @@ public class EventController(
     UserManager<AppUser> userManager,
     SignInManager<AppUser> signInManager,
     IMailService mailService,
+    IInvitationService invitationService,
     IToastNotification toastNotification,
     ILogger<EventController> logger,
     IWebHostEnvironment env) : Controller
@@ -91,7 +92,9 @@ public class EventController(
             {
                 EventId = eventId,
                 UserId = userId,
-                AssignedAccommodationCode = invite.AllowUseOfAccommodationCode ? eventData.AccommodationCode : null
+                AssignedAccommodationCode = invite.AllowUseOfAccommodationCode ? eventData.AccommodationCode : null,
+                ScheduledFor = invite.ScheduledFor,
+                InvitationInviteCode = invite.ScheduledFor != null ? invite.InviteCode : null
             });
         }
 
@@ -99,19 +102,8 @@ public class EventController(
         {
             var count = await db.SaveChangesAsync();
 
-            if (invite.SendEmailsOnInvite)
-            {
-                var newUsers = await db.Users
-                    .Where(u => newUserIds.Contains(u.Id))
-                    .ToListAsync();
-
-                foreach (var user in newUsers)
-                {
-                    logger.LogInformation("Sending invitation to {Email}", user.Email);
-                    var callbackUrl = Url.Action("InvitationCallback", "Event", new { code = invite.InviteCode, email = user.Email }, Request.Scheme);
-                    await mailService.SendInvitationAsync(eventData.Name, user.DisplayName!, user.Email!, callbackUrl!);
-                }
-            }
+            if (invite is { SendEmailsOnInvite: true, ScheduledFor: null })
+                await invitationService.SendImmediateInvitationsAsync(eventId, newUserIds, invite.InviteCode);
 
             toastNotification.AddSuccessToastMessage($"Successfully created {count} invitations");
             return LocalRedirect($"/admin/events/{eventId}/invitees");
@@ -153,6 +145,10 @@ public class EventController(
             logger.LogInformation("Re-sending invitation to {Email}", user.Email);
             var callbackUrl = Url.Action("InvitationCallback", "Event", new { code = inviteCode, email = user.Email }, Request.Scheme);
             await mailService.SendInvitationAsync(eventData.Name, user.DisplayName!, user.Email!, callbackUrl!);
+
+            var userEvent = await db.UserEvents.FirstAsync(eu => eu.EventId == eventId && eu.UserId == user.Id);
+            userEvent.InvitationEmailSent = true;
+            await db.SaveChangesAsync();
 
             toastNotification.AddSuccessToastMessage("Successfully resent invitation");
             return LocalRedirect($"/admin/events/{eventId}/invitees");

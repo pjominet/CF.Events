@@ -48,9 +48,13 @@
                         <select name="userIds" asp-items="Model.AvailableUsers" class="form-select tom-select" required multiple placeholder="Select users to invite..."></select>
                     </div>
                     <div class="col-8">
-                        <div class="d-flex gap-4">
+                        <div class="d-flex flex-wrap gap-4">
                             <div>
-                                <input type="checkbox" asp-for="SendEmailsOnInvite" class="me-2"/>Immediately send invitation email on invite
+                                <input type="checkbox" asp-for="SendEmailsOnInvite" class="me-2" id="sendEmailsCheckbox"/>Immediately send invitation email on invite
+                            </div>
+                            <div id="scheduleContainer">
+                                <label class="me-2">Or schedule for:</label>
+                                <input type="datetime-local" asp-for="ScheduledFor" class="form-control d-inline-block w-auto form-control-sm"/>
                             </div>
                             @if (!string.IsNullOrWhiteSpace(Model.EventData?.AccommodationCode))
                             {
@@ -79,6 +83,7 @@
                             <th>Display Name</th>
                             <th>Email</th>
                             <th>Assigned Accommodation Code</th>
+                            <th class="text-center">Email Sent</th>
                             <th class="text-center">Status</th>
                             <th class="text-end">Actions</th>
                         </tr>
@@ -91,6 +96,23 @@
                             <td>@invitee.Email</td>
                             <td>
                                 <div class="badge bg-info p-1">@invitee.AssignedAccommodationCode</div>
+                            </td>
+                            <td class="text-center">
+                                @if (invitee.InvitationEmailSent)
+                                {
+                                    <span class="badge bg-success" title="Invitation email sent"><i class="bi bi-check-circle me-1"></i>Sent</span>
+                                }
+                                else if (invitee.ScheduledFor != null)
+                                {
+                                    <div class="d-flex flex-column align-items-center">
+                                        <span class="badge bg-info text-dark" title="Scheduled to be sent"><i class="bi bi-calendar-event me-1"></i>Scheduled</span>
+                                        <small class="text-muted mt-1" style="font-size: 0.75rem;">@invitee.ScheduledFor.Value.ToString("g")</small>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark" title="Email not yet sent"><i class="bi bi-clock me-1"></i>Pending</span>
+                                }
                             </td>
                             <td class="text-center">
                                 @{
@@ -136,4 +158,23 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <partial name="Shared/_RegenerateCodeModal" />
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkbox = document.getElementById('sendEmailsCheckbox');
+            const scheduleInput = document.querySelector('input[name="ScheduledFor"]');
+
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    scheduleInput.value = '';
+                }
+            });
+
+            scheduleInput.addEventListener('change', function() {
+                if (this.value) {
+                    checkbox.checked = false;
+                }
+            });
+        });
+    </script>
 }

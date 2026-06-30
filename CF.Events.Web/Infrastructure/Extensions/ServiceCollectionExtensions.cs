@@ -5,10 +5,12 @@ using CF.Events.Web.Infrastructure.Providers;
 using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Models;
 using CF.Events.Web.Services;
+using CF.Events.Web.Services.BackgroundWorkers;
 using Mailjet.Client;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web.Infrastructure.Extensions;
@@ -65,11 +67,18 @@ public static class ServiceCollectionExtensions
 
     public static void AddAppSettings(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<AppSettings>(configuration.GetSection(nameof(AppSettings)));
+        services.AddOptions<AppSettings>()
+            .Bind(configuration.GetSection(nameof(AppSettings)))
+            .ValidateOnStart();
+
+        services.AddSingleton<IValidateOptions<AppSettings>, AppSettingsValidator>();
     }
 
     public static void AddAppServices(this IServiceCollection services, IWebHostEnvironment environment)
     {
+        services.AddHostedService<InvitationEmailWorker>();
+        services.AddScoped<IInvitationService, InvitationService>();
+
         if (environment.IsDevelopment())
         {
             services.AddScoped<IEmailSender<AppUser>, NoOpEmailSender>();

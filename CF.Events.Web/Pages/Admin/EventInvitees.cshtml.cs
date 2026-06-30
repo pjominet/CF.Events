@@ -17,7 +17,8 @@ public class EventInviteesModel(
 {
     public Event? EventData { get; private set; }
     public string CurrentInviteCode { get; private set; } = "No valid code";
-    public bool SendEmailsOnInvite { get; set; }
+    public bool SendEmailsOnInvite { get; set; } = true;
+    public DateTime? ScheduledFor { get; set; }
     public bool AllowUseOfAccommodationCode { get; set; }
 
     public List<InviteeRow> Invitees { get; private set; } = [];
@@ -62,7 +63,7 @@ public class EventInviteesModel(
             .OrderByDescending(c => c.CreatedAt)
             .FirstOrDefault()?.Code ?? "No valid code";
 
-        var invitedUsers = db.UserEvents.Where(ue => ue.EventId == id).Select(ue => new {ue.AssignedAccommodationCode, ue.User}).ToList();
+        var invitedUsers = db.UserEvents.Where(ue => ue.EventId == id).Select(ue => new {ue.AssignedAccommodationCode, ue.User, ue.InvitationEmailSent, ue.ScheduledFor}).ToList();
         var rsvps = db.Rsvps.Where(r => r.EventId == id).ToList();
 
         var unavailableUsers = new HashSet<string>();
@@ -79,7 +80,9 @@ public class EventInviteesModel(
                     user.DisplayName!,
                     user.Email!,
                     iu.AssignedAccommodationCode,
-                    status);
+                    status,
+                    iu.InvitationEmailSent,
+                    iu.ScheduledFor);
             })
             .OrderBy(i => i.DisplayName)
             .ToList();
@@ -93,5 +96,5 @@ public class EventInviteesModel(
         return true;
     }
 
-    public record InviteeRow(string UserId, string DisplayName, string Email, string? AssignedAccommodationCode, string Status);
+    public record InviteeRow(string UserId, string DisplayName, string Email, string? AssignedAccommodationCode, string Status, bool InvitationEmailSent, DateTime? ScheduledFor);
 }
