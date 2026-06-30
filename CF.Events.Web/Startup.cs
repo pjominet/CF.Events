@@ -72,7 +72,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         });
     }
 
-    public async Task EnsureDatabase(IServiceProvider serviceProvider)
+    public async Task EnsureDatabase(IServiceProvider serviceProvider, CancellationToken ctx = default)
     {
         try
         {
@@ -81,7 +81,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
 
             // Apply migrations
             Log.Information("Applying database migrations...");
-            await db.Database.MigrateAsync();
+            await db.Database.MigrateAsync(cancellationToken: ctx);
             Log.Information("Migrations applied successfully");
 
             // Seed roles

@@ -8,9 +8,9 @@ namespace CF.Events.Web.Services;
 
 public interface IInvitationService
 {
-    Task<int> ProcessPendingInvitationsAsync(CancellationToken stoppingToken = default);
-    Task SendImmediateInvitationsAsync(List<Invitation> invitations, CancellationToken stoppingToken = default);
-    Task SendInvitationAsync(Invitation invitation, CancellationToken stoppingToken = default);
+    Task<int> ProcessPendingInvitationsAsync(CancellationToken ctx = default);
+    Task SendImmediateInvitationsAsync(List<Invitation> invitations, CancellationToken ctx = default);
+    Task SendInvitationAsync(Invitation invitation, CancellationToken ctx = default);
 }
 
 public class InvitationService(
@@ -21,7 +21,7 @@ public class InvitationService(
 {
     private readonly AppSettings _appSettings = appOptions.Value;
 
-    public async Task<int> ProcessPendingInvitationsAsync(CancellationToken stoppingToken = default)
+    public async Task<int> ProcessPendingInvitationsAsync(CancellationToken ctx = default)
     {
         var batchSize = _appSettings.EmailBatchSize ?? int.MaxValue;
 
@@ -39,18 +39,18 @@ public class InvitationService(
                 InviteCode = ue.Event.InviteCodes.OrderByDescending(c => c.CreatedAt).Select(c => c.Code).FirstOrDefault()
             })
             .AsSplitQuery()
-            .ToListAsync(stoppingToken);
+            .ToListAsync(ctx);
 
         if (pendingInvitations.Count == 0) return 0;
 
         logger.LogInformation("Processing {Count} pending invitation emails", pendingInvitations.Count);
 
-        var sentCount = await SendInvitationEmailsAsync(pendingInvitations, stoppingToken);
+        var sentCount = await SendInvitationEmailsAsync(pendingInvitations, ctx);
 
         return sentCount;
     }
 
-    public async Task SendImmediateInvitationsAsync(List<Invitation> invitations, CancellationToken stoppingToken = default)
+    public async Task SendImmediateInvitationsAsync(List<Invitation> invitations, CancellationToken ctx = default)
     {
         var batchSize = _appSettings.EmailBatchSize ?? int.MaxValue;
 
@@ -61,30 +61,30 @@ public class InvitationService(
             logger.LogInformation("Immediate invite count {Count} exceeds batch size {BatchSize}. Sending first batch and scheduling remaining for worker", invitations.Count, batchSize);
 
             // Set ScheduledFor to UtcNow for all event users, so the worker picks up the rest
-            foreach (var invitation in invitations)
-            {
-                await db.EventUsers
-                    .Where(ue => ue.EventId == invitation.EventId && ue.UserId == invitation.UserId && !ue.InviteEmailSent)
-                    .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.ScheduledFor, DateTime.UtcNow), stoppingToken);
-            }
+            var eventUsers = invitations
+                .Select(i => new { i.EventId, i.UserId })
+                .ToList();
+            await db.EventUsers
+                .Where(ue => !ue.InviteEmailSent && eventUsers.Contains(new { ue.EventId, ue.UserId }))
+                .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.ScheduledFor, DateTime.UtcNow), ctx);
 
             // Send the only first batch immediately
             invitations = invitations.Take(batchSize).ToList();
         }
 
-        await SendInvitationEmailsAsync(invitations, stoppingToken);
+        await SendInvitationEmailsAsync(invitations, ctx);
     }
 
-    public async Task SendInvitationAsync(Invitation invitation, CancellationToken stoppingToken = default) => await SendInvitationEmailsAsync([invitation], stoppingToken);
+    public async Task SendInvitationAsync(Invitation invitation, CancellationToken ctx = default) => await SendInvitationEmailsAsync([invitation], ctx);
 
-    private async Task<int> SendInvitationEmailsAsync(List<Invitation> invitations, CancellationToken stoppingToken)
+    private async Task<int> SendInvitationEmailsAsync(List<Invitation> invitations, CancellationToken ctx)
     {
         var sentCount = 0;
         var baseUrl = _appSettings.BaseUrl?.TrimEnd('/');
 
         foreach (var invitation in invitations)
         {
-            if (stoppingToken.IsCancellationRequested) break;
+            if (ctx.IsCancellationRequested) break;
 
             try
             {
@@ -94,11 +94,12 @@ public class InvitationService(
                     invitation.EventName,
                     invitation.UserDisplayName,
                     invitation.UserEmail,
-                    callbackUrl);
+                    callbackUrl,
+                    ctx: ctx);
 
                 await db.EventUsers
                     .Where(ue => ue.EventId == invitation.EventId && ue.UserId == invitation.UserId)
-                    .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.InviteEmailSent, true), stoppingToken);
+                    .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.InviteEmailSent, true), ctx);
 
                 sentCount++;
                 logger.LogInformation("Sent invitation email to {Email} for event {EventName}", invitation.UserEmail, invitation.EventName);
