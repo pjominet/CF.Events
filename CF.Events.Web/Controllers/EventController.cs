@@ -58,6 +58,12 @@ public class EventController(
     [Authorize(Roles = Roles.Admin)]
     public async Task<IActionResult> InviteUsers([FromRoute] int eventId, [FromForm] UserInvites invite)
     {
+        if (invite.ScheduledFor.HasValue && invite.ScheduledFor.Value.ToUniversalTime() <= DateTime.UtcNow)
+        {
+            toastNotification.AddWarningToastMessage("Scheduled time must be in the future");
+            return LocalRedirect($"/admin/events/{eventId}/invitees");
+        }
+
         // Validate event exists and is active
         var eventExists = await db.Events.AnyAsync(e => e.Id == eventId && e.IsActive);
         if (!eventExists)

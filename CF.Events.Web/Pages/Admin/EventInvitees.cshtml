@@ -64,7 +64,9 @@
                                     <label class="form-check-label mb-0" for="scheduleRadio">
                                         Schedule for:
                                     </label>
-                                    <input type="datetime-local" asp-for="ScheduledFor" class="form-control form-control-sm w-auto"/>
+                                    <input type="datetime-local" asp-for="ScheduledFor"
+                                           min="@DateTime.UtcNow.AddDays(1).ToString("yyyy-MM-ddTHH:mm")"
+                                           class="form-control form-control-sm w-auto"/>
                                 </div>
                             </div>
                             @if (!string.IsNullOrWhiteSpace(Model.EventData?.AccommodationCode))
