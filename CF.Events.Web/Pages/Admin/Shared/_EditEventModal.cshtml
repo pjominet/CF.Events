@@ -1,0 +1,104 @@
+﻿@model EventsModel.InputModel
+@{
+    var show = ViewData[ViewDataKeys.ShowEventModal] as bool? ?? false;
+}
+<div class="modal fade" id="editEventModal" data-bs-backdrop="static" tabindex="-1" data-autoshow="@(show ? "true" : "false")">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="Save" enctype="multipart/form-data">
+                <input type="hidden" asp-for="Id" />
+                <div class="modal-header">
+                    <h5 class="modal-title">@(Model.Id == 0 ? "Create New Event" : "Edit Event")</h5>
+                </div>
+                <div class="modal-body">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold">Event Name</label>
+                            <input asp-for="Name" class="form-control" placeholder="Wedding" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold">Date</label>
+                            <input asp-for="Date" type="date" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Description</label>
+                        <textarea asp-for="Description" class="form-control" placeholder="Optional Description" rows="3"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Invitation Image</label>
+                        <input asp-for="InvitationImage" type="file" accept="image/*" class="form-control" />
+                        <span asp-validation-for="InvitationImage" class="text-danger"></span>
+                        <div id="currentInvitationImageWrapper" class="mt-1" style="display: none;">
+                            <small class="text-muted">Current file: <span id="currentInvitationImageName" class="fw-bold"></span></small>
+                        </div>
+                        <div class="form-text">Portrait images work best. Larger images are cropped to portrait for the invite card.</div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold">Location</label>
+                            <input asp-for="Location" class="form-control" placeholder="Grand Hall" />
+                            <span asp-validation-for="Location" class="text-danger"></span>
+                        </div>
+                        <div class="col-12 col-md-6" id="accommodationCodeWrapper" style="display: @(Model.ShowAccommodationOptions ? "block" : "none")">
+                            <label class="form-label fw-bold">Accommodation Code</label>
+                            <input asp-for="AccommodationCode" class="form-control" placeholder="WEDDING2026" />
+                            <span asp-validation-for="AccommodationCode" class="text-danger"></span>
+                            <div class="form-text">This code will be shown to guests if accommodations are enabled.</div>
+                        </div>
+                    </div>
+
+                    <hr />
+                    <h6 class="fw-bold mb-3">Event Configuration</h6>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" asp-for="OfferBreakfast" />
+                                <label class="form-check-label" asp-for="OfferBreakfast">Offer Breakfast</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" asp-for="OfferBrunch" />
+                                <label class="form-check-label" asp-for="OfferBrunch">Offer Brunch</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" asp-for="OfferLunch" />
+                                <label class="form-check-label" asp-for="OfferLunch">Offer Lunch</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" asp-for="OfferDinner" />
+                                <label class="form-check-label" asp-for="OfferDinner">Offer Dinner</label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" asp-for="ShowAccommodationOptions" />
+                                <label class="form-check-label" asp-for="ShowAccommodationOptions">Accommodation</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" asp-for="AllowPartners" />
+                                <label class="form-check-label" asp-for="AllowPartners">Allow +1s</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" asp-for="AllowKids" />
+                                <label class="form-check-label" asp-for="AllowKids">Allow Kids</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" asp-for="AllowComments" />
+                                <label class="form-check-label" asp-for="AllowComments">Allow Comments</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">@(Model.Id == 0 ? "Create Event" : "Save Changes")</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

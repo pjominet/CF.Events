@@ -18,6 +18,9 @@ public class Event
     [StringLength(100)]
     public string? Location { get; set; }
 
+    [StringLength(100)]
+    public string? AccommodationCode { get; set; }
+
     [StringLength(255)]
     public string? InvitationFileName { get; set; }
 
@@ -29,6 +32,7 @@ public class Event
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 
     // navigation properties
-    public HashSet<UserEvent> EventUsers { get; set; } = [];
+    public HashSet<EventUser> EventUsers { get; set; } = [];
     public HashSet<InviteCode> InviteCodes { get; set; } = [];
+    public EventConfig? EventConfig { get; set; }
 }

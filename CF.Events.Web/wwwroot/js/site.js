@@ -54,8 +54,22 @@
                 settings.closeAfterSelect = false;
             } else {
                 settings.maxItems = 1;
-                settings.clearAfterSelect = true;
+                settings.clearAfterSelect = false;
                 settings.closeAfterSelect = true;
+                settings.onItemAdd = function () {
+                    this.blur();
+                };
+            }
+
+            if (el.classList.contains("tom-select-html")) {
+                settings.render = {
+                    option: function (data, escape) {
+                        return '<div>' + (data.html || escape(data.text)) + '</div>';
+                    },
+                    item: function (data, escape) {
+                        return '<div>' + (data.html || escape(data.text)) + '</div>';
+                    }
+                };
             }
 
             new TomSelect(el, settings);
@@ -90,11 +104,31 @@
         }, duration);
     }
 
+    // Show loading overlay
+    window.showLoadingOverlay = function () {
+        const overlay = document.getElementById('globalLoadingOverlay');
+        if (overlay) {
+            overlay.classList.add('active');
+        }
+    }
+
+    // Hide loading overlay
+    function hideLoadingOverlay() {
+        const overlay = document.getElementById('globalLoadingOverlay');
+        if (overlay) {
+            overlay.classList.remove('active');
+        }
+    }
+
+    // Hide on page load/complete
+    window.addEventListener('load', hideLoadingOverlay);
+
     document.addEventListener("DOMContentLoaded", function () {
         initTooltips();
         initPopovers();
         initAutoShowModals();
         initConfirms();
         initMultiSelects();
+        setTimeout(hideLoadingOverlay, 100);
     });
 })();

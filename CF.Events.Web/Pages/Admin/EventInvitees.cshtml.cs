@@ -16,7 +16,11 @@ public class EventInviteesModel(
     IToastNotification toastNotification) : PageModel
 {
     public Event? EventData { get; private set; }
-    public string CurrentInviteCode { get; private set; } = "No valid code";
+    public List<SelectListItem> CurrentInviteCodes { get; private set; } = [];
+    public int InviteCodeId { get; set; }
+    public bool SendEmailsOnInvite { get; set; } = true;
+    public DateTime? ScheduledFor { get; set; }
+    public bool AllowUseOfAccommodationCode { get; set; }
 
     public List<InviteeRow> Invitees { get; private set; } = [];
 
@@ -32,14 +36,14 @@ public class EventInviteesModel(
 
     public async Task<IActionResult> OnPostRemoveAsync(int id, string? userId)
     {
-        var userEvent = await db.UserEvents.FirstOrDefaultAsync(r => r.EventId == id && r.UserId == userId);
+        var userEvent = await db.EventUsers.FirstOrDefaultAsync(r => r.EventId == id && r.UserId == userId);
         if (userEvent is null)
         {
             toastNotification.AddWarningToastMessage("Invitee not found");
             return RedirectToPage(new { id });
         }
 
-        db.UserEvents.Remove(userEvent);
+        db.EventUsers.Remove(userEvent);
         await db.SaveChangesAsync();
 
         toastNotification.AddSuccessToastMessage("Invitee successfully removed");
@@ -55,30 +59,44 @@ public class EventInviteesModel(
         if (EventData is null)
             return false;
 
-        CurrentInviteCode = EventData.InviteCodes
-            .Where(c => c.ValidUntil > DateTime.UtcNow)
-            .OrderByDescending(c => c.CreatedAt)
-            .FirstOrDefault()?.Code ?? "No valid code";
+        CurrentInviteCodes = EventData.InviteCodes
+            .Where(ic => ic.ValidUntil > DateTime.UtcNow)
+            .Select(ic =>
+            {
+                var validDays = (int)Math.Round((ic.ValidUntil - DateTime.UtcNow).TotalDays);
+                var label = string.IsNullOrWhiteSpace(ic.Label) ? ic.Code : ic.Label;
+                return new SelectListItem($"{label} (valid {validDays} days)", ic.Id.ToString(), ic.Id == InviteCodeId);
+            })
+            .ToList();
 
-        var invitedUsers = db.UserEvents.Where(ue => ue.EventId == id).Select(ue => ue.User!).ToList();
+        var invitedUsers = db.EventUsers
+            .Where(ue => ue.EventId == id)
+            .Include(ue => ue.User)
+            .Select(ue => new { ue.AssignedAccommodationCode, ue.User, InvitationEmailSent = ue.InviteEmailSent, ue.ScheduledFor })
+            .ToList();
         var rsvps = db.Rsvps.Where(r => r.EventId == id).ToList();
 
+        var unavailableUsers = new HashSet<string>();
         Invitees = invitedUsers
-            .Select(u =>
+            .Select(iu =>
             {
-                var rsvp = rsvps.FirstOrDefault(r => r.UserId == u.Id);
+                var user = iu.User;
+                var rsvp = rsvps.FirstOrDefault(r => r.UserId == user.Id);
                 var responded = rsvp?.SubmittedAt > DateTime.MinValue.AddDays(1);
                 var status = responded ? (rsvp?.Attending == true ? "Attending" : "Declined") : "Pending";
+                unavailableUsers.Add(user.Id);
                 return new InviteeRow(
-                    u.Id,
-                    u.DisplayName!,
-                    u.Email!,
-                    status);
+                    user.Id,
+                    user.DisplayName!,
+                    user.Email!,
+                    iu.AssignedAccommodationCode,
+                    status,
+                    iu.InvitationEmailSent,
+                    iu.ScheduledFor);
             })
             .OrderBy(i => i.DisplayName)
             .ToList();
 
-        var unavailableUsers = invitedUsers.Select(i => i.Id);
         AvailableUsers = await db.Users
             .Where(u => u.IsActive && !unavailableUsers.Contains(u.Id))
             .OrderBy(u => u.DisplayName)
@@ -88,5 +106,5 @@ public class EventInviteesModel(
         return true;
     }
 
-    public record InviteeRow(string UserId, string DisplayName, string Email, string Status);
+    public record InviteeRow(string UserId, string DisplayName, string Email, string? AssignedAccommodationCode, string Status, bool InvitationEmailSent, DateTime? ScheduledFor);
 }

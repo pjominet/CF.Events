@@ -1,3 +1,4 @@
+using CF.Events.Web.Data.Converters;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -9,8 +10,9 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
 {
     public DbSet<Event> Events => Set<Event>();
     public DbSet<InviteCode> InviteCodes => Set<InviteCode>();
-    public DbSet<UserEvent> UserEvents => Set<UserEvent>();
+    public DbSet<EventUser> EventUsers => Set<EventUser>();
     public DbSet<Rsvp> Rsvps => Set<Rsvp>();
+    public DbSet<EventConfig> EventConfigs => Set<EventConfig>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -34,36 +36,70 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
         builder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims", "identity");
         builder.Entity<IdentityUserToken<string>>().ToTable("UserTokens", "identity");
 
+        builder.Entity<EventConfig>(e =>
+        {
+            e.HasKey(r => r.EventId);
+
+            e.HasOne(r => r.Event)
+                .WithOne(r => r.EventConfig)
+                .HasForeignKey<EventConfig>(r => r.EventId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired(false);
+        });
+
         builder.Entity<Rsvp>(e =>
         {
             e.HasKey(r => new { r.EventId, r.UserId });
 
-            e.HasOne(r => r.UserEvent)
-                .WithOne()
+            e.Property(r => r.CommonDietaryOptions)
+                .HasConversion(new EnumArrayConverter<DietaryOptions>()!)
+                .HasMaxLength(4000)
+                .IsRequired(false);
+
+            e.Property(r => r.KidsDetails)
+                .HasConversion(new DictionaryConverter<KidAgeBracket, int>()!)
+                .IsRequired(false);
+
+            e.HasOne(r => r.EventUser)
+                .WithOne(u => u.Rsvp)
                 .HasForeignKey<Rsvp>(r => new { r.EventId, r.UserId })
+                .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired(false);
         });
 
-        builder.Entity<UserEvent>(e =>
+        builder.Entity<EventUser>(e =>
         {
             e.HasKey(r => new { r.EventId, r.UserId });
 
             e.HasOne(r => r.User)
                 .WithMany(r => r.UserEvents)
                 .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
 
             e.HasOne(r => r.Event)
                 .WithMany(r => r.EventUsers)
                 .HasForeignKey(r => r.EventId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+
+            e.HasOne(r => r.InviteCode)
+                .WithMany(r => r.EventUsers)
+                .HasForeignKey(r => r.InviteCodeId)
+                .OnDelete(DeleteBehavior.NoAction)
                 .IsRequired();
         });
 
         builder.Entity<InviteCode>(e =>
         {
+            e.HasIndex(r => r.Code).IsUnique();
+
+            e.Property(r => r.Label).IsRequired();
+
             e.HasOne(r => r.Event)
                 .WithMany(r => r.InviteCodes)
                 .HasForeignKey(r => r.EventId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
         });
     }

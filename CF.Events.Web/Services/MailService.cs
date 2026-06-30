@@ -6,7 +6,7 @@ namespace CF.Events.Web.Services;
 
 public class MailService(IMailjetClient mailjetClient) : MailjetService(mailjetClient), IMailService
 {
-    public async Task SendInvitationAsync(string eventName, string displayName, string email, string callBackUrl, string? customDesign = null)
+    public async Task SendInvitationAsync(string eventName, string displayName, string email, string callBackUrl, string? customDesign = null, CancellationToken ctx = default)
     {
         var request = new MailjetRequest
             {
@@ -40,6 +40,6 @@ public class MailService(IMailjetClient mailjetClient) : MailjetService(mailjetC
                 }
             });
 
-        await SendMailjetEmailAsync(request);
+        await SendMailjetEmailAsync(request, ctx);
     }
 }

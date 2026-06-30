@@ -1,4 +1,5 @@
 ﻿@page "/admin/events"
+@using System.Text.Json
 @model CF.Events.Web.Pages.Admin.EventsModel
 @{
     ViewData["Title"] = "Manage Events";
@@ -16,7 +17,7 @@
                 </nav>
                 <h1 class="serif fs-1">Manage Events</h1>
             </div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createEventModal">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editEventModal" id="newEventBtn">
                 <i class="bi bi-calendar-plus me-2"></i>New Event
             </button>
         </div>
@@ -25,16 +26,17 @@
     <div class="card shadow-sm border-0">
         <div class="card-body p-0">
             <div class="table-responsive" style="max-height: 70vh; overflow-y: auto;">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-hover align-middle mb-0" id="eventsTable">
                     <thead class="table-info sticky-top">
-                        <tr>
-                            <th>Name</th>
-                            <th>Date</th>
-                            <th>Design</th>
-                            <th>Invitees</th>
-                            <th>Active</th>
-                            <th>Actions</th>
-                        </tr>
+                    <tr>
+                        <th>Name</th>
+                        <th>Date</th>
+                        <th>Design</th>
+                        <th>Accommodation Code</th>
+                        <th>Invitees</th>
+                        <th>Active</th>
+                        <th>Actions</th>
+                    </tr>
                     </thead>
                     <tbody>
                     @foreach (var eventData in Model.AllEvents)
@@ -45,7 +47,17 @@
                             <td>
                                 @if (!string.IsNullOrEmpty(eventData.InvitationFileName))
                                 {
-                                    <span class="badge bg-primary" title="@eventData.OriginalInvitationFileName">@(eventData.OriginalInvitationFileName ?? "Custom image")</span>
+                                    <span class="badge bg-primary">@(eventData.OriginalInvitationFileName ?? "Custom image")</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">None</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(eventData.AccommodationCode))
+                                {
+                                    <span class="badge bg-primary">@(eventData.AccommodationCode)</span>
                                 }
                                 else
                                 {
@@ -66,19 +78,17 @@
                             </td>
                             <td>
                                 <div class="btn-group">
+                                    <button type="button" class="btn btn-warning btn-sm" title="Edit Event"
+                                            data-bs-toggle="modal" data-bs-target="#editEventModal"
+                                            data-bs-event="@Model.GetSerializedEvent(eventData)">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
                                     <a href="/events/@eventData.Id/invitation" class="btn btn-info btn-sm" title="Preview Invitation" data-bs-toggle="tooltip">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                     <a href="/admin/events/@eventData.Id/invitees" class="btn btn-primary btn-sm" title="Manage Invitees" data-bs-toggle="tooltip">
                                         <i class="bi bi-people"></i>
                                     </a>
-                                    <div data-bs-toggle="tooltip" title="Regenerate Code">
-                                        <button type="button" class="btn btn-warning btn-sm rounded-0"
-                                                data-bs-toggle="modal" data-bs-target="#regenerateCodeModal"
-                                                data-bs-event-id="@eventData.Id" data-bs-event-name="@eventData.Name">
-                                            <i class="bi bi-arrow-clockwise"></i>
-                                        </button>
-                                    </div>
                                     <form method="post" asp-page-handler="Delete" asp-route-id="@eventData.Id"
                                           onsubmit="return confirm('Delete event &quot;@eventData.Name&quot; and all its invitations? This cannot be undone.');">
                                         <button type="submit" class="btn btn-danger btn-sm rounded-start-0 rounded-end-1" title="Delete Event" data-bs-toggle="tooltip">
@@ -100,8 +110,9 @@
     </div>
 </div>
 
+<partial name="Shared/_EditEventModal" model="Model.NewEvent"/>
+
 @section Scripts {
-    <partial name="_CreateEventModal" model="Model.NewEvent"/>
-    <partial name="_RegenerateCodeModal" />
     <partial name="_ValidationScriptsPartial" />
+    <script src="/js/events.js" type="text/javascript" asp-append-version="true"></script>
 }

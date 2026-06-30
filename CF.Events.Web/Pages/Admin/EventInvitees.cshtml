@@ -18,56 +18,96 @@
                 <h1 class="serif fs-1 mt-3">@Model.EventData?.Name</h1>
                 <p class="text-muted mb-0">@Model.EventData?.Date.ToLongDateString()</p>
             </div>
-            <div class="d-flex align-items-center bg-light p-2 rounded border">
-                <div class="me-3">
-                    <span class="text-muted small d-block">Current Invite Code</span>
-                    <code class="fs-5">@Model.CurrentInviteCode</code>
-                </div>
-                <button type="button" class="btn btn-outline-secondary btn-sm" title="Regenerate Code"
+            <div class="d-flex mt-auto mb-0">
+                <button type="button" class="btn btn-outline-primary" title="Regenerate Code"
                         data-bs-toggle="modal" data-bs-target="#regenerateCodeModal"
                         data-bs-event-id="@Model.EventData!.Id" data-bs-event-name="@Model.EventData!.Name">
-                    <i class="bi bi-arrow-clockwise me-1"></i>Regenerate
+                    <i class="bi bi-key-fill me-1"></i>Generate invite code
                 </button>
             </div>
         </div>
     </div>
 
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Add an existing user</h5>
-            @if (Model.AvailableUsers.Count == 0)
-            {
-                <p class="text-muted mb-0">All registered users are already invited. Use "Invite New Person" to add someone new.</p>
-            }
-            else
-            {
-                <form method="post" action="/events/@Model.EventData!.Id/invite-users" class="row g-2 align-items-center">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="inviteCode" value="@Model.CurrentInviteCode" />
-                    <div class="col-md-8">
-                        <select name="userIds" asp-items="Model.AvailableUsers" class="form-select tom-select" required multiple placeholder="Select users to invite..."></select>
-                    </div>
-                    <div class="col-md-4">
-                        <button type="submit" class="btn btn-success w-100">
-                            <i class="bi bi-plus-lg me-1"></i>Invite to event
-                        </button>
-                    </div>
-                </form>
-            }
+    @if (!Model.CurrentInviteCodes.Any())
+    {
+        <div class="alert alert-warning mb-3">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            No active invite codes found. Please <strong>Generate an invite code</strong> first.
         </div>
-    </div>
+    }
+    else
+    {
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Invite users</h5>
+                @if (Model.AvailableUsers.Count == 0)
+                {
+                    <p class="text-muted mb-0">All registered users are already invited. Use "Invite New Person" to add someone new.</p>
+                }
+                else
+                {
+                    <form method="post" asp-action="InviteUsers" asp-controller="Event" asp-route-eventId="@Model.EventData!.Id" class="row g-2 align-items-center" onsubmit="showLoadingOverlay()">
+                        @Html.AntiForgeryToken()
+                        <div class="col-12 mb-3">
+                            <select name="UserIds" asp-items="Model.AvailableUsers" class="form-select tom-select" required multiple placeholder="Select users to invite..."></select>
+                        </div>
+                        <div class="col-9 row">
+                            <div class="col-6 flex-column gap-2">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="radio" asp-for="SendEmailsOnInvite" id="sendNowRadio" value="true"/>
+                                    <label class="form-check-label" for="sendNowRadio">
+                                        Immediately send email on invite
+                                    </label>
+                                </div>
+                                <div class="form-check d-flex align-items-center gap-2">
+                                    <input class="form-check-input" type="radio" asp-for="SendEmailsOnInvite" id="scheduleRadio" value="false"/>
+                                    <label class="form-check-label mb-0" for="scheduleRadio">
+                                        Schedule for:
+                                    </label>
+                                    <input type="datetime-local" asp-for="ScheduledFor"
+                                           min="@DateTime.UtcNow.AddDays(1).ToString("yyyy-MM-ddTHH:mm")"
+                                           class="form-control form-control-sm w-auto"/>
+                                </div>
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(Model.EventData?.AccommodationCode))
+                            {
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center gap-2 mb-3">
+                                        <label class="form-check-label text-nowrap mb-0" for="scheduleRadio">
+                                            Use Code:
+                                        </label>
+                                        <select asp-for="InviteCodeId" asp-items="Model.CurrentInviteCodes" class="form-select tom-select form-select-sm w-100" required>
+                                            <option value="" disabled selected hidden>Select an invite code</option>
+                                        </select>
+                                    </div>
+                                    <input type="checkbox" asp-for="AllowUseOfAccommodationCode" class="me-2"/>Allow using accommodation code: <span class="alert alert-info p-1">@Model.EventData!.AccommodationCode</span>
+                                </div>
+                            }
+                        </div>
+                        <div class="col-3 mt-0">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="bi bi-plus-lg me-1"></i>Invite to event
+                            </button>
+                        </div>
+                    </form>
+                }
+            </div>
+        </div>
+    }
 
     <div class="card shadow-sm border-0">
         <div class="card-body p-0">
             <div class="table-responsive" style="max-height: 60vh; overflow-y: auto;">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light sticky-top">
-                        <tr>
-                            <th>Display Name</th>
-                            <th>Email</th>
-                            <th class="text-center">Status</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
+                    <thead class="table-success sticky-top">
+                    <tr>
+                        <th>Display Name</th>
+                        <th>Email</th>
+                        <th>Assigned Accommodation Code</th>
+                        <th class="text-center">Email Sent</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
                     </thead>
                     <tbody>
                     @foreach (var invitee in Model.Invitees)
@@ -75,6 +115,26 @@
                         <tr>
                             <td class="fw-bold">@invitee.DisplayName</td>
                             <td>@invitee.Email</td>
+                            <td>
+                                <div class="badge bg-info p-1">@invitee.AssignedAccommodationCode</div>
+                            </td>
+                            <td class="text-center">
+                                @if (invitee.InvitationEmailSent)
+                                {
+                                    <span class="badge bg-success" title="Invitation email sent"><i class="bi bi-check-circle me-1"></i>Sent</span>
+                                }
+                                else if (invitee.ScheduledFor != null)
+                                {
+                                    <div class="d-flex flex-column align-items-center">
+                                        <span class="badge bg-info" title="Scheduled to be sent"><i class="bi bi-calendar-event me-1"></i>Scheduled</span>
+                                        <small class="text-muted mt-1" style="font-size: 0.75rem;">@invitee.ScheduledFor.Value.ToString("g")</small>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark" title="Email not yet sent"><i class="bi bi-clock me-1"></i>Pending</span>
+                                }
+                            </td>
                             <td class="text-center">
                                 @{
                                     var badge = invitee.Status switch
@@ -90,7 +150,6 @@
                                 <form method="post" asp-action="ResendInvite" asp-controller="Event" asp-route-eventId="@Model.EventData!.Id" class="d-inline">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="userId" value="@invitee.UserId"/>
-                                    <input type="hidden" name="inviteCode" value="@Model.CurrentInviteCode"/>
                                     <button type="submit" class="btn btn-info btn-sm" title="Resend invite" data-bs-toggle="tooltip">
                                         <i class="bi bi-send"></i>
                                     </button>
@@ -116,7 +175,9 @@
     </div>
 </div>
 
+<partial name="Shared/_RegenerateCodeModal"/>
+
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-    <partial name="_RegenerateCodeModal" />
+    <partial name="_ValidationScriptsPartial"/>
+    <script src="/js/invitees.js" type="text/javascript" asp-append-version="true"></script>
 }

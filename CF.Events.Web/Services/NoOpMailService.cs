@@ -2,7 +2,7 @@
 
 public class NoOpMailService(ILogger<NoOpMailService> logger) : IMailService
 {
-    public Task SendInvitationAsync(string eventName, string displayName, string email, string callBackUrl, string? customDesign = null)
+    public Task SendInvitationAsync(string eventName, string displayName, string email, string callBackUrl, string? customDesign = null, CancellationToken ctx = default)
     {
         logger.LogDebug(
             """

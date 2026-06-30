@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 using CF.Events.Web.Data;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -25,7 +26,7 @@ public class EventsModel(
 
     public async Task OnGetAsync() => await LoadAsync();
 
-    public async Task<IActionResult> OnPostCreateAsync()
+    public async Task<IActionResult> OnPostSaveAsync()
     {
         if (!ModelState.IsValid)
         {
@@ -34,8 +35,6 @@ public class EventsModel(
             return Page();
         }
 
-        // Validate the upload (if any) before persisting the event so we can
-        // store both the original display name and a URL-safe technical name.
         var (originalName, technicalName) = PrepareInvitationImage(NewEvent.InvitationImage);
         if (!ModelState.IsValid)
         {
@@ -44,39 +43,68 @@ public class EventsModel(
             return Page();
         }
 
-        var ev = new Event
+        Event? @event;
+        var createMode = NewEvent.Id == 0;
+        if (createMode)
         {
-            Name = NewEvent.Name,
-            Date = NewEvent.Date,
-            Location = NewEvent.Location,
-            Description = NewEvent.Description,
-            InvitationFileName = technicalName,
-            OriginalInvitationFileName = originalName,
-            IsActive = true
-        };
-        db.Events.Add(ev);
+            @event = new Event { CreatedAt = DateTime.UtcNow };
+            db.Events.Add(@event);
+        }
+        else
+        {
+            @event = await db.Events.Include(e => e.EventConfig).FirstOrDefaultAsync(e => e.Id == NewEvent.Id);
+            if (@event is null)
+            {
+                toastNotification.AddErrorToastMessage("Event not found");
+                return RedirectToPage();
+            }
+        }
+
+        @event.Name = NewEvent.Name;
+        @event.Date = NewEvent.Date;
+        @event.Location = NewEvent.Location;
+        @event.Description = NewEvent.Description;
+        @event.AccommodationCode = NewEvent.AccommodationCode;
+
+        if (technicalName is not null)
+        {
+            if (!createMode && !string.IsNullOrEmpty(@event.InvitationFileName))
+                DeleteInvitationImage(@event.Id, @event.InvitationFileName);
+            @event.InvitationFileName = technicalName;
+            @event.OriginalInvitationFileName = originalName;
+        }
+
+        @event.EventConfig ??= new EventConfig { EventId = @event.Id };
+        @event.EventConfig.OfferDinner = NewEvent.OfferDinner;
+        @event.EventConfig.OfferLunch = NewEvent.OfferLunch;
+        @event.EventConfig.OfferBreakfast = NewEvent.OfferBreakfast;
+        @event.EventConfig.OfferBrunch = NewEvent.OfferBrunch;
+        @event.EventConfig.ShowAccommodationOptions = NewEvent.ShowAccommodationOptions;
+        @event.EventConfig.AllowComments = NewEvent.AllowComments;
+        @event.EventConfig.AllowPartners = NewEvent.AllowPartners;
+        @event.EventConfig.AllowKids = NewEvent.AllowKids;
+
         await db.SaveChangesAsync();
 
-        // The on-disk folder is the event Id, which is only known after saving.
         if (technicalName is not null)
-            await SaveInvitationImageAsync(ev.Id, NewEvent.InvitationImage!, technicalName);
+            await SaveInvitationImageAsync(@event.Id, NewEvent.InvitationImage!, technicalName);
 
-        toastNotification.AddSuccessToastMessage("Event created successfully!");
+        toastNotification.AddSuccessToastMessage($"Event {(createMode ? "created" : "updated")} successfully!");
         return RedirectToPage();
     }
 
     public async Task<IActionResult> OnPostToggleAsync(int id)
     {
-        var ev = await db.Events.FindAsync(id);
-        if (ev is null)
+        var @event = await db.Events.FindAsync(id);
+        if (@event is null)
         {
             toastNotification.AddWarningToastMessage("Event not found");
             return RedirectToPage();
         }
 
-        ev.IsActive = !ev.IsActive;
+        @event.IsActive = !@event.IsActive;
         await db.SaveChangesAsync();
-        toastNotification.AddSuccessToastMessage($"Event {(ev.IsActive ? "activated" : "deactivated")} successfully");
+        toastNotification.AddSuccessToastMessage($"Event {(@event.IsActive ? "activated" : "deactivated")} successfully");
         return RedirectToPage();
     }
 
@@ -100,13 +128,39 @@ public class EventsModel(
         return RedirectToPage();
     }
 
+    public string GetSerializedEvent(Event @event)
+    {
+        return JsonSerializer.Serialize(new
+        {
+            id = @event.Id,
+            name = @event.Name,
+            date = @event.Date.ToString("yyyy-MM-dd"),
+            location = @event.Location,
+            description = @event.Description,
+            offerDinner = @event.EventConfig?.OfferDinner ?? false,
+            offerLunch = @event.EventConfig?.OfferLunch ?? false,
+            offerBreakfast = @event.EventConfig?.OfferBreakfast ?? false,
+            offerBrunch = @event.EventConfig?.OfferBrunch ?? false,
+            accommodationCode = @event.AccommodationCode,
+            showAccommodationOptions = @event.EventConfig?.ShowAccommodationOptions ?? false,
+            allowComments = @event.EventConfig?.AllowComments ?? true,
+            allowPartners = @event.EventConfig?.AllowPartners ?? true,
+            allowKids = @event.EventConfig?.AllowKids ?? true,
+            originalInvitationFileName = @event.OriginalInvitationFileName
+        });
+    }
+
     public Dictionary<int, string> CurrentInviteCodes { get; private set; } = [];
 
     private async Task LoadAsync()
     {
-        AllEvents = await db.Events.Include(e => e.InviteCodes).OrderByDescending(e => e.Date).ToListAsync();
+        AllEvents = await db.Events
+            .Include(e => e.InviteCodes)
+            .Include(e => e.EventConfig)
+            .OrderByDescending(e => e.Date)
+            .ToListAsync();
 
-        var eventUsers = await db.UserEvents.ToListAsync();
+        var eventUsers = await db.EventUsers.ToListAsync();
         InviteeCounts = eventUsers
             .GroupBy(r => r.EventId)
             .ToDictionary(g => g.Key, g => g.Count());
@@ -120,7 +174,7 @@ public class EventsModel(
         );
     }
 
-    private void DeleteInvitationImage(int eventId)
+    private void DeleteInvitationImage(int eventId, string? fileName = null)
     {
         try
         {
@@ -129,8 +183,17 @@ public class EventsModel(
             if (!dir.StartsWith(invitationsRoot + Path.DirectorySeparatorChar, StringComparison.Ordinal))
                 return;
 
-            if (Directory.Exists(dir))
-                Directory.Delete(dir, recursive: true);
+            if (string.IsNullOrEmpty(fileName))
+            {
+                if (Directory.Exists(dir))
+                    Directory.Delete(dir, recursive: true);
+            }
+            else
+            {
+                var filePath = Path.Combine(dir, fileName);
+                if (System.IO.File.Exists(filePath))
+                    System.IO.File.Delete(filePath);
+            }
         }
         catch
         {
@@ -169,6 +232,8 @@ public class EventsModel(
 
     public sealed class InputModel
     {
+        public int Id { get; init; }
+
         [Required]
         [StringLength(100)]
         public string Name { get; init; } = string.Empty;
@@ -180,6 +245,18 @@ public class EventsModel(
         [StringLength(500)]
         public string? Description { get; init; }
 
+        [StringLength(100)]
+        public string? AccommodationCode { get; init; }
+
         public IFormFile? InvitationImage { get; init; }
+
+        public bool OfferDinner { get; init; }
+        public bool OfferLunch { get; init; }
+        public bool OfferBreakfast { get; init; }
+        public bool OfferBrunch { get; init; }
+        public bool ShowAccommodationOptions { get; init; }
+        public bool AllowComments { get; init; } = true;
+        public bool AllowPartners { get; init; } = true;
+        public bool AllowKids { get; init; } = true;
     }
 }
