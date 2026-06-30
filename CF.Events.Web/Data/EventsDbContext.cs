@@ -82,6 +82,8 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
 
         builder.Entity<InviteCode>(e =>
         {
+            e.HasIndex(r => r.Code).IsUnique();
+
             e.HasOne(r => r.Event)
                 .WithMany(r => r.InviteCodes)
                 .HasForeignKey(r => r.EventId)

@@ -63,7 +63,11 @@ public class EventInviteesModel(
             .OrderByDescending(c => c.CreatedAt)
             .FirstOrDefault()?.Code ?? "No valid code";
 
-        var invitedUsers = db.UserEvents.Where(ue => ue.EventId == id).Select(ue => new {ue.AssignedAccommodationCode, ue.User, ue.InvitationEmailSent, ue.ScheduledFor}).ToList();
+        var invitedUsers = db.UserEvents
+            .Where(ue => ue.EventId == id)
+            .Include(ue => ue.User)
+            .Select(ue => new { ue.AssignedAccommodationCode, ue.User, InvitationEmailSent = ue.InviteEmailSent, ue.ScheduledFor })
+            .ToList();
         var rsvps = db.Rsvps.Where(r => r.EventId == id).ToList();
 
         var unavailableUsers = new HashSet<string>();

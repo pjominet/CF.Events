@@ -71,13 +71,7 @@ public class EventController(
             return RedirectToPage($"/admin/events/{eventId}/invitees");
         }
 
-        var validCode = eventData.InviteCodes
-            .Where(c => c.Code == invite.InviteCode && c.ValidUntil > DateTime.UtcNow)
-            .OrderByDescending(c => c.CreatedAt)
-            .Select(c => c.Code)
-            .FirstOrDefault();
-
-        if (string.IsNullOrWhiteSpace(validCode))
+        if (!TryGetValidCode(eventData.InviteCodes, invite.InviteCode, out var validCode))
         {
             toastNotification.AddWarningToastMessage("Invalid or expired invite code");
             return RedirectToPage($"/admin/events/{eventId}/invitees");
@@ -93,8 +87,7 @@ public class EventController(
                 EventId = eventId,
                 UserId = userId,
                 AssignedAccommodationCode = invite.AllowUseOfAccommodationCode ? eventData.AccommodationCode : null,
-                ScheduledFor = invite.ScheduledFor,
-                InvitationInviteCode = invite.ScheduledFor != null ? invite.InviteCode : null
+                ScheduledFor = invite.ScheduledFor
             });
         }
 
@@ -103,7 +96,7 @@ public class EventController(
             var count = await db.SaveChangesAsync();
 
             if (invite is { SendEmailsOnInvite: true, ScheduledFor: null })
-                await invitationService.SendImmediateInvitationsAsync(eventId, newUserIds, invite.InviteCode);
+                await invitationService.SendImmediateInvitationsAsync(eventId, newUserIds, validCode!);
 
             toastNotification.AddSuccessToastMessage($"Successfully created {count} invitations");
             return LocalRedirect($"/admin/events/{eventId}/invitees");
@@ -119,35 +112,39 @@ public class EventController(
     [Authorize(Roles = Roles.Admin)]
     public async Task<IActionResult> ResendInvite([FromRoute] int eventId, [FromForm] string userId, [FromForm] string inviteCode)
     {
-        var user = await userManager.FindByIdAsync(userId);
-        if (user is null)
-        {
-            toastNotification.AddWarningToastMessage("User not found");
-            return LocalRedirect($"/admin/events/{eventId}/invitees");
-        }
+        var eventUser = await db.UserEvents
+            .Include(eu => eu.User)
+            .Where(eu => eu.EventId == eventId && eu.UserId == userId)
+            .Select(eu => new { eu.User.Email, eu.User.DisplayName })
+            .FirstOrDefaultAsync();
 
-        var isInvited = await db.UserEvents.AnyAsync(eu => eu.EventId == eventId && eu.UserId == user.Id);
-        if (!isInvited)
+        if (eventUser is null)
         {
             toastNotification.AddWarningToastMessage("User is not invited to this event");
             return LocalRedirect($"/admin/events/{eventId}/invitees");
         }
 
-        var eventData = await db.Events.FindAsync(eventId);
-        if (eventData is null)
+        var eventData = await db.Events
+            .Where(e => e.Id == eventId)
+            .Select(e => new { e.Name, e.InviteCodes })
+            .FirstOrDefaultAsync();
+
+        if (!TryGetValidCode(eventData?.InviteCodes, inviteCode, out var validCode))
         {
-            toastNotification.AddWarningToastMessage("Event not found");
-            return LocalRedirect($"/admin/events/{eventId}/invitees");
+            toastNotification.AddWarningToastMessage("Invalid or expired invite code");
+            return RedirectToPage($"/admin/events/{eventId}/invitees");
         }
 
         try
         {
-            logger.LogInformation("Re-sending invitation to {Email}", user.Email);
-            var callbackUrl = Url.Action("InvitationCallback", "Event", new { code = inviteCode, email = user.Email }, Request.Scheme);
-            await mailService.SendInvitationAsync(eventData.Name, user.DisplayName!, user.Email!, callbackUrl!);
+            logger.LogInformation("Re-sending invitation to {Email}", eventUser.Email);
+            var callbackUrl = Url.Action("InvitationCallback", "Event", new { code = validCode!, email = eventUser.Email }, Request.Scheme);
+            await mailService.SendInvitationAsync(eventData!.Name, eventUser.DisplayName!, eventUser.Email!, callbackUrl!);
 
-            var userEvent = await db.UserEvents.FirstAsync(eu => eu.EventId == eventId && eu.UserId == user.Id);
-            userEvent.InvitationEmailSent = true;
+            await db.UserEvents
+                .Where(eu => eu.EventId == eventId && eu.UserId == userId)
+                .ExecuteUpdateAsync(setter => setter.SetProperty(eu => eu.InviteEmailSent, true));
+
             await db.SaveChangesAsync();
 
             toastNotification.AddSuccessToastMessage("Successfully resent invitation");
@@ -164,8 +161,12 @@ public class EventController(
     [AllowAnonymous]
     public async Task<IActionResult> InvitationCallback([FromQuery] string code, [FromQuery] string email)
     {
-        var inviteCode = await db.InviteCodes.FirstOrDefaultAsync(c => c.Code == code && c.ValidUntil > DateTime.UtcNow);
-        if (inviteCode is null)
+        var invitedEventId = await db.InviteCodes
+            .Where(c => c.Code == code && c.ValidUntil > DateTime.UtcNow)
+            .Select(ic => ic.EventId)
+            .FirstOrDefaultAsync();
+
+        if (invitedEventId <= 0)
         {
             logger.LogWarning("Invalid or expired invite code was used: {Code}", code);
             return BadRequest();
@@ -178,10 +179,10 @@ public class EventController(
             return BadRequest();
         }
 
-        var isInvited = await db.UserEvents.AnyAsync(eu => eu.EventId == inviteCode.EventId && eu.UserId == user.Id);
+        var isInvited = await db.UserEvents.AnyAsync(eu => eu.EventId == invitedEventId && eu.UserId == user.Id);
         if (!isInvited)
         {
-            logger.LogWarning("User with email {Email} was not invited to event {EventId}", email, inviteCode.EventId);
+            logger.LogWarning("User with email {Email} was not invited to event {EventId}", email, invitedEventId);
             return BadRequest();
         }
 
@@ -227,5 +228,16 @@ public class EventController(
         if (!string.IsNullOrEmpty(referrer))
             return Redirect(referrer);
         return RedirectToPage("/admin/events");
+    }
+
+    private static bool TryGetValidCode(HashSet<InviteCode>? inviteCodes, string? inviteCode, out string? validCode)
+    {
+        validCode = inviteCodes?
+            .Where(c => c.Code == inviteCode && c.ValidUntil > DateTime.UtcNow)
+            .OrderByDescending(c => c.CreatedAt)
+            .Select(c => c.Code)
+            .FirstOrDefault();
+
+        return !string.IsNullOrWhiteSpace(validCode);
     }
 }
