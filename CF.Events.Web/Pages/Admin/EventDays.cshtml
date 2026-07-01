@@ -1,0 +1,146 @@
+@page "/admin/events/{id:int}/days"
+@model CF.Events.Web.Pages.Admin.EventDaysModel
+@{
+    ViewData["Title"] = "Manage Event Days";
+}
+
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col d-flex justify-content-between align-items-center">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="/admin">Admin</a></li>
+                        <li class="breadcrumb-item"><a href="/admin/events">Events</a></li>
+                        <li class="breadcrumb-item active">Event Days</li>
+                    </ol>
+                </nav>
+                <h1 class="serif fs-1 mt-3">@Model.EventData?.Name</h1>
+                <p class="text-muted mb-0">
+                    @Model.EventData?.Date.ToLongDateString() — @Model.EventData?.EndDate.ToLongDateString()
+                </p>
+            </div>
+            <div class="d-flex gap-2 mt-auto mb-0">
+                <button type="button" class="btn btn-outline-success" id="generateDaysBtn">
+                    <i class="bi bi-lightning-fill me-1"></i>Auto-Generate Days
+                </button>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#dayModal" id="addDayBtn">
+                    <i class="bi bi-plus-lg me-1"></i>Add Day
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive" style="max-height: 60vh; overflow-y: auto;">
+                <table class="table table-hover align-middle mb-0" id="daysTable">
+                    <thead class="table-info sticky-top">
+                    <tr>
+                        <th>Date</th>
+                        <th>Name</th>
+                        <th class="text-center">Offers Food</th>
+                        <th class="text-center">Offers Accommodation</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var day in Model.Days)
+                    {
+                        <tr data-day-id="@day.Id">
+                            <td>@day.Date.ToString("ddd, dd MMM yyyy")</td>
+                            <td class="fw-bold">@day.Name</td>
+                            <td class="text-center">
+                                @if (day.OffersFood)
+                                {
+                                    <span class="badge bg-success"><i class="bi bi-check-lg"></i></span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary"><i class="bi bi-x-lg"></i></span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                @if (day.OffersAccommodation)
+                                {
+                                    <span class="badge bg-success"><i class="bi bi-check-lg"></i></span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary"><i class="bi bi-x-lg"></i></span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-warning btn-sm edit-day-btn" title="Edit"
+                                            data-day-id="@day.Id"
+                                            data-day-date="@day.Date.ToString("yyyy-MM-dd")"
+                                            data-day-name="@day.Name"
+                                            data-day-food="@day.OffersFood.ToString().ToLower()"
+                                            data-day-accommodation="@day.OffersAccommodation.ToString().ToLower()">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm delete-day-btn" title="Delete"
+                                            data-day-id="@day.Id" data-day-name="@day.Name">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+            @if (Model.Days.Count == 0)
+            {
+                <div class="text-center py-4 text-muted">
+                    No event days configured. Use <strong>Auto-Generate Days</strong> to create days for the event duration, or add them manually.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Day Modal -->
+<div class="modal fade" id="dayModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="dayModalTitle">Add Event Day</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editDayId" />
+                <div class="mb-3">
+                    <label for="dayDate" class="form-label">Date</label>
+                    <input type="date" class="form-control" id="dayDate" required
+                           min="@Model.EventData?.Date.ToString("yyyy-MM-dd")"
+                           max="@Model.EventData?.EndDate.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="mb-3">
+                    <label for="dayName" class="form-label">Name</label>
+                    <input type="text" class="form-control" id="dayName" placeholder="e.g. Day 1, Wedding Day" />
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="dayOffersFood" checked />
+                    <label class="form-check-label" for="dayOffersFood">Offers Food</label>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="dayOffersAccommodation" checked />
+                    <label class="form-check-label" for="dayOffersAccommodation">Offers Accommodation</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveDayBtn">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="/js/event-days.js" type="text/javascript" asp-append-version="true"></script>
+    <script>
+        initEventDays(@Model.EventData!.Id);
+    </script>
+}

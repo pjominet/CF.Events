@@ -1,0 +1,214 @@
+@page "/admin/events/{id:int}/custom-questions"
+@model CF.Events.Web.Pages.Admin.CustomQuestionsModel
+@{
+    ViewData["Title"] = "Manage Custom Questions";
+}
+
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col d-flex justify-content-between align-items-center">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="/admin">Admin</a></li>
+                        <li class="breadcrumb-item"><a href="/admin/events">Events</a></li>
+                        <li class="breadcrumb-item active">Custom Questions</li>
+                    </ol>
+                </nav>
+                <h1 class="serif fs-1 mt-3">@Model.EventData?.Name</h1>
+                <p class="text-muted mb-0">Custom RSVP Questions</p>
+            </div>
+            <button type="button" class="btn btn-primary mt-auto mb-0" data-bs-toggle="modal" data-bs-target="#questionModal" id="addQuestionBtn">
+                <i class="bi bi-plus-lg me-1"></i>Add Question
+            </button>
+        </div>
+    </div>
+
+    @{
+        var grouped = Model.Questions.GroupBy(q => q.StepGroup).OrderBy(g => g.Key);
+    }
+
+    @foreach (var group in grouped)
+    {
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-collection me-2"></i>@group.Key</h5>
+                <span class="badge bg-primary">@group.Count() question(s)</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-info">
+                        <tr>
+                            <th style="width: 40px">#</th>
+                            <th>Label</th>
+                            <th>Type</th>
+                            <th>Options</th>
+                            <th class="text-center">Required</th>
+                            <th>Show If</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var q in group.OrderBy(q => q.SortOrder))
+                        {
+                            <tr data-question-id="@q.Id">
+                                <td class="text-muted">@q.SortOrder</td>
+                                <td>
+                                    <div class="fw-bold">@q.Label</div>
+                                    @if (!string.IsNullOrEmpty(q.HelpText))
+                                    {
+                                        <small class="text-muted">@q.HelpText</small>
+                                    }
+                                </td>
+                                <td><span class="badge bg-secondary">@q.Type</span></td>
+                                <td>
+                                    @if (q.Options is { Count: > 0 })
+                                    {
+                                        @string.Join(", ", q.Options)
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    @if (q.IsRequired)
+                                    {
+                                        <span class="badge bg-danger">Required</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(q.ShowIf))
+                                    {
+                                        <code>@q.ShowIf</code>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Always</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-warning btn-sm edit-question-btn" title="Edit"
+                                                data-q-id="@q.Id"
+                                                data-q-label="@q.Label"
+                                                data-q-helptext="@q.HelpText"
+                                                data-q-type="@((int)q.Type)"
+                                                data-q-options="@(q.Options != null ? string.Join("\n", q.Options) : "")"
+                                                data-q-required="@q.IsRequired.ToString().ToLower()"
+                                                data-q-sortorder="@q.SortOrder"
+                                                data-q-stepgroup="@q.StepGroup"
+                                                data-q-steporder="@q.StepOrder"
+                                                data-q-showif="@q.ShowIf">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-danger btn-sm delete-question-btn" title="Delete"
+                                                data-q-id="@q.Id" data-q-label="@q.Label">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (!Model.Questions.Any())
+    {
+        <div class="card shadow-sm border-0">
+            <div class="card-body text-center py-4 text-muted">
+                No custom questions configured. Click <strong>Add Question</strong> to create one.
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Add/Edit Question Modal -->
+<div class="modal fade" id="questionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="questionModalTitle">Add Custom Question</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editQuestionId" />
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label for="qLabel" class="form-label">Label <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="qLabel" required placeholder="e.g. What song gets you on the dance floor?" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="qType" class="form-label">Type</label>
+                        <select class="form-select" id="qType">
+                            <option value="0">Text</option>
+                            <option value="1">Text Area</option>
+                            <option value="2">Yes/No</option>
+                            <option value="3">Single Choice</option>
+                            <option value="4">Multi Choice</option>
+                            <option value="5">Number</option>
+                            <option value="6">Date</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="qHelpText" class="form-label">Help Text</label>
+                    <input type="text" class="form-control" id="qHelpText" placeholder="Optional hint shown below the question" />
+                </div>
+                <div class="mb-3" id="optionsGroup" style="display: none;">
+                    <label for="qOptions" class="form-label">Options <small class="text-muted">(one per line)</small></label>
+                    <textarea class="form-control" id="qOptions" rows="4" placeholder="Option 1&#10;Option 2&#10;Option 3"></textarea>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="qStepGroup" class="form-label">Step Group</label>
+                        <select class="form-select" id="qStepGroup">
+                            <option value="Extras" selected>Extras</option>
+                            <option value="Attendance">Attendance</option>
+                            <option value="Food">Food</option>
+                            <option value="Accommodation">Accommodation</option>
+                            <option value="Custom">Custom</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="qSortOrder" class="form-label">Sort Order</label>
+                        <input type="number" class="form-control" id="qSortOrder" value="0" min="0" />
+                        <small class="text-muted">0 = auto-assign</small>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="qStepOrder" class="form-label">Step Order</label>
+                        <input type="number" class="form-control" id="qStepOrder" value="0" min="0" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="qShowIf" class="form-label">Show If <small class="text-muted">(conditional)</small></label>
+                        <input type="text" class="form-control" id="qShowIf" placeholder='e.g. Attending == true' />
+                    </div>
+                    <div class="col-md-6 mb-3 d-flex align-items-end">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="qRequired" />
+                            <label class="form-check-label" for="qRequired">Required</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveQuestionBtn">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="/js/custom-questions.js" type="text/javascript" asp-append-version="true"></script>
+    <script>
+        initCustomQuestions(@Model.EventData!.Id);
+    </script>
+}

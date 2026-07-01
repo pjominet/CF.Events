@@ -172,8 +172,8 @@ public class EventController(
                 .ThenInclude(i => i.InviteCode)
             .Where(ip => ip.Invitation.EventId == eventId && ip.UserId == userId)
             .Select(ip => new {
-                ip.User.Email,
-                ip.User.DisplayName,
+                Email = ip.User != null ? ip.User.Email : null,
+                DisplayName = ip.User != null ? ip.User.DisplayName : null,
                 ip.Name,
                 InviteCodeId = ip.Invitation.InviteCodeId,
                 InvitationId = ip.InvitationId

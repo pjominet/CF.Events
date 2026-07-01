@@ -1,8 +1,8 @@
 # Implementation Memory
 
 ## Session Context
-**Last Updated**: 2026-07-01 (Session 15 - Remove Legacy Code)
-**Current Task**: RSVP system redesign - Core models implementation
+**Last Updated**: 2026-07-01 (Session 20 - Admin UI Pages + Warning Fixes)
+**Current Task**: RSVP system redesign - Admin UI and polish
 **Approach**: Hybrid model (Approach 2) - Structured common fields + flexible custom Q&A
 **Environment**: Windows machine - ALL commands must be Windows-compatible (use `dir`, `\` paths, etc.)
 **Namespace Strategy**: Flat namespace (`CF.Events.Web.Models`) with subfolder organization for readability
@@ -75,8 +75,12 @@
 - [x] Prioritize implementation order
 - [ ] Verify all model relationships are correctly configured (no duplicates)
 - [ ] User to create and run migrations
-- [ ] Implement controllers for new models
-- [ ] Implement RSVP stepper UI
+- [x] Implement controllers for new models (RsvpController, EventDaysController, CustomQuestionsController)
+- [x] Implement RSVP stepper UI (Rsvp.cshtml + rsvp-stepper.js)
+- [x] Admin UI for EventDays management (EventDays.cshtml + event-days.js)
+- [x] Admin UI for CustomQuestions management (CustomQuestions.cshtml + custom-questions.js)
+- [x] Added navigation links from Events admin page to Days and Custom Questions pages
+- [x] Fixed all 6 nullable reference warnings in RsvpService.cs and EventController.cs (0 warnings now)
 
 ---
 
@@ -686,4 +690,65 @@ Identified and removed **all remaining duplicate relationship configurations** t
 - User to validate the implementation
 - Create the actual stepper UI pages (Razor pages or frontend)
 - Continue with any additional controllers (EventDays, CustomQuestions, etc.) if needed
+
+---
+
+### 2026-07-01 Session 19 (EventDays & CustomQuestions Controllers)
+**Actions**:
+- **Created EventDaysController.cs**: Admin-only CRUD controller for managing event days
+  - `GET /events/{eventId}/days` - List all days
+  - `GET /events/{eventId}/days/{dayId}` - Get single day
+  - `POST /events/{eventId}/days` - Create day (validates date within event range, prevents duplicates)
+  - `PUT /events/{eventId}/days/{dayId}` - Update day
+  - `DELETE /events/{eventId}/days/{dayId}` - Delete day (cascade deletes food prefs & accommodations)
+  - `POST /events/{eventId}/days/generate` - Auto-generate days for all dates in event range
+- **Created CustomQuestionsController.cs**: Admin-only CRUD controller for managing custom questions
+  - `GET /events/{eventId}/custom-questions` - List all questions (ordered by StepGroup, SortOrder)
+  - `GET /events/{eventId}/custom-questions/{questionId}` - Get single question
+  - `POST /events/{eventId}/custom-questions` - Create question (validates choice-type options, auto-assigns sort order)
+  - `PUT /events/{eventId}/custom-questions/{questionId}` - Update question
+  - `DELETE /events/{eventId}/custom-questions/{questionId}` - Delete question (cascade deletes answers)
+  - `POST /events/{eventId}/custom-questions/reorder` - Reorder questions by providing ordered ID list
+
+**Files Created**:
+- `CF.Events.Web\Controllers\EventDaysController.cs`
+- `CF.Events.Web\Controllers\CustomQuestionsController.cs`
+
+**Build Status**: ✅ Build succeeds (0 errors, 6 pre-existing warnings in RsvpService.cs and EventController.cs)
+
+**Next Steps**:
+- Implement RSVP stepper UI (high priority)
+- Admin UI for custom questions management
+- Admin UI for invitation management
+
+---
+
+### 2026-07-01 Session 19b (RSVP Stepper UI)
+**Actions**:
+- **Created Rsvp.cshtml.cs**: Razor Page code-behind that finds user's invitation for the event
+- **Created Rsvp.cshtml**: 6-step stepper UI page at `/events/{eventId}/rsvp`
+  - Step 0: Attendance (toggle per invited person)
+  - Step 1: Group Details (dietary restrictions, plus ones, kids)
+  - Step 2: Food Preferences (per person, per day - breakfast/brunch/lunch/dinner)
+  - Step 3: Accommodation (per person, per day with room type and special requests)
+  - Step 4: Custom Questions (dynamic rendering based on question type)
+  - Step 5: Review & Submit (summary + comments)
+- **Created rsvp-stepper.js**: Client-side stepper logic
+  - Fetches form data from `GET /rsvps/invitation/{id}` API
+  - Supports editing existing RSVPs (seeds from existing data)
+  - Plus one management (add/remove)
+  - Draft save via `POST /rsvps/invitation/{id}/draft`
+  - Final submit via `POST /rsvps/invitation/{id}/submit`
+  - Step navigation with visual progress indicators
+
+**Files Created**:
+- `CF.Events.Web\Pages\Events\Rsvp.cshtml.cs`
+- `CF.Events.Web\Pages\Events\Rsvp.cshtml`
+- `CF.Events.Web\wwwroot\js\rsvp-stepper.js`
+
+**Build Status**: ✅ Build succeeds (0 errors, 6 pre-existing warnings)
+
+**Next Steps**:
+- Admin UI for custom questions management
+- Admin UI for invitation management
   

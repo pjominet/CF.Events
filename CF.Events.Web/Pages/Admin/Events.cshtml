@@ -89,6 +89,12 @@
                                     <a href="/admin/events/@eventData.Id/invitees" class="btn btn-primary btn-sm" title="Manage Invitees" data-bs-toggle="tooltip">
                                         <i class="bi bi-people"></i>
                                     </a>
+                                    <a href="/admin/events/@eventData.Id/days" class="btn btn-outline-primary btn-sm" title="Manage Days" data-bs-toggle="tooltip">
+                                        <i class="bi bi-calendar3"></i>
+                                    </a>
+                                    <a href="/admin/events/@eventData.Id/custom-questions" class="btn btn-outline-primary btn-sm" title="Custom Questions" data-bs-toggle="tooltip">
+                                        <i class="bi bi-question-circle"></i>
+                                    </a>
                                     <form method="post" asp-page-handler="Delete" asp-route-id="@eventData.Id"
                                           onsubmit="return confirm('Delete event &quot;@eventData.Name&quot; and all its invitations? This cannot be undone.');">
                                         <button type="submit" class="btn btn-danger btn-sm rounded-start-0 rounded-end-1" title="Delete Event" data-bs-toggle="tooltip">

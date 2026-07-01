@@ -39,9 +39,9 @@ public class RsvpService(
             .Include(i => i.InvitedPersons)
                 .ThenInclude(ip => ip.User)
             .Include(i => i.Rsvp)
-                .ThenInclude(r => r.People)
+                .ThenInclude(r => r!.People)
             .Include(i => i.Rsvp)
-                .ThenInclude(r => r.CustomAnswers)
+                .ThenInclude(r => r!.CustomAnswers)
             .FirstOrDefaultAsync(i => i.Id == invitationId);
 
         if (invitation is null || invitation.Event is null)
@@ -267,7 +267,7 @@ public class RsvpService(
             }
             else
             {
-                rsvp = existingRsvp;
+                rsvp = existingRsvp!;
                 rsvp.UpdatedAt = DateTime.UtcNow;
             }
 
@@ -331,7 +331,7 @@ public class RsvpService(
     private async Task UpdateRsvpPeopleAsync(Rsvp rsvp, List<RsvpPersonRequest> personRequests, Invitation invitation)
     {
         var existingPersonIds = rsvp.People.Select(p => p.Id).ToHashSet();
-        var requestPersonIds = personRequests.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToHashSet();
+        var requestPersonIds = personRequests.Where(p => p.Id.HasValue).Select(p => p.Id!.Value).ToHashSet();
 
         // Remove people that are no longer in the request
         var peopleToRemove = rsvp.People.Where(p => !requestPersonIds.Contains(p.Id)).ToList();
