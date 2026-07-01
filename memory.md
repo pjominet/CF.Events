@@ -660,4 +660,54 @@ Identified and removed **all remaining duplicate relationship configurations** t
 **Next Steps**:
 - User to validate the changes and confirm the project builds
 - Continue with any remaining implementation tasks
+
+---
+
+### 2026-07-01 Session 17 (Implement RSVP Controller & Service)
+**Actions**:
+- **Created DTOs** in `/Models/Requests/`:
+  - `RsvpRequest.cs` - Main request DTO with nested DTOs for people, food preferences, accommodations, custom answers
+  - `RsvpResponse.cs` - Response DTOs for form data and submission results
+- **Created RsvpService.cs**: Business logic service with:
+  - `GetRsvpFormAsync()` - Loads all data needed for the RSVP stepper form
+  - `SaveRsvpAsync()` - Handles saving/submitting RSVPs with all related data
+  - `GetCurrentRsvpAsync()` - Gets current RSVP status
+  - Helper methods for updating people, food preferences, accommodations, custom answers
+- **Created RsvpController.cs**: API controller with endpoints:
+  - `GET /rsvps/{invitationId}` - Get RSVP form data
+  - `GET /rsvps/{invitationId}/status` - Get RSVP status
+  - `POST /rsvps/{invitationId}` - Save or submit RSVP
+  - `POST /rsvps/{invitationId}/submit` - Submit final RSVP
+  - `POST /rsvps/{invitationId}/draft` - Save RSVP as draft
+  - `GET /rsvps/by-rsvp/{rsvpId}` - Get RSVP by ID (admin)
+  - `GET /rsvps/event/{eventId}` - Get all RSVPs for event (admin)
+- **Updated ServiceCollectionExtensions.cs**: Registered `IRsvpService` in DI container
+
+**Files Created**:
+- `CF.Events.Web\Models\Requests\RsvpRequest.cs`
+- `CF.Events.Web\Models\Requests\RsvpResponse.cs`
+- `CF.Events.Web\Services\RsvpService.cs`
+- `CF.Events.Web\Controllers\RsvpController.cs`
+
+**Files Modified**:
+- `CF.Events.Web\Infrastructure\Extensions\ServiceCollectionExtensions.cs`
+
+**Features Implemented**:
+- Complete RSVP form data loading with all related entities
+- RSVP save/submit functionality with support for:
+  - Multiple people per RSVP
+  - Plus ones
+  - Food preferences per person per day
+  - Accommodation per person per day
+  - Custom question answers
+  - Kids details
+  - Draft save and final submission
+- Proper authorization checks
+- Uses projections where possible for performance
+- Follows the existing code patterns and style
+
+**Next Steps**:
+- User to validate the implementation
+- Create the actual stepper UI pages (Razor pages or frontend)
+- Continue with any additional controllers (EventDays, CustomQuestions, etc.) if needed
   
