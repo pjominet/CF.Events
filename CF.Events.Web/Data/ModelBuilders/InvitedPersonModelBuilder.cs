@@ -40,6 +40,17 @@ public static class InvitedPersonModelBuilder
             .HasMaxLength(100)
             .IsRequired(false);
 
+        builder.Property(ip => ip.InvitationToken)
+            .HasMaxLength(128)
+            .IsRequired(false);
+
+        builder.Property(ip => ip.InvitationTokenExpiresAt)
+            .IsRequired(false);
+
+        builder.HasIndex(ip => ip.InvitationToken)
+            .IsUnique()
+            .HasFilter("[InvitationToken] IS NOT NULL");
+
         // Navigation: Invitation
         builder.HasOne(ip => ip.Invitation)
             .WithMany(i => i.InvitedPersons)

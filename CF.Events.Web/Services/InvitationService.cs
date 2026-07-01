@@ -1,4 +1,5 @@
 ﻿using CF.Events.Web.Data;
+using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Models;
 using Microsoft.EntityFrameworkCore;
@@ -14,8 +15,9 @@ public interface IInvitationService
 
     /// <summary>
     /// Creates an InviteEmailRequest from an invitation and its primary invited person.
+    /// Generates a per-user, single-use invitation token and stores it on the InvitedPerson.
     /// </summary>
-    InviteEmailRequest CreateInviteEmailRequest(Invitation invitation, InvitedPerson primaryPerson, string inviteCode);
+    InviteEmailRequest CreateInviteEmailRequest(Invitation invitation, InvitedPerson primaryPerson, int tokenValidDays = 90);
 }
 
 public class InvitationService(
@@ -28,10 +30,14 @@ public class InvitationService(
 
     /// <summary>
     /// Creates an InviteEmailRequest from an invitation and its primary invited person.
-    /// Centralizes the logic for creating email request DTOs.
+    /// Generates a per-user, single-use invitation token and stores it on the InvitedPerson.
     /// </summary>
-    public InviteEmailRequest CreateInviteEmailRequest(Invitation invitation, InvitedPerson primaryPerson, string inviteCode)
+    public InviteEmailRequest CreateInviteEmailRequest(Invitation invitation, InvitedPerson primaryPerson, int tokenValidDays = 90)
     {
+        var token = CodeGenerator.Generate(64);
+        primaryPerson.InvitationToken = token;
+        primaryPerson.InvitationTokenExpiresAt = DateTime.UtcNow.AddDays(tokenValidDays);
+
         return new InviteEmailRequest
         {
             EventId = invitation.EventId,
@@ -39,7 +45,7 @@ public class InvitationService(
             UserId = primaryPerson.UserId!,
             UserDisplayName = primaryPerson.User?.DisplayName ?? primaryPerson.Name,
             UserEmail = primaryPerson.User?.Email ?? primaryPerson.Email!,
-            InviteCode = inviteCode
+            InvitationToken = token
         };
     }
 
@@ -71,9 +77,12 @@ public class InvitationService(
             var primaryPerson = invitation.InvitedPersons.FirstOrDefault(ip => ip.IsPrimary);
             if (primaryPerson != null && invitation.InviteCode != null)
             {
-                inviteRequests.Add(CreateInviteEmailRequest(invitation, primaryPerson, invitation.InviteCode.Code));
+                inviteRequests.Add(CreateInviteEmailRequest(invitation, primaryPerson));
             }
         }
+
+        // Save the generated invitation tokens to the database
+        await db.SaveChangesAsync(ctx);
 
         var sentCount = await SendInvitationEmailsAsync(inviteRequests, ctx);
 
@@ -116,7 +125,7 @@ public class InvitationService(
 
             try
             {
-                var callbackUrl = $"{baseUrl}/events/invite-callback?code={request.InviteCode}&email={request.UserEmail}";
+                var callbackUrl = $"{baseUrl}/events/invite-callback?token={request.InvitationToken}";
 
                 await mailService.SendInvitationAsync(
                     request.EventName,

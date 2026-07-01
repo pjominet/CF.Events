@@ -46,6 +46,6 @@ public static class RsvpAccommodationModelBuilder
         builder.HasOne(a => a.EventDay)
             .WithMany(ed => ed.Accommodations)
             .HasForeignKey(a => a.EventDayId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

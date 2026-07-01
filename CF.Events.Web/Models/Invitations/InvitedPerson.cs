@@ -29,6 +29,11 @@ public class InvitedPerson
     [StringLength(100)]
     public string? AssignedAccommodationCode { get; set; } // Accommodation code assigned to this person
 
+    [StringLength(128)]
+    public string? InvitationToken { get; set; } // Per-user, single-use, opaque token for invitation callback
+
+    public DateTime? InvitationTokenExpiresAt { get; set; } // Expiry for the invitation token
+
     // Navigation properties
     public Invitation Invitation { get; set; } = null!;
     public AppUser? User { get; set; }

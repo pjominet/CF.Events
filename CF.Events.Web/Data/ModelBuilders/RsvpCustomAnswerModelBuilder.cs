@@ -52,6 +52,6 @@ public static class RsvpCustomAnswerModelBuilder
         builder.HasOne(a => a.Question)
             .WithMany(cq => cq.Answers)
             .HasForeignKey(a => a.CustomQuestionId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

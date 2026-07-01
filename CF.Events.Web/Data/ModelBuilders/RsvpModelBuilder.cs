@@ -52,18 +52,12 @@ public static class RsvpModelBuilder
         builder.HasOne(r => r.Event)
             .WithMany(e => e.Rsvps)
             .HasForeignKey(r => r.EventId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
 
         // Navigation: Invitation (1:1)
         builder.HasOne(r => r.Invitation)
             .WithOne(i => i.Rsvp)
             .HasForeignKey<Rsvp>(r => r.InvitationId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // Navigation: People - Configured in RsvpPersonModelBuilder (owns FK)
-        // Do not duplicate relationship configuration
-
-        // Navigation: CustomAnswers - Configured in RsvpCustomAnswerModelBuilder (owns FK)
-        // Do not duplicate relationship configuration
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

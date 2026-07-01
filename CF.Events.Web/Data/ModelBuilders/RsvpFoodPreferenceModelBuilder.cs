@@ -51,6 +51,6 @@ public static class RsvpFoodPreferenceModelBuilder
         builder.HasOne(f => f.EventDay)
             .WithMany(ed => ed.FoodPreferences)
             .HasForeignKey(f => f.EventDayId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }
