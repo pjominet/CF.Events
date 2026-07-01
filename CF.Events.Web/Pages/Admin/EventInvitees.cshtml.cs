@@ -1,4 +1,4 @@
-﻿using CF.Events.Web.Data;
+using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -36,15 +36,27 @@ public class EventInviteesModel(
 
     public async Task<IActionResult> OnPostRemoveAsync(int id, string? userId)
     {
-        var userEvent = await db.EventUsers.FirstOrDefaultAsync(r => r.EventId == id && r.UserId == userId);
-        if (userEvent is null)
+        // Find the invited person and remove them from their invitation
+        var invitedPerson = await db.InvitedPersons
+            .FirstOrDefaultAsync(ip => ip.Invitation.EventId == id && ip.UserId == userId);
+        if (invitedPerson is null)
         {
             toastNotification.AddWarningToastMessage("Invitee not found");
             return RedirectToPage(new { id });
         }
 
-        db.EventUsers.Remove(userEvent);
+        db.InvitedPersons.Remove(invitedPerson);
         await db.SaveChangesAsync();
+
+        // If the invitation has no more people, remove it too
+        var invitation = await db.Invitations
+            .Include(i => i.InvitedPersons)
+            .FirstOrDefaultAsync(i => i.Id == invitedPerson.InvitationId);
+        if (invitation != null && invitation.InvitedPersons.Count == 0)
+        {
+            db.Invitations.Remove(invitation);
+            await db.SaveChangesAsync();
+        }
 
         toastNotification.AddSuccessToastMessage("Invitee successfully removed");
         return RedirectToPage(new { id });
@@ -69,30 +81,44 @@ public class EventInviteesModel(
             })
             .ToList();
 
-        var invitedUsers = db.EventUsers
-            .Where(ue => ue.EventId == id)
-            .Include(ue => ue.User)
-            .Select(ue => new { ue.AssignedAccommodationCode, ue.User, InvitationEmailSent = ue.InviteEmailSent, ue.ScheduledFor })
-            .ToList();
-        var rsvps = db.Rsvps.Where(r => r.EventId == id).ToList();
+        // Get all invited persons for this event with their invitations
+        var invitedPersons = await db.InvitedPersons
+            .Where(ip => ip.Invitation.EventId == id)
+            .Include(ip => ip.Invitation)
+            .Include(ip => ip.User)
+            .Select(ip => new {
+                ip.AssignedAccommodationCode,
+                ip.User,
+                InvitationEmailSent = ip.Invitation.InviteEmailSent,
+                ScheduledFor = ip.Invitation.ScheduledFor,
+                InvitationId = ip.InvitationId,
+                ip.UserId
+            })
+            .ToListAsync();
+        var rsvps = await db.Rsvps.Where(r => r.EventId == id).ToListAsync();
 
         var unavailableUsers = new HashSet<string>();
-        Invitees = invitedUsers
-            .Select(iu =>
+        Invitees = invitedPersons
+            .Where(ip => ip.User != null)
+            .Select(ip =>
             {
-                var user = iu.User;
-                var rsvp = rsvps.FirstOrDefault(r => r.UserId == user.Id);
+                var user = ip.User!;
+                // Find RSVP for this invitation (group RSVP)
+                var invitation = db.Invitations
+                    .Include(i => i.Rsvp)
+                    .FirstOrDefault(i => i.Id == ip.InvitationId);
+                var rsvp = invitation?.Rsvp;
                 var responded = rsvp?.SubmittedAt > DateTime.MinValue.AddDays(1);
-                var status = responded ? (rsvp?.Attending == true ? "Attending" : "Declined") : "Pending";
+                var status = responded ? (rsvp?.Status == RsvpStatus.Submitted ? "Attending" : "Declined") : "Pending";
                 unavailableUsers.Add(user.Id);
                 return new InviteeRow(
                     user.Id,
-                    user.DisplayName!,
-                    user.Email!,
-                    iu.AssignedAccommodationCode,
+                    user.DisplayName ?? user.Email ?? "Unknown",
+                    user.Email ?? "No email",
+                    ip.AssignedAccommodationCode,
                     status,
-                    iu.InvitationEmailSent,
-                    iu.ScheduledFor);
+                    ip.InvitationEmailSent,
+                    ip.ScheduledFor);
             })
             .OrderBy(i => i.DisplayName)
             .ToList();

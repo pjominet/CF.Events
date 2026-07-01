@@ -1,5 +1,4 @@
-using CF.Events.Web.Data.Comparers;
-using CF.Events.Web.Data.Converters;
+using CF.Events.Web.Data.ModelBuilders;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -10,10 +9,19 @@ namespace CF.Events.Web.Data;
 public class EventsDbContext(DbContextOptions<EventsDbContext> options) : IdentityDbContext<AppUser>(options)
 {
     public DbSet<Event> Events => Set<Event>();
-    public DbSet<InviteCode> InviteCodes => Set<InviteCode>();
-    public DbSet<EventUser> EventUsers => Set<EventUser>();
-    public DbSet<Rsvp> Rsvps => Set<Rsvp>();
     public DbSet<EventConfig> EventConfigs => Set<EventConfig>();
+    public DbSet<EventDay> EventDays => Set<EventDay>();
+    public DbSet<CustomQuestion> CustomQuestions => Set<CustomQuestion>();
+
+    public DbSet<InviteCode> InviteCodes => Set<InviteCode>();
+    public DbSet<Invitation> Invitations => Set<Invitation>();
+    public DbSet<InvitedPerson> InvitedPersons => Set<InvitedPerson>();
+
+    public DbSet<Rsvp> Rsvps => Set<Rsvp>();
+    public DbSet<RsvpPerson> RsvpPersons => Set<RsvpPerson>();
+    public DbSet<RsvpFoodPreference> RsvpFoodPreferences => Set<RsvpFoodPreference>();
+    public DbSet<RsvpAccommodation> RsvpAccommodations => Set<RsvpAccommodation>();
+    public DbSet<RsvpCustomAnswer> RsvpCustomAnswers => Set<RsvpCustomAnswer>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -27,9 +35,14 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
     {
         base.OnModelCreating(builder);
 
+        // Default schema - most tables will override this
         builder.HasDefaultSchema("app");
 
-        builder.Entity<AppUser>().ToTable("Users", "identity");
+        // ===== Model Builders =====
+        // Identity
+        AppUserModelBuilder.Configure(builder.Entity<AppUser>());
+
+        // Identity framework models (these don't have model builders)
         builder.Entity<IdentityRole>().ToTable("Roles", "identity");
         builder.Entity<IdentityUserRole<string>>().ToTable("UserRoles", "identity");
         builder.Entity<IdentityUserClaim<string>>().ToTable("UserClaims", "identity");
@@ -37,71 +50,22 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
         builder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims", "identity");
         builder.Entity<IdentityUserToken<string>>().ToTable("UserTokens", "identity");
 
-        builder.Entity<EventConfig>(e =>
-        {
-            e.HasKey(r => r.EventId);
+        // Events
+        EventModelBuilder.Configure(builder.Entity<Event>());
+        EventConfigModelBuilder.Configure(builder.Entity<EventConfig>());
+        EventDayModelBuilder.Configure(builder.Entity<EventDay>());
+        CustomQuestionModelBuilder.Configure(builder.Entity<CustomQuestion>());
 
-            e.HasOne(r => r.Event)
-                .WithOne(r => r.EventConfig)
-                .HasForeignKey<EventConfig>(r => r.EventId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .IsRequired(false);
-        });
+        // Invitations
+        InviteCodeModelBuilder.Configure(builder.Entity<InviteCode>());
+        InvitationModelBuilder.Configure(builder.Entity<Invitation>());
+        InvitedPersonModelBuilder.Configure(builder.Entity<InvitedPerson>());
 
-        builder.Entity<Rsvp>(e =>
-        {
-            e.HasKey(r => new { r.EventId, r.UserId });
-
-            e.Property(r => r.CommonDietaryOptions)
-                .HasConversion(new EnumArrayConverter<DietaryOptions>()!, new EnumArrayComparer<DietaryOptions>())
-                .HasMaxLength(4000)
-                .IsRequired(false);
-
-            e.Property(r => r.KidsDetails)
-                .HasConversion(new DictionaryConverter<KidAgeBracket, int>()!, new DictionaryComparer<KidAgeBracket, int>())
-                .IsRequired(false);
-
-            e.HasOne(r => r.EventUser)
-                .WithOne(u => u.Rsvp)
-                .HasForeignKey<Rsvp>(r => new { r.EventId, r.UserId })
-                .OnDelete(DeleteBehavior.Cascade)
-                .IsRequired(false);
-        });
-
-        builder.Entity<EventUser>(e =>
-        {
-            e.HasKey(r => new { r.EventId, r.UserId });
-
-            e.HasOne(r => r.User)
-                .WithMany(r => r.UserEvents)
-                .HasForeignKey(r => r.UserId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .IsRequired();
-
-            e.HasOne(r => r.Event)
-                .WithMany(r => r.EventUsers)
-                .HasForeignKey(r => r.EventId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .IsRequired();
-
-            e.HasOne(r => r.InviteCode)
-                .WithMany(r => r.EventUsers)
-                .HasForeignKey(r => r.InviteCodeId)
-                .OnDelete(DeleteBehavior.NoAction)
-                .IsRequired();
-        });
-
-        builder.Entity<InviteCode>(e =>
-        {
-            e.HasIndex(r => r.Code).IsUnique();
-
-            e.Property(r => r.Label).IsRequired();
-
-            e.HasOne(r => r.Event)
-                .WithMany(r => r.InviteCodes)
-                .HasForeignKey(r => r.EventId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .IsRequired();
-        });
+        // RSVPs
+        RsvpModelBuilder.Configure(builder.Entity<Rsvp>());
+        RsvpPersonModelBuilder.Configure(builder.Entity<RsvpPerson>());
+        RsvpFoodPreferenceModelBuilder.Configure(builder.Entity<RsvpFoodPreference>());
+        RsvpAccommodationModelBuilder.Configure(builder.Entity<RsvpAccommodation>());
+        RsvpCustomAnswerModelBuilder.Configure(builder.Entity<RsvpCustomAnswer>());
     }
 }

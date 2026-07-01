@@ -24,18 +24,23 @@ public class InvitesModel(EventsDbContext db) : PageModel
 
         PageNumber = pageNumber;
 
-        var query = db.EventUsers
-            .Where(r => r.UserId == userId && r.Event.IsActive)
-            .Include(r => r.Event)
-            .Include(r => r.Rsvp)
-            .OrderBy(r => r.Event.Date);
+        // Get all invited persons for this user, then join with invitations and events
+        var query = db.InvitedPersons
+            .Where(ip => ip.UserId == userId && ip.Invitation.Event.IsActive)
+            .Include(ip => ip.Invitation)
+                .ThenInclude(i => i.Event)
+            .Include(ip => ip.Invitation)
+                .ThenInclude(i => i.Rsvp)
+            .OrderBy(ip => ip.Invitation.Event.Date);
 
         TotalCount = await query.CountAsync();
 
         MyInvites = await query
             .Skip((pageNumber - 1) * PageSize)
             .Take(PageSize)
-            .Select(ue => new InviteRow(ue.Event, ue.Rsvp != null && ue.Rsvp.SubmittedAt > DateTime.UtcNow))
+            .Select(ip => new InviteRow(
+                ip.Invitation.Event,
+                ip.Invitation.Rsvp != null && ip.Invitation.Rsvp.SubmittedAt > DateTime.UtcNow))
             .ToListAsync();
 
         return Page();

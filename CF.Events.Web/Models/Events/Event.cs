@@ -12,6 +12,8 @@ public class Event
 
     public DateTime Date { get; set; }
 
+    public DateTime EndDate { get; set; } // For multi-day events; same as Date for single-day
+
     [StringLength(500)]
     public string? Description { get; set; }
 
@@ -32,7 +34,10 @@ public class Event
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 
     // navigation properties
-    public HashSet<EventUser> EventUsers { get; set; } = [];
     public HashSet<InviteCode> InviteCodes { get; set; } = [];
+    public HashSet<Invitation> Invitations { get; set; } = [];
     public EventConfig? EventConfig { get; set; }
+    public HashSet<EventDay> EventDays { get; set; } = [];
+    public HashSet<CustomQuestion> CustomQuestions { get; set; } = [];
+    public HashSet<Rsvp> Rsvps { get; set; } = [];
 }

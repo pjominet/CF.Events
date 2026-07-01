@@ -27,7 +27,8 @@ public class EventController(
     public async Task<IActionResult> GetInvitationAsset([FromRoute] int eventId)
     {
         var userId = User.GetId();
-        var isInvited = await db.EventUsers.AnyAsync(r => r.EventId == eventId && r.UserId == userId);
+        var isInvited = await db.InvitedPersons
+            .AnyAsync(ip => ip.Invitation.EventId == eventId && ip.UserId == userId);
         if (!isInvited && !User.IsAdmin())
             return Forbid();
 
@@ -56,7 +57,7 @@ public class EventController(
 
     [HttpPost("{eventId:int}/invite-users")]
     [Authorize(Roles = Roles.Admin)]
-    public async Task<IActionResult> InviteUsers([FromRoute] int eventId, [FromForm] UserInvites invite)
+    public async Task<IActionResult> InviteUsers([FromRoute] int eventId, [FromForm] InviteUsersRequest invite)
     {
         if (invite.ScheduledFor.HasValue && invite.ScheduledFor.Value.ToUniversalTime() <= DateTime.UtcNow)
         {
@@ -72,10 +73,11 @@ public class EventController(
             return LocalRedirect($"/admin/events/{eventId}/invitees");
         }
 
-        // Get users who are already invited to this event
-        var existingUserIds = await db.EventUsers
-            .Where(ue => ue.EventId == eventId)
-            .Select(ue => ue.UserId)
+        // Get users who are already invited to this event (via InvitedPersons)
+        var existingUserIds = await db.InvitedPersons
+            .Where(ip => ip.Invitation.EventId == eventId)
+            .Select(ip => ip.UserId)
+            .Where(userId => userId != null)
             .ToListAsync();
 
         // Filter to only new users (not already invited)
@@ -98,17 +100,30 @@ public class EventController(
                 .FirstOrDefaultAsync();
         }
 
-        var newEventUsers = newUserIds.Select(userId => new EventUser
+        // Create a new invitation for this group of users
+        var newInvitation = new Invitation
         {
             EventId = eventId,
-            UserId = userId,
-            AssignedAccommodationCode = accommodationCode,
+            InviteCodeId = invite.InviteCodeId,
             ScheduledFor = invite.ScheduledFor,
             InviteEmailSent = false,
-            InviteCodeId = invite.InviteCodeId
+            AssignedAccommodationCode = accommodationCode,
+            Status = InvitationStatus.Pending,
+            CreatedAt = DateTime.UtcNow,
+            GroupName = "Group Invitation"
+        };
+
+        // Add all new users as invited persons to this invitation
+        var newInvitedPersons = newUserIds.Select((userId, index) => new InvitedPerson
+        {
+            Invitation = newInvitation,
+            UserId = userId,
+            IsPrimary = index == 0, // First user is primary
+            Status = PersonInviteStatus.Pending
         }).ToList();
 
-        db.EventUsers.AddRange(newEventUsers);
+        db.Invitations.Add(newInvitation);
+        db.InvitedPersons.AddRange(newInvitedPersons);
 
         var count = await db.SaveChangesAsync();
 
@@ -126,20 +141,29 @@ public class EventController(
                 return LocalRedirect($"/admin/events/{eventId}/invitees");
             }
 
-            var newInvitations = await db.EventUsers
-                .Where(ue => ue.EventId == eventId && newUserIds.Contains(ue.UserId))
-                .Select(ue => new Invitation
-                {
-                    EventId = ue.EventId,
-                    UserId = ue.UserId,
-                    EventName = ue.Event.Name,
-                    UserDisplayName = ue.User.DisplayName!,
-                    UserEmail = ue.User.Email!,
-                    InviteCode = inviteCode
-                })
-                .ToListAsync();
+            // Get the newly created invitation and its primary person for sending email
+            var createdInvitation = await db.Invitations
+                .Where(i => i.EventId == eventId && i.InviteCodeId == invite.InviteCodeId && !i.InviteEmailSent)
+                .OrderByDescending(i => i.CreatedAt)
+                .Include(i => i.Event)
+                .Include(i => i.InvitedPersons)
+                    .ThenInclude(ip => ip.User)
+                .FirstOrDefaultAsync();
 
-            await invitationService.SendImmediateInvitationsAsync(newInvitations);
+            var primaryPerson = createdInvitation?.InvitedPersons.FirstOrDefault(ip => ip.IsPrimary);
+            if (primaryPerson is { User: not null })
+            {
+                var inviteRequest = new InviteEmailRequest
+                {
+                    EventId = createdInvitation.EventId,
+                    EventName = createdInvitation.Event.Name,
+                    UserId = primaryPerson.UserId,
+                    UserDisplayName = primaryPerson.User.DisplayName ?? primaryPerson.Name,
+                    UserEmail = primaryPerson.User.Email ?? primaryPerson.Email,
+                    InviteCode = inviteCode
+                };
+                await invitationService.SendImmediateInvitationsAsync([inviteRequest]);
+            }
         }
 
         toastNotification.AddSuccessToastMessage($"Successfully created {count} invitations");
@@ -150,13 +174,21 @@ public class EventController(
     [Authorize(Roles = Roles.Admin)]
     public async Task<IActionResult> ResendInvite([FromRoute] int eventId, [FromForm] string userId)
     {
-        var eventUser = await db.EventUsers
-            .Include(eu => eu.User)
-            .Where(eu => eu.EventId == eventId && eu.UserId == userId)
-            .Select(eu => new { eu.User.Email, eu.User.DisplayName, eu.InviteCodeId })
+        var invitedPerson = await db.InvitedPersons
+            .Include(ip => ip.User)
+            .Include(ip => ip.Invitation)
+                .ThenInclude(i => i.InviteCode)
+            .Where(ip => ip.Invitation.EventId == eventId && ip.UserId == userId)
+            .Select(ip => new {
+                ip.User.Email,
+                ip.User.DisplayName,
+                ip.Name,
+                InviteCodeId = ip.Invitation.InviteCodeId,
+                InvitationId = ip.InvitationId
+            })
             .FirstOrDefaultAsync();
 
-        if (eventUser is null)
+        if (invitedPerson is null)
         {
             toastNotification.AddWarningToastMessage("User is not invited to this event");
             return LocalRedirect($"/admin/events/{eventId}/invitees");
@@ -175,7 +207,7 @@ public class EventController(
         }
 
         var inviteCode = db.InviteCodes
-            .Where(c => c.EventId == eventId && c.Id == eventUser.InviteCodeId && c.ValidUntil > DateTime.UtcNow)
+            .Where(c => c.EventId == eventId && c.Id == invitedPerson.InviteCodeId && c.ValidUntil > DateTime.UtcNow)
             .Select(c => c.Code)
             .FirstOrDefault();
 
@@ -187,20 +219,20 @@ public class EventController(
 
         try
         {
-            logger.LogInformation("Re-sending invitation to {Email}", eventUser.Email);
-            await invitationService.SendInvitationAsync(new Invitation
+            logger.LogInformation("Re-sending invitation to {Email}", invitedPerson.Email);
+            await invitationService.SendInvitationAsync(new InviteEmailRequest
             {
                 EventId = eventData.Id,
                 EventName = eventData.Name,
-                UserDisplayName = eventUser.DisplayName!,
-                UserEmail = eventUser.Email!,
+                UserDisplayName = invitedPerson.DisplayName ?? invitedPerson.Name,
+                UserEmail = invitedPerson.Email!,
                 UserId = userId,
                 InviteCode = inviteCode
             });
 
-            await db.EventUsers
-                .Where(eu => eu.EventId == eventId && eu.UserId == userId)
-                .ExecuteUpdateAsync(setter => setter.SetProperty(eu => eu.InviteEmailSent, true));
+            await db.Invitations
+                .Where(i => i.Id == invitedPerson.InvitationId)
+                .ExecuteUpdateAsync(setter => setter.SetProperty(i => i.InviteEmailSent, true));
 
             await db.SaveChangesAsync();
 
@@ -209,7 +241,7 @@ public class EventController(
         }
         catch
         {
-            toastNotification.AddErrorToastMessage("Invitations could not be created");
+            toastNotification.AddErrorToastMessage("Invitation could not be resent");
             return LocalRedirect($"/admin/events/{eventId}/invitees");
         }
     }
@@ -236,7 +268,8 @@ public class EventController(
             return BadRequest();
         }
 
-        var isInvited = await db.EventUsers.AnyAsync(eu => eu.EventId == invitedEventId && eu.UserId == user.Id);
+        var isInvited = await db.InvitedPersons
+            .AnyAsync(ip => ip.Invitation.EventId == invitedEventId && ip.UserId == user.Id);
         if (!isInvited)
         {
             logger.LogWarning("User with email {Email} was not invited to event {EventId}", email, invitedEventId);

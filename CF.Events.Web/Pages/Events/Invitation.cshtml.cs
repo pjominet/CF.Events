@@ -19,7 +19,8 @@ public class InvitationModel(EventsDbContext db) : PageModel
     public async Task<IActionResult> OnGetAsync(int eventId)
     {
         var userId = User.GetId();
-        var isInvited = await db.EventUsers.AnyAsync(r => r.EventId == eventId && r.UserId == userId);
+        var isInvited = await db.InvitedPersons
+            .AnyAsync(ip => ip.Invitation.EventId == eventId && ip.UserId == userId);
         var isAdmin = User.IsAdmin();
         if (!isInvited && !isAdmin)
         {

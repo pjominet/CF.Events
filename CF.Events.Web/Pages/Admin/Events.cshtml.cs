@@ -75,13 +75,8 @@ public class EventsModel(
         }
 
         @event.EventConfig ??= new EventConfig { EventId = @event.Id };
-        @event.EventConfig.OfferDinner = NewEvent.OfferDinner;
-        @event.EventConfig.OfferLunch = NewEvent.OfferLunch;
-        @event.EventConfig.OfferBreakfast = NewEvent.OfferBreakfast;
-        @event.EventConfig.OfferBrunch = NewEvent.OfferBrunch;
         @event.EventConfig.ShowAccommodationOptions = NewEvent.ShowAccommodationOptions;
         @event.EventConfig.AllowComments = NewEvent.AllowComments;
-        @event.EventConfig.AllowPartners = NewEvent.AllowPartners;
         @event.EventConfig.AllowKids = NewEvent.AllowKids;
 
         await db.SaveChangesAsync();
@@ -137,14 +132,9 @@ public class EventsModel(
             date = @event.Date.ToString("yyyy-MM-dd"),
             location = @event.Location,
             description = @event.Description,
-            offerDinner = @event.EventConfig?.OfferDinner ?? false,
-            offerLunch = @event.EventConfig?.OfferLunch ?? false,
-            offerBreakfast = @event.EventConfig?.OfferBreakfast ?? false,
-            offerBrunch = @event.EventConfig?.OfferBrunch ?? false,
             accommodationCode = @event.AccommodationCode,
             showAccommodationOptions = @event.EventConfig?.ShowAccommodationOptions ?? false,
             allowComments = @event.EventConfig?.AllowComments ?? true,
-            allowPartners = @event.EventConfig?.AllowPartners ?? true,
             allowKids = @event.EventConfig?.AllowKids ?? true,
             originalInvitationFileName = @event.OriginalInvitationFileName
         });
@@ -160,9 +150,11 @@ public class EventsModel(
             .OrderByDescending(e => e.Date)
             .ToListAsync();
 
-        var eventUsers = await db.EventUsers.ToListAsync();
-        InviteeCounts = eventUsers
-            .GroupBy(r => r.EventId)
+        var invitedPersons = await db.InvitedPersons
+            .Include(ip => ip.Invitation)
+            .ToListAsync();
+        InviteeCounts = invitedPersons
+            .GroupBy(ip => ip.Invitation.EventId)
             .ToDictionary(g => g.Key, g => g.Count());
 
         CurrentInviteCodes = AllEvents.ToDictionary(
@@ -250,13 +242,8 @@ public class EventsModel(
 
         public IFormFile? InvitationImage { get; init; }
 
-        public bool OfferDinner { get; init; }
-        public bool OfferLunch { get; init; }
-        public bool OfferBreakfast { get; init; }
-        public bool OfferBrunch { get; init; }
         public bool ShowAccommodationOptions { get; init; }
         public bool AllowComments { get; init; } = true;
-        public bool AllowPartners { get; init; } = true;
         public bool AllowKids { get; init; } = true;
     }
 }
