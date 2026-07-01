@@ -43,7 +43,13 @@
                     {
                         <tr>
                             <td class="fw-bold">@eventData.Name</td>
-                            <td>@eventData.Date.ToShortDateString()</td>
+                            <td>
+                                @eventData.Date.ToShortDateString()
+                                @if (eventData.EndDate > eventData.Date)
+                                {
+                                    <text> – @eventData.EndDate.ToShortDateString()</text>
+                                }
+                            </td>
                             <td>
                                 @if (!string.IsNullOrEmpty(eventData.InvitationFileName))
                                 {

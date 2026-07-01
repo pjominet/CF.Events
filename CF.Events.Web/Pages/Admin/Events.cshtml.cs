@@ -22,7 +22,7 @@ public class EventsModel(
     public Dictionary<int, int> InviteeCounts { get; private set; } = [];
 
     [BindProperty]
-    public InputModel NewEvent { get; set; } = new() { Date = DateTime.Today.AddMonths(1) };
+    public InputModel NewEvent { get; set; } = new() { StartDate = DateTime.Today.AddDays(1), EndDate = DateTime.Today.AddDays(1) };
 
     public async Task OnGetAsync() => await LoadAsync();
 
@@ -61,7 +61,8 @@ public class EventsModel(
         }
 
         @event.Name = NewEvent.Name;
-        @event.Date = NewEvent.Date;
+        @event.Date = NewEvent.StartDate;
+        @event.EndDate = NewEvent.EndDate < NewEvent.StartDate ? NewEvent.StartDate : NewEvent.EndDate;
         @event.Location = NewEvent.Location;
         @event.Description = NewEvent.Description;
         @event.AccommodationCode = NewEvent.AccommodationCode;
@@ -129,7 +130,8 @@ public class EventsModel(
         {
             id = @event.Id,
             name = @event.Name,
-            date = @event.Date.ToString("yyyy-MM-dd"),
+            startDate = @event.Date.ToString("yyyy-MM-dd"),
+            endDate = @event.EndDate.ToString("yyyy-MM-dd"),
             location = @event.Location,
             description = @event.Description,
             accommodationCode = @event.AccommodationCode,
@@ -228,7 +230,9 @@ public class EventsModel(
         [StringLength(100)]
         public string Name { get; init; } = string.Empty;
 
-        public DateTime Date { get; init; }
+        public DateTime StartDate { get; init; }
+
+        public DateTime EndDate { get; init; }
 
         public string? Location { get; init; }
 

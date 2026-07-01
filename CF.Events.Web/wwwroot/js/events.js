@@ -26,7 +26,8 @@
 
             editEventModal.querySelector('[name="Id"]').value = eventData.id;
             editEventModal.querySelector('[name="Name"]').value = eventData.name;
-            editEventModal.querySelector('[name="Date"]').value = eventData.date;
+            editEventModal.querySelector('[name="StartDate"]').value = eventData.startDate;
+            editEventModal.querySelector('[name="EndDate"]').value = eventData.endDate;
             editEventModal.querySelector('[name="Location"]').value = eventData.location;
             editEventModal.querySelector('[name="Description"]').value = eventData.description;
             editEventModal.querySelector('[name="AccommodationCode"]').value = eventData.accommodationCode || '';
@@ -53,15 +54,22 @@
                 if (el) el.checked = value;
             };
 
-            setCheckbox('OfferDinner', eventData.offerDinner);
-            setCheckbox('OfferLunch', eventData.offerLunch);
-            setCheckbox('OfferBreakfast', eventData.offerBreakfast);
-            setCheckbox('OfferBrunch', eventData.offerBrunch);
             setCheckbox('ShowAccommodationOptions', eventData.showAccommodationOptions);
             setCheckbox('AllowComments', eventData.allowComments);
-            setCheckbox('AllowPartners', eventData.allowPartners);
             setCheckbox('AllowKids', eventData.allowKids);
         });
+
+        // Sync EndDate min to StartDate value
+        const startDateInput = editEventModal.querySelector('[name="StartDate"]');
+        const endDateInput = editEventModal.querySelector('[name="EndDate"]');
+        if (startDateInput && endDateInput) {
+            startDateInput.addEventListener('change', function () {
+                endDateInput.min = this.value;
+                if (endDateInput.value && endDateInput.value < this.value) {
+                    endDateInput.value = this.value;
+                }
+            });
+        }
 
         const accommodationToggle = editEventModal.querySelector('[name="ShowAccommodationOptions"]');
         if (accommodationToggle) {
