@@ -150,12 +150,10 @@ public class EventsModel(
             .OrderByDescending(e => e.Date)
             .ToListAsync();
 
-        var invitedPersons = await db.InvitedPersons
-            .Include(ip => ip.Invitation)
-            .ToListAsync();
-        InviteeCounts = invitedPersons
+        InviteeCounts = await db.InvitedPersons
             .GroupBy(ip => ip.Invitation.EventId)
-            .ToDictionary(g => g.Key, g => g.Count());
+            .Select(g => new { EventId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.EventId, x => x.Count);
 
         CurrentInviteCodes = AllEvents.ToDictionary(
             e => e.Id,

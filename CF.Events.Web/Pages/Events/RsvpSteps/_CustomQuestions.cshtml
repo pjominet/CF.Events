@@ -1,0 +1,98 @@
+@using CF.Events.Web.Models
+@model RsvpFormResponse
+
+@{
+    var questions = Model.CustomQuestions.OrderBy(q => q.StepOrder).ToList();
+    var existingAnswers = Model.ExistingRsvp?.CustomAnswers ?? [];
+}
+
+@if (questions.Count == 0)
+{
+    <p class="text-muted">No additional questions for this event.</p>
+}
+else
+{
+    @foreach (var q in questions)
+    {
+        var existing = existingAnswers.FirstOrDefault(a => a.CustomQuestionId == q.Id);
+
+        <div class="mb-3" data-cq-id="@q.Id" data-cq-type="@q.Type">
+            <label class="form-label">
+                @q.Label
+                @if (q.IsRequired)
+                {
+                    <span class="text-danger">*</span>
+                }
+            </label>
+            @if (!string.IsNullOrEmpty(q.HelpText))
+            {
+                <small class="form-text text-muted d-block mb-1">@q.HelpText</small>
+            }
+
+            @switch (q.Type)
+            {
+                case CustomQuestionType.Text:
+                    <input type="text" class="form-control" id="cq-@q.Id"
+                           value="@(existing?.TextValue ?? q.PreviousAnswer ?? "")"
+                           @(q.IsRequired ? "required" : "")>
+                    break;
+
+                case CustomQuestionType.TextArea:
+                    <textarea class="form-control" id="cq-@q.Id" rows="3"
+                              @(q.IsRequired ? "required" : "")>@(existing?.TextValue ?? q.PreviousAnswer ?? "")</textarea>
+                    break;
+
+                case CustomQuestionType.Boolean:
+                    var boolVal = existing?.BooleanValue ?? false;
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="cq-@q.Id"
+                               @(boolVal ? "checked" : "")>
+                        <label class="form-check-label" for="cq-@q.Id">Yes</label>
+                    </div>
+                    break;
+
+                case CustomQuestionType.Number:
+                    <input type="number" class="form-control" id="cq-@q.Id"
+                           value="@(existing?.NumberValue?.ToString() ?? "")"
+                           @(q.IsRequired ? "required" : "")>
+                    break;
+
+                case CustomQuestionType.Date:
+                    <input type="date" class="form-control" id="cq-@q.Id"
+                           value="@(existing?.DateValue?.ToString("yyyy-MM-dd") ?? "")"
+                           @(q.IsRequired ? "required" : "")>
+                    break;
+
+                case CustomQuestionType.SingleChoice:
+                    var selectedVal = existing?.TextValue ?? q.PreviousAnswer;
+                    <select class="form-select" id="cq-@q.Id" @(q.IsRequired ? "required" : "")>
+                        @Html.Raw("<option value=\"\">Select...</option>")
+                        @if (q.Options != null)
+                        {
+                            @foreach (var o in q.Options)
+                            {
+                                @Html.Raw($"<option {(selectedVal == o ? "selected" : "")}>{Html.Encode(o)}</option>")
+                            }
+                        }
+                    </select>
+                    break;
+
+                case CustomQuestionType.MultiChoice:
+                    var selectedOptions = existing?.SelectedOptions ?? [];
+                    @if (q.Options != null)
+                    {
+                        @foreach (var o in q.Options)
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="cq-@q.Id"
+                                       value="@o" id="cq-@(q.Id)-@o"
+                                       @(selectedOptions.Contains(o) ? "checked" : "")>
+                                <label class="form-check-label" for="cq-@(q.Id)-@o">@o</label>
+                            </div>
+                        }
+                    }
+                    break;
+            }
+        </div>
+    }
+}

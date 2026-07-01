@@ -1,0 +1,82 @@
+@using CF.Events.Web.Models
+@model RsvpFormResponse
+
+@{
+    var accDays = Model.EventDays.Where(d => d.OffersAccommodation).OrderBy(d => d.Date).ToList();
+    var existingAcc = Model.ExistingRsvp?.Accommodations ?? [];
+    var existingPeople = Model.ExistingRsvp?.People ?? [];
+}
+
+@if (!Model.ShowAccommodationOptions)
+{
+    <p class="text-muted">No accommodation options for this event.</p>
+}
+else if (accDays.Count == 0)
+{
+    <p class="text-muted">No accommodation available.</p>
+}
+else
+{
+    @if (!string.IsNullOrEmpty(Model.AccommodationLink))
+    {
+        <div class="alert alert-info mb-3">
+            <i class="bi bi-info-circle"></i> Book accommodation:
+            <a href="@Model.AccommodationLink" target="_blank">@Model.AccommodationLink</a>
+            @if (!string.IsNullOrEmpty(Model.AssignedAccommodationCode))
+            {
+                <br>
+                <text>Your code: <strong>@Model.AssignedAccommodationCode</strong></text>
+            }
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.AccommodationInfo))
+    {
+        <div class="alert alert-secondary mb-3">@Model.AccommodationInfo</div>
+    }
+
+    <div id="accommodation-server">
+        @foreach (var day in accDays)
+        {
+            <div class="day-section" data-acc-day-id="@day.Id">
+                <h6>@day.Name <small class="text-muted">(@day.Date.ToShortDateString())</small></h6>
+
+                @for (var i = 0; i < Model.InvitedPersons.Count; i++)
+                {
+                    var person = Model.InvitedPersons[i];
+                    var existingPerson = existingPeople.FirstOrDefault(p => p.InvitedPersonId == person.Id);
+                    var personKey = existingPerson?.Id > 0 ? existingPerson.Id : i;
+                    var existing = existingAcc.FirstOrDefault(a => a.EventDayId == day.Id && a.RsvpPersonId == personKey);
+                    var needsAcc = existing?.NeedsAccommodation == true;
+
+                    <div class="mb-3 ps-2 acc-person-row" data-acc-person="@personKey" data-acc-day="@day.Id" data-invited-person-id="@person.Id">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="fw-bold">@person.Name</small>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input acc-needs-toggle" type="checkbox"
+                                       id="acc-needs-@(personKey)-@day.Id" @(needsAcc ? "checked" : "")>
+                                <label class="form-check-label" for="acc-needs-@(personKey)-@day.Id">Needs accommodation</label>
+                            </div>
+                        </div>
+                        <div class="row mt-1 acc-details" style="@(!needsAcc ? "display:none" : "")">
+                            <div class="col-6">
+                                <select class="form-select form-select-sm" id="acc-room-@(personKey)-@day.Id">
+                                    @Html.Raw($"<option value=\"\">Room type...</option>")
+                                    @Html.Raw($"<option {(existing?.RoomType == "Single" ? "selected" : "")}>Single</option>")
+                                    @Html.Raw($"<option {(existing?.RoomType == "Double" ? "selected" : "")}>Double</option>")
+                                    @Html.Raw($"<option {(existing?.RoomType == "Family" ? "selected" : "")}>Family</option>")
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <input type="text" class="form-control form-control-sm"
+                                       id="acc-requests-@(personKey)-@day.Id"
+                                       placeholder="Special requests..."
+                                       value="@(existing?.SpecialRequests ?? "")">
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}

@@ -12,8 +12,9 @@ public class AccountController(
     IToastNotification toastNotification,
     ILogger<AccountController> logger) : Controller
 {
-    [HttpGet("logout")]
-    public async Task<IActionResult> Logout([FromQuery] string? returnUrl = null)
+    [HttpPost("logout")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Logout([FromForm] string? returnUrl = null)
     {
         var username = HttpContext.User.Identity?.Name;
         await signInManager.SignOutAsync();

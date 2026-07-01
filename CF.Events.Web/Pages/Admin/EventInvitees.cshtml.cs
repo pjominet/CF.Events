@@ -46,17 +46,18 @@ public class EventInviteesModel(
         }
 
         db.InvitedPersons.Remove(invitedPerson);
-        await db.SaveChangesAsync();
 
         // If the invitation has no more people, remove it too
-        var invitation = await db.Invitations
-            .Include(i => i.InvitedPersons)
-            .FirstOrDefaultAsync(i => i.Id == invitedPerson.InvitationId);
-        if (invitation != null && invitation.InvitedPersons.Count == 0)
+        var remainingCount = await db.InvitedPersons
+            .CountAsync(ip => ip.InvitationId == invitedPerson.InvitationId && ip.Id != invitedPerson.Id);
+        if (remainingCount == 0)
         {
-            db.Invitations.Remove(invitation);
-            await db.SaveChangesAsync();
+            var invitation = await db.Invitations.FindAsync(invitedPerson.InvitationId);
+            if (invitation != null)
+                db.Invitations.Remove(invitation);
         }
+
+        await db.SaveChangesAsync();
 
         toastNotification.AddSuccessToastMessage("Invitee successfully removed");
         return RedirectToPage(new { id });

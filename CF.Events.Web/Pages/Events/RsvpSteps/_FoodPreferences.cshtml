@@ -1,0 +1,63 @@
+@using CF.Events.Web.Models
+@model RsvpFormResponse
+
+@{
+    var foodDays = Model.EventDays.Where(d => d.OffersFood).OrderBy(d => d.Date).ToList();
+    var existingFood = Model.ExistingRsvp?.FoodPreferences ?? [];
+    var existingPeople = Model.ExistingRsvp?.People ?? [];
+}
+
+@if (foodDays.Count == 0)
+{
+    <p class="text-muted">No food options available for this event.</p>
+}
+else
+{
+    <div id="food-preferences-server">
+        @foreach (var day in foodDays)
+        {
+            <div class="day-section" data-food-day-id="@day.Id">
+                <h6>@day.Name <small class="text-muted">(@day.Date.ToShortDateString())</small></h6>
+
+                @* Food rows per person — JS will show/hide based on attendance *@
+                @for (var i = 0; i < Model.InvitedPersons.Count; i++)
+                {
+                    var person = Model.InvitedPersons[i];
+                    var existingPerson = existingPeople.FirstOrDefault(p => p.InvitedPersonId == person.Id);
+                    var personKey = existingPerson?.Id > 0 ? existingPerson.Id : i;
+                    var existing = existingFood.FirstOrDefault(f => f.EventDayId == day.Id && f.RsvpPersonId == personKey);
+
+                    <div class="mb-2 ps-2 food-person-row" data-food-person="@personKey" data-food-day="@day.Id" data-invited-person-id="@person.Id">
+                        <small class="fw-bold">@person.Name</small>
+                        <div class="d-flex flex-wrap gap-3 mt-1">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox"
+                                       id="food-breakfast-@(personKey)-@day.Id" @(existing?.JoinsForBreakfast == true ? "checked" : "")>
+                                <label class="form-check-label" for="food-breakfast-@(personKey)-@day.Id">Breakfast</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox"
+                                       id="food-brunch-@(personKey)-@day.Id" @(existing?.JoinsForBrunch == true ? "checked" : "")>
+                                <label class="form-check-label" for="food-brunch-@(personKey)-@day.Id">Brunch</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox"
+                                       id="food-lunch-@(personKey)-@day.Id" @(existing?.JoinsForLunch == true ? "checked" : "")>
+                                <label class="form-check-label" for="food-lunch-@(personKey)-@day.Id">Lunch</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox"
+                                       id="food-dinner-@(personKey)-@day.Id" @(existing?.JoinsForDinner == true ? "checked" : "")>
+                                <label class="form-check-label" for="food-dinner-@(personKey)-@day.Id">Dinner</label>
+                            </div>
+                        </div>
+                        <input type="text" class="form-control form-control-sm mt-1"
+                               id="food-notes-@(personKey)-@day.Id"
+                               placeholder="Special requests..."
+                               value="@(existing?.Notes ?? "")">
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}

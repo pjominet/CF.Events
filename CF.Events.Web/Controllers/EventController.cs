@@ -14,6 +14,7 @@ using static CF.Events.Web.Infrastructure.Constants;
 namespace CF.Events.Web.Controllers;
 
 [Route("events")]
+[AutoValidateAntiforgeryToken]
 public class EventController(
     EventsDbContext db,
     UserManager<AppUser> userManager,

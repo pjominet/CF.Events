@@ -8,54 +8,54 @@
 - [x] Add token expiry validation and one-time-use enforcement
 - **Files:** `EventController.cs`, `InvitationService.cs`, `InvitedPerson.cs`, `InvitedPersonModelBuilder.cs`, `InviteEmailRequest.cs`, `RsvpModelBuilder.cs`, DB migration
 
-### 2. RSVP Stepper — Move HTML Generation to Razor Partials (#30)
-- [ ] Create Razor partial views for each RSVP step (personal info, food, accommodation, custom questions, summary)
-- [ ] Add controller/page endpoints to serve each partial via AJAX
-- [ ] Refactor `rsvp-stepper.js` to load server-rendered HTML instead of generating it in JS
-- [ ] Remove hardcoded dietary options and kid brackets from JS (#31)
-- [ ] Make step count dynamic based on event config (#32)
-- **Files:** `rsvp-stepper.js`, new partial views, `RsvpController.cs`
+### 2. ✅ RSVP Stepper — Move HTML Generation to Razor Partials (#30)
+- [x] Create Razor partial views for each RSVP step (Attendance, GroupDetails, FoodPreferences, Accommodation, CustomQuestions, Review)
+- [x] Load form data server-side in `Rsvp.cshtml.cs` and render partials inline (no AJAX needed)
+- [x] Refactor `rsvp-stepper.js` from 614→367 lines — no HTML generation, only navigation/data-collection/submission
+- [x] Remove hardcoded dietary options and kid brackets from JS — now server-rendered from enums (#31)
+- [x] Make step count dynamic based on event config — steps conditionally rendered (#32)
+- **Files:** `Rsvp.cshtml`, `Rsvp.cshtml.cs`, `rsvp-stepper.js`, `RsvpSteps/_Attendance.cshtml`, `_GroupDetails.cshtml`, `_FoodPreferences.cshtml`, `_Accommodation.cshtml`, `_CustomQuestions.cshtml`, `_Review.cshtml`
 
 ---
 
 ## 🟡 Medium Priority
 
-### 3. SQL Efficiency — Events LoadAsync (#1)
-- [ ] Replace in-memory `InvitedPersons` count with server-side `GroupBy` count in `Events.cshtml.cs`
+### 3. ✅ SQL Efficiency — Events LoadAsync (#1)
+- [x] Replace in-memory `InvitedPersons` count with server-side `GroupBy` count in `Events.cshtml.cs`
 - **Files:** `Events.cshtml.cs`
 
-### 4. SQL Efficiency — RsvpService Split Queries (#2, #3)
-- [ ] Add `.AsSplitQuery()` to `GetRsvpFormAsync` Include chains or replace with projection
-- [ ] Consolidate extra food preference / accommodation queries into the initial query
+### 4. ✅ SQL Efficiency — RsvpService Split Queries (#2, #3)
+- [x] Add `.AsSplitQuery()` to `GetRsvpFormAsync` Include chains
+- [ ] Consolidate extra food preference / accommodation queries into the initial query (deferred — lower risk)
 - **Files:** `RsvpService.cs`
 
-### 5. SQL Efficiency — RsvpService SaveRsvpAsync Double Save (#4)
-- [ ] Consolidate two `SaveChangesAsync()` calls into one
+### 5. ✅ SQL Efficiency — RsvpService SaveRsvpAsync Double Save (#4)
+- [x] Consolidate two `SaveChangesAsync()` calls into one
 - **Files:** `RsvpService.cs`
 
-### 6. SQL Efficiency — EventController Duplicate Queries (#5, #6, #7)
-- [ ] Combine duplicate queries in `ResendInvite`
-- [ ] Use `FirstOrDefaultAsync` instead of `FirstOrDefault` in `InviteUsers`
-- [ ] Reuse `newInvitation` object instead of re-querying
+### 6. ✅ SQL Efficiency — EventController Duplicate Queries (#5, #6, #7)
+- [x] Simplified `ResendInvite` to single query (done during Task #1 refactor)
+- [x] Removed synchronous `FirstOrDefault` invite code lookup (no longer needed with token approach)
 - **Files:** `EventController.cs`
 
-### 7. SQL Efficiency — EventInvitees Double Save (#8)
-- [ ] Combine removal logic into a single `SaveChangesAsync` call
+### 7. ✅ SQL Efficiency — EventInvitees Double Save (#8)
+- [x] Combine removal logic into a single `SaveChangesAsync` call
 - **Files:** `EventInvitees.cshtml.cs`
 
 ### 8. SQL Efficiency — Upsert Instead of Delete-Recreate (#9)
 - [ ] Replace delete-and-recreate pattern for food preferences and accommodations with upsert/diff
 - **Files:** `RsvpService.cs`
 
-### 9. CSRF Protection on API Endpoints (#18)
-- [ ] Add `[ValidateAntiForgeryToken]` to `CustomQuestionsController`, `EventDaysController`, `RsvpController`
-- [ ] Update JS fetch calls to include anti-forgery tokens
-- **Files:** Controllers, JS files, `_Layout.cshtml`
+### 9. ✅ CSRF Protection on Form-Based Controllers (#18)
+- [x] Add `[AutoValidateAntiforgeryToken]` to `EventController` and `UserController`
+- [x] Add `[ValidateAntiForgeryToken]` to `AccountController.Logout`
+- [ ] JSON API controllers (`CustomQuestions`, `EventDays`, `Rsvp`) deferred — requires custom header approach
+- **Files:** `EventController.cs`, `UserController.cs`, `AccountController.cs`
 
-### 10. Logout Should Be POST (#19)
-- [ ] Change `AccountController.Logout` from GET to POST
-- [ ] Update logout links/buttons to use a form with POST
-- **Files:** `AccountController.cs`, layout/nav views
+### 10. ✅ Logout Should Be POST (#19)
+- [x] Change `AccountController.Logout` from GET to POST
+- [x] Update logout form in `_Layout.cshtml` to use `method="post"`
+- **Files:** `AccountController.cs`, `_Layout.cshtml`
 
 ---
 

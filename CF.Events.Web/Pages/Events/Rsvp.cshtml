@@ -15,42 +15,58 @@
 }
 else
 {
+    var form = Model.FormData!;
+    var hasFoodDays = form.EventDays.Any(d => d.OffersFood);
+    var hasAccommodation = form.ShowAccommodationOptions && form.EventDays.Any(d => d.OffersAccommodation);
+    var hasCustomQuestions = form.CustomQuestions.Count > 0;
+
+    // Build dynamic step list
+    var steps = new List<(string Id, string Label)>
+    {
+        ("attendance", "Attendance"),
+        ("group", "Group")
+    };
+    if (hasFoodDays) steps.Add(("food", "Food"));
+    if (hasAccommodation) steps.Add(("accommodation", "Accommodation"));
+    if (hasCustomQuestions) steps.Add(("extras", "Extras"));
+    steps.Add(("review", "Review"));
+
     <div class="container py-4" style="max-width: 720px;">
-        <div id="rsvp-loading" class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <p class="mt-2">Loading RSVP form...</p>
-        </div>
-
-        <div id="rsvp-error" class="alert alert-danger d-none"></div>
-
-        <div id="rsvp-app" class="d-none">
+        <div id="rsvp-app">
             <!-- Stepper header -->
             <div class="mb-4">
-                <h4 id="rsvp-event-name" class="mb-1"></h4>
-                <small id="rsvp-event-dates" class="text-muted"></small>
+                <h4 id="rsvp-event-name" class="mb-1">@form.EventName</h4>
+                @{
+                    var start = form.EventStartDate.ToShortDateString();
+                    var end = form.EventEndDate.ToShortDateString();
+                }
+                <small id="rsvp-event-dates" class="text-muted">
+                    @(start == end ? start : $"{start} – {end}")
+                </small>
             </div>
 
             <div class="d-flex justify-content-between mb-4" id="stepper-nav">
-                <div class="stepper-step active" data-step="0"><span class="badge bg-primary">1</span> Attendance</div>
-                <div class="stepper-step" data-step="1"><span class="badge bg-secondary">2</span> Group</div>
-                <div class="stepper-step" data-step="2"><span class="badge bg-secondary">3</span> Food</div>
-                <div class="stepper-step" data-step="3"><span class="badge bg-secondary">4</span> Accommodation</div>
-                <div class="stepper-step" data-step="4"><span class="badge bg-secondary">5</span> Extras</div>
-                <div class="stepper-step" data-step="5"><span class="badge bg-secondary">6</span> Review</div>
+                @for (var i = 0; i < steps.Count; i++)
+                {
+                    var step = steps[i];
+                    <div class="stepper-step @(i == 0 ? "active" : "")" data-step="@i">
+                        <span class="badge @(i == 0 ? "bg-primary" : "bg-secondary")">@(i + 1)</span> @step.Label
+                    </div>
+                }
             </div>
 
-            <!-- Step 0: Attendance -->
-            <div class="step-panel" data-step="0">
+            <!-- Step: Attendance -->
+            <div class="step-panel" data-step="0" data-step-id="attendance">
                 <div class="card">
                     <div class="card-header"><h5 class="mb-0">Who's attending?</h5></div>
-                    <div class="card-body" id="attendance-list"></div>
+                    <div class="card-body" id="attendance-list">
+                        <partial name="RsvpSteps/_Attendance" model="form" />
+                    </div>
                 </div>
             </div>
 
-            <!-- Step 1: Group / Plus Ones -->
-            <div class="step-panel d-none" data-step="1">
+            <!-- Step: Group / Plus Ones -->
+            <div class="step-panel d-none" data-step="1" data-step-id="group">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Group Details</h5>
@@ -58,44 +74,64 @@ else
                             <i class="bi bi-plus-circle"></i> Add Plus One
                         </button>
                     </div>
-                    <div class="card-body" id="group-details"></div>
+                    <div class="card-body" id="group-details">
+                        <partial name="RsvpSteps/_GroupDetails" model="form" />
+                    </div>
                 </div>
             </div>
 
-            <!-- Step 2: Food Preferences -->
-            <div class="step-panel d-none" data-step="2">
-                <div class="card">
-                    <div class="card-header"><h5 class="mb-0">Food Preferences</h5></div>
-                    <div class="card-body" id="food-preferences"></div>
-                </div>
-            </div>
+            @{
+                var stepIdx = 2;
+            }
 
-            <!-- Step 3: Accommodation -->
-            <div class="step-panel d-none" data-step="3">
-                <div class="card">
-                    <div class="card-header"><h5 class="mb-0">Accommodation</h5></div>
-                    <div class="card-body" id="accommodation-options"></div>
+            <!-- Step: Food Preferences (conditional) -->
+            @if (hasFoodDays)
+            {
+                <div class="step-panel d-none" data-step="@stepIdx" data-step-id="food">
+                    <div class="card">
+                        <div class="card-header"><h5 class="mb-0">Food Preferences</h5></div>
+                        <div class="card-body" id="food-preferences">
+                            <partial name="RsvpSteps/_FoodPreferences" model="form" />
+                        </div>
+                    </div>
                 </div>
-            </div>
+                stepIdx++;
+            }
 
-            <!-- Step 4: Custom Questions -->
-            <div class="step-panel d-none" data-step="4">
-                <div class="card">
-                    <div class="card-header"><h5 class="mb-0">Additional Questions</h5></div>
-                    <div class="card-body" id="custom-questions"></div>
+            <!-- Step: Accommodation (conditional) -->
+            @if (hasAccommodation)
+            {
+                <div class="step-panel d-none" data-step="@stepIdx" data-step-id="accommodation">
+                    <div class="card">
+                        <div class="card-header"><h5 class="mb-0">Accommodation</h5></div>
+                        <div class="card-body" id="accommodation-options">
+                            <partial name="RsvpSteps/_Accommodation" model="form" />
+                        </div>
+                    </div>
                 </div>
-            </div>
+                stepIdx++;
+            }
 
-            <!-- Step 5: Review & Submit -->
-            <div class="step-panel d-none" data-step="5">
+            <!-- Step: Custom Questions (conditional) -->
+            @if (hasCustomQuestions)
+            {
+                <div class="step-panel d-none" data-step="@stepIdx" data-step-id="extras">
+                    <div class="card">
+                        <div class="card-header"><h5 class="mb-0">Additional Questions</h5></div>
+                        <div class="card-body" id="custom-questions">
+                            <partial name="RsvpSteps/_CustomQuestions" model="form" />
+                        </div>
+                    </div>
+                </div>
+                stepIdx++;
+            }
+
+            <!-- Step: Review & Submit -->
+            <div class="step-panel d-none" data-step="@stepIdx" data-step-id="review">
                 <div class="card">
                     <div class="card-header"><h5 class="mb-0">Review & Submit</h5></div>
                     <div class="card-body">
-                        <div id="review-summary"></div>
-                        <div class="mt-3" id="comments-section">
-                            <label for="rsvp-comments" class="form-label">Comments</label>
-                            <textarea id="rsvp-comments" class="form-control" rows="3" maxlength="500"></textarea>
-                        </div>
+                        <partial name="RsvpSteps/_Review" model="form" />
                     </div>
                 </div>
             </div>
@@ -128,6 +164,7 @@ else
 @section Scripts {
     <script>
         const INVITATION_ID = @Model.InvitationId;
+        const TOTAL_STEPS = document.querySelectorAll('.step-panel').length;
     </script>
     <script src="~/js/rsvp-stepper.js" asp-append-version="true"></script>
 }

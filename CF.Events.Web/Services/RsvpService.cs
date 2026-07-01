@@ -42,6 +42,7 @@ public class RsvpService(
                 .ThenInclude(r => r!.People)
             .Include(i => i.Rsvp)
                 .ThenInclude(r => r!.CustomAnswers)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(i => i.Id == invitationId);
 
         if (invitation is null || invitation.Event is null)
@@ -288,16 +289,15 @@ public class RsvpService(
             // Update custom answers
             await UpdateCustomAnswersAsync(rsvp, request.CustomAnswers);
 
-            // Save changes
-            await db.SaveChangesAsync();
-
             // If this is a final submission (not draft), update status and submitted date
             if (!request.IsDraft)
             {
                 rsvp.Status = RsvpStatus.Submitted;
                 rsvp.SubmittedAt = DateTime.UtcNow;
-                await db.SaveChangesAsync();
             }
+
+            // Save all changes in a single round-trip
+            await db.SaveChangesAsync();
 
             response.Success = true;
             response.RsvpId = rsvp.Id;

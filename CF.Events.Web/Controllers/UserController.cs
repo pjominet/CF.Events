@@ -9,6 +9,7 @@ namespace CF.Events.Web.Controllers;
 
 [Route("users")]
 [Authorize(Roles = Roles.Admin)]
+[AutoValidateAntiforgeryToken]
 public class UserController(
     UserManager<AppUser> userManager,
     IToastNotification toastNotification) : Controller

@@ -1,0 +1,89 @@
+@using CF.Events.Web.Models
+@using CF.Events.Web.Pages.Events
+@model RsvpFormResponse
+
+@{
+    var existingPeople = Model.ExistingRsvp?.People ?? [];
+    var dietaryLabels = RsvpModel.DietaryLabels;
+    var kidBracketLabels = RsvpModel.KidBracketLabels;
+    var existingKids = Model.ExistingRsvp?.KidsDetails ?? new Dictionary<KidAgeBracket, int>();
+}
+
+<div id="group-details-server">
+    @* Person dietary details are rendered per invited person; JS will filter to attending only *@
+    @for (var i = 0; i < Model.InvitedPersons.Count; i++)
+    {
+        var person = Model.InvitedPersons[i];
+        var existing = existingPeople.FirstOrDefault(p => p.InvitedPersonId == person.Id);
+
+        <div class="person-card person-dietary-card" data-person-dietary-idx="@i" data-invited-person-id="@person.Id">
+            <h6>@person.Name
+                @if (person.IsPrimary)
+                {
+                    <span class="badge bg-info ms-2">Primary</span>
+                }
+            </h6>
+            <div class="dietary-checks mb-2">
+                <label class="form-label d-block mb-1">Dietary Requirements</label>
+                @foreach (var (option, label) in dietaryLabels)
+                {
+                    var isChecked = existing?.DietaryRestrictions?.Contains(option) == true;
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="dietary-@i"
+                               value="@option" id="diet-@(i)-@option" @(isChecked ? "checked" : "")>
+                        <label class="form-check-label" for="diet-@(i)-@option">@label</label>
+                    </div>
+                }
+            </div>
+            <div class="mb-2">
+                <input type="text" class="form-control form-control-sm" id="dietary-other-@i"
+                       placeholder="Other dietary details..."
+                       value="@(existing?.OtherDietaryDetails ?? "")">
+            </div>
+        </div>
+    }
+</div>
+
+@* Plus one template (hidden, cloned by JS) *@
+<template id="plusone-template">
+    <div class="person-card" data-is-plus-one="true" data-is-primary="false">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0">Plus One <span class="badge bg-warning text-dark plusone-number"></span></h6>
+            <button class="btn btn-sm btn-outline-danger btn-remove-plusone"><i class="bi bi-trash"></i></button>
+        </div>
+        <div class="row g-2">
+            <div class="col-6"><input type="text" class="form-control form-control-sm plusone-name" placeholder="Name" required></div>
+            <div class="col-6"><input type="email" class="form-control form-control-sm plusone-email" placeholder="Email"></div>
+        </div>
+        <input type="hidden" class="plusone-attending" value="true">
+        <div class="dietary-checks mt-2">
+            <label class="form-label d-block mb-1">Dietary Requirements</label>
+            @foreach (var (option, label) in dietaryLabels)
+            {
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" value="@option">
+                    <label class="form-check-label">@label</label>
+                </div>
+            }
+        </div>
+        <input type="text" class="form-control form-control-sm mt-1 plusone-dietary-other" placeholder="Other dietary details...">
+    </div>
+</template>
+
+@* Kids section *@
+@if (Model.AllowKids)
+{
+    <div class="mt-3" id="kids-section">
+        <h6>Kids</h6>
+        @foreach (var (bracket, label) in kidBracketLabels)
+        {
+            var count = existingKids.GetValueOrDefault(bracket, 0);
+            <div class="row mb-2 align-items-center">
+                <div class="col-7"><label class="form-label mb-0">@label</label></div>
+                <div class="col-5">
+                    <input type="number" class="form-control form-control-sm" id="kids-@bracket" min="0" value="@count">
+                </div>
+            </div>
+        }
+    </div>
+}

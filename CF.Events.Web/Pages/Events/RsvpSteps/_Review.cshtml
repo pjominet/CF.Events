@@ -1,0 +1,16 @@
+@using CF.Events.Web.Models
+@model RsvpFormResponse
+
+@{
+    var existingComments = Model.ExistingRsvp?.Comments ?? "";
+}
+
+<div id="review-summary">
+    @* Review content is populated dynamically by JS based on current form state *@
+    <p class="text-muted">Review your responses above before submitting.</p>
+</div>
+
+<div class="mt-3" id="comments-section">
+    <label for="rsvp-comments" class="form-label">Comments</label>
+    <textarea id="rsvp-comments" class="form-control" rows="3" maxlength="500">@existingComments</textarea>
+</div>
