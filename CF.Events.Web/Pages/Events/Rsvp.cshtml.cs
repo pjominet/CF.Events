@@ -24,18 +24,23 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
     public async Task<IActionResult> OnGetAsync(int eventId)
     {
         var userId = User.GetId();
-        if (string.IsNullOrWhiteSpace(userId))
-            return Challenge();
 
         var userEvent = await db.EventUsers.FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
         if (userEvent is null && !User.IsAdmin())
+        {
+            toastNotification.AddWarningToastMessage("You are not invited to this event");
             return Redirect("/");
+        }
 
         var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
+        if (rsvp is null)
+        {
+            toastNotification.AddWarningToastMessage("You are not invited to this event");
+            return Redirect("/");
+        }
+
         EventData = await db.Events.FirstAsync(e => e.Id == eventId);
         EventConfig = await db.EventConfigs.FirstAsync(e => e.EventId == eventId);
-
-        if (rsvp is null) return Page();
 
         AssignedAccommodationCode = userEvent?.AssignedAccommodationCode;
         HasResponded = rsvp.SubmittedAt > DateTime.MinValue.AddDays(1);
@@ -55,22 +60,15 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
     public async Task<IActionResult> OnPostAsync(int eventId)
     {
         var userId = User.GetId();
-        if (string.IsNullOrWhiteSpace(userId))
-            return Challenge();
 
         var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
         if (rsvp is null)
         {
-            toastNotification.AddWarningToastMessage("You are not invited to this event.");
+            toastNotification.AddWarningToastMessage("You are not invited to this event");
             return Redirect("/");
         }
 
-        var eventConfig = await db.EventConfigs.FirstOrDefaultAsync(e => e.EventId == eventId);
-        if (eventConfig is null)
-        {
-            toastNotification.AddWarningToastMessage("Event is missing configuration data");
-            return Page();
-        }
+        var eventConfig = await db.EventConfigs.FirstAsync(e => e.EventId == eventId);
 
         rsvp.Attending = Input.Attending;
         rsvp.SubmittedAt = DateTime.UtcNow;
@@ -104,7 +102,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
         public bool BringsKids { get; set; }
         public bool NeedsAccommodation { get; set; }
         public int? AccommodationDuration { get; set; }
-        public List<int> SelectedDays { get; set; }
+        public List<int> SelectedDays { get; set; } = [];
 
         public DietaryOptions[]? CommonDietaryOptions { get; set; }
         public string? OtherDietaryDetails { get; set; }
