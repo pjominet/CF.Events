@@ -10,15 +10,9 @@
 
 **IMPORTANT**: **NO BACKWARD COMPATIBILITY NEEDED** - This project will be deployed from scratch with no existing data. All legacy code/properties should be removed, not deprecated.
 
-**Build Status**: ✅ **Duplicated logic removed and build issues fixed**
-- Centralized InviteEmailRequest creation in InvitationService
-- Fixed N+1 queries in EventInvitees page
-- Updated EventController to use InvitationService methods
-- Note: No Pages/Events/Rsvp.* files exist - RSVP pages need to be created as part of future work
+**Build Status**: ✅
 
 **Key Decision**: NO backward compatibility needed - fresh deployment, all legacy code can be removed entirely
-
-**Deployment Strategy**: Fresh deployment with no existing data - NO backward compatibility needed, all legacy code can be removed
 
 ---
 
@@ -202,16 +196,7 @@ CustomQuestion (1)
 
 4. **RSVP editing**: Allow editing after submission?
    - Most events allow changes up to a deadline
-
-5. **Backward compatibility**: How to handle existing events?
-   - Option A: Force migration of all existing events
-   - Option B: Support both old and new systems (complex)
-   - Option C: Migrate on-demand when old event is accessed
-
-**Resolved**:
-- **EventUser**: Removed entirely (replaced by Invitation/InvitedPerson system)
-- **MaxPlusOnesPerPerson**: Removed from EventConfig (plus one = exactly one person, groups invited directly)
-
+   - 
 ---
 
 ## Technical Notes
@@ -293,8 +278,8 @@ public record UserInvites
 - Client-side validation for UX
 
 ### Stepper Implementation
-- Frontend: Likely JavaScript/React/Vue component
-- Backend: Single API endpoint that accepts complete RSVP data
+- Frontend: Native JavaScript
+- Backend: Razor Pages and Controllers for shared or complex actions
 - Alternative: Multiple endpoints for each step (save as draft)
 
 ---
@@ -303,17 +288,12 @@ public record UserInvites
 
 ### Issue 1: Complex Migration
 **Risk**: Data loss during migration from old structure to new
-**Mitigation**: 
-- Create backup before migration
-- Write comprehensive migration tests
-- Run migration in staging first
-- Have rollback plan
+Can be ignore, as the will be no exiting data
 
 ### Issue 2: Performance with Many Relations
 **Risk**: N+1 queries with complex object graph
 **Mitigation**:
 - Use EF Core .Include() appropriately
-- Consider DTOs for read operations
 - Implement caching for common queries
 
 ### Issue 3: UI Complexity
@@ -325,10 +305,7 @@ public record UserInvites
 
 ### Issue 4: Backward Compatibility Breaking
 **Risk**: Existing code breaks with new structure
-**Mitigation**:
-- Feature flag to toggle between old and new systems
-- Gradual rollout
-- Comprehensive test coverage
+Can be ignored, as changes will be a full replacement
 
 ---
 
@@ -337,7 +314,6 @@ public record UserInvites
 - [ ] User reviews and approves PLAN.md
 - [ ] User answers open questions (see above)
 - [ ] Prioritize which parts to implement first
-- [ ] Decide on backward compatibility strategy
 - [ ] Set up development branch/environment
 - [ ] Start implementing new models
 
