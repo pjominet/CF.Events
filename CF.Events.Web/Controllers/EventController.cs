@@ -151,17 +151,9 @@ public class EventController(
                 .FirstOrDefaultAsync();
 
             var primaryPerson = createdInvitation?.InvitedPersons.FirstOrDefault(ip => ip.IsPrimary);
-            if (primaryPerson is { User: not null })
+            if (primaryPerson is { User: not null } && createdInvitation is not null)
             {
-                var inviteRequest = new InviteEmailRequest
-                {
-                    EventId = createdInvitation.EventId,
-                    EventName = createdInvitation.Event.Name,
-                    UserId = primaryPerson.UserId,
-                    UserDisplayName = primaryPerson.User.DisplayName ?? primaryPerson.Name,
-                    UserEmail = primaryPerson.User.Email ?? primaryPerson.Email,
-                    InviteCode = inviteCode
-                };
+                var inviteRequest = invitationService.CreateInviteEmailRequest(createdInvitation, primaryPerson, inviteCode);
                 await invitationService.SendImmediateInvitationsAsync([inviteRequest]);
             }
         }
@@ -219,16 +211,25 @@ public class EventController(
 
         try
         {
-            logger.LogInformation("Re-sending invitation to {Email}", invitedPerson.Email);
-            await invitationService.SendInvitationAsync(new InviteEmailRequest
+            // Get the full invitation and invited person to use the service method
+            var fullInvitedPerson = await db.InvitedPersons
+                .Include(ip => ip.Invitation)
+                    .ThenInclude(i => i.Event)
+                .Include(ip => ip.User)
+                .FirstOrDefaultAsync(ip => ip.InvitationId == invitedPerson.InvitationId && ip.UserId == userId);
+
+            if (fullInvitedPerson?.Invitation is null)
             {
-                EventId = eventData.Id,
-                EventName = eventData.Name,
-                UserDisplayName = invitedPerson.DisplayName ?? invitedPerson.Name,
-                UserEmail = invitedPerson.Email!,
-                UserId = userId,
-                InviteCode = inviteCode
-            });
+                toastNotification.AddWarningToastMessage("Could not load invitation details");
+                return RedirectToPage($"/admin/events/{eventId}/invitees");
+            }
+
+            logger.LogInformation("Re-sending invitation to {Email}", invitedPerson.Email);
+            var inviteRequest = invitationService.CreateInviteEmailRequest(
+                fullInvitedPerson.Invitation,
+                fullInvitedPerson,
+                inviteCode);
+            await invitationService.SendInvitationAsync(inviteRequest);
 
             await db.Invitations
                 .Where(i => i.Id == invitedPerson.InvitationId)

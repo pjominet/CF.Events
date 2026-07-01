@@ -11,6 +11,11 @@ public interface IInvitationService
     Task<int> ProcessPendingInvitationsAsync(CancellationToken ctx = default);
     Task SendImmediateInvitationsAsync(List<InviteEmailRequest> inviteRequests, CancellationToken ctx = default);
     Task SendInvitationAsync(InviteEmailRequest inviteRequest, CancellationToken ctx = default);
+
+    /// <summary>
+    /// Creates an InviteEmailRequest from an invitation and its primary invited person.
+    /// </summary>
+    InviteEmailRequest CreateInviteEmailRequest(Invitation invitation, InvitedPerson primaryPerson, string inviteCode);
 }
 
 public class InvitationService(
@@ -20,6 +25,23 @@ public class InvitationService(
     ILogger<InvitationService> logger) : IInvitationService
 {
     private readonly AppSettings _appSettings = appOptions.Value;
+
+    /// <summary>
+    /// Creates an InviteEmailRequest from an invitation and its primary invited person.
+    /// Centralizes the logic for creating email request DTOs.
+    /// </summary>
+    public InviteEmailRequest CreateInviteEmailRequest(Invitation invitation, InvitedPerson primaryPerson, string inviteCode)
+    {
+        return new InviteEmailRequest
+        {
+            EventId = invitation.EventId,
+            EventName = invitation.Event.Name,
+            UserId = primaryPerson.UserId!,
+            UserDisplayName = primaryPerson.User?.DisplayName ?? primaryPerson.Name,
+            UserEmail = primaryPerson.User?.Email ?? primaryPerson.Email!,
+            InviteCode = inviteCode
+        };
+    }
 
     public async Task<int> ProcessPendingInvitationsAsync(CancellationToken ctx = default)
     {
@@ -47,17 +69,9 @@ public class InvitationService(
         foreach (var invitation in pendingInvitations)
         {
             var primaryPerson = invitation.InvitedPersons.FirstOrDefault(ip => ip.IsPrimary);
-            if (primaryPerson != null)
+            if (primaryPerson != null && invitation.InviteCode != null)
             {
-                inviteRequests.Add(new InviteEmailRequest
-                {
-                    EventId = invitation.EventId,
-                    EventName = invitation.Event.Name,
-                    UserId = primaryPerson.UserId!,
-                    UserDisplayName = primaryPerson.User?.DisplayName ?? primaryPerson.Name,
-                    UserEmail = primaryPerson.User?.Email ?? primaryPerson.Email,
-                    InviteCode = invitation.InviteCode?.Code
-                });
+                inviteRequests.Add(CreateInviteEmailRequest(invitation, primaryPerson, invitation.InviteCode.Code));
             }
         }
 
@@ -96,35 +110,35 @@ public class InvitationService(
         var sentCount = 0;
         var baseUrl = _appSettings.BaseUrl?.TrimEnd('/');
 
-        foreach (var invitation in inviteRequest)
+        foreach (var request in inviteRequest)
         {
             if (ctx.IsCancellationRequested) break;
 
             try
             {
-                var callbackUrl = $"{baseUrl}/events/invite-callback?code={invitation.InviteCode}&email={invitation.UserEmail}";
+                var callbackUrl = $"{baseUrl}/events/invite-callback?code={request.InviteCode}&email={request.UserEmail}";
 
                 await mailService.SendInvitationAsync(
-                    invitation.EventName,
-                    invitation.UserDisplayName,
-                    invitation.UserEmail,
+                    request.EventName,
+                    request.UserDisplayName,
+                    request.UserEmail,
                     callbackUrl,
                     ctx: ctx);
 
                 // Mark the invitation as sent in the database
-                // Since we're using DTOs, we need to find the actual Invitation entity
-                // For now, we'll mark by UserId and EventId, but this assumes one invitation per user per event
-                // In the new system, there might be multiple people per invitation, so this needs refinement
+                // Find the specific invitation by UserId and EventId, then mark it as sent
+                // Note: This updates all invitations for this user+event, which works for now
+                // since typically a user has one invitation per event in the new system
                 await db.Invitations
-                    .Where(i => i.EventId == invitation.EventId && i.InvitedPersons.Any(ip => ip.UserId == invitation.UserId))
-                    .ExecuteUpdateAsync(s => s.SetProperty(i => i.InviteEmailSent, true), ctx);
+                    .Where(i => i.EventId == request.EventId && i.InvitedPersons.Any(ip => ip.UserId == request.UserId))
+                    .ExecuteUpdateAsync(setters => setters.SetProperty(i => i.InviteEmailSent, true), ctx);
 
                 sentCount++;
-                logger.LogInformation("Sent invitation email to {Email} for event {EventName}", invitation.UserEmail, invitation.EventName);
+                logger.LogInformation("Sent invitation email to {Email} for event {EventName}", request.UserEmail, request.EventName);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Failed to send invitation email to {Email}", invitation.UserEmail);
+                logger.LogError(ex, "Failed to send invitation email to {Email}", request.UserEmail);
             }
         }
 

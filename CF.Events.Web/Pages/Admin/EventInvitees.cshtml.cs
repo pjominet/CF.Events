@@ -81,34 +81,29 @@ public class EventInviteesModel(
             })
             .ToList();
 
-        // Get all invited persons for this event with their invitations
-        var invitedPersons = await db.InvitedPersons
-            .Where(ip => ip.Invitation.EventId == id)
-            .Include(ip => ip.Invitation)
-            .Include(ip => ip.User)
+        // Get all invited persons for this event with their invitations and RSVPs
+        var inviteesData = await db.InvitedPersons
+            .Where(ip => ip.Invitation.EventId == id && ip.User != null)
             .Select(ip => new {
                 ip.AssignedAccommodationCode,
                 ip.User,
                 InvitationEmailSent = ip.Invitation.InviteEmailSent,
                 ScheduledFor = ip.Invitation.ScheduledFor,
                 InvitationId = ip.InvitationId,
-                ip.UserId
+                ip.UserId,
+                Rsvp = ip.Invitation.Rsvp
             })
+            .AsSplitQuery()
             .ToListAsync();
-        var rsvps = await db.Rsvps.Where(r => r.EventId == id).ToListAsync();
 
         var unavailableUsers = new HashSet<string>();
-        Invitees = invitedPersons
+        Invitees = inviteesData
             .Where(ip => ip.User != null)
             .Select(ip =>
             {
                 var user = ip.User!;
-                // Find RSVP for this invitation (group RSVP)
-                var invitation = db.Invitations
-                    .Include(i => i.Rsvp)
-                    .FirstOrDefault(i => i.Id == ip.InvitationId);
-                var rsvp = invitation?.Rsvp;
-                var responded = rsvp?.SubmittedAt > DateTime.MinValue.AddDays(1);
+                var rsvp = ip.Rsvp;
+                var responded = rsvp != null && rsvp.SubmittedAt > DateTime.MinValue.AddDays(1);
                 var status = responded ? (rsvp?.Status == RsvpStatus.Submitted ? "Attending" : "Declined") : "Pending";
                 unavailableUsers.Add(user.Id);
                 return new InviteeRow(
