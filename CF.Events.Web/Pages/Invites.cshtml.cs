@@ -13,7 +13,7 @@ public class InvitesModel(EventsDbContext db) : PageModel
 {
     public List<InviteRow> MyInvites { get; private set; } = [];
     public int TotalCount { get; private set; }
-    public int PageSize { get; } = 9;
+    public const int PageSize = 9;
     public int PageNumber { get; set; } = 1;
 
     public async Task<IActionResult> OnGetAsync(int pageNumber = 1)
@@ -28,7 +28,7 @@ public class InvitesModel(EventsDbContext db) : PageModel
             .Where(r => r.UserId == userId && r.Event.IsActive)
             .Include(r => r.Event)
             .Include(r => r.Rsvp)
-            .OrderBy(r => r.Event.Date);
+            .OrderBy(r => r.Event.StartDate);
 
         TotalCount = await query.CountAsync();
 

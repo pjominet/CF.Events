@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace CF.Events.Web.Models;
+namespace CF.Events.Web.Models.Requests;
 
-public record UserInvites
+public record UsersInviteRequest
 {
     public required List<string> UserIds { get; init; }
     [Required]

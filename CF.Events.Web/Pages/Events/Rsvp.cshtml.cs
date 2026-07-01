@@ -13,7 +13,8 @@ namespace CF.Events.Web.Pages.Events;
 [Authorize]
 public class RsvpModel(EventsDbContext db, IToastNotification toastNotification) : PageModel
 {
-    public Event? EventData { get; private set; }
+    public required Event EventData { get; set; }
+    public required EventConfig EventConfig { get; set; }
     public bool HasResponded { get; private set; }
     public string? AssignedAccommodationCode { get; private set; }
 
@@ -31,11 +32,8 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
             return Redirect("/");
 
         var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
-        EventData = await db.Events
-            .Include(e => e.EventConfig)
-            .FirstOrDefaultAsync(e => e.Id == eventId);
-
-        if (EventData is null) return Redirect("/");
+        EventData = await db.Events.FirstAsync(e => e.Id == eventId);
+        EventConfig = await db.EventConfigs.FirstAsync(e => e.EventId == eventId);
 
         if (rsvp is null) return Page();
 
@@ -44,10 +42,6 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
         Input.Attending = rsvp.Attending;
         Input.BringsPlusOne = rsvp.BringsPlusOne == true;
         Input.BringsKids = rsvp.BringsKids == true;
-        Input.JoinsForDinner = rsvp.JoinsForDinner == true;
-        Input.JoinsForLunch = rsvp.JoinsForLunch == true;
-        Input.JoinsForBreakfast = rsvp.JoinsForBreakfast == true;
-        Input.JoinsForBrunch = rsvp.JoinsForBrunch == true;
         Input.NeedsAccommodation = rsvp.NeedsAccommodation == true;
         Input.AccommodationDuration = rsvp.AccommodationDuration;
         Input.CommonDietaryOptions = rsvp.CommonDietaryOptions;
@@ -84,14 +78,11 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
         {
             rsvp.BringsPlusOne = eventConfig.AllowPartners && Input.BringsPlusOne;
             rsvp.BringsKids = eventConfig.AllowKids && Input.BringsKids;
-            rsvp.JoinsForDinner = eventConfig.OfferDinner && Input.JoinsForDinner;
-            rsvp.JoinsForLunch = eventConfig.OfferLunch && Input.JoinsForLunch;
-            rsvp.JoinsForBreakfast = eventConfig.OfferBreakfast && Input.JoinsForBreakfast;
-            rsvp.JoinsForBrunch = eventConfig.OfferBrunch && Input.JoinsForBrunch;
+
             rsvp.NeedsAccommodation = eventConfig.ShowAccommodationOptions && Input.NeedsAccommodation;
             rsvp.AccommodationDuration = rsvp.NeedsAccommodation == true ? Input.AccommodationDuration : null;
 
-            var offersFood = eventConfig.OfferDinner || eventConfig.OfferLunch || eventConfig.OfferBreakfast || eventConfig.OfferBrunch;
+            var offersFood = eventConfig.ShowFoodOptions;
             rsvp.CommonDietaryOptions = offersFood ? Input.CommonDietaryOptions : null;
             rsvp.OtherDietaryDetails = offersFood ? Input.OtherDietaryDetails : null;
 
@@ -111,12 +102,9 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
         public bool Attending { get; set; } = true;
         public bool BringsPlusOne { get; set; }
         public bool BringsKids { get; set; }
-        public bool JoinsForDinner { get; set; }
-        public bool JoinsForLunch { get; set; }
-        public bool JoinsForBreakfast { get; set; }
-        public bool JoinsForBrunch { get; set; }
         public bool NeedsAccommodation { get; set; }
         public int? AccommodationDuration { get; set; }
+        public List<int> SelectedDays { get; set; }
 
         public DietaryOptions[]? CommonDietaryOptions { get; set; }
         public string? OtherDietaryDetails { get; set; }

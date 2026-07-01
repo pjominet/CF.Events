@@ -1,6 +1,7 @@
 ﻿using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Models;
+using CF.Events.Web.Models.Requests;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -9,8 +10,8 @@ namespace CF.Events.Web.Services;
 public interface IInvitationService
 {
     Task<int> ProcessPendingInvitationsAsync(CancellationToken ctx = default);
-    Task SendImmediateInvitationsAsync(List<Invitation> invitations, CancellationToken ctx = default);
-    Task SendInvitationAsync(Invitation invitation, CancellationToken ctx = default);
+    Task SendImmediateInvitationsAsync(List<InviteEmailRequest> invitations, CancellationToken ctx = default);
+    Task SendInvitationAsync(InviteEmailRequest inviteEmailRequest, CancellationToken ctx = default);
 }
 
 public class InvitationService(
@@ -29,7 +30,7 @@ public class InvitationService(
             .Where(ue => !ue.InviteEmailSent && ue.ScheduledFor != null && ue.ScheduledFor <= DateTime.UtcNow)
             .OrderBy(ue => ue.ScheduledFor)
             .Take(batchSize)
-            .Select(ue => new Invitation
+            .Select(ue => new InviteEmailRequest
             {
                 EventId = ue.EventId,
                 UserId = ue.UserId,
@@ -50,7 +51,7 @@ public class InvitationService(
         return sentCount;
     }
 
-    public async Task SendImmediateInvitationsAsync(List<Invitation> invitations, CancellationToken ctx = default)
+    public async Task SendImmediateInvitationsAsync(List<InviteEmailRequest> invitations, CancellationToken ctx = default)
     {
         var batchSize = _appSettings.EmailBatchSize ?? int.MaxValue;
 
@@ -75,9 +76,10 @@ public class InvitationService(
         await SendInvitationEmailsAsync(invitations, ctx);
     }
 
-    public async Task SendInvitationAsync(Invitation invitation, CancellationToken ctx = default) => await SendInvitationEmailsAsync([invitation], ctx);
+    public async Task SendInvitationAsync(InviteEmailRequest inviteEmailRequest, CancellationToken ctx = default)
+        => await SendInvitationEmailsAsync([inviteEmailRequest], ctx);
 
-    private async Task<int> SendInvitationEmailsAsync(List<Invitation> invitations, CancellationToken ctx)
+    private async Task<int> SendInvitationEmailsAsync(List<InviteEmailRequest> invitations, CancellationToken ctx)
     {
         var sentCount = 0;
         var baseUrl = _appSettings.BaseUrl?.TrimEnd('/');

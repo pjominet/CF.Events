@@ -1,6 +1,6 @@
-﻿namespace CF.Events.Web.Models;
+﻿namespace CF.Events.Web.Models.Requests;
 
-public record Invitation
+public record InviteEmailRequest
 {
     public int EventId { get; init; }
     public required string UserId { get; init; }

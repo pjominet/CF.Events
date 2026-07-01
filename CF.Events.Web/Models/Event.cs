@@ -10,7 +10,8 @@ public class Event
     [StringLength(100)]
     public string Name { get; set; } = string.Empty;
 
-    public DateTime Date { get; set; }
+    public DateTime StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
 
     [StringLength(500)]
     public string? Description { get; set; }
@@ -35,4 +36,7 @@ public class Event
     public HashSet<EventUser> EventUsers { get; set; } = [];
     public HashSet<InviteCode> InviteCodes { get; set; } = [];
     public EventConfig? EventConfig { get; set; }
+
+    // helper
+    public int EventDuration => EndDate.HasValue ? (int)Math.Round((EndDate.Value - StartDate).TotalDays) : 1;
 }

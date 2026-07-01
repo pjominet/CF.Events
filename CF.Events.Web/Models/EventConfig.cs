@@ -4,10 +4,7 @@ public class EventConfig
 {
     public int EventId { get; set; }
 
-    public bool OfferDinner { get; set; }
-    public bool OfferLunch { get; set; }
-    public bool OfferBreakfast { get; set; }
-    public bool OfferBrunch { get; set; }
+    public bool ShowFoodOptions { get; set; }
 
     public bool ShowAccommodationOptions { get; set; }
 

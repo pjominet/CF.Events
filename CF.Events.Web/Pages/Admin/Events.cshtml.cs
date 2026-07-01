@@ -61,7 +61,7 @@ public class EventsModel(
         }
 
         @event.Name = NewEvent.Name;
-        @event.Date = NewEvent.Date;
+        @event.StartDate = NewEvent.Date;
         @event.Location = NewEvent.Location;
         @event.Description = NewEvent.Description;
         @event.AccommodationCode = NewEvent.AccommodationCode;
@@ -75,10 +75,7 @@ public class EventsModel(
         }
 
         @event.EventConfig ??= new EventConfig { EventId = @event.Id };
-        @event.EventConfig.OfferDinner = NewEvent.OfferDinner;
-        @event.EventConfig.OfferLunch = NewEvent.OfferLunch;
-        @event.EventConfig.OfferBreakfast = NewEvent.OfferBreakfast;
-        @event.EventConfig.OfferBrunch = NewEvent.OfferBrunch;
+        @event.EventConfig.ShowFoodOptions = NewEvent.ShowFoodOptions;
         @event.EventConfig.ShowAccommodationOptions = NewEvent.ShowAccommodationOptions;
         @event.EventConfig.AllowComments = NewEvent.AllowComments;
         @event.EventConfig.AllowPartners = NewEvent.AllowPartners;
@@ -134,13 +131,10 @@ public class EventsModel(
         {
             id = @event.Id,
             name = @event.Name,
-            date = @event.Date.ToString("yyyy-MM-dd"),
+            date = @event.StartDate.ToString("yyyy-MM-dd"),
             location = @event.Location,
             description = @event.Description,
-            offerDinner = @event.EventConfig?.OfferDinner ?? false,
-            offerLunch = @event.EventConfig?.OfferLunch ?? false,
-            offerBreakfast = @event.EventConfig?.OfferBreakfast ?? false,
-            offerBrunch = @event.EventConfig?.OfferBrunch ?? false,
+            showFoodOptions = @event.EventConfig?.ShowFoodOptions ?? false,
             accommodationCode = @event.AccommodationCode,
             showAccommodationOptions = @event.EventConfig?.ShowAccommodationOptions ?? false,
             allowComments = @event.EventConfig?.AllowComments ?? true,
@@ -157,7 +151,7 @@ public class EventsModel(
         AllEvents = await db.Events
             .Include(e => e.InviteCodes)
             .Include(e => e.EventConfig)
-            .OrderByDescending(e => e.Date)
+            .OrderByDescending(e => e.StartDate)
             .ToListAsync();
 
         var eventUsers = await db.EventUsers.ToListAsync();
@@ -250,13 +244,10 @@ public class EventsModel(
 
         public IFormFile? InvitationImage { get; init; }
 
-        public bool OfferDinner { get; init; }
-        public bool OfferLunch { get; init; }
-        public bool OfferBreakfast { get; init; }
-        public bool OfferBrunch { get; init; }
+        public bool ShowFoodOptions { get; init; }
         public bool ShowAccommodationOptions { get; init; }
         public bool AllowComments { get; init; } = true;
         public bool AllowPartners { get; init; } = true;
-        public bool AllowKids { get; init; } = true;
+        public bool AllowKids { get; init; } = false;
     }
 }

@@ -2,6 +2,7 @@
 using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Models;
+using CF.Events.Web.Models.Requests;
 using CF.Events.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -56,9 +57,9 @@ public class EventController(
 
     [HttpPost("{eventId:int}/invite-users")]
     [Authorize(Roles = Roles.Admin)]
-    public async Task<IActionResult> InviteUsers([FromRoute] int eventId, [FromForm] UserInvites invite)
+    public async Task<IActionResult> InviteUsers([FromRoute] int eventId, [FromForm] UsersInviteRequest inviteRequest)
     {
-        if (invite.ScheduledFor.HasValue && invite.ScheduledFor.Value.ToUniversalTime() <= DateTime.UtcNow)
+        if (inviteRequest.ScheduledFor.HasValue && inviteRequest.ScheduledFor.Value.ToUniversalTime() <= DateTime.UtcNow)
         {
             toastNotification.AddWarningToastMessage("Scheduled time must be in the future");
             return LocalRedirect($"/admin/events/{eventId}/invitees");
@@ -79,7 +80,7 @@ public class EventController(
             .ToListAsync();
 
         // Filter to only new users (not already invited)
-        var newUserIds = invite.UserIds
+        var newUserIds = inviteRequest.UserIds
             .Where(userId => !existingUserIds.Contains(userId))
             .ToList();
 
@@ -90,7 +91,7 @@ public class EventController(
         }
 
         string? accommodationCode = null;
-        if (invite.AllowUseOfAccommodationCode)
+        if (inviteRequest.AllowUseOfAccommodationCode)
         {
             accommodationCode = await db.Events
                 .Where(e => e.Id == eventId)
@@ -103,9 +104,9 @@ public class EventController(
             EventId = eventId,
             UserId = userId,
             AssignedAccommodationCode = accommodationCode,
-            ScheduledFor = invite.ScheduledFor,
+            ScheduledFor = inviteRequest.ScheduledFor,
             InviteEmailSent = false,
-            InviteCodeId = invite.InviteCodeId
+            InviteCodeId = inviteRequest.InviteCodeId
         }).ToList();
 
         db.EventUsers.AddRange(newEventUsers);
@@ -113,10 +114,10 @@ public class EventController(
         var count = await db.SaveChangesAsync();
 
         // Only send emails for immediate invites (not scheduled ones)
-        if (invite is { SendEmailsOnInvite: true, ScheduledFor: null })
+        if (inviteRequest is { SendEmailsOnInvite: true, ScheduledFor: null })
         {
             var inviteCode = db.InviteCodes
-                .Where(c => c.EventId == eventId && c.Id == invite.InviteCodeId && c.ValidUntil > DateTime.UtcNow)
+                .Where(c => c.EventId == eventId && c.Id == inviteRequest.InviteCodeId && c.ValidUntil > DateTime.UtcNow)
                 .Select(c => c.Code)
                 .FirstOrDefault();
 
@@ -128,7 +129,7 @@ public class EventController(
 
             var newInvitations = await db.EventUsers
                 .Where(ue => ue.EventId == eventId && newUserIds.Contains(ue.UserId))
-                .Select(ue => new Invitation
+                .Select(ue => new InviteEmailRequest
                 {
                     EventId = ue.EventId,
                     UserId = ue.UserId,
@@ -188,7 +189,7 @@ public class EventController(
         try
         {
             logger.LogInformation("Re-sending invitation to {Email}", eventUser.Email);
-            await invitationService.SendInvitationAsync(new Invitation
+            await invitationService.SendInvitationAsync(new InviteEmailRequest
             {
                 EventId = eventData.Id,
                 EventName = eventData.Name,
@@ -272,7 +273,7 @@ public class EventController(
         if (string.IsNullOrWhiteSpace(label))
         {
             var firstWord = @event.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "EVENT";
-            label = $"{firstWord.ToUpper()}{@event.Date.Year}";
+            label = $"{firstWord.ToUpper()}{@event.StartDate.Year}";
         }
 
         var newCode = new InviteCode

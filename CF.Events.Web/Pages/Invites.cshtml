@@ -25,7 +25,7 @@
         <div class="container-fluid p-0">
             <div id="invitesGrid"
                  class="row g-4 pb-4"
-                 data-page-size="@Model.PageSize"
+                 data-page-size="@InvitesModel.PageSize"
                  data-total-count="@Model.TotalCount"
                  data-load-url="/invites">
                 @foreach (var invite in Model.MyInvites)
@@ -37,7 +37,12 @@
                                     <h5 class="card-title mb-0">@invite.Event.Name</h5>
                                 </div>
                                 <p class="card-text small text-muted mb-3">
-                                    <i class="bi bi-calendar-event me-2"></i>@invite.Event.Date.ToString("MMM dd, yyyy")<br/>
+                                    <i class="bi bi-calendar-event me-2"></i>@invite.Event.StartDate.ToString("MMM dd, yyyy")
+                                    @if (invite.Event.EndDate.HasValue)
+                                    {
+                                        <text> - @invite.Event.EndDate.Value.ToString("MMM dd, yyyy")</text>
+                                    }
+                                    <br/>
                                     <i class="bi bi-geo-alt me-2"></i>@invite.Event.Location
                                 </p>
                                 <hr class="text-muted opacity-25"/>
