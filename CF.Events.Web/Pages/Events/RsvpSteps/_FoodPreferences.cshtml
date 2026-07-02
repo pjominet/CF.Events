@@ -1,10 +1,12 @@
 @using CF.Events.Web.Models
+@using CF.Events.Web.Pages.Events
 @model RsvpFormResponse
 
 @{
     var foodDays = Model.EventDays.Where(d => d.OffersFood).OrderBy(d => d.Date).ToList();
     var existingFood = Model.ExistingRsvp?.FoodPreferences ?? [];
     var existingPeople = Model.ExistingRsvp?.People ?? [];
+    var dietaryLabels = RsvpModel.DietaryLabels;
 }
 
 @if (foodDays.Count == 0)
@@ -26,35 +28,33 @@ else
                     var existingPerson = existingPeople.FirstOrDefault(p => p.InvitedPersonId == person.Id);
                     var personKey = existingPerson?.Id > 0 ? existingPerson.Id : i;
                     var existing = existingFood.FirstOrDefault(f => f.EventDayId == day.Id && f.RsvpPersonId == personKey);
+                    var selectedOption = existing?.DietaryOption ?? DietaryOptions.None;
 
-                    <div class="mb-2 ps-2 food-person-row" data-food-person="@personKey" data-food-day="@day.Id" data-invited-person-id="@person.Id">
+                    <div class="mb-3 ps-2 food-person-row" data-food-person="@personKey" data-food-day="@day.Id" data-invited-person-id="@person.Id">
                         <small class="fw-bold">@person.Name</small>
-                        <div class="d-flex flex-wrap gap-3 mt-1">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox"
-                                       id="food-breakfast-@(personKey)-@day.Id" @(existing?.JoinsForBreakfast == true ? "checked" : "")>
-                                <label class="form-check-label" for="food-breakfast-@(personKey)-@day.Id">Breakfast</label>
+                        <div class="row g-2 mt-1">
+                            <div class="col-12 col-md-6">
+                                <select class="form-select form-select-sm" id="food-dietary-@(personKey)-@day.Id">
+                                    @foreach (var (option, label) in dietaryLabels)
+                                    {
+                                        if (selectedOption == option)
+                                        {
+                                            <option value="@option" selected>@label</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@option">@label</option>
+                                        }
+                                    }
+                                </select>
                             </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox"
-                                       id="food-brunch-@(personKey)-@day.Id" @(existing?.JoinsForBrunch == true ? "checked" : "")>
-                                <label class="form-check-label" for="food-brunch-@(personKey)-@day.Id">Brunch</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox"
-                                       id="food-lunch-@(personKey)-@day.Id" @(existing?.JoinsForLunch == true ? "checked" : "")>
-                                <label class="form-check-label" for="food-lunch-@(personKey)-@day.Id">Lunch</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox"
-                                       id="food-dinner-@(personKey)-@day.Id" @(existing?.JoinsForDinner == true ? "checked" : "")>
-                                <label class="form-check-label" for="food-dinner-@(personKey)-@day.Id">Dinner</label>
+                            <div class="col-12 col-md-6">
+                                <input type="text" class="form-control form-control-sm"
+                                       id="food-requests-@(personKey)-@day.Id"
+                                       placeholder="Special requests..."
+                                       value="@(existing?.SpecialRequests ?? "")">
                             </div>
                         </div>
-                        <input type="text" class="form-control form-control-sm mt-1"
-                               id="food-notes-@(personKey)-@day.Id"
-                               placeholder="Special requests..."
-                               value="@(existing?.Notes ?? "")">
                     </div>
                 }
             </div>

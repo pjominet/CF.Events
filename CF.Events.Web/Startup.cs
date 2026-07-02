@@ -29,6 +29,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
             {
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
                 options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             })
             .AddNToastNotifyToastr(new ToastrOptions
             {
@@ -46,6 +47,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
             {
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
                 options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             })
             .AddNToastNotifyToastr(new ToastrOptions
             {

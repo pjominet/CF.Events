@@ -21,6 +21,7 @@ public class RsvpModel(EventsDbContext db, IRsvpService rsvpService) : PageModel
     /// </summary>
     public static readonly Dictionary<DietaryOptions, string> DietaryLabels = new()
     {
+        { DietaryOptions.None, "No restrictions" },
         { DietaryOptions.Vegetarian, "Vegetarian" },
         { DietaryOptions.Vegan, "Vegan" },
         { DietaryOptions.Pescetarian, "Pescetarian" },

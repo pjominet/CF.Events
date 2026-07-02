@@ -15,7 +15,6 @@ public class RsvpRequest
     [StringLength(100)]
     public string? GroupName { get; set; }
 
-    [Required]
     public List<RsvpPersonRequest> People { get; set; } = [];
 
     // Kids info
@@ -59,11 +58,6 @@ public class RsvpPersonRequest
     [Required]
     public bool Attending { get; set; } = true;
 
-    // Dietary restrictions (applies across all days)
-    public DietaryOptions[]? DietaryRestrictions { get; set; }
-
-    [StringLength(500)]
-    public string? OtherDietaryDetails { get; set; }
 }
 
 /// <summary>
@@ -77,13 +71,10 @@ public class RsvpFoodPreferenceRequest
     [Required]
     public int EventDayId { get; set; }
 
-    public bool JoinsForBreakfast { get; set; }
-    public bool JoinsForLunch { get; set; }
-    public bool JoinsForDinner { get; set; }
-    public bool JoinsForBrunch { get; set; }
+    public DietaryOptions DietaryOption { get; set; } = DietaryOptions.None;
 
     [StringLength(500)]
-    public string? Notes { get; set; }
+    public string? SpecialRequests { get; set; }
 }
 
 /// <summary>
@@ -92,18 +83,10 @@ public class RsvpFoodPreferenceRequest
 public class RsvpAccommodationRequest
 {
     public int? Id { get; set; }
-    [Required]
     public int RsvpPersonId { get; set; }
-    [Required]
     public int EventDayId { get; set; }
 
-    public bool NeedsAccommodation { get; set; }
-
-    [StringLength(100)]
-    public string? RoomType { get; set; }
-
-    [StringLength(500)]
-    public string? SpecialRequests { get; set; }
+    public bool HasBooked { get; set; }
 }
 
 /// <summary>

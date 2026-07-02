@@ -86,11 +86,13 @@ public class RsvpController(
     /// This is the main endpoint for the RSVP stepper form submission.
     /// </summary>
     [HttpPost("invitation/{invitationId:int}")]
-    public async Task<IActionResult> SaveRsvp(int invitationId, [FromBody] RsvpRequest request)
+    public async Task<IActionResult> SaveRsvp(int invitationId, [FromBody] RsvpRequest? request)
     {
+        if (request is null) return BadRequest(new { success = false, message = "Invalid request body" });
+
         if (request.InvitationId != invitationId)
         {
-            return BadRequest("Invitation ID mismatch");
+            return BadRequest(new { success = false, message = "Invitation ID mismatch" });
         }
 
         var userId = User.GetId();
@@ -108,8 +110,10 @@ public class RsvpController(
     /// Submits the final RSVP (convenience endpoint for final submission).
     /// </summary>
     [HttpPost("invitation/{invitationId:int}/submit")]
-    public async Task<IActionResult> SubmitRsvp(int invitationId, [FromBody] RsvpRequest request)
+    public async Task<IActionResult> SubmitRsvp(int invitationId, [FromBody] RsvpRequest? request)
     {
+        if (request is null) return BadRequest(new { success = false, message = "Invalid request body" });
+
         // Force IsDraft to false for submission
         request.IsDraft = false;
         return await SaveRsvp(invitationId, request);
@@ -119,8 +123,10 @@ public class RsvpController(
     /// Saves the RSVP as draft (convenience endpoint for saving progress).
     /// </summary>
     [HttpPost("invitation/{invitationId:int}/draft")]
-    public async Task<IActionResult> SaveRsvpDraft(int invitationId, [FromBody] RsvpRequest request)
+    public async Task<IActionResult> SaveRsvpDraft(int invitationId, [FromBody] RsvpRequest? request)
     {
+        if (request is null) return BadRequest(new { success = false, message = "Invalid request body" });
+
         // Force IsDraft to true for draft save
         request.IsDraft = true;
         return await SaveRsvp(invitationId, request);

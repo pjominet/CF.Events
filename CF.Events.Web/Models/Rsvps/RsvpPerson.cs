@@ -27,12 +27,6 @@ public class RsvpPerson
 
     public bool Attending { get; set; } = true;
 
-    // Dietary restrictions (applies across all days)
-    public DietaryOptions[]? DietaryRestrictions { get; set; }
-
-    [StringLength(500)]
-    public string? OtherDietaryDetails { get; set; }
-
     // Navigation properties
     public Rsvp Rsvp { get; set; } = null!;
     public InvitedPerson? InvitedPerson { get; set; }

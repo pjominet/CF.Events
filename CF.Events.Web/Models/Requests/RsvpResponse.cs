@@ -60,6 +60,7 @@ public class InvitedPersonResponse
     public string? Email { get; set; }
     public bool IsPrimary { get; set; }
     public bool IsUser { get; set; } // Whether this person is the logged-in user
+    public int? LinkedPersonId { get; set; } // Couple pairing
 }
 
 /// <summary>
@@ -105,8 +106,6 @@ public class ExistingRsvpPersonData
     public bool IsPlusOne { get; set; }
     public bool IsPrimary { get; set; }
     public bool Attending { get; set; }
-    public DietaryOptions[]? DietaryRestrictions { get; set; }
-    public string? OtherDietaryDetails { get; set; }
 }
 
 public class ExistingRsvpFoodPreferenceData
@@ -114,11 +113,8 @@ public class ExistingRsvpFoodPreferenceData
     public int Id { get; set; }
     public int RsvpPersonId { get; set; }
     public int EventDayId { get; set; }
-    public bool JoinsForBreakfast { get; set; }
-    public bool JoinsForLunch { get; set; }
-    public bool JoinsForDinner { get; set; }
-    public bool JoinsForBrunch { get; set; }
-    public string? Notes { get; set; }
+    public DietaryOptions DietaryOption { get; set; }
+    public string? SpecialRequests { get; set; }
 }
 
 public class ExistingRsvpAccommodationData
@@ -126,9 +122,7 @@ public class ExistingRsvpAccommodationData
     public int Id { get; set; }
     public int RsvpPersonId { get; set; }
     public int EventDayId { get; set; }
-    public bool NeedsAccommodation { get; set; }
-    public string? RoomType { get; set; }
-    public string? SpecialRequests { get; set; }
+    public bool HasBooked { get; set; }
 }
 
 public class ExistingRsvpCustomAnswerData

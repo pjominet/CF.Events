@@ -21,19 +21,10 @@ public static class RsvpFoodPreferenceModelBuilder
         builder.Property(f => f.EventDayId)
             .IsRequired();
 
-        builder.Property(f => f.JoinsForBreakfast)
-            .HasDefaultValue(false);
+        builder.Property(f => f.DietaryOption)
+            .HasDefaultValue(DietaryOptions.None);
 
-        builder.Property(f => f.JoinsForLunch)
-            .HasDefaultValue(false);
-
-        builder.Property(f => f.JoinsForDinner)
-            .HasDefaultValue(false);
-
-        builder.Property(f => f.JoinsForBrunch)
-            .HasDefaultValue(false);
-
-        builder.Property(f => f.Notes)
+        builder.Property(f => f.SpecialRequests)
             .HasMaxLength(500)
             .IsRequired(false);
 

@@ -40,16 +40,6 @@ public static class RsvpPersonModelBuilder
         builder.Property(rp => rp.Attending)
             .HasDefaultValue(true);
 
-        // Dietary restrictions as array
-        builder.Property(rp => rp.DietaryRestrictions)
-            .HasConversion(new EnumArrayConverter<DietaryOptions>()!, new EnumArrayComparer<DietaryOptions>())
-            .HasMaxLength(4000)
-            .IsRequired(false);
-
-        builder.Property(rp => rp.OtherDietaryDetails)
-            .HasMaxLength(500)
-            .IsRequired(false);
-
         // Navigation: Rsvp
         builder.HasOne(rp => rp.Rsvp)
             .WithMany(r => r.People)

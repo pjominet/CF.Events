@@ -139,3 +139,59 @@
 ### 29. Data Model — Accommodation Code Duplication (#38)
 - [ ] Verify `AssignedAccommodationCode` isn't duplicated between `Invitation` and `InvitedPerson`
 - **Files:** Models
+
+---
+
+## 🔴 High Priority (New — RSVP Fixes)
+
+### 30. ✅ Fix NullRef in SubmitRsvp/SaveRsvpDraft
+- [x] Add null check on `request` parameter in `SubmitRsvp`, `SaveRsvpDraft`, and `SaveRsvp`
+- **Files:** `RsvpController.cs`
+
+### 31. ✅ (partial) Add Couple Linking via LinkedPersonId
+- [x] Add nullable `LinkedPersonId` FK on `InvitedPerson` (self-referencing)
+- [x] Update model builder and generate migration
+- [ ] Add admin UI to link/unlink two people as a couple on the invitees page
+- **Files:** `InvitedPerson.cs`, `InvitedPersonModelBuilder.cs`, `EventInvitees.cshtml`, `EventController.cs`, migration
+
+### 32. Hide +1 Option for Linked Users; Limit to Max 1 +1
+- [ ] If user has `LinkedPersonId`, hide the "+1" option in RSVP form
+- [ ] After adding a +1, hide the "Add +1" button
+- **Files:** `_GroupDetails.cshtml`, `rsvp-stepper.js`
+- **Note:** `LinkedPersonId` is now exposed in `InvitedPersonResponse` and `_GroupDetails.cshtml` renders `data-has-linked-partner`
+
+### 33. Fix Duplicate Person Rendering in RSVP Form
+- [ ] Filter `InvitedPersons` to only show persons relevant to the current user
+- **Files:** `RsvpService.cs`, RSVP partial views
+
+### 33b. ✅ Fix FK Error on RSVP Submit
+- [x] Split `SaveChangesAsync` — save people first to get IDs, then save food/accommodation/custom answers
+- [x] Remove `Id = prefRequest.Id ?? 0` from new food/accommodation entities
+- **Files:** `RsvpService.cs`
+
+### 33c. ✅ Remove Draft Button, Auto-Save on Step Navigation
+- [x] Remove draft button from `Rsvp.cshtml` and `rsvp-stepper.js`
+- [x] Auto-save as draft on each "Next" step navigation
+- **Files:** `Rsvp.cshtml`, `rsvp-stepper.js`
+
+---
+
+## 🟡 Medium Priority (New — RSVP Simplification)
+
+### 34. ✅ Move Dietary Options from GroupDetails to FoodPreferences Step
+- [x] Remove dietary checkboxes from `_GroupDetails.cshtml`
+- [x] Add dietary dropdown + notes per person per day in `_FoodPreferences.cshtml`
+- **Files:** `_GroupDetails.cshtml`, `_FoodPreferences.cshtml`
+
+### 35. ✅ Simplify Food: Remove Meal Booleans, Just Dietary Dropdown + Notes Per Day
+- [x] Remove `JoinsForBreakfast`, `JoinsForLunch`, `JoinsForDinner`, `JoinsForBrunch` from `RsvpFoodPreference`
+- [x] Add `DietaryOption` enum field and keep `SpecialRequests` for special requests
+- [x] Remove `DietaryRestrictions`/`OtherDietaryDetails` from `RsvpPerson`
+- [x] Update `RsvpService`, model builders, DTOs, and JS
+- **Files:** `RsvpFoodPreference.cs`, `RsvpPerson.cs`, `RsvpService.cs`, `_FoodPreferences.cshtml`, `rsvp-stepper.js`, migration
+
+### 36. ✅ Simplify Accommodation: Remove Bed/Room Fields, Show Reservation Links + Codes
+- [x] Simplify accommodation step to display reservation links, codes, and a simple "I've booked" checkbox
+- [x] Remove `NeedsAccommodation`, `RoomType`, `SpecialRequests` from `RsvpAccommodation`, replaced with `HasBooked`
+- [x] Update model builder, DTOs, `RsvpService`, and JS
+- **Files:** `RsvpAccommodation.cs`, `_Accommodation.cshtml`, `RsvpService.cs`, `rsvp-stepper.js`, migration

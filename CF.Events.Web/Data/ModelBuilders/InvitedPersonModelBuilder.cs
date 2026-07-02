@@ -64,6 +64,13 @@ public static class InvitedPersonModelBuilder
             .OnDelete(DeleteBehavior.NoAction)
             .IsRequired(false);
 
+        // Navigation: LinkedPerson (self-referencing, couple pairing)
+        builder.HasOne(ip => ip.LinkedPerson)
+            .WithOne()
+            .HasForeignKey<InvitedPerson>(ip => ip.LinkedPersonId)
+            .OnDelete(DeleteBehavior.NoAction)
+            .IsRequired(false);
+
         // Navigation: RsvpPerson (1:1) - Configured in RsvpPersonModelBuilder (owns FK)
         // Do not duplicate relationship configuration
     }

@@ -34,10 +34,13 @@ public class InvitedPerson
 
     public DateTime? InvitationTokenExpiresAt { get; set; } // Expiry for the invitation token
 
+    public int? LinkedPersonId { get; set; } // Linked partner (couple pairing)
+
     // Navigation properties
     public Invitation Invitation { get; set; } = null!;
     public AppUser? User { get; set; }
     public RsvpPerson? RsvpPerson { get; set; }
+    public InvitedPerson? LinkedPerson { get; set; }
 }
 
 public enum PersonInviteStatus

@@ -26,7 +26,6 @@
         // Navigation buttons
         el('btn-next').addEventListener('click', nextStep);
         el('btn-prev').addEventListener('click', prevStep);
-        el('btn-save-draft').addEventListener('click', () => submitRsvp(true));
         el('btn-submit').addEventListener('click', () => submitRsvp(false));
         el('btn-add-plusone')?.addEventListener('click', addPlusOne);
 
@@ -53,9 +52,7 @@
                 email: val(`person-email-${idx}`) || null,
                 isPlusOne: false,
                 isPrimary: card.dataset.isPrimary === 'true',
-                attending: checked(`person-attending-${idx}`),
-                dietaryRestrictions: getCheckedValues(`dietary-${idx}`),
-                otherDietaryDetails: val(`dietary-other-${idx}`) || null
+                attending: checked(`person-attending-${idx}`)
             });
         });
 
@@ -63,8 +60,6 @@
         document.querySelectorAll('#group-details [data-is-plus-one="true"]').forEach(card => {
             const nameInput = card.querySelector('.plusone-name');
             const emailInput = card.querySelector('.plusone-email');
-            const dietaryOther = card.querySelector('.plusone-dietary-other');
-            const dietaryChecks = card.querySelectorAll('.dietary-checks input[type="checkbox"]:checked');
 
             people.push({
                 id: null,
@@ -73,9 +68,7 @@
                 email: emailInput?.value || null,
                 isPlusOne: true,
                 isPrimary: false,
-                attending: true,
-                dietaryRestrictions: Array.from(dietaryChecks).map(cb => cb.value),
-                otherDietaryDetails: dietaryOther?.value || null
+                attending: true
             });
         });
 
@@ -90,30 +83,16 @@
             prefs.push({
                 rsvpPersonId: +personIdx,
                 eventDayId: dayId,
-                joinsForBreakfast: checked(`food-breakfast-${personIdx}-${dayId}`),
-                joinsForLunch: checked(`food-lunch-${personIdx}-${dayId}`),
-                joinsForDinner: checked(`food-dinner-${personIdx}-${dayId}`),
-                joinsForBrunch: checked(`food-brunch-${personIdx}-${dayId}`),
-                notes: val(`food-notes-${personIdx}-${dayId}`) || null
+                dietaryOption: val(`food-dietary-${personIdx}-${dayId}`) || 'None',
+                specialRequests: val(`food-requests-${personIdx}-${dayId}`) || null
             });
         });
         return prefs;
     }
 
     function getAccommodations() {
-        const accs = [];
-        document.querySelectorAll('[data-acc-person]').forEach(row => {
-            const personIdx = row.dataset.accPerson;
-            const dayId = +row.dataset.accDay;
-            accs.push({
-                rsvpPersonId: +personIdx,
-                eventDayId: dayId,
-                needsAccommodation: checked(`acc-needs-${personIdx}-${dayId}`),
-                roomType: val(`acc-room-${personIdx}-${dayId}`) || null,
-                specialRequests: val(`acc-requests-${personIdx}-${dayId}`) || null
-            });
-        });
-        return accs;
+        const hasBooked = checked('acc-has-booked');
+        return [{ hasBooked: hasBooked }];
     }
 
     function getCustomAnswers() {
@@ -174,27 +153,16 @@
         });
         html += '</ul>';
 
-        // Dietary summary
-        const withDietary = attending.filter(p => p.dietaryRestrictions && p.dietaryRestrictions.length > 0);
-        if (withDietary.length > 0) {
-            html += '<h6>Dietary Requirements</h6><ul>';
-            withDietary.forEach(p => {
-                const labels = p.dietaryRestrictions.join(', ');
-                html += `<li>${esc(p.name)}: ${labels}${p.otherDietaryDetails ? ` (${esc(p.otherDietaryDetails)})` : ''}</li>`;
-            });
-            html += '</ul>';
-        }
-
-        // Food summary
-        const foodPrefs = getFoodPreferences().filter(f => f.joinsForBreakfast || f.joinsForLunch || f.joinsForDinner || f.joinsForBrunch);
+        // Food/dietary summary
+        const foodPrefs = getFoodPreferences().filter(f => f.dietaryOption && f.dietaryOption !== 'None');
         if (foodPrefs.length > 0) {
-            html += '<h6>Food Preferences</h6><p class="text-muted small">Meals selected for attending persons across event days.</p>';
+            html += '<h6>Dietary Preferences</h6><p class="text-muted small">Dietary options selected per day.</p>';
         }
 
         // Accommodation summary
-        const accNeeds = getAccommodations().filter(a => a.needsAccommodation);
-        if (accNeeds.length > 0) {
-            html += `<h6>Accommodation</h6><p class="text-muted small">${accNeeds.length} accommodation request(s).</p>`;
+        const acc = getAccommodations();
+        if (acc.length > 0 && acc[0].hasBooked) {
+            html += '<h6>Accommodation</h6><p class="text-muted small">You have confirmed your booking.</p>';
         }
 
         summary.innerHTML = html;
@@ -215,22 +183,11 @@
         const badge = card.querySelector('.plusone-number');
         if (badge) badge.textContent = `#${plusOneCounter}`;
 
-        // Set unique IDs for dietary checkboxes
-        card.querySelectorAll('.dietary-checks input[type="checkbox"]').forEach(cb => {
-            const opt = cb.value;
-            cb.name = `dietary-${idx}`;
-            cb.id = `diet-${idx}-${opt}`;
-            const label = cb.nextElementSibling;
-            if (label) label.setAttribute('for', cb.id);
-        });
-
-        // Set unique IDs for name/email/dietary-other
+        // Set unique IDs for name/email
         const nameInput = card.querySelector('.plusone-name');
         if (nameInput) nameInput.id = `person-name-${idx}`;
         const emailInput = card.querySelector('.plusone-email');
         if (emailInput) emailInput.id = `person-email-${idx}`;
-        const dietaryOther = card.querySelector('.plusone-dietary-other');
-        if (dietaryOther) dietaryOther.id = `dietary-other-${idx}`;
 
         // Bind remove button
         card.querySelector('.btn-remove-plusone')?.addEventListener('click', () => card.remove());
@@ -239,8 +196,11 @@
     }
 
     // ── Navigation ─────────────────────────────────────────────────────
-    function nextStep() {
-        if (currentStep < TOTAL_STEPS - 1) goToStep(currentStep + 1);
+    async function nextStep() {
+        if (currentStep < TOTAL_STEPS - 1) {
+            await saveDraft();
+            goToStep(currentStep + 1);
+        }
     }
 
     function prevStep() {
@@ -277,9 +237,14 @@
             renderReview();
         }
 
-        // Show/hide group dietary cards based on attendance
+        // Show/hide person cards based on attendance
         if (panel?.dataset.stepId === 'group') {
             updateGroupVisibility();
+        }
+
+        // Show/hide food rows based on attendance
+        if (panel?.dataset.stepId === 'food') {
+            updateFoodVisibility();
         }
     }
 
@@ -293,8 +258,8 @@
             }
         });
 
-        // Show/hide dietary cards in group details
-        document.querySelectorAll('.person-dietary-card').forEach(card => {
+        // Show/hide person cards in group details based on attendance
+        document.querySelectorAll('#group-details-server .person-card').forEach(card => {
             const personId = card.dataset.invitedPersonId;
             card.style.display = attendingIds.has(personId) ? '' : 'none';
         });
@@ -310,17 +275,48 @@
         }
     }
 
+    function updateFoodVisibility() {
+        const attendingIds = new Set();
+        document.querySelectorAll('#attendance-list [data-person-idx]').forEach(card => {
+            const idx = card.dataset.personIdx;
+            if (checked(`person-attending-${idx}`)) {
+                attendingIds.add(card.dataset.invitedPersonId);
+            }
+        });
+
+        document.querySelectorAll('.food-person-row').forEach(row => {
+            const personId = row.dataset.invitedPersonId;
+            row.style.display = attendingIds.has(personId) ? '' : 'none';
+        });
+    }
+
+    // ── Auto-save draft on step navigation ──────────────────────────────
+    async function saveDraft() {
+        const request = buildRequest(true);
+        try {
+            const res = await fetch(`/rsvps/invitation/${INVITATION_ID}/draft`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(request)
+            });
+            if (!res.ok) {
+                const text = await res.text();
+                console.warn('Auto-save draft returned error:', res.status, text);
+            }
+        } catch (e) {
+            console.warn('Auto-save draft failed:', e.message);
+        }
+    }
+
     // ── Submit ──────────────────────────────────────────────────────────
     async function submitRsvp(isDraft) {
         const request = buildRequest(isDraft);
-        const url = isDraft
-            ? `/rsvps/invitation/${INVITATION_ID}/draft`
-            : `/rsvps/invitation/${INVITATION_ID}/submit`;
+        const url = `/rsvps/invitation/${INVITATION_ID}/submit`;
 
         try {
-            const btn = isDraft ? el('btn-save-draft') : el('btn-submit');
+            const btn = el('btn-submit');
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Submitting...';
 
             const res = await fetch(url, {
                 method: 'POST',
@@ -328,25 +324,25 @@
                 body: JSON.stringify(request)
             });
 
-            const result = await res.json();
+            let result;
+            try {
+                result = await res.json();
+            } catch {
+                alert('Failed to submit RSVP: unexpected server response');
+                return;
+            }
 
             if (!res.ok || !result.success) {
-                const msg = result.errors?.join(', ') || result.message || 'Failed to save RSVP';
+                const msg = result.errors?.join(', ') || result.message || 'Failed to submit RSVP';
                 alert(msg);
                 return;
             }
 
-            if (isDraft) {
-                alert('Draft saved successfully!');
-            } else {
-                hide('rsvp-app');
-                show('rsvp-success');
-            }
+            hide('rsvp-app');
+            show('rsvp-success');
         } catch (e) {
-            alert('Error saving RSVP: ' + e.message);
+            alert('Error submitting RSVP: ' + e.message);
         } finally {
-            el('btn-save-draft').disabled = false;
-            el('btn-save-draft').innerHTML = 'Save Draft';
             el('btn-submit').disabled = false;
             el('btn-submit').innerHTML = '<i class="bi bi-check-circle"></i> Submit RSVP';
         }

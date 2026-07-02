@@ -94,7 +94,8 @@ public class RsvpService(
                 Name = ip.Name,
                 Email = ip.Email,
                 IsPrimary = ip.IsPrimary,
-                IsUser = ip.UserId == userId
+                IsUser = ip.UserId == userId,
+                LinkedPersonId = ip.LinkedPersonId
             })
             .ToList();
 
@@ -136,8 +137,6 @@ public class RsvpService(
                         IsPlusOne = rp.IsPlusOne,
                         IsPrimary = rp.IsPrimary,
                         Attending = rp.Attending,
-                        DietaryRestrictions = rp.DietaryRestrictions,
-                        OtherDietaryDetails = rp.OtherDietaryDetails
                     })
                     .ToList(),
                 FoodPreferences = [], // Will be loaded separately if needed
@@ -173,11 +172,8 @@ public class RsvpService(
                         Id = f.Id,
                         RsvpPersonId = f.RsvpPersonId,
                         EventDayId = f.EventDayId,
-                        JoinsForBreakfast = f.JoinsForBreakfast,
-                        JoinsForLunch = f.JoinsForLunch,
-                        JoinsForDinner = f.JoinsForDinner,
-                        JoinsForBrunch = f.JoinsForBrunch,
-                        Notes = f.Notes
+                        DietaryOption = f.DietaryOption,
+                        SpecialRequests = f.SpecialRequests
                     })
                     .ToList();
 
@@ -192,9 +188,7 @@ public class RsvpService(
                         Id = a.Id,
                         RsvpPersonId = a.RsvpPersonId,
                         EventDayId = a.EventDayId,
-                        NeedsAccommodation = a.NeedsAccommodation,
-                        RoomType = a.RoomType,
-                        SpecialRequests = a.SpecialRequests
+                        HasBooked = a.HasBooked
                     })
                     .ToList();
             }
@@ -280,10 +274,13 @@ public class RsvpService(
             // Update RSVP people
             await UpdateRsvpPeopleAsync(rsvp, request.People, invitation);
 
-            // Update food preferences
+            // Save people first so they get IDs assigned (needed for food/accommodation FKs)
+            await db.SaveChangesAsync();
+
+            // Update food preferences (requires valid RsvpPerson IDs)
             await UpdateFoodPreferencesAsync(rsvp, request.FoodPreferences);
 
-            // Update accommodations
+            // Update accommodations (requires valid RsvpPerson IDs)
             await UpdateAccommodationsAsync(rsvp, request.Accommodations);
 
             // Update custom answers
@@ -296,7 +293,7 @@ public class RsvpService(
                 rsvp.SubmittedAt = DateTime.UtcNow;
             }
 
-            // Save all changes in a single round-trip
+            // Save food, accommodation, custom answers, and status
             await db.SaveChangesAsync();
 
             response.Success = true;
@@ -361,8 +358,6 @@ public class RsvpService(
                     IsPlusOne = personRequest.IsPlusOne,
                     IsPrimary = personRequest.IsPrimary,
                     Attending = personRequest.Attending,
-                    DietaryRestrictions = personRequest.DietaryRestrictions,
-                    OtherDietaryDetails = personRequest.OtherDietaryDetails
                 };
                 rsvp.People.Add(newPerson);
                 db.RsvpPersons.Add(newPerson);
@@ -377,8 +372,6 @@ public class RsvpService(
         person.IsPlusOne = request.IsPlusOne;
         person.IsPrimary = request.IsPrimary;
         person.Attending = request.Attending;
-        person.DietaryRestrictions = request.DietaryRestrictions;
-        person.OtherDietaryDetails = request.OtherDietaryDetails;
 
         // If InvitedPersonId is null and this was previously linked to an invited person,
         // we might need to unlink it (for plus ones that were converted from invited persons)
@@ -408,14 +401,10 @@ public class RsvpService(
         {
             var newPref = new RsvpFoodPreference
             {
-                Id = prefRequest.Id ?? 0,
                 RsvpPersonId = prefRequest.RsvpPersonId,
                 EventDayId = prefRequest.EventDayId,
-                JoinsForBreakfast = prefRequest.JoinsForBreakfast,
-                JoinsForLunch = prefRequest.JoinsForLunch,
-                JoinsForDinner = prefRequest.JoinsForDinner,
-                JoinsForBrunch = prefRequest.JoinsForBrunch,
-                Notes = prefRequest.Notes
+                DietaryOption = prefRequest.DietaryOption,
+                SpecialRequests = prefRequest.SpecialRequests
             };
             db.RsvpFoodPreferences.Add(newPref);
         }
@@ -423,7 +412,8 @@ public class RsvpService(
 
     private async Task UpdateAccommodationsAsync(Rsvp rsvp, List<RsvpAccommodationRequest> accommodationRequests)
     {
-        // First, remove all existing accommodations for this RSVP's people
+        // Accommodation is now event-level (simple "has booked" flag).
+        // We store one record per primary person to persist the flag.
         var rsvpPersonIds = rsvp.People.Select(p => p.Id).ToList();
         var existingAccommodations = await db.RsvpAccommodations
             .Where(a => rsvpPersonIds.Contains(a.RsvpPersonId))
@@ -431,19 +421,31 @@ public class RsvpService(
 
         db.RsvpAccommodations.RemoveRange(existingAccommodations);
 
-        // Add new accommodations
-        foreach (var accRequest in accommodationRequests)
+        // Only create a record if there's a booking confirmation and a primary person
+        var hasBooked = accommodationRequests.Any(a => a.HasBooked);
+        var primaryPerson = rsvp.People.FirstOrDefault(p => p.IsPrimary) ?? rsvp.People.FirstOrDefault();
+        if (primaryPerson != null && hasBooked)
         {
-            var newAcc = new RsvpAccommodation
+            // Use any event day as a placeholder FK (accommodation is event-level now)
+            var eventDayId = accommodationRequests.FirstOrDefault(a => a.EventDayId > 0)?.EventDayId ?? 0;
+            if (eventDayId == 0)
             {
-                Id = accRequest.Id ?? 0,
-                RsvpPersonId = accRequest.RsvpPersonId,
-                EventDayId = accRequest.EventDayId,
-                NeedsAccommodation = accRequest.NeedsAccommodation,
-                RoomType = accRequest.RoomType,
-                SpecialRequests = accRequest.SpecialRequests
-            };
-            db.RsvpAccommodations.Add(newAcc);
+                // Look up the first event day for this event
+                eventDayId = await db.EventDays
+                    .Where(ed => ed.EventId == rsvp.EventId)
+                    .Select(ed => ed.Id)
+                    .FirstOrDefaultAsync();
+            }
+
+            if (eventDayId > 0)
+            {
+                db.RsvpAccommodations.Add(new RsvpAccommodation
+                {
+                    RsvpPersonId = primaryPerson.Id,
+                    EventDayId = eventDayId,
+                    HasBooked = true
+                });
+            }
         }
     }
 

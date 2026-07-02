@@ -52,6 +52,7 @@ public enum RsvpStatus
 
 public enum DietaryOptions
 {
+    None,
     Vegetarian,
     Vegan,
     Pescetarian,

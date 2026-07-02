@@ -15,13 +15,10 @@ public class RsvpFoodPreference
     [Required]
     public int EventDayId { get; set; }
 
-    public bool JoinsForBreakfast { get; set; }
-    public bool JoinsForLunch { get; set; }
-    public bool JoinsForDinner { get; set; }
-    public bool JoinsForBrunch { get; set; }
+    public DietaryOptions DietaryOption { get; set; } = DietaryOptions.None;
 
     [StringLength(500)]
-    public string? Notes { get; set; } // Special requests for this day
+    public string? SpecialRequests { get; set; }
 
     // Navigation properties
     public RsvpPerson RsvpPerson { get; set; } = null!;

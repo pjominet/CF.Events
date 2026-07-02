@@ -4,47 +4,35 @@
 
 @{
     var existingPeople = Model.ExistingRsvp?.People ?? [];
-    var dietaryLabels = RsvpModel.DietaryLabels;
     var kidBracketLabels = RsvpModel.KidBracketLabels;
     var existingKids = Model.ExistingRsvp?.KidsDetails ?? new Dictionary<KidAgeBracket, int>();
 }
 
 <div id="group-details-server">
-    @* Person dietary details are rendered per invited person; JS will filter to attending only *@
+    @* Person attendance cards; dietary options are in the Food step *@
     @for (var i = 0; i < Model.InvitedPersons.Count; i++)
     {
         var person = Model.InvitedPersons[i];
         var existing = existingPeople.FirstOrDefault(p => p.InvitedPersonId == person.Id);
+        var hasLinkedPartner = person.LinkedPersonId.HasValue;
 
-        <div class="person-card person-dietary-card" data-person-dietary-idx="@i" data-invited-person-id="@person.Id">
+        <div class="person-card" data-person-idx="@i" data-invited-person-id="@person.Id"
+             data-has-linked-partner="@hasLinkedPartner.ToString().ToLower()">
             <h6>@person.Name
                 @if (person.IsPrimary)
                 {
                     <span class="badge bg-info ms-2">Primary</span>
                 }
-            </h6>
-            <div class="dietary-checks mb-2">
-                <label class="form-label d-block mb-1">Dietary Requirements</label>
-                @foreach (var (option, label) in dietaryLabels)
+                @if (hasLinkedPartner)
                 {
-                    var isChecked = existing?.DietaryRestrictions?.Contains(option) == true;
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="checkbox" name="dietary-@i"
-                               value="@option" id="diet-@(i)-@option" @(isChecked ? "checked" : "")>
-                        <label class="form-check-label" for="diet-@(i)-@option">@label</label>
-                    </div>
+                    <span class="badge bg-secondary ms-2">Couple</span>
                 }
-            </div>
-            <div class="mb-2">
-                <input type="text" class="form-control form-control-sm" id="dietary-other-@i"
-                       placeholder="Other dietary details..."
-                       value="@(existing?.OtherDietaryDetails ?? "")">
-            </div>
+            </h6>
         </div>
     }
 </div>
 
-@* Plus one template (hidden, cloned by JS) *@
+@* Plus one template (hidden, cloned by JS) — hidden for linked users *@
 <template id="plusone-template">
     <div class="person-card" data-is-plus-one="true" data-is-primary="false">
         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -56,17 +44,6 @@
             <div class="col-6"><input type="email" class="form-control form-control-sm plusone-email" placeholder="Email"></div>
         </div>
         <input type="hidden" class="plusone-attending" value="true">
-        <div class="dietary-checks mt-2">
-            <label class="form-label d-block mb-1">Dietary Requirements</label>
-            @foreach (var (option, label) in dietaryLabels)
-            {
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="checkbox" value="@option">
-                    <label class="form-check-label">@label</label>
-                </div>
-            }
-        </div>
-        <input type="text" class="form-control form-control-sm mt-1 plusone-dietary-other" placeholder="Other dietary details...">
     </div>
 </template>
 

@@ -21,16 +21,8 @@ public static class RsvpAccommodationModelBuilder
         builder.Property(a => a.EventDayId)
             .IsRequired();
 
-        builder.Property(a => a.NeedsAccommodation)
+        builder.Property(a => a.HasBooked)
             .HasDefaultValue(false);
-
-        builder.Property(a => a.RoomType)
-            .HasMaxLength(100)
-            .IsRequired(false);
-
-        builder.Property(a => a.SpecialRequests)
-            .HasMaxLength(500)
-            .IsRequired(false);
 
         // Composite unique index to prevent duplicate entries
         builder.HasIndex(a => new { a.RsvpPersonId, a.EventDayId })
