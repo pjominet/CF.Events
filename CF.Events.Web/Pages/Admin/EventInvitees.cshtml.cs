@@ -18,6 +18,7 @@ public class EventInviteesModel(
 {
     public Event? EventData { get; private set; }
     public List<SelectListItem> CurrentInviteCodes { get; private set; } = [];
+    public List<SelectListItem> AccommodationCodes { get; private set; } = [];
 
     public UsersInviteRequest NewInvite { get; set; } = new();
 
@@ -66,6 +67,10 @@ public class EventInviteesModel(
                 var label = string.IsNullOrWhiteSpace(ic.Label) ? ic.Code : ic.Label;
                 return new SelectListItem($"{label} (valid {validDays} days)", ic.Id.ToString(), ic.Id == NewInvite.InviteCodeId);
             })
+            .ToList();
+
+        AccommodationCodes = EventData.AccommodationCodes
+            .Select(ac => new SelectListItem(ac, ac))
             .ToList();
 
         var invitedUsers = db.EventUsers
