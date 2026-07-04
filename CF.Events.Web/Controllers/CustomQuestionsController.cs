@@ -11,7 +11,7 @@ namespace CF.Events.Web.Controllers;
 [Authorize(Roles = Roles.Admin)]
 public class CustomQuestionsController(
     EventsDbContext db,
-    ILogger<CustomQuestionsController> logger) : Controller
+    ILogger<CustomQuestionsController> logger) : ApiController
 {
     /// <summary>
     /// Gets all custom questions for an event, ordered by StepGroup then SortOrder.
@@ -21,22 +21,20 @@ public class CustomQuestionsController(
     {
         var questions = await db.CustomQuestions
             .Where(q => q.EventId == eventId)
-            .OrderBy(q => q.StepGroup)
+            .OrderBy(q => q.FormStep)
             .ThenBy(q => q.SortOrder)
             .Select(q => new
             {
                 q.Id,
                 q.EventId,
-                q.QuestionId,
                 q.Label,
                 q.HelpText,
                 q.Type,
                 q.Options,
                 q.IsRequired,
                 q.SortOrder,
-                q.StepGroup,
-                q.StepOrder,
-                q.ShowIf
+                StepGroup = q.FormStep,
+                q.StepOrder
             })
             .ToListAsync();
 
@@ -55,16 +53,14 @@ public class CustomQuestionsController(
             {
                 q.Id,
                 q.EventId,
-                q.QuestionId,
                 q.Label,
                 q.HelpText,
                 q.Type,
                 q.Options,
                 q.IsRequired,
                 q.SortOrder,
-                q.StepGroup,
-                q.StepOrder,
-                q.ShowIf
+                StepGroup = q.FormStep,
+                q.StepOrder
             })
             .FirstOrDefaultAsync();
 
@@ -94,7 +90,7 @@ public class CustomQuestionsController(
         if (request.SortOrder == 0)
         {
             var maxOrder = await db.CustomQuestions
-                .Where(q => q.EventId == eventId && q.StepGroup == request.StepGroup)
+                .Where(q => q.EventId == eventId && q.FormStep == request.FormStep)
                 .MaxAsync(q => (int?)q.SortOrder) ?? 0;
 
             request.SortOrder = maxOrder + 1;
@@ -109,9 +105,8 @@ public class CustomQuestionsController(
             Options = request.Options,
             IsRequired = request.IsRequired,
             SortOrder = request.SortOrder,
-            StepGroup = request.StepGroup,
-            StepOrder = request.StepOrder,
-            ShowIf = request.ShowIf
+            FormStep = request.FormStep,
+            StepOrder = request.StepOrder
         };
 
         db.CustomQuestions.Add(question);
@@ -123,16 +118,14 @@ public class CustomQuestionsController(
         {
             question.Id,
             question.EventId,
-            question.QuestionId,
             question.Label,
             question.HelpText,
             question.Type,
             question.Options,
             question.IsRequired,
             question.SortOrder,
-            question.StepGroup,
-            question.StepOrder,
-            question.ShowIf
+            StepGroup = question.FormStep,
+            question.StepOrder
         });
     }
 
@@ -160,9 +153,8 @@ public class CustomQuestionsController(
         question.Options = request.Options;
         question.IsRequired = request.IsRequired;
         question.SortOrder = request.SortOrder;
-        question.StepGroup = request.StepGroup;
+        question.FormStep = request.FormStep;
         question.StepOrder = request.StepOrder;
-        question.ShowIf = request.ShowIf;
 
         await db.SaveChangesAsync();
 
@@ -172,16 +164,14 @@ public class CustomQuestionsController(
         {
             question.Id,
             question.EventId,
-            question.QuestionId,
             question.Label,
             question.HelpText,
             question.Type,
             question.Options,
             question.IsRequired,
             question.SortOrder,
-            question.StepGroup,
-            question.StepOrder,
-            question.ShowIf
+            StepGroup = question.FormStep,
+            question.StepOrder
         });
     }
 
@@ -241,7 +231,7 @@ public class CustomQuestionRequest
     public List<string>? Options { get; set; }
     public bool IsRequired { get; set; }
     public int SortOrder { get; set; }
-    public string StepGroup { get; set; } = "Extras";
+    public FormStep FormStep { get; set; } = FormStep.Extras;
     public int StepOrder { get; set; }
     public string? ShowIf { get; set; }
 }

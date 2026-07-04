@@ -22,9 +22,9 @@ else
                 <h6>@day.Name <small class="text-muted">(@day.Date.ToShortDateString())</small></h6>
 
                 @* Food rows per person — JS will show/hide based on attendance *@
-                @for (var i = 0; i < Model.InvitedPersons.Count; i++)
+                @for (var i = 0; i < Model.InvitedGuests.Count; i++)
                 {
-                    var person = Model.InvitedPersons[i];
+                    var person = Model.InvitedGuests[i];
                     var existingPerson = existingPeople.FirstOrDefault(p => p.InvitedPersonId == person.Id);
                     var personKey = existingPerson?.Id > 0 ? existingPerson.Id : i;
                     var existing = existingFood.FirstOrDefault(f => f.EventDayId == day.Id && f.RsvpPersonId == personKey);

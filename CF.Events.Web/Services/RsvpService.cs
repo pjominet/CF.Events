@@ -45,7 +45,7 @@ public class RsvpService(
             .AsSplitQuery()
             .FirstOrDefaultAsync(i => i.Id == invitationId);
 
-        if (invitation is null || invitation.Event is null)
+        if (invitation?.Event is null)
         {
             logger.LogWarning("Invitation {InvitationId} not found or has no event", invitationId);
             return null;
@@ -60,7 +60,7 @@ public class RsvpService(
             EventId = eventObj.Id,
             EventName = eventObj.Name,
             EventDescription = eventObj.Description ?? string.Empty,
-            EventStartDate = eventObj.Date,
+            EventStartDate = eventObj.StartDate,
             EventEndDate = eventObj.EndDate,
             Location = eventObj.Location,
             InvitationId = invitation.Id,
@@ -70,55 +70,52 @@ public class RsvpService(
             AccommodationLink = invitation.Event.EventConfig?.AccommodationLink,
             AccommodationInfo = invitation.Event.EventConfig?.AccommodationInfo,
             AllowComments = invitation.Event.EventConfig?.AllowComments ?? true,
-            AllowKids = invitation.Event.EventConfig?.AllowKids ?? true
+            AllowKids = invitation.Event.EventConfig?.AllowKids ?? true,
+            // Map event days
+            EventDays = eventObj.EventDays
+                .OrderBy(ed => ed.Date)
+                .Select(ed => new EventDayResponse
+                {
+                    Id = ed.Id,
+                    Date = ed.Date,
+                    Name = ed.Name,
+                    OffersFood = ed.OffersFood,
+                    OffersAccommodation = ed.OffersAccommodation
+                })
+                .ToList(),
+            // Map invited persons
+            InvitedGuests = invitation.InvitedPersons
+                .Select(ip => new InvitedPersonResponse
+                {
+                    Id = ip.Id,
+                    Name = ip.Name,
+                    Email = ip.Email,
+                    IsPrimary = ip.IsPrimary,
+                    IsUser = ip.UserId == userId,
+                    LinkedPersonId = ip.LinkedPersonId
+                })
+                .ToList(),
+            // Map custom questions
+            CustomQuestions = eventObj.CustomQuestions
+                .OrderBy(cq => cq.SortOrder)
+                .Select(cq => new CustomQuestionResponse
+                {
+                    Id = cq.Id,
+                    QuestionId = cq.QuestionId,
+                    Label = cq.Label,
+                    HelpText = cq.HelpText,
+                    Type = cq.Type,
+                    Options = cq.Options,
+                    IsRequired = cq.IsRequired,
+                    StepGroup = cq.FormStep,
+                    StepOrder = cq.StepOrder,
+                    ShowIf = cq.ShowIf
+                })
+                .ToList()
         };
 
-        // Map event days
-        response.EventDays = eventObj.EventDays
-            .OrderBy(ed => ed.Date)
-            .Select(ed => new EventDayResponse
-            {
-                Id = ed.Id,
-                Date = ed.Date,
-                Name = ed.Name,
-                OffersFood = ed.OffersFood,
-                OffersAccommodation = ed.OffersAccommodation
-            })
-            .ToList();
-
-        // Map invited persons
-        response.InvitedPersons = invitation.InvitedPersons
-            .Select(ip => new InvitedPersonResponse
-            {
-                Id = ip.Id,
-                Name = ip.Name,
-                Email = ip.Email,
-                IsPrimary = ip.IsPrimary,
-                IsUser = ip.UserId == userId,
-                LinkedPersonId = ip.LinkedPersonId
-            })
-            .ToList();
-
-        // Map custom questions
-        response.CustomQuestions = eventObj.CustomQuestions
-            .OrderBy(cq => cq.SortOrder)
-            .Select(cq => new CustomQuestionResponse
-            {
-                Id = cq.Id,
-                QuestionId = cq.QuestionId,
-                Label = cq.Label,
-                HelpText = cq.HelpText,
-                Type = cq.Type,
-                Options = cq.Options,
-                IsRequired = cq.IsRequired,
-                StepGroup = cq.StepGroup,
-                StepOrder = cq.StepOrder,
-                ShowIf = cq.ShowIf
-            })
-            .ToList();
-
         // If there's an existing RSVP, map it to the response
-        if (invitation.Rsvp != null)
+        if (invitation.Rsvp is not null)
         {
             response.ExistingRsvp = new ExistingRsvpData
             {
@@ -226,7 +223,7 @@ public class RsvpService(
             }
 
             // Check if user is authorized to RSVP for this invitation
-            var isAuthorized = invitation.InvitedPersons.Any(ip => ip.UserId == userId);
+            var isAuthorized = invitation.InvitedPersons.Any(ip => ip.PrimaryGroupUserId == userId);
             if (!isAuthorized)
             {
                 response.Errors.Add("You are not authorized to RSVP for this invitation");

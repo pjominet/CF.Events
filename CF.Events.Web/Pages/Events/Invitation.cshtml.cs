@@ -20,7 +20,7 @@ public class InvitationModel(EventsDbContext db) : PageModel
     {
         var userId = User.GetId();
         var isInvited = await db.InvitedPersons
-            .AnyAsync(ip => ip.Invitation.EventId == eventId && ip.UserId == userId);
+            .AnyAsync(ip => ip.Invitation.EventId == eventId && ip.PrimaryGroupUserId == userId);
         var isAdmin = User.IsAdmin();
         if (!isInvited && !isAdmin)
         {

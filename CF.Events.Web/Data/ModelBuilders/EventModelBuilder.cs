@@ -19,7 +19,7 @@ public static class EventModelBuilder
             .HasMaxLength(100)
             .IsRequired();
 
-        builder.Property(e => e.Date)
+        builder.Property(e => e.StartDate)
             .IsRequired();
 
         builder.Property(e => e.EndDate)
@@ -30,10 +30,6 @@ public static class EventModelBuilder
             .IsRequired(false);
 
         builder.Property(e => e.Location)
-            .HasMaxLength(100)
-            .IsRequired(false);
-
-        builder.Property(e => e.AccommodationCode)
             .HasMaxLength(100)
             .IsRequired(false);
 
@@ -50,20 +46,5 @@ public static class EventModelBuilder
 
         builder.Property(e => e.CreatedAt)
             .HasDefaultValueSql("GETUTCDATE()");
-
-        // Navigation: InviteCodes - Configured in InviteCodeModelBuilder (owns FK)
-        // Do not duplicate relationship configuration
-
-        // Navigation: EventDays - Configured in EventDayModelBuilder (owns FK)
-        // Do not duplicate relationship configuration
-
-        // Navigation: CustomQuestions - Configured in CustomQuestionModelBuilder (owns FK)
-        // Do not duplicate relationship configuration
-
-        // Navigation: Invitations - Configured in InvitationModelBuilder (owns FK)
-        // Do not duplicate relationship configuration
-
-        // Navigation: Rsvps - Configured in RsvpModelBuilder (owns FK)
-        // Do not duplicate relationship configuration
     }
 }

@@ -44,8 +44,8 @@
                         <tr>
                             <td class="fw-bold">@eventData.Name</td>
                             <td>
-                                @eventData.Date.ToShortDateString()
-                                @if (eventData.EndDate > eventData.Date)
+                                @eventData.StartDate.ToShortDateString()
+                                @if (eventData.EndDate > eventData.StartDate)
                                 {
                                     <text> – @eventData.EndDate.ToShortDateString()</text>
                                 }

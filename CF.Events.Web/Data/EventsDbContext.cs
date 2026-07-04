@@ -13,9 +13,9 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
     public DbSet<EventDay> EventDays => Set<EventDay>();
     public DbSet<CustomQuestion> CustomQuestions => Set<CustomQuestion>();
 
-    public DbSet<InviteCode> InviteCodes => Set<InviteCode>();
+    public DbSet<InviteToken> InviteCodes => Set<InviteToken>();
     public DbSet<Invitation> Invitations => Set<Invitation>();
-    public DbSet<InvitedPerson> InvitedPersons => Set<InvitedPerson>();
+    public DbSet<InviteGroup> InvitedPersons => Set<InviteGroup>();
 
     public DbSet<Rsvp> Rsvps => Set<Rsvp>();
     public DbSet<RsvpPerson> RsvpPersons => Set<RsvpPerson>();
@@ -57,9 +57,9 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
         CustomQuestionModelBuilder.Configure(builder.Entity<CustomQuestion>());
 
         // Invitations
-        InviteCodeModelBuilder.Configure(builder.Entity<InviteCode>());
+        InviteCodeModelBuilder.Configure(builder.Entity<InviteToken>());
         InvitationModelBuilder.Configure(builder.Entity<Invitation>());
-        InvitedPersonModelBuilder.Configure(builder.Entity<InvitedPerson>());
+        InvitedPersonModelBuilder.Configure(builder.Entity<InviteGroup>());
 
         // RSVPs
         RsvpModelBuilder.Configure(builder.Entity<Rsvp>());

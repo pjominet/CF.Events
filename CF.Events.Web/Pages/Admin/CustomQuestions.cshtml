@@ -25,7 +25,7 @@
     </div>
 
     @{
-        var grouped = Model.Questions.GroupBy(q => q.StepGroup).OrderBy(g => g.Key);
+        var grouped = Model.Questions.GroupBy(q => q.FormStep).OrderBy(g => g.Key);
     }
 
     @foreach (var group in grouped)
@@ -98,7 +98,7 @@
                                                 data-q-options="@(q.Options != null ? string.Join("\n", q.Options) : "")"
                                                 data-q-required="@q.IsRequired.ToString().ToLower()"
                                                 data-q-sortorder="@q.SortOrder"
-                                                data-q-stepgroup="@q.StepGroup"
+                                                data-q-stepgroup="@q.FormStep"
                                                 data-q-steporder="@q.StepOrder"
                                                 data-q-showif="@q.ShowIf">
                                             <i class="bi bi-pencil"></i>

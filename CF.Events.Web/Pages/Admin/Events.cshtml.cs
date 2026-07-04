@@ -61,7 +61,7 @@ public class EventsModel(
         }
 
         @event.Name = NewEvent.Name;
-        @event.Date = NewEvent.StartDate;
+        @event.StartDate = NewEvent.StartDate;
         @event.EndDate = NewEvent.EndDate < NewEvent.StartDate ? NewEvent.StartDate : NewEvent.EndDate;
         @event.Location = NewEvent.Location;
         @event.Description = NewEvent.Description;
@@ -130,7 +130,7 @@ public class EventsModel(
         {
             id = @event.Id,
             name = @event.Name,
-            startDate = @event.Date.ToString("yyyy-MM-dd"),
+            startDate = @event.StartDate.ToString("yyyy-MM-dd"),
             endDate = @event.EndDate.ToString("yyyy-MM-dd"),
             location = @event.Location,
             description = @event.Description,
@@ -149,7 +149,7 @@ public class EventsModel(
         AllEvents = await db.Events
             .Include(e => e.InviteCodes)
             .Include(e => e.EventConfig)
-            .OrderByDescending(e => e.Date)
+            .OrderByDescending(e => e.StartDate)
             .ToListAsync();
 
         InviteeCounts = await db.InvitedPersons

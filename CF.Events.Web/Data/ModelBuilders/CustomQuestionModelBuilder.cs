@@ -18,10 +18,6 @@ public static class CustomQuestionModelBuilder
         builder.Property(cq => cq.EventId)
             .IsRequired();
 
-        builder.Property(cq => cq.QuestionId)
-            .HasMaxLength(36) // GUID length
-            .IsRequired();
-
         builder.Property(cq => cq.Label)
             .HasMaxLength(200)
             .IsRequired();
@@ -43,24 +39,17 @@ public static class CustomQuestionModelBuilder
         builder.Property(cq => cq.SortOrder)
             .HasDefaultValue(0);
 
-        builder.Property(cq => cq.StepGroup)
+        builder.Property(cq => cq.FormStep)
             .HasMaxLength(50)
             .HasDefaultValue("Extras");
 
         builder.Property(cq => cq.StepOrder)
             .HasDefaultValue(0);
 
-        builder.Property(cq => cq.ShowIf)
-            .HasMaxLength(100)
-            .IsRequired(false);
-
-        // Navigation: Event
-        builder.HasOne(cq => cq.Event)
+        // Navigation: EventConfig
+        builder.HasOne(cq => cq.EventConfig)
             .WithMany(e => e.CustomQuestions)
             .HasForeignKey(cq => cq.EventId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        // Navigation: Answers - Configured in RsvpCustomAnswerModelBuilder (owns FK)
-        // Do not duplicate relationship configuration
     }
 }

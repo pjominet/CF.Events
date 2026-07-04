@@ -22,7 +22,7 @@ public class CustomQuestionsModel(EventsDbContext db) : PageModel
 
         Questions = await db.CustomQuestions
             .Where(q => q.EventId == id)
-            .OrderBy(q => q.StepGroup)
+            .OrderBy(q => q.FormStep)
             .ThenBy(q => q.SortOrder)
             .ToListAsync();
 

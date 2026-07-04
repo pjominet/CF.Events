@@ -29,7 +29,7 @@ public class RsvpPerson
 
     // Navigation properties
     public Rsvp Rsvp { get; set; } = null!;
-    public InvitedPerson? InvitedPerson { get; set; }
+    public InviteGroup? InvitedPerson { get; set; }
     public HashSet<RsvpFoodPreference> FoodPreferences { get; set; } = [];
     public HashSet<RsvpAccommodation> Accommodations { get; set; } = [];
 }

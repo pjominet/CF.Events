@@ -14,9 +14,6 @@ public class CustomQuestion
     public int EventId { get; set; }
 
     [Required]
-    public string QuestionId { get; set; } = Guid.NewGuid().ToString(); // For easy reference
-
-    [Required]
     [StringLength(200)]
     public string Label { get; set; } = string.Empty;
 
@@ -28,22 +25,17 @@ public class CustomQuestion
     // For choice types
     public List<string>? Options { get; set; }
 
-    public bool IsRequired { get; set; } = false;
+    public bool IsRequired { get; set; }
 
     public int SortOrder { get; set; }
 
     // For stepper grouping
-    [StringLength(50)]
-    public string StepGroup { get; set; } = "Extras"; // "Attendance", "Food", "Accommodation", "Extras", "Custom"
+    public FormStep FormStep { get; set; } = FormStep.Extras;
 
-    public int StepOrder { get; set; } // Order within the step
-
-    // Conditional display
-    [StringLength(100)]
-    public string? ShowIf { get; set; } // Expression: "Attending == true", "Kids.Count > 0"
+    public int StepOrder { get; set; }
 
     // Navigation properties
-    public Event Event { get; set; } = null!;
+    public EventConfig EventConfig { get; set; } = null!;
     public HashSet<RsvpCustomAnswer> Answers { get; set; } = [];
 }
 
@@ -56,4 +48,13 @@ public enum CustomQuestionType
     MultiChoice,
     Number,
     Date
+}
+
+public enum FormStep
+{
+    Attendance,
+    Kids,
+    Food,
+    Accommodation,
+    Extras
 }

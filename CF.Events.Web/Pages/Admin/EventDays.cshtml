@@ -17,7 +17,7 @@
                 </nav>
                 <h1 class="serif fs-1 mt-3">@Model.EventData?.Name</h1>
                 <p class="text-muted mb-0">
-                    @Model.EventData?.Date.ToLongDateString() — @Model.EventData?.EndDate.ToLongDateString()
+                    @Model.EventData?.StartDate.ToLongDateString() — @Model.EventData?.EndDate.ToLongDateString()
                 </p>
             </div>
             <div class="d-flex gap-2 mt-auto mb-0">
@@ -114,7 +114,7 @@
                 <div class="mb-3">
                     <label for="dayDate" class="form-label">Date</label>
                     <input type="date" class="form-control" id="dayDate" required
-                           min="@Model.EventData?.Date.ToString("yyyy-MM-dd")"
+                           min="@Model.EventData?.StartDate.ToString("yyyy-MM-dd")"
                            max="@Model.EventData?.EndDate.ToString("yyyy-MM-dd")" />
                 </div>
                 <div class="mb-3">

@@ -5,6 +5,7 @@ using CF.Events.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web.Controllers;
 
@@ -13,7 +14,7 @@ namespace CF.Events.Web.Controllers;
 public class RsvpController(
     EventsDbContext db,
     IRsvpService rsvpService,
-    ILogger<RsvpController> logger) : Controller
+    ILogger<RsvpController> logger) : ApiController
 {
     /// <summary>
     /// Gets the RSVP form data for an invitation.
@@ -26,7 +27,7 @@ public class RsvpController(
 
         // Verify the user is invited to this invitation
         var isInvited = await db.InvitedPersons
-            .AnyAsync(ip => ip.InvitationId == invitationId && ip.UserId == userId);
+            .AnyAsync(ip => ip.InvitationId == invitationId && ip.PrimaryGroupUserId == userId);
 
         if (!isInvited)
         {
@@ -36,13 +37,10 @@ public class RsvpController(
 
         var formData = await rsvpService.GetRsvpFormAsync(invitationId, userId);
 
-        if (formData is null)
-        {
-            logger.LogWarning("RSVP form data not found for invitation {InvitationId}", invitationId);
-            return NotFound();
-        }
+        if (formData is not null) return Ok(formData);
 
-        return Ok(formData);
+        logger.LogWarning("RSVP form data not found for invitation {InvitationId}", invitationId);
+        return NotFound();
     }
 
     /// <summary>
@@ -55,7 +53,7 @@ public class RsvpController(
 
         // Verify the user is invited to this invitation
         var isInvited = await db.InvitedPersons
-            .AnyAsync(ip => ip.InvitationId == invitationId && ip.UserId == userId);
+            .AnyAsync(ip => ip.InvitationId == invitationId && ip.PrimaryGroupUserId == userId);
 
         if (!isInvited)
         {
@@ -79,31 +77,6 @@ public class RsvpController(
             rsvp.CreatedAt,
             rsvp.UpdatedAt
         });
-    }
-
-    /// <summary>
-    /// Saves an RSVP as draft or submits it.
-    /// This is the main endpoint for the RSVP stepper form submission.
-    /// </summary>
-    [HttpPost("invitation/{invitationId:int}")]
-    public async Task<IActionResult> SaveRsvp(int invitationId, [FromBody] RsvpRequest? request)
-    {
-        if (request is null) return BadRequest(new { success = false, message = "Invalid request body" });
-
-        if (request.InvitationId != invitationId)
-        {
-            return BadRequest(new { success = false, message = "Invitation ID mismatch" });
-        }
-
-        var userId = User.GetId();
-        var result = await rsvpService.SaveRsvpAsync(request, userId);
-
-        if (!result.Success)
-        {
-            return BadRequest(result);
-        }
-
-        return Ok(result);
     }
 
     /// <summary>
@@ -132,11 +105,31 @@ public class RsvpController(
         return await SaveRsvp(invitationId, request);
     }
 
+    private async Task<IActionResult> SaveRsvp(int invitationId, [FromBody] RsvpRequest? request)
+    {
+        if (request is null) return BadRequest(new { success = false, message = "Invalid request body" });
+
+        if (request.InvitationId != invitationId)
+        {
+            return BadRequest(new { success = false, message = "Invitation ID mismatch" });
+        }
+
+        var userId = User.GetId();
+        var result = await rsvpService.SaveRsvpAsync(request, userId);
+
+        if (!result.Success)
+        {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
+    }
+
     /// <summary>
     /// Gets a specific RSVP by ID (admin-only).
     /// </summary>
-    [HttpGet("by-rsvp/{rsvpId:int}")]
-    [Authorize(Roles = Infrastructure.Constants.Roles.Admin)]
+    [HttpGet("{rsvpId:int}")]
+    [Authorize(Roles = Roles.Admin)]
     public async Task<IActionResult> GetRsvpById(int rsvpId)
     {
         var rsvp = await db.Rsvps
@@ -154,22 +147,16 @@ public class RsvpController(
                 .ThenInclude(ca => ca.Question)
             .FirstOrDefaultAsync(r => r.Id == rsvpId);
 
-        if (rsvp is null)
-        {
-            return NotFound();
-        }
-
-        return Ok(rsvp);
+        return rsvp is not null ? Ok(rsvp) : NotFound();
     }
 
     /// <summary>
     /// Gets all RSVPs for an event (admin-only).
     /// </summary>
     [HttpGet("event/{eventId:int}")]
-    [Authorize(Roles = Infrastructure.Constants.Roles.Admin)]
+    [Authorize(Roles = Roles.Admin)]
     public async Task<IActionResult> GetRsvpsForEvent(int eventId)
     {
-        // Use projection to avoid loading too much data
         var rsvps = await db.Rsvps
             .Where(r => r.EventId == eventId)
             .Select(r => new {
@@ -189,7 +176,7 @@ public class RsvpController(
                         ip.Id,
                         ip.Name,
                         ip.Email,
-                        ip.UserId
+                        UserId = ip.PrimaryGroupUserId
                     }).ToList()
                 }
             })

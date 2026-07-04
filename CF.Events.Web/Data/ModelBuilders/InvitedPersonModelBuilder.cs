@@ -9,7 +9,7 @@ namespace CF.Events.Web.Data.ModelBuilders;
 /// </summary>
 public static class InvitedPersonModelBuilder
 {
-    public static void Configure(EntityTypeBuilder<InvitedPerson> builder)
+    public static void Configure(EntityTypeBuilder<InviteGroup> builder)
     {
         builder.ToTable("InvitedPersons", "invitations");
 
@@ -18,7 +18,7 @@ public static class InvitedPersonModelBuilder
         builder.Property(ip => ip.InvitationId)
             .IsRequired();
 
-        builder.Property(ip => ip.UserId)
+        builder.Property(ip => ip.PrimaryGroupUserId)
             .HasMaxLength(450)
             .IsRequired(false);
 
@@ -29,12 +29,6 @@ public static class InvitedPersonModelBuilder
         builder.Property(ip => ip.Email)
             .HasMaxLength(255)
             .IsRequired(false);
-
-        builder.Property(ip => ip.IsPrimary)
-            .HasDefaultValue(false);
-
-        builder.Property(ip => ip.Status)
-            .HasDefaultValue(PersonInviteStatus.Pending);
 
         builder.Property(ip => ip.AssignedAccommodationCode)
             .HasMaxLength(100)
@@ -60,18 +54,15 @@ public static class InvitedPersonModelBuilder
         // Navigation: User
         builder.HasOne(ip => ip.User)
             .WithMany(u => u.InvitedPersons)
-            .HasForeignKey(ip => ip.UserId)
+            .HasForeignKey(ip => ip.PrimaryGroupUserId)
             .OnDelete(DeleteBehavior.NoAction)
             .IsRequired(false);
 
         // Navigation: LinkedPerson (self-referencing, couple pairing)
         builder.HasOne(ip => ip.LinkedPerson)
             .WithOne()
-            .HasForeignKey<InvitedPerson>(ip => ip.LinkedPersonId)
+            .HasForeignKey<InviteGroup>(ip => ip.LinkedPersonId)
             .OnDelete(DeleteBehavior.NoAction)
             .IsRequired(false);
-
-        // Navigation: RsvpPerson (1:1) - Configured in RsvpPersonModelBuilder (owns FK)
-        // Do not duplicate relationship configuration
     }
 }

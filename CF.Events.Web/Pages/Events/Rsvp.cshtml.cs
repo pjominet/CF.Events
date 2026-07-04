@@ -47,7 +47,7 @@ public class RsvpModel(EventsDbContext db, IRsvpService rsvpService) : PageModel
 
         // Find the user's invitation for this event
         var invitation = await db.InvitedPersons
-            .Where(ip => ip.Invitation.EventId == eventId && ip.UserId == userId)
+            .Where(ip => ip.Invitation.EventId == eventId && ip.PrimaryGroupUserId == userId)
             .Select(ip => new { ip.InvitationId })
             .FirstOrDefaultAsync();
 

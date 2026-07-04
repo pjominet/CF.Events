@@ -10,18 +10,15 @@ public class Event
     [StringLength(100)]
     public string Name { get; set; } = string.Empty;
 
-    public DateTime Date { get; set; }
+    public DateTime StartDate { get; set; }
 
-    public DateTime EndDate { get; set; } // For multi-day events; same as Date for single-day
+    public DateTime? EndDate { get; set; }
 
     [StringLength(500)]
     public string? Description { get; set; }
 
     [StringLength(100)]
     public string? Location { get; set; }
-
-    [StringLength(100)]
-    public string? AccommodationCode { get; set; }
 
     [StringLength(255)]
     public string? InvitationFileName { get; set; }
@@ -34,10 +31,9 @@ public class Event
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 
     // navigation properties
-    public HashSet<InviteCode> InviteCodes { get; set; } = [];
+    public HashSet<InviteToken> InviteCodes { get; set; } = [];
     public HashSet<Invitation> Invitations { get; set; } = [];
     public EventConfig? EventConfig { get; set; }
     public HashSet<EventDay> EventDays { get; set; } = [];
-    public HashSet<CustomQuestion> CustomQuestions { get; set; } = [];
     public HashSet<Rsvp> Rsvps { get; set; } = [];
 }

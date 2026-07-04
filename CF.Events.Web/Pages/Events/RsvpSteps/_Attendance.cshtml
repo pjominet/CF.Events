@@ -6,9 +6,9 @@
     var existingPeople = Model.ExistingRsvp?.People ?? [];
 }
 
-@for (var i = 0; i < Model.InvitedPersons.Count; i++)
+@for (var i = 0; i < Model.InvitedGuests.Count; i++)
 {
-    var person = Model.InvitedPersons[i];
+    var person = Model.InvitedGuests[i];
     var existing = existingPeople.FirstOrDefault(p => p.InvitedPersonId == person.Id);
     var attending = existing?.Attending ?? true;
 

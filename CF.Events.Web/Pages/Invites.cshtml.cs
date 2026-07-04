@@ -26,12 +26,12 @@ public class InvitesModel(EventsDbContext db) : PageModel
 
         // Get all invited persons for this user, then join with invitations and events
         var query = db.InvitedPersons
-            .Where(ip => ip.UserId == userId && ip.Invitation.Event.IsActive)
+            .Where(ip => ip.PrimaryGroupUserId == userId && ip.Invitation.Event.IsActive)
             .Include(ip => ip.Invitation)
                 .ThenInclude(i => i.Event)
             .Include(ip => ip.Invitation)
                 .ThenInclude(i => i.Rsvp)
-            .OrderBy(ip => ip.Invitation.Event.Date);
+            .OrderBy(ip => ip.Invitation.Event.StartDate);
 
         TotalCount = await query.CountAsync();
 

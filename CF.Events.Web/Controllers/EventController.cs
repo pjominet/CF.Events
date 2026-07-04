@@ -29,7 +29,7 @@ public class EventController(
     {
         var userId = User.GetId();
         var isInvited = await db.InvitedPersons
-            .AnyAsync(ip => ip.Invitation.EventId == eventId && ip.UserId == userId);
+            .AnyAsync(ip => ip.Invitation.EventId == eventId && ip.PrimaryGroupUserId == userId);
         if (!isInvited && !User.IsAdmin())
             return Forbid();
 
@@ -77,7 +77,7 @@ public class EventController(
         // Get users who are already invited to this event (via InvitedPersons)
         var existingUserIds = await db.InvitedPersons
             .Where(ip => ip.Invitation.EventId == eventId)
-            .Select(ip => ip.UserId)
+            .Select(ip => ip.PrimaryGroupUserId)
             .Where(userId => userId != null)
             .ToListAsync();
 
@@ -115,10 +115,10 @@ public class EventController(
         };
 
         // Add all new users as invited persons to this invitation
-        var newInvitedPersons = newUserIds.Select((userId, index) => new InvitedPerson
+        var newInvitedPersons = newUserIds.Select((userId, index) => new InviteGroup
         {
             Invitation = newInvitation,
-            UserId = userId,
+            PrimaryGroupUserId = userId,
             IsPrimary = index == 0, // First user is primary
             Status = PersonInviteStatus.Pending
         }).ToList();
@@ -161,7 +161,7 @@ public class EventController(
             .Include(ip => ip.Invitation)
                 .ThenInclude(i => i.Event)
             .Include(ip => ip.User)
-            .Where(ip => ip.Invitation.EventId == eventId && ip.UserId == userId)
+            .Where(ip => ip.Invitation.EventId == eventId && ip.PrimaryGroupUserId == userId)
             .FirstOrDefaultAsync();
 
         if (invitedPerson is null)
@@ -248,10 +248,10 @@ public class EventController(
         if (string.IsNullOrWhiteSpace(label))
         {
             var firstWord = @event.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "EVENT";
-            label = $"{firstWord.ToUpper()}{@event.Date.Year}";
+            label = $"{firstWord.ToUpper()}{@event.StartDate.Year}";
         }
 
-        var newCode = new InviteCode
+        var newCode = new InviteToken
         {
             EventId = eventId,
             Code = CodeGenerator.Generate(32),

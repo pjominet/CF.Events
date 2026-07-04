@@ -11,7 +11,7 @@ namespace CF.Events.Web.Controllers;
 [Authorize(Roles = Roles.Admin)]
 public class EventDaysController(
     EventsDbContext db,
-    ILogger<EventDaysController> logger) : Controller
+    ILogger<EventDaysController> logger) : ApiController
 {
     /// <summary>
     /// Gets all days for an event.
@@ -71,9 +71,9 @@ public class EventDaysController(
         if (ev is null)
             return NotFound("Event not found");
 
-        if (request.Date < ev.Date.Date || request.Date > ev.EndDate.Date)
+        if (request.Date < ev.StartDate.Date || request.Date > ev.EndDate.Value.Date)
         {
-            return BadRequest($"Date must be between {ev.Date:yyyy-MM-dd} and {ev.EndDate:yyyy-MM-dd}");
+            return BadRequest($"Date must be between {ev.StartDate:yyyy-MM-dd} and {ev.EndDate:yyyy-MM-dd}");
         }
 
         var exists = await db.EventDays
@@ -123,9 +123,9 @@ public class EventDaysController(
         if (day is null)
             return NotFound();
 
-        if (request.Date < ev.Date.Date || request.Date > ev.EndDate.Date)
+        if (request.Date < ev.StartDate.Date || request.Date > ev.EndDate.Date)
         {
-            return BadRequest($"Date must be between {ev.Date:yyyy-MM-dd} and {ev.EndDate:yyyy-MM-dd}");
+            return BadRequest($"Date must be between {ev.StartDate:yyyy-MM-dd} and {ev.EndDate:yyyy-MM-dd}");
         }
 
         // Check for duplicate date (excluding current day)
@@ -194,7 +194,7 @@ public class EventDaysController(
         var newDays = new List<EventDay>();
         var dayNumber = existingDates.Count + 1;
 
-        for (var date = ev.Date.Date; date <= ev.EndDate.Date; date = date.AddDays(1))
+        for (var date = ev.StartDate.Date; date <= ev.EndDate.Date; date = date.AddDays(1))
         {
             if (existingDates.Contains(date))
                 continue;

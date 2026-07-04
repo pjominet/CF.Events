@@ -12,11 +12,14 @@ public class EventConfig
     // Accommodation settings
     public bool ShowAccommodationOptions { get; set; }
 
-    [StringLength(500)]
-    public string? AccommodationLink { get; set; } // URL to external reservation pages
+    public List<string> AccommodationLinks { get; set; } = []; // URL to external reservation pages
+
+    [StringLength(100)]
+    public string? AccommodationCode { get; set; }
 
     [StringLength(1000)]
-    public string? AccommodationInfo { get; set; } // Additional text/instructions about accommodation
+    public string? AccommodationInfo { get; set; }
+
 
     // RSVP options
     public bool AllowComments { get; set; } = true;
@@ -24,4 +27,5 @@ public class EventConfig
 
     // navigation properties
     public Event? Event { get; set; }
+    public HashSet<CustomQuestion> CustomQuestions { get; set; } = [];
 }

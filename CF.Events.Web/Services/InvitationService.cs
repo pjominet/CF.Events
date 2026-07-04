@@ -17,7 +17,7 @@ public interface IInvitationService
     /// Creates an InviteEmailRequest from an invitation and its primary invited person.
     /// Generates a per-user, single-use invitation token and stores it on the InvitedPerson.
     /// </summary>
-    InviteEmailRequest CreateInviteEmailRequest(Invitation invitation, InvitedPerson primaryPerson, int tokenValidDays = 90);
+    InviteEmailRequest CreateInviteEmailRequest(Invitation invitation, InviteGroup primaryPerson, int tokenValidDays = 90);
 }
 
 public class InvitationService(
@@ -32,7 +32,7 @@ public class InvitationService(
     /// Creates an InviteEmailRequest from an invitation and its primary invited person.
     /// Generates a per-user, single-use invitation token and stores it on the InvitedPerson.
     /// </summary>
-    public InviteEmailRequest CreateInviteEmailRequest(Invitation invitation, InvitedPerson primaryPerson, int tokenValidDays = 90)
+    public InviteEmailRequest CreateInviteEmailRequest(Invitation invitation, InviteGroup primaryPerson, int tokenValidDays = 90)
     {
         var token = CodeGenerator.Generate(64);
         primaryPerson.InvitationToken = token;
@@ -42,7 +42,7 @@ public class InvitationService(
         {
             EventId = invitation.EventId,
             EventName = invitation.Event.Name,
-            UserId = primaryPerson.UserId!,
+            UserId = primaryPerson.PrimaryGroupUserId!,
             UserDisplayName = primaryPerson.User?.DisplayName ?? primaryPerson.Name,
             UserEmail = primaryPerson.User?.Email ?? primaryPerson.Email!,
             InvitationToken = token
@@ -139,7 +139,7 @@ public class InvitationService(
                 // Note: This updates all invitations for this user+event, which works for now
                 // since typically a user has one invitation per event in the new system
                 await db.Invitations
-                    .Where(i => i.EventId == request.EventId && i.InvitedPersons.Any(ip => ip.UserId == request.UserId))
+                    .Where(i => i.EventId == request.EventId && i.InvitedPersons.Any(ip => ip.PrimaryGroupUserId == request.UserId))
                     .ExecuteUpdateAsync(setters => setters.SetProperty(i => i.InviteEmailSent, true), ctx);
 
                 sentCount++;

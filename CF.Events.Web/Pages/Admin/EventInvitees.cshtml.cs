@@ -38,7 +38,7 @@ public class EventInviteesModel(
     {
         // Find the invited person and remove them from their invitation
         var invitedPerson = await db.InvitedPersons
-            .FirstOrDefaultAsync(ip => ip.Invitation.EventId == id && ip.UserId == userId);
+            .FirstOrDefaultAsync(ip => ip.Invitation.EventId == id && ip.PrimaryGroupUserId == userId);
         if (invitedPerson is null)
         {
             toastNotification.AddWarningToastMessage("Invitee not found");
@@ -91,7 +91,7 @@ public class EventInviteesModel(
                 InvitationEmailSent = ip.Invitation.InviteEmailSent,
                 ScheduledFor = ip.Invitation.ScheduledFor,
                 InvitationId = ip.InvitationId,
-                ip.UserId,
+                UserId = ip.PrimaryGroupUserId,
                 Rsvp = ip.Invitation.Rsvp
             })
             .AsSplitQuery()

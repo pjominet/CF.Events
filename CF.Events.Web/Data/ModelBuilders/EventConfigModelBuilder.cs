@@ -15,25 +15,21 @@ public static class EventConfigModelBuilder
 
         builder.HasKey(ec => ec.EventId);
 
-        builder.Property(ec => ec.EventId)
-            .ValueGeneratedNever();
+        builder.Property(ec => ec.EventId).ValueGeneratedNever();
 
-        builder.Property(ec => ec.ShowAccommodationOptions)
-            .HasDefaultValue(false);
+        builder.Property(ec => ec.ShowAccommodationOptions).HasDefaultValue(false);
 
-        builder.Property(ec => ec.AccommodationLink)
-            .HasMaxLength(500)
-            .IsRequired(false);
+        builder.Property(ec => ec.AccommodationLinks)
+            .HasMaxLength(4000)
+            .IsUnicode(false);
 
-        builder.Property(ec => ec.AccommodationInfo)
-            .HasMaxLength(1000)
-            .IsRequired(false);
+        builder.Property(ec => ec.AccommodationInfo).HasMaxLength(1000);
 
-        builder.Property(ec => ec.AllowComments)
-            .HasDefaultValue(true);
+        builder.Property(e => e.AccommodationCode).HasMaxLength(100);
 
-        builder.Property(ec => ec.AllowKids)
-            .HasDefaultValue(true);
+        builder.Property(ec => ec.AllowComments).HasDefaultValue(true);
+
+        builder.Property(ec => ec.AllowKids).HasDefaultValue(true);
 
         // Navigation: Event (1:1)
         builder.HasOne(ec => ec.Event)

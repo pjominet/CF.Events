@@ -18,17 +18,6 @@ public static class InvitationModelBuilder
         builder.Property(i => i.EventId)
             .IsRequired();
 
-        builder.Property(i => i.InviteCodeId)
-            .IsRequired(false);
-
-        builder.Property(i => i.GroupName)
-            .HasMaxLength(100)
-            .IsRequired(false);
-
-        builder.Property(i => i.Notes)
-            .HasMaxLength(500)
-            .IsRequired(false);
-
         builder.Property(i => i.Status)
             .HasDefaultValue(InvitationStatus.Pending);
 
@@ -60,15 +49,5 @@ public static class InvitationModelBuilder
             .HasForeignKey(i => i.InviteCodeId)
             .OnDelete(DeleteBehavior.NoAction)
             .IsRequired(false);
-
-        // Navigation: InvitedPersons - Configured in InvitedPersonModelBuilder (owns FK)
-        // Do not duplicate relationship configuration
-
-        // Navigation: Rsvp (1:1) - Configured in RsvpModelBuilder
-        // builder.HasOne(i => i.Rsvp)
-        //     .WithOne(r => r.Invitation)
-        //     .HasForeignKey<Rsvp>(r => r.InvitationId)
-        //     .OnDelete(DeleteBehavior.Cascade)
-        //     .IsRequired(false);
     }
 }

@@ -29,7 +29,7 @@ public class RsvpFormResponse
     public List<EventDayResponse> EventDays { get; set; } = [];
 
     // Invited persons (for pre-populating the form)
-    public List<InvitedPersonResponse> InvitedPersons { get; set; } = [];
+    public List<InvitedPersonResponse> InvitedGuests { get; set; } = [];
 
     // Custom questions
     public List<CustomQuestionResponse> CustomQuestions { get; set; } = [];

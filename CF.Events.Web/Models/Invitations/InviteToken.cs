@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CF.Events.Web.Models;
 
-public class InviteCode
+public class InviteToken
 {
     public int Id { get; init; }
 
@@ -21,5 +21,5 @@ public class InviteCode
 
     // navigation properties
     public Event Event { get; init; } = null!;
-    public HashSet<Invitation> Invitations { get; set; } = [];
+    public InviteGroup Invitations { get; set; } = [];
 }

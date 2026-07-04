@@ -9,7 +9,7 @@ namespace CF.Events.Web.Data.ModelBuilders;
 /// </summary>
 public static class InviteCodeModelBuilder
 {
-    public static void Configure(EntityTypeBuilder<InviteCode> builder)
+    public static void Configure(EntityTypeBuilder<InviteToken> builder)
     {
         builder.ToTable("InviteCodes", "invitations");
 

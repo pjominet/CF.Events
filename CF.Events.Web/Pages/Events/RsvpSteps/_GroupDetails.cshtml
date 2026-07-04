@@ -1,19 +1,16 @@
-@using CF.Events.Web.Models
 @using CF.Events.Web.Pages.Events
 @model RsvpFormResponse
 
 @{
-    var existingPeople = Model.ExistingRsvp?.People ?? [];
     var kidBracketLabels = RsvpModel.KidBracketLabels;
     var existingKids = Model.ExistingRsvp?.KidsDetails ?? new Dictionary<KidAgeBracket, int>();
 }
 
 <div id="group-details-server">
     @* Person attendance cards; dietary options are in the Food step *@
-    @for (var i = 0; i < Model.InvitedPersons.Count; i++)
+    @for (var i = 0; i < Model.InvitedGuests.Count; i++)
     {
-        var person = Model.InvitedPersons[i];
-        var existing = existingPeople.FirstOrDefault(p => p.InvitedPersonId == person.Id);
+        var person = Model.InvitedGuests[i];
         var hasLinkedPartner = person.LinkedPersonId.HasValue;
 
         <div class="person-card" data-person-idx="@i" data-invited-person-id="@person.Id"
