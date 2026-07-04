@@ -6,7 +6,8 @@ public class DictionaryComparer<TKey, TValue>() : ValueComparer<Dictionary<TKey,
     (a, b) => Compare(a, b),
     v => ComputeHashCode(v),
     v => CreateSnapshot(v) ?? new Dictionary<TKey, TValue>())
-    where TKey : struct, Enum
+    where TKey : struct
+    where TValue: struct
 {
     private static bool Compare(Dictionary<TKey, TValue>? a, Dictionary<TKey, TValue>? b)
     {

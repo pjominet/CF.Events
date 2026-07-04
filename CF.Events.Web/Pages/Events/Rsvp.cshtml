@@ -10,7 +10,7 @@
         <p class="text-center mb-4">Will you be joining us?</p>
         <form method="post" id="rsvpForm" class="d-flex flex-column gap-3">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="d-flex justify-content-center gap-4 my-2">
+            <section class="d-flex justify-content-center gap-4 my-2">
                 <div class="form-check">
                     <input class="form-check-input" type="radio" asp-for="Input.Attending" value="true" id="accept"/>
                     <label class="form-check-label" for="accept">Happily Accept</label>
@@ -19,49 +19,75 @@
                     <input class="form-check-input" type="radio" asp-for="Input.Attending" value="false" id="decline"/>
                     <label class="form-check-label" for="decline">Regretfully Decline</label>
                 </div>
-            </div>
+            </section>
 
-            <div id="additionalOptions" class="d-flex flex-column gap-3 mt-2" style="display:@(Model.Input.Attending ? "block" : "none")">
-                <div class="row g-3 justify-content-center">
-                    <div class="col-auto">
-                        @for (var day = 1; day <= Model.EventData.EventDuration; day++)
-                        {
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" asp-for="Input.SelectedDays" id="day-@(day)" value="@day"/>
-                                <label class="form-check-label" for="day-@(day)">Attending Day @day</label>
+            <hr/>
+
+            <div id="additionalOptions" style="display:@(Model.Input.Attending ? "block" : "none")">
+                <div class="d-flex flex-column gap-3 mt-2">
+                    <label class="form-label serif">Attendance</label>
+                    <section class="row g-3">
+                        <div class="col-12">
+                            @for (var day = 1; day <= Model.EventData.EventDuration; day++)
+                            {
+                                <div class="d-flex flex-column align-items-start justify-content-center">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="Input.AttendanceDays" id="day-@(day)" value="@day"
+                                               @(Model.Input.AttendanceDays.Contains(day) ? "checked" : string.Empty)/>
+                                        <label class="form-check-label" for="day-@(day)">Attending Day @day</label>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </section>
+
+                    <section>
+                        @{
+                            var hasAccommodation = !string.IsNullOrEmpty(Model.AssignedAccommodationCode);
+                            <div class="d-flex align-items-center gap-2">
+                                <label class="form-check-label text-nowrap" for="nights">Reserve a room for</label>
+                                <div class="input-group">
+                                    <input class="form-control" type="number" min="1" max="@(Model.EventData.EventDuration + 2)" step="1"
+                                           asp-for="Input.AccommodationNights" id="nights" style="max-width: 5rem"/>
+                                    <div class="input-group-text">nights</div>
+                                </div>
                             </div>
                         }
-                    </div>
+                        @if (hasAccommodation)
+                        {
+                            <div class="alert alert-info py-2 mb-0" id="accommodationCodeAlert">
+                                <small><i class="bi bi-info-circle me-1"></i>Accommodation Code: <strong>@Model.AssignedAccommodationCode</strong></small>
+                            </div>
+                            <div class="text-muted">Use this code when making a reservation to verify your eligibility for a discounted room</div>
+                        }
+                    </section>
+
+                    <hr/>
+
+                    <section>
+                        <div class="mt-2">
+                            <label class="form-label serif">Dietary Requirements</label>
+                            <select asp-for="Input.CommonDietaryOptions" class="form-select tom-select" id="dietaryOptions" multiple placeholder="Select dietary options...">
+                                @foreach (var option in Enum.GetValues<DietaryOptions>())
+                                {
+                                    <option value="@option">@option</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="mt-2">
+                            <textarea asp-for="Input.OtherDietaryDetails" class="form-control" maxlength="500" placeholder="Other dietary details or allergies..." rows="2"></textarea>
+                        </div>
+                    </section>
+
+                    <section>
+                        <textarea asp-for="Input.Comments" class="form-control" maxlength="500" placeholder="Add a comment... (optional)" rows="3"></textarea>
+                    </section>
                 </div>
 
-                <div id="dietarySection">
-                    <div class="mt-2">
-                        <label class="form-label serif">Dietary Requirements</label>
-                        <select asp-for="Input.CommonDietaryOptions" class="form-select tom-select" id="dietaryOptions" multiple placeholder="Select dietary options...">
-                            @foreach (var option in Enum.GetValues<DietaryOptions>())
-                            {
-                                <option value="@option">@option</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="mt-2">
-                        <textarea asp-for="Input.OtherDietaryDetails" class="form-control" maxlength="500" placeholder="Other dietary details or allergies..." rows="2"></textarea>
-                    </div>
-                </div>
-                @if (!string.IsNullOrEmpty(Model.AssignedAccommodationCode))
-                {
-                    <div class="alert alert-info py-2 mb-0" id="accommodationCodeAlert">
-                        <small><i class="bi bi-info-circle me-1"></i>Accommodation Code: <strong>@Model.AssignedAccommodationCode</strong></small>
-                    </div>
-                }
-                <div>
-                    <textarea asp-for="Input.Comments" class="form-control" maxlength="500" placeholder="Add a comment... (optional)" rows="3"></textarea>
-                </div>
+                <p class="d-flex justify-content-center my-2 text-muted text-center" style="font-size: 0.8rem;">
+                    Information will be stored confidentially and is only visible to the event organizers.
+                </p>
             </div>
-
-            <p class="d-flex justify-content-center my-2 text-muted text-center" style="font-size: 0.8rem;">
-                Information will be stored confidentially and is only visible to the event organizers.
-            </p>
 
             <div class="d-flex justify-content-center gap-2">
                 <button class="btn btn-primary flex-grow-1" type="submit">

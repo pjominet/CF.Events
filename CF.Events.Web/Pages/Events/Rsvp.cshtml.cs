@@ -32,20 +32,11 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
         }
 
         var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
-        if (rsvp is null)
-        {
-            toastNotification.AddWarningToastMessage("You are not invited to this event");
-            return Redirect("/");
-        }
 
         EventData = await db.Events.FirstAsync(e => e.Id == eventId);
 
         AssignedAccommodationCode = userEvent?.AssignedAccommodationCode;
-        HasResponded = rsvp.SubmittedAt > DateTime.MinValue.AddDays(1);
-        Input.Attending = rsvp.Attending;
-        Input.CommonDietaryOptions = rsvp.CommonDietaryOptions;
-        Input.OtherDietaryDetails = rsvp.OtherDietaryDetails;
-        Input.Comments = rsvp.Comments;
+        HasResponded = rsvp?.SubmittedAt > DateTime.MinValue.AddDays(1);
 
         return Page();
     }
@@ -80,7 +71,8 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
     {
         public bool Attending { get; set; } = true;
         public int? AccommodationDuration { get; set; }
-        public List<int> SelectedDays { get; set; } = [];
+        public List<int> AttendanceDays { get; set; } = [];
+        public int? AccommodationNights { get; set; } = 1;
 
         public DietaryOptions[]? CommonDietaryOptions { get; set; }
         public string? OtherDietaryDetails { get; set; }

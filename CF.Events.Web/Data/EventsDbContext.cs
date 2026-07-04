@@ -41,7 +41,7 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
             e.HasKey(r => new { r.EventId, r.UserId });
 
             e.Property(r => r.CommonDietaryOptions)
-                .HasConversion(new ArrayConverter<DietaryOptions>()!, new EnumArrayComparer<DietaryOptions>())
+                .HasConversion(new ArrayConverter<DietaryOptions>()!, new ArrayComparer<DietaryOptions>())
                 .HasMaxLength(4000)
                 .IsRequired(false);
 

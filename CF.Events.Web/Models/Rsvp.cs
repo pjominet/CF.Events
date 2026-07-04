@@ -13,8 +13,11 @@ public class Rsvp
 
     public bool Attending { get; set; } = true;
     public DietaryOptions[]? CommonDietaryOptions { get; set; }
+
     [StringLength(500)]
     public string? OtherDietaryDetails { get; set; }
+
+    public int AccommodationNights { get; set; } = 1;
 
     [StringLength(500)]
     public string? Comments { get; set; }

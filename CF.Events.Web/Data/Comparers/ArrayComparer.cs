@@ -2,11 +2,11 @@
 
 namespace CF.Events.Web.Data.Comparers;
 
-public class EnumArrayComparer<TEnum>() : ValueComparer<TEnum[]>(
+public class ArrayComparer<TEnum>() : ValueComparer<TEnum[]>(
     (a, b) => Compare(a, b),
     v => ComputeHashCode(v),
     v => CreateSnapshot(v) ?? Array.Empty<TEnum>())
-    where TEnum : struct, Enum
+    where TEnum : struct
 {
     private static bool Compare(TEnum[]? a, TEnum[]? b)
     {

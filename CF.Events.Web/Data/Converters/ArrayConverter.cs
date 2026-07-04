@@ -7,4 +7,4 @@ public class ArrayConverter<T>() : ValueConverter<T[], string>(
     v => v.Split('/', StringSplitOptions.RemoveEmptyEntries)
         .Select(Enum.Parse<T>)
         .ToArray())
-    where T : struct, Enum;
+    where T : struct;
