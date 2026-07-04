@@ -76,6 +76,22 @@
         });
     }
 
+    function initTagSelects() {
+        document.querySelectorAll("input.tag-select").forEach(function (el) {
+            if (el.disabled) return;
+
+            new TomSelect(el, {
+                create: true,
+                persist: false,
+                hidePlaceholder: true,
+                allowEmptyOption: false,
+                plugins: ['restore_on_backspace'],
+                delimiter: ',',
+                placeholder: el.getAttribute("data-placeholder") || "Add tag...",
+            });
+        });
+    }
+
     // Copy-to-clipboard handler
     window.copyToClipboardAndShowFeedback = function (elementId, button, duration = 750) {
         const source = document.getElementById(elementId);
@@ -129,6 +145,7 @@
         initAutoShowModals();
         initConfirms();
         initMultiSelects();
+        initTagSelects();
         setTimeout(hideLoadingOverlay, 100);
     });
 })();

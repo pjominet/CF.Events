@@ -86,7 +86,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
 
             // Seed roles
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-            var roles = new[] { Roles.Admin, Roles.User };
+            var roles = new[] { Roles.Admin, Roles.User, Roles.Guest };
 
             Log.Information("Seeding roles...");
             foreach (var role in roles)

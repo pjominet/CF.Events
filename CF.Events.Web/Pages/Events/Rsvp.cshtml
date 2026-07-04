@@ -23,121 +23,40 @@
 
             <div id="additionalOptions" class="d-flex flex-column gap-3 mt-2" style="display:@(Model.Input.Attending ? "block" : "none")">
                 <div class="row g-3 justify-content-center">
-                    @if (Model.EventConfig.AllowPartners)
-                    {
-                        <div class="col-auto">
+                    <div class="col-auto">
+                        @for (var day = 1; day <= Model.EventData.EventDuration; day++)
+                        {
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" asp-for="Input.BringsPlusOne" id="plusOne"/>
-                                <label class="form-check-label" for="plusOne">Bringing a +1?</label>
+                                <input class="form-check-input" type="checkbox" asp-for="Input.SelectedDays" id="day-@(day)" value="@day"/>
+                                <label class="form-check-label" for="day-@(day)">Attending Day @day</label>
                             </div>
-                        </div>
-                    }
-                    @if (Model.EventConfig.AllowKids)
-                    {
-                        <div class="col-auto">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" asp-for="Input.BringsKids" id="kids"/>
-                                <label class="form-check-label" for="kids">Bringing kids?</label>
-                            </div>
-                        </div>
-                    }
+                        }
+                    </div>
                 </div>
 
-                @if (Model.EventConfig.AllowKids)
-                {
-                    <div id="kidsDetailsSection" style="display: @(Model.Input.BringsKids ? "block" : "none")">
-                        <h6 class="serif mb-2">Kids Details</h6>
-                        <div id="kidsRowsContainer" class="d-flex flex-column gap-2 mb-3">
-                            @foreach (var bracket in Enum.GetValues<KidAgeBracket>())
+                <div id="dietarySection">
+                    <div class="mt-2">
+                        <label class="form-label serif">Dietary Requirements</label>
+                        <select asp-for="Input.CommonDietaryOptions" class="form-select tom-select" id="dietaryOptions" multiple placeholder="Select dietary options...">
+                            @foreach (var option in Enum.GetValues<DietaryOptions>())
                             {
-                                var count = Model.Input.KidsDetails.TryGetValue(bracket, out var c) ? c : 0;
-                                <div class="row align-items-center kids-row @(count > 0 ? "" : "d-none")" data-bracket="@bracket">
-                                    <div class="col-7">
-                                        <span class="text-capitalize">@bracket.ToString().Replace("To", " to ").Replace("Or", " or ")</span>
-                                    </div>
-                                    <div class="col-5">
-                                        <input type="number" name="Input.KidsDetails[@bracket]" value="@count" class="form-control form-control-sm kid-count-input" min="0"/>
-                                    </div>
-                                </div>
+                                <option value="@option">@option</option>
                             }
-                        </div>
-                        <div class="row g-2">
-                            <div class="col-8">
-                                <select id="kidAgeBracketSelect" class="form-select form-select-sm">
-                                    <option value="">Add age bracket...</option>
-                                    @foreach (var bracket in Enum.GetValues<KidAgeBracket>())
-                                    {
-                                        <option value="@bracket">@bracket.ToString().Replace("To", " to ").Replace("Or", " or ")</option>
-                                    }
-                                </select>
-                            </div>
-                            <div class="col-4">
-                                <button type="button" id="addKidBracketBtn" class="btn btn-outline-primary btn-sm w-100">Add</button>
-                            </div>
-                        </div>
+                        </select>
                     </div>
-                }
-
-                @if (Model.EventConfig.ShowFoodOptions)
+                    <div class="mt-2">
+                        <textarea asp-for="Input.OtherDietaryDetails" class="form-control" maxlength="500" placeholder="Other dietary details or allergies..." rows="2"></textarea>
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.AssignedAccommodationCode))
                 {
-                    <div class="row g-3 justify-content-center">
-                        <div class="col-auto">
-                            @for (var day = 1; day <= Model.EventData.EventDuration; day++)
-                            {
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" asp-for="Input.SelectedDays" id="day-@(day)" value="@day"/>
-                                    <label class="form-check-label" for="day-@(day)">Attending Day @day</label>
-                                </div>
-                            }
-                        </div>
-                    </div>
-
-                    <div id="dietarySection">
-                        <div class="mt-2">
-                            <label class="form-label serif">Dietary Requirements</label>
-                            <select asp-for="Input.CommonDietaryOptions" class="form-select tom-select" id="dietaryOptions" multiple placeholder="Select dietary options...">
-                                @foreach (var option in Enum.GetValues<DietaryOptions>())
-                                {
-                                    <option value="@option">@option</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="mt-2">
-                            <textarea asp-for="Input.OtherDietaryDetails" class="form-control" maxlength="500" placeholder="Other dietary details or allergies..." rows="2"></textarea>
-                        </div>
+                    <div class="alert alert-info py-2 mb-0" id="accommodationCodeAlert">
+                        <small><i class="bi bi-info-circle me-1"></i>Accommodation Code: <strong>@Model.AssignedAccommodationCode</strong></small>
                     </div>
                 }
-
-                @if (Model.EventConfig.ShowAccommodationOptions)
-                {
-                    <div class="row g-3 align-items-center">
-                        <div class="col-auto">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" asp-for="Input.NeedsAccommodation" id="accommodation"/>
-                                <label class="form-check-label" for="accommodation">Need Accommodation?</label>
-                            </div>
-                        </div>
-                        <div class="col" id="accommodationDurationWrapper" style="display: @(Model.Input.NeedsAccommodation ? "block" : "none")">
-                            <div class="input-group input-group-sm">
-                                <input asp-for="Input.AccommodationDuration" type="number" class="form-control" min="1" placeholder="Duration"/>
-                                <span class="input-group-text">days</span>
-                            </div>
-                        </div>
-                    </div>
-                    if (!string.IsNullOrEmpty(Model.AssignedAccommodationCode))
-                    {
-                        <div class="alert alert-info py-2 mb-0" id="accommodationCodeAlert" style="display: @(Model.Input.NeedsAccommodation ? "block" : "none")">
-                            <small><i class="bi bi-info-circle me-1"></i>Accommodation Code: <strong>@Model.EventData.AccommodationCode</strong></small>
-                        </div>
-                    }
-                }
-
-                @if (Model.EventConfig.AllowComments)
-                {
-                    <div>
-                        <textarea asp-for="Input.Comments" class="form-control" maxlength="500" placeholder="Add a comment... (optional)" rows="3"></textarea>
-                    </div>
-                }
+                <div>
+                    <textarea asp-for="Input.Comments" class="form-control" maxlength="500" placeholder="Add a comment... (optional)" rows="3"></textarea>
+                </div>
             </div>
 
             <p class="d-flex justify-content-center my-2 text-muted text-center" style="font-size: 0.8rem;">

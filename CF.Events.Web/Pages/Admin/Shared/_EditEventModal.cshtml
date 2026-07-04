@@ -45,40 +45,9 @@
                             <input asp-for="Location" class="form-control" placeholder="Grand Hall" />
                             <span asp-validation-for="Location" class="text-danger"></span>
                         </div>
-                        <div class="col-12 col-md-6" id="accommodationCodeWrapper" style="display: @(Model.ShowAccommodationOptions ? "block" : "none")">
-                            <label class="form-label fw-bold">Accommodation Code</label>
-                            <input asp-for="AccommodationCode" class="form-control" placeholder="WEDDING2026" />
-                            <span asp-validation-for="AccommodationCode" class="text-danger"></span>
-                            <div class="form-text">This code will be shown to guests if accommodations are enabled.</div>
-                        </div>
-                    </div>
-
-                    <hr />
-                    <h6 class="fw-bold mb-3">Event Configuration</h6>
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" asp-for="ShowFoodOptions" />
-                                <label class="form-check-label" asp-for="ShowFoodOptions">Offer Dinner</label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" asp-for="ShowAccommodationOptions" />
-                                <label class="form-check-label" asp-for="ShowAccommodationOptions">Accommodation</label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" asp-for="AllowComments" />
-                                <label class="form-check-label" asp-for="AllowComments">Allow Comments</label>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" asp-for="AllowPartners" />
-                                <label class="form-check-label" asp-for="AllowPartners">Allow +1s</label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" asp-for="AllowKids" />
-                                <label class="form-check-label" asp-for="AllowKids">Allow Kids</label>
-                            </div>
+                        <div class="col-12 col-md-6" id="accommodationCodeWrapper">
+                            <label class="form-label fw-bold">Accommodation Codes</label>
+                            <input name="AccommodationCodes" value="" class="form-control tag-select" autocomplete="off" placeholder="Add codes..."/>
                         </div>
                     </div>
                 </div>

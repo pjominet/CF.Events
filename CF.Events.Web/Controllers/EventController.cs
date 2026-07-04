@@ -90,20 +90,24 @@ public class EventController(
             return LocalRedirect($"/admin/events/{eventId}/invitees");
         }
 
-        string? accommodationCode = null;
-        if (inviteRequest.AllowUseOfAccommodationCode)
+        if (inviteRequest.AllowAccommodationCode)
         {
-            accommodationCode = await db.Events
+            var isValidCode = await db.Events
                 .Where(e => e.Id == eventId)
-                .Select(e => e.AccommodationCode)
-                .FirstOrDefaultAsync();
+                .AnyAsync(e => e.AccommodationCodes.Any(c => c == inviteRequest.SelectedAccommodationCode));
+
+            if (!isValidCode)
+            {
+                toastNotification.AddWarningToastMessage("Selected accommodation code does not exist or is invalid");
+                return LocalRedirect($"/admin/events/{eventId}/invitees");
+            }
         }
 
         var newEventUsers = newUserIds.Select(userId => new EventUser
         {
             EventId = eventId,
             UserId = userId,
-            AssignedAccommodationCode = accommodationCode,
+            AssignedAccommodationCode = inviteRequest.AllowAccommodationCode ? inviteRequest.SelectedAccommodationCode : null,
             ScheduledFor = inviteRequest.ScheduledFor,
             InviteEmailSent = false,
             InviteCodeId = inviteRequest.InviteCodeId

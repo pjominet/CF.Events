@@ -19,8 +19,7 @@ public class Event
     [StringLength(100)]
     public string? Location { get; set; }
 
-    [StringLength(100)]
-    public string? AccommodationCode { get; set; }
+    public List<string> AccommodationCodes { get; set; } = [];
 
     [StringLength(255)]
     public string? InvitationFileName { get; set; }
@@ -35,7 +34,6 @@ public class Event
     // navigation properties
     public HashSet<EventUser> EventUsers { get; set; } = [];
     public HashSet<InviteCode> InviteCodes { get; set; } = [];
-    public EventConfig? EventConfig { get; set; }
 
     // helper
     public int EventDuration => EndDate.HasValue ? (int)Math.Round((EndDate.Value - StartDate).TotalDays) : 1;

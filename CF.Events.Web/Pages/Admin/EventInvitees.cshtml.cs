@@ -1,6 +1,7 @@
 ﻿using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Models;
+using CF.Events.Web.Models.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -17,10 +18,8 @@ public class EventInviteesModel(
 {
     public Event? EventData { get; private set; }
     public List<SelectListItem> CurrentInviteCodes { get; private set; } = [];
-    public int InviteCodeId { get; set; }
-    public bool SendEmailsOnInvite { get; set; } = true;
-    public DateTime? ScheduledFor { get; set; }
-    public bool AllowUseOfAccommodationCode { get; set; }
+
+    public UsersInviteRequest NewInvite { get; set; } = new();
 
     public List<InviteeRow> Invitees { get; private set; } = [];
 
@@ -65,7 +64,7 @@ public class EventInviteesModel(
             {
                 var validDays = (int)Math.Round((ic.ValidUntil - DateTime.UtcNow).TotalDays);
                 var label = string.IsNullOrWhiteSpace(ic.Label) ? ic.Code : ic.Label;
-                return new SelectListItem($"{label} (valid {validDays} days)", ic.Id.ToString(), ic.Id == InviteCodeId);
+                return new SelectListItem($"{label} (valid {validDays} days)", ic.Id.ToString(), ic.Id == NewInvite.InviteCodeId);
             })
             .ToList();
 

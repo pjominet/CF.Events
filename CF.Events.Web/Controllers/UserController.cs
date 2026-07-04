@@ -81,7 +81,7 @@ public class UserController(
                 continue;
             }
 
-            await userManager.AddToRoleAsync(user, Roles.User);
+            await userManager.AddToRoleAsync(user, Roles.Guest);
         }
 
         if (importErrors.Count == 0)

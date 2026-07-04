@@ -1,5 +1,4 @@
 ﻿@page "/admin/events"
-@using System.Text.Json
 @model CF.Events.Web.Pages.Admin.EventsModel
 @{
     ViewData["Title"] = "Manage Events";
@@ -32,7 +31,6 @@
                         <th>Name</th>
                         <th>Date</th>
                         <th>Design</th>
-                        <th>Accommodation Code</th>
                         <th>Invitees</th>
                         <th>Active</th>
                         <th>Actions</th>
@@ -48,16 +46,6 @@
                                 @if (!string.IsNullOrEmpty(eventData.InvitationFileName))
                                 {
                                     <span class="badge bg-primary">@(eventData.OriginalInvitationFileName ?? "Custom image")</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary">None</span>
-                                }
-                            </td>
-                            <td>
-                                @if (!string.IsNullOrEmpty(eventData.AccommodationCode))
-                                {
-                                    <span class="badge bg-primary">@(eventData.AccommodationCode)</span>
                                 }
                                 else
                                 {

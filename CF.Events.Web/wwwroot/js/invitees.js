@@ -15,6 +15,16 @@
     sendNowOption.addEventListener('change', updateScheduleInput);
     scheduleOption.addEventListener('change', updateScheduleInput);
 
+    const accommodationToggle = document.querySelector('[name="NewInvite.AllowAccommodationCode"]');
+    if (accommodationToggle) {
+        accommodationToggle.addEventListener('change', function() {
+            const select = document.getElementById('NewInvite.SelectedAccommodationCode');
+            if (!!select) {
+                select.disabled = this.checked ? 'disabled' : '';
+            }
+        });
+    }
+
     // Initialize on page load
     updateScheduleInput();
 })();

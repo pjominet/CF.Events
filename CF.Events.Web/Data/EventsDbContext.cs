@@ -13,7 +13,6 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
     public DbSet<InviteCode> InviteCodes => Set<InviteCode>();
     public DbSet<EventUser> EventUsers => Set<EventUser>();
     public DbSet<Rsvp> Rsvps => Set<Rsvp>();
-    public DbSet<EventConfig> EventConfigs => Set<EventConfig>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -37,28 +36,13 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
         builder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims", "identity");
         builder.Entity<IdentityUserToken<string>>().ToTable("UserTokens", "identity");
 
-        builder.Entity<EventConfig>(e =>
-        {
-            e.HasKey(r => r.EventId);
-
-            e.HasOne(r => r.Event)
-                .WithOne(r => r.EventConfig)
-                .HasForeignKey<EventConfig>(r => r.EventId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .IsRequired(false);
-        });
-
         builder.Entity<Rsvp>(e =>
         {
             e.HasKey(r => new { r.EventId, r.UserId });
 
             e.Property(r => r.CommonDietaryOptions)
-                .HasConversion(new EnumArrayConverter<DietaryOptions>()!, new EnumArrayComparer<DietaryOptions>())
+                .HasConversion(new ArrayConverter<DietaryOptions>()!, new EnumArrayComparer<DietaryOptions>())
                 .HasMaxLength(4000)
-                .IsRequired(false);
-
-            e.Property(r => r.KidsDetails)
-                .HasConversion(new DictionaryConverter<KidAgeBracket, int>()!, new DictionaryComparer<KidAgeBracket, int>())
                 .IsRequired(false);
 
             e.HasOne(r => r.EventUser)

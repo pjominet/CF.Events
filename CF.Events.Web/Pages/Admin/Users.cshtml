@@ -53,7 +53,14 @@
                                 <div class="d-flex justify-content-start align-items-center gap-1">
                                     @foreach (var role in user.Roles)
                                     {
-                                        <span class="badge bg-info me-1">@role</span>
+                                        var badgeColor = role switch
+                                        {
+                                            Roles.Admin => "bg-danger",
+                                            Roles.User => "bg-secondary",
+                                            Roles.Guest => "bg-info",
+                                            _ => "bg-primary"
+                                        };
+                                        <span class="badge @badgeColor me-1">@role</span>
                                     }
                                 </div>
                             </td>
@@ -71,7 +78,7 @@
                             </td>
                             <td>
                                 <div class="d-flex justify-content-start align-items-center gap-2">
-                                    @if (User.IsAdmin() && User.GetId() != user.Id)
+                                    @if (User.IsAdmin() && User.GetId() != user.Id && !user.Roles.Contains(Roles.Guest))
                                     {
                                         if (!user.Roles.Contains(Roles.Admin))
                                         {
