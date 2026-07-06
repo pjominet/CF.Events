@@ -23,11 +23,11 @@
                     <p class="text-center mb-4 lead cursive fs-1">Will you be joining us?</p>
                     <section class="d-flex justify-content-center gap-4 my-2">
                         <div class="form-check custom-radio">
-                            <input class="form-check-input" type="radio" asp-for="Input.Attending" value="true" id="accept"/>
+                            <input class="form-check-input" type="radio" asp-for="NewRsvp.Attending" value="true" id="accept"/>
                             <label class="form-check-label" for="accept">Happily Accept</label>
                         </div>
                         <div class="form-check custom-radio">
-                            <input class="form-check-input" type="radio" asp-for="Input.Attending" value="false" id="decline"/>
+                            <input class="form-check-input" type="radio" asp-for="NewRsvp.Attending" value="false" id="decline"/>
                             <label class="form-check-label" for="decline">Regretfully Decline</label>
                         </div>
                     </section>
@@ -43,7 +43,7 @@
                                 {
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" name="Input.AttendanceDays" id="day-@(day)" value="@day"
-                                               @(Model.Input.AttendanceDays.Contains(day) ? "checked" : string.Empty)/>
+                                               @(Model.NewRsvp.AttendanceDays.Contains(day) ? "checked" : string.Empty)/>
                                         <label class="form-check-label" for="day-@(day)">Attending Day @day</label>
                                     </div>
                                 }
@@ -53,18 +53,43 @@
                         <hr/>
 
                         <section>
-                            @{
-                                var hasAccommodation = !string.IsNullOrEmpty(Model.AssignedAccommodationCode);
-                                <div class="d-flex align-items-center gap-2">
-                                    <label class="form-check-label text-nowrap" for="nights">Reserve a room for</label>
-                                    <div class="input-group">
-                                        <input class="form-control" type="number" min="1" max="@(Model.EventData.EventDuration + 2)" step="1"
-                                               asp-for="Input.AccommodationNights" id="nights" style="max-width: 5rem"/>
-                                        <div class="input-group-text">nights</div>
-                                    </div>
-                                </div>
-                            }
-                            @if (hasAccommodation)
+                            <div class="d-flex align-items-center gap-2">
+                                <p class="mb-0">
+                                    @Html.Raw(Model.EventData.AccommodationDetails)
+                                </p>
+
+                                @if (Model.EventData.BookingLinks.Any())
+                                {
+                                    <ul class="list-unstyled">
+                                        @foreach (var link in Model.EventData.BookingLinks)
+                                        {
+                                            <li>
+                                                @switch (link.Type)
+                                                {
+                                                    case LinkType.Email:
+                                                        <a href="mailto:@link" class="btn btn-sm btn-primary mb-1">
+                                                            <i class="bi bi-envelope"></i> @link
+                                                        </a>
+                                                        break;
+                                                    case LinkType.Phone:
+                                                        <a href="tel:@link" class="btn btn-sm btn-primary mb-1">
+                                                            <i class="bi bi-telephone"></i> @link
+                                                        </a>
+                                                        break;
+                                                    case LinkType.Web:
+                                                        <a href="@link" target="_blank" rel="noopener" class="btn btn-sm btn-primary mb-1">
+                                                            <i class="bi bi-box-arrow-up-right"></i> @link
+                                                        </a>
+                                                        break;
+                                                    default:
+                                                        throw new ArgumentOutOfRangeException();
+                                                }
+                                            </li>
+                                        }
+                                    </ul>
+                                }
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.AssignedAccommodationCode))
                             {
                                 <div class="alert alert-info py-2 mt-3 mb-0" id="accommodationCodeAlert">
                                     <small><i class="bi bi-info-circle me-1"></i>Code: <strong>@Model.AssignedAccommodationCode</strong></small>
@@ -79,7 +104,7 @@
                     <section>
                         <div class="mt-2">
                             <label class="form-label serif h5">Dietary Requirements</label>
-                            <select asp-for="Input.CommonDietaryOptions" class="form-select tom-select" id="dietaryOptions" multiple placeholder="Select dietary options...">
+                            <select asp-for="NewRsvp.CommonDietaryOptions" class="form-select tom-select" id="dietaryOptions" multiple placeholder="Select dietary options...">
                                 @foreach (var option in Enum.GetValues<DietaryOptions>())
                                 {
                                     <option value="@option">@option</option>
@@ -87,13 +112,13 @@
                             </select>
                         </div>
                         <div class="mt-3">
-                            <textarea asp-for="Input.OtherDietaryDetails" class="form-control" maxlength="500" placeholder="Other dietary details or allergies..." rows="2"></textarea>
+                            <textarea asp-for="NewRsvp.OtherDietaryDetails" class="form-control" maxlength="500" placeholder="Other dietary details or allergies..." rows="2"></textarea>
                         </div>
                     </section>
 
                     <section class="mt-4">
                         <label class="form-label serif h5">Comments</label>
-                        <textarea asp-for="Input.Comments" class="form-control" maxlength="500" placeholder="Add a comment... (optional)" rows="3"></textarea>
+                        <textarea asp-for="NewRsvp.Comments" class="form-control" maxlength="500" placeholder="Add a comment... (optional)" rows="3"></textarea>
                     </section>
                 </div>
             </div>
@@ -128,22 +153,26 @@
         text-align: center;
         transition: all 0.3s ease;
     }
+
     .step-indicator.active {
         opacity: 1;
         border-bottom: 3px solid var(--bs-primary);
         color: var(--bs-primary);
     }
+
     .step-content-wrapper {
         min-height: 250px;
         display: flex;
         flex-direction: column;
         justify-content: center;
     }
+
     .custom-radio .form-check-input {
         width: 1.25em;
         height: 1.25em;
         margin-top: 0.125em;
     }
+
     .btn {
         padding: 0.6rem 1rem;
         font-weight: 500;

@@ -21,5 +21,5 @@ public class InviteCode
 
     // navigation properties
     public Event Event { get; init; } = null!;
-    public HashSet<EventUser> EventUsers { get; set; } = [];
+    public List<EventUser> EventUsers { get; set; } = [];
 }

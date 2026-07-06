@@ -41,7 +41,13 @@
                     {
                         <tr>
                             <td class="fw-bold">@eventData.Name</td>
-                            <td>@eventData.StartDate.ToShortDateString()</td>
+                            <td>
+                                @eventData.StartDate.ToShortDateString()
+                                @if (eventData.EndDate != eventData.StartDate)
+                                {
+                                    <text> - @eventData.EndDate.ToShortDateString()</text>
+                                }
+                            </td>
                             <td>
                                 @if (!string.IsNullOrEmpty(eventData.InvitationFileName))
                                 {
@@ -68,7 +74,7 @@
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-warning btn-sm" title="Edit Event"
                                             data-bs-toggle="modal" data-bs-target="#editEventModal"
-                                            data-bs-event="@Model.GetSerializedEvent(eventData)">
+                                            data-bs-event="@Model.GetEventAsJson(eventData)">
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                     <a href="/events/@eventData.Id/invitation" class="btn btn-info btn-sm" title="Preview Invitation" data-bs-toggle="tooltip">

@@ -18,7 +18,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
     public string? AssignedAccommodationCode { get; private set; }
 
     [BindProperty]
-    public InputModel Input { get; set; } = new();
+    public InputModel NewRsvp { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync(int eventId)
     {
@@ -52,13 +52,14 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
             return Redirect("/");
         }
 
-        rsvp.Attending = Input.Attending;
+        rsvp.Attending = NewRsvp.Attending;
         rsvp.SubmittedAt = DateTime.UtcNow;
-        if (Input.Attending)
+        if (NewRsvp.Attending)
         {
-            rsvp.CommonDietaryOptions = Input.CommonDietaryOptions;
-            rsvp.OtherDietaryDetails = Input.OtherDietaryDetails;
-            rsvp.Comments = Input.Comments;
+            rsvp.AttendanceDays = NewRsvp.AttendanceDays;
+            rsvp.CommonDietaryOptions = NewRsvp.CommonDietaryOptions;
+            rsvp.OtherDietaryDetails = NewRsvp.OtherDietaryDetails;
+            rsvp.Comments = NewRsvp.Comments;
         }
 
         await db.SaveChangesAsync();
@@ -70,9 +71,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
     public sealed class InputModel
     {
         public bool Attending { get; set; } = true;
-        public int? AccommodationDuration { get; set; }
         public List<int> AttendanceDays { get; set; } = [];
-        public int? AccommodationNights { get; set; } = 1;
 
         public DietaryOptions[]? CommonDietaryOptions { get; set; }
         public string? OtherDietaryDetails { get; set; }

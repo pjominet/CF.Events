@@ -13,6 +13,7 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
     public DbSet<InviteCode> InviteCodes => Set<InviteCode>();
     public DbSet<EventUser> EventUsers => Set<EventUser>();
     public DbSet<Rsvp> Rsvps => Set<Rsvp>();
+    public DbSet<BookingLink> BookingLinks => Set<BookingLink>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -86,6 +87,14 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
                 .HasForeignKey(r => r.EventId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
+        });
+
+        builder.Entity<BookingLink>(e =>
+        {
+            e.HasOne(r => r.Event)
+                .WithMany(r => r.BookingLinks)
+                .HasForeignKey(r => r.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

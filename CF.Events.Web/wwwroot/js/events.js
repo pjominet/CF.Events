@@ -1,4 +1,4 @@
-﻿(function() {
+﻿(function () {
     const editEventModal = document.getElementById('editEventModal');
     if (editEventModal) {
         editEventModal.addEventListener('show.bs.modal', event => {
@@ -26,13 +26,19 @@
 
             editEventModal.querySelector('[name="Id"]').value = eventData.id;
             editEventModal.querySelector('[name="Name"]').value = eventData.name;
-            editEventModal.querySelector('[name="Date"]').value = eventData.date;
+            editEventModal.querySelector('[name="StartDate"]').value = eventData.startDate;
+            editEventModal.querySelector('[name="EndDate"]').value = eventData.endDate;
             editEventModal.querySelector('[name="Location"]').value = eventData.location;
+            editEventModal.querySelector('[name="AccommodationDetails"]').value = eventData.accommodationDetails;
             editEventModal.querySelector('[name="Description"]').value = eventData.description;
 
-            let codeControl = editEventModal.querySelector('[name="AccommodationCodes"]').tomselect;
-            codeControl.addOptions(eventData.accommodationCodes.map(code => ({ value: code, text: code })))
-            eventData.accommodationCodes.forEach(code => codeControl.addItem(code, true));
+            let codesControl = editEventModal.querySelector('[name="AccommodationCodes"]').tomselect;
+            codesControl.addOptions(eventData.accommodationCodes.map(code => ({value: code, text: code})))
+            eventData.accommodationCodes.forEach(code => codesControl.addItem(code, true));
+
+            let linksControl = editEventModal.querySelector('[name="BookingLinks"]').tomselect;
+            linksControl.addOptions(eventData.bookingLinks.map(link => ({value: link, text: link})))
+            eventData.bookingLinks.forEach(link => linksControl.addItem(link, true));
 
             const imageWrapper = document.getElementById('currentInvitationImageWrapper');
             const imageNameSpan = document.getElementById('currentInvitationImageName');
@@ -43,6 +49,27 @@
                 } else {
                     imageWrapper.style.display = 'none';
                 }
+            }
+
+            const startDateInput = document.getElementById('StartDate');
+            const endDateInput = document.getElementById('EndDate');
+
+            if (startDateInput && endDateInput) {
+                // Function to update the minimum end date
+                const updateMinEndDate = () => {
+                    endDateInput.min = startDateInput.value;
+
+                    // Optional: If the current end date is now before the new start date, reset it
+                    if (endDateInput.value && endDateInput.value < startDateInput.value) {
+                        endDateInput.value = startDateInput.value;
+                    }
+                };
+
+                // Listen for changes on the Start Date
+                startDateInput.addEventListener('change', updateMinEndDate);
+
+                // Run once on load to set initial state (useful when editing an event)
+                updateMinEndDate();
             }
         });
     }

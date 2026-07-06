@@ -37,10 +37,10 @@
                                     <h5 class="card-title mb-0">@invite.Event.Name</h5>
                                 </div>
                                 <p class="card-text small text-muted mb-3">
-                                    <i class="bi bi-calendar-event me-2"></i>@invite.Event.StartDate.ToString("MMM dd, yyyy")
-                                    @if (invite.Event.EndDate.HasValue)
+                                    <i class="bi bi-calendar-event me-2"></i>@invite.Event.StartDate.ToShortDateString()
+                                    @if (invite.Event.EndDate != invite.Event.StartDate)
                                     {
-                                        <text> - @invite.Event.EndDate.Value.ToString("MMM dd, yyyy")</text>
+                                        <text> - @invite.Event.EndDate.ToShortDateString()</text>
                                     }
                                     <br/>
                                     <i class="bi bi-geo-alt me-2"></i>@invite.Event.Location

@@ -12,12 +12,12 @@ public class Rsvp
     public string UserId { get; set; } = string.Empty;
 
     public bool Attending { get; set; } = true;
+
+    public List<int> AttendanceDays { get; set; }
     public DietaryOptions[]? CommonDietaryOptions { get; set; }
 
     [StringLength(500)]
     public string? OtherDietaryDetails { get; set; }
-
-    public int AccommodationNights { get; set; } = 1;
 
     [StringLength(500)]
     public string? Comments { get; set; }

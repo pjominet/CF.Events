@@ -22,6 +22,11 @@
             if (!!codeWrapper) {
                 codeWrapper.style.display = this.checked ? 'block' : 'none';
             }
+
+            const linksWrapper = document.getElementById('bookingLinksWrapper');
+            if (!!linksWrapper) {
+                linksWrapper.style.display = this.checked ? 'block' : 'none';
+            }
         });
     }
 
