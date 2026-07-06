@@ -1,5 +1,4 @@
-﻿@using CF.Events.Web.Infrastructure.Extensions
-@inject IOptions<AppSettings> AppOptions
+﻿@inject IOptions<AppSettings> AppOptions
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,57 +14,9 @@
 </head>
 <body>
 <div class="page">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
-        <div class="container">
-            <a class="navbar-brand fs-3" href="/">
-                <img src="~/img/wedding_logo_transparent.png" alt="Logo" width="40" height="40" class="d-inline-block align-text-top">
-                <span class="brand-name">@AppOptions.Value.Title</span>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                @if (User.IsAuthenticated() && !User.InitPassword())
-                {
-                    <ul class="navbar-nav me-auto">
-                        @if (User.IsUser())
-                        {
-                            <li class="nav-item"><a class="nav-link" href="/invites">My Invites</a></li>
-                        }
-                        @if (User.IsAdmin())
-                        {
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Admin</a>
-                                <ul class="dropdown-menu" aria-labelledby="adminDropdown">
-                                    <li><a class="dropdown-item" href="/admin/events">Events</a></li>
-                                    <li><a class="dropdown-item" href="/admin/users">Users</a></li>
-                                </ul>
-                            </li>
-                        }
-                    </ul>
-                    <ul class="navbar-nav">
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="accountDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">@(User.GetDisplayName())</a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdown">
-                                <li><a class="dropdown-item" href="/account/manage">Profile</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form asp-action="Logout" asp-controller="Account" method="get">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="dropdown-item text-danger">Logout</button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-                }
-            </div>
-        </div>
-    </nav>
-
+    <partial name="_Navbar" model="@AppOptions.Value.Title"/>
     <main class="container">
         @RenderBody()
-
         <div class="loading-overlay" id="globalLoadingOverlay">
             <div class="loader"></div>
         </div>

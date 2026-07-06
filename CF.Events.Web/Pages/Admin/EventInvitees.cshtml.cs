@@ -61,12 +61,7 @@ public class EventInviteesModel(
 
         CurrentInviteCodes = EventData.InviteCodes
             .Where(ic => ic.ValidUntil > DateTime.UtcNow)
-            .Select(ic =>
-            {
-                var validDays = (int)Math.Round((ic.ValidUntil - DateTime.UtcNow).TotalDays);
-                var label = string.IsNullOrWhiteSpace(ic.Label) ? ic.Code : ic.Label;
-                return new SelectListItem($"{label} (valid {validDays} days)", ic.Id.ToString(), ic.Id == NewInvite.InviteCodeId);
-            })
+            .Select(ic => new SelectListItem(GetInviteCodeLabel(ic), ic.Id.ToString(), ic.Id == NewInvite.InviteCodeId))
             .ToList();
 
         AccommodationCodes = EventData.AccommodationCodes
@@ -76,7 +71,7 @@ public class EventInviteesModel(
         var invitedUsers = db.EventUsers
             .Where(ue => ue.EventId == id)
             .Include(ue => ue.User)
-            .Select(ue => new { ue.AssignedAccommodationCode, ue.User, InvitationEmailSent = ue.InviteEmailSent, ue.ScheduledFor })
+            .Select(ue => new { ue.AssignedAccommodationCode, ue.InviteCode, ue.User, InvitationEmailSent = ue.InviteEmailSent, ue.ScheduledFor })
             .ToList();
         var rsvps = db.Rsvps.Where(r => r.EventId == id).ToList();
 
@@ -94,6 +89,7 @@ public class EventInviteesModel(
                     user.DisplayName!,
                     user.Email!,
                     iu.AssignedAccommodationCode,
+                    GetInviteCodeLabel(iu.InviteCode),
                     status,
                     iu.InvitationEmailSent,
                     iu.ScheduledFor);
@@ -110,5 +106,12 @@ public class EventInviteesModel(
         return true;
     }
 
-    public record InviteeRow(string UserId, string DisplayName, string Email, string? AssignedAccommodationCode, string Status, bool InvitationEmailSent, DateTime? ScheduledFor);
+    private static string GetInviteCodeLabel(InviteCode inviteCode)
+    {
+        var validDays = (int)Math.Round((inviteCode.ValidUntil - DateTime.UtcNow).TotalDays);
+        var label = string.IsNullOrWhiteSpace(inviteCode.Label) ? inviteCode.Code : inviteCode.Label;
+        return validDays <= 0 ? $"{label} (expired)" : $"{label} (valid {validDays} days)";
+    }
+
+    public record InviteeRow(string UserId, string DisplayName, string Email, string? AssignedAccommodationCode, string? InviteCode, string Status, bool InvitationEmailSent, DateTime? ScheduledFor);
 }

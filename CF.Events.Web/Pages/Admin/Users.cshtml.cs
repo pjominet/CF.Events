@@ -52,7 +52,7 @@ public class UsersModel(
             return Page();
         }
 
-        result = await userManager.AddToRoleAsync(user, Roles.User);
+        result = await userManager.AddToRoleAsync(user, Roles.Guest);
         if (result.Succeeded)
             toastNotification.AddSuccessToastMessage($"Added user {NewUser.Email}");
         else toastNotification.AddErrorToastMessage($"Failed to add user {NewUser.Email}");

@@ -118,7 +118,7 @@ public class EventController(
         var count = await db.SaveChangesAsync();
 
         // Only send emails for immediate invites (not scheduled ones)
-        if (inviteRequest is { SendEmailsOnInvite: true, ScheduledFor: null })
+        if (inviteRequest is { SendEmailsOnInvite: SendEmailAction.Immediately, ScheduledFor: null })
         {
             var inviteCode = db.InviteCodes
                 .Where(c => c.EventId == eventId && c.Id == inviteRequest.InviteCodeId && c.ValidUntil > DateTime.UtcNow)

@@ -37,7 +37,10 @@ public class InvitationService(
                 EventName = ue.Event.Name,
                 UserDisplayName = ue.User.DisplayName!,
                 UserEmail = ue.User.Email!,
-                InviteCode = ue.Event.InviteCodes.OrderByDescending(c => c.CreatedAt).Select(c => c.Code).FirstOrDefault()
+                InviteCode = ue.Event.InviteCodes
+                    .OrderByDescending(c => c.CreatedAt)
+                    .Select(c => c.Code)
+                    .FirstOrDefault()
             })
             .AsSplitQuery()
             .ToListAsync(ctx);

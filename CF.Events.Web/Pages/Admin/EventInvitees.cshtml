@@ -1,4 +1,5 @@
 ﻿@page "/admin/events/{id:int}/invitees"
+@using CF.Events.Web.Models.Requests
 @model CF.Events.Web.Pages.Admin.EventInviteesModel
 @{
     ViewData["Title"] = "Manage Invitees";
@@ -54,13 +55,22 @@
                         <div class="col-9 row">
                             <div class="col-5 flex-column gap-2">
                                 <div class="form-check mb-3">
-                                    <input class="form-check-input" type="radio" name="SendEmailsOnInvite" asp-for="NewInvite.SendEmailsOnInvite" id="sendNowRadio" value="true"/>
+                                    <input class="form-check-input" type="radio" name="SendEmailsOnInvite" asp-for="NewInvite.SendEmailsOnInvite"
+                                           id="noSendRadio" value="@SendEmailAction.NoSend"/>
+                                    <label class="form-check-label" for="noSendRadio">
+                                        Don't send invite email yet
+                                    </label>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="radio" name="SendEmailsOnInvite" asp-for="NewInvite.SendEmailsOnInvite"
+                                           id="sendNowRadio" value="@SendEmailAction.Immediately"/>
                                     <label class="form-check-label" for="sendNowRadio">
                                         Immediately send email on invite
                                     </label>
                                 </div>
                                 <div class="form-check d-flex align-items-center gap-2">
-                                    <input class="form-check-input" type="radio" name="SendEmailsOnInvite" asp-for="NewInvite.SendEmailsOnInvite" id="scheduleRadio" value="false"/>
+                                    <input class="form-check-input" type="radio" name="SendEmailsOnInvite" asp-for="NewInvite.SendEmailsOnInvite"
+                                           id="scheduleRadio" value="@SendEmailAction.Scheduled"/>
                                     <label class="form-check-label mb-0" for="scheduleRadio">
                                         Schedule for:
                                     </label>
@@ -111,6 +121,7 @@
                         <th>Display Name</th>
                         <th>Email</th>
                         <th>Assigned Accommodation Code</th>
+                        <th>Invite Code</th>
                         <th class="text-center">Email Sent</th>
                         <th class="text-center">Status</th>
                         <th class="text-end">Actions</th>
@@ -124,6 +135,9 @@
                             <td>@invitee.Email</td>
                             <td>
                                 <div class="badge bg-info p-1">@invitee.AssignedAccommodationCode</div>
+                            </td>
+                            <td>
+                                <div class="badge bg-primary p-1">@invitee.InviteCode</div>
                             </td>
                             <td class="text-center">
                                 @if (invitee.InvitationEmailSent)

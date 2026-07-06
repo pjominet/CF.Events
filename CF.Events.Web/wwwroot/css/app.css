@@ -118,8 +118,40 @@ h1:focus {
     position: relative;
 }
 
-/* Invitation Page Styles */
+.step-indicator {
+    opacity: 0.5;
+    font-weight: bold;
+    border-bottom: 3px solid #dee2e6;
+    flex: 1;
+    text-align: center;
+    transition: all 0.3s ease;
+}
 
+.step-indicator.active {
+    opacity: 1;
+    border-bottom: 3px solid var(--bs-primary);
+    color: var(--bs-primary);
+}
+
+.step-content-wrapper {
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#rsvpForm .custom-radio .form-check-input {
+    width: 1.25em;
+    height: 1.25em;
+    margin-top: 0.125em;
+}
+
+#rsvpForm .btn {
+    padding: 0.6rem 1rem;
+    font-weight: 500;
+}
+
+/* Invitation Page Styles */
 .invite-page {
     margin: 0;
     padding: 20px;
