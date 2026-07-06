@@ -83,6 +83,7 @@ public class EventsModel(
         @event.AccommodationCodes = NewEvent.AccommodationCodes;
         @event.AccommodationDetails = NewEvent.AccommodationDetails;
 
+        // fix duplicate save on update
         @event.BookingLinks = NewEvent.BookingLinks.Select(link =>
         {
             link = link.Trim();

@@ -50,35 +50,35 @@
                             </div>
                         </section>
 
-                        <hr/>
-
-                        <section>
-                            <div class="d-flex align-items-center gap-2">
-                                <p class="mb-0">
+                        @if (Model.HasAccommodationInfo())
+                        {
+                            <label class="form-label serif h5">Accommodation Info</label>
+                            <section>
+                                <p class="mb-3">
                                     @Html.Raw(Model.EventData.AccommodationDetails)
                                 </p>
 
                                 @if (Model.EventData.BookingLinks.Any())
                                 {
-                                    <ul class="list-unstyled">
-                                        @foreach (var link in Model.EventData.BookingLinks)
+                                    <ol class="list-unstyled">
+                                        @foreach (var bl in Model.EventData.BookingLinks.OrderBy(bl => bl.Link.Length))
                                         {
                                             <li>
-                                                @switch (link.Type)
+                                                @switch (bl.Type)
                                                 {
                                                     case LinkType.Email:
-                                                        <a href="mailto:@link" class="btn btn-sm btn-primary mb-1">
-                                                            <i class="bi bi-envelope"></i> @link
+                                                        <a href="mailto:@bl.Link" class="btn btn-sm btn-primary mb-1">
+                                                            <i class="bi bi-envelope me-2"></i>@bl.Link
                                                         </a>
                                                         break;
                                                     case LinkType.Phone:
-                                                        <a href="tel:@link" class="btn btn-sm btn-primary mb-1">
-                                                            <i class="bi bi-telephone"></i> @link
+                                                        <a href="tel:@bl.Link.Replace(" ", string.Empty)" class="btn btn-sm btn-primary mb-1">
+                                                            <i class="bi bi-telephone me-2"></i>@bl.Link
                                                         </a>
                                                         break;
                                                     case LinkType.Web:
-                                                        <a href="@link" target="_blank" rel="noopener" class="btn btn-sm btn-primary mb-1">
-                                                            <i class="bi bi-box-arrow-up-right"></i> @link
+                                                        <a href="@bl.Link" target="_blank" rel="noopener" class="btn btn-sm btn-primary mb-1">
+                                                            <i class="bi bi-box-arrow-up-right me-2"></i>@bl.Link
                                                         </a>
                                                         break;
                                                     default:
@@ -86,16 +86,16 @@
                                                 }
                                             </li>
                                         }
-                                    </ul>
+                                    </ol>
                                 }
-                            </div>
-                            @if (!string.IsNullOrEmpty(Model.AssignedAccommodationCode))
-                            {
-                                <div class="alert alert-info py-2 mt-3 mb-0" id="accommodationCodeAlert">
-                                    <small><i class="bi bi-info-circle me-1"></i>Code: <strong>@Model.AssignedAccommodationCode</strong></small>
-                                </div>
-                            }
-                        </section>
+                                @if (!string.IsNullOrEmpty(Model.AssignedAccommodationCode))
+                                {
+                                    <div class="alert alert-info py-2 mt-3 mb-0" id="accommodationCodeAlert">
+                                        <small><i class="bi bi-info-circle me-1"></i>Code: <strong>@Model.AssignedAccommodationCode</strong></small>
+                                    </div>
+                                }
+                            </section>
+                        }
                     </div>
                 </div>
 

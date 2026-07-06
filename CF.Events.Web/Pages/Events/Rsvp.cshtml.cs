@@ -33,7 +33,9 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
 
         var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
 
-        EventData = await db.Events.FirstAsync(e => e.Id == eventId);
+        EventData = await db.Events
+            .Include(e => e.BookingLinks)
+            .FirstAsync(e => e.Id == eventId);
 
         AssignedAccommodationCode = userEvent?.AssignedAccommodationCode;
         HasResponded = rsvp?.SubmittedAt > DateTime.MinValue.AddDays(1);
@@ -66,6 +68,13 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
 
         toastNotification.AddSuccessToastMessage("Thank you for your response!");
         return Redirect("/");
+    }
+
+    public bool HasAccommodationInfo()
+    {
+        return !string.IsNullOrWhiteSpace(AssignedAccommodationCode)
+               || !string.IsNullOrWhiteSpace(EventData.AccommodationDetails)
+               || EventData.AccommodationCodes.Count > 0;
     }
 
     public sealed class InputModel

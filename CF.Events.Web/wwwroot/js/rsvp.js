@@ -33,7 +33,7 @@
 
     // Handle "Next" button clicks
     nextBtn.addEventListener("click", () => {
-        const isAttending = document.querySelector('input[name="Input.Attending"]:checked')?.value === "true";
+        const isAttending = document.querySelector('input[name="NewRsvp.Attending"]:checked')?.value === "true";
 
         if (currentStep === 1) {
             if (isAttending) {
@@ -49,7 +49,7 @@
     // Handle "Back" button clicks
     prevBtn.addEventListener("click", () => {
         if (currentStep === 3) {
-            const isAttending = document.querySelector('input[name="Input.Attending"]:checked')?.value === "true";
+            const isAttending = document.querySelector('input[name="NewRsvp.Attending"]:checked')?.value === "true";
             showStep(isAttending ? 2 : 1);
         } else if (currentStep === 2) {
             showStep(1);
@@ -57,7 +57,7 @@
     });
 
     // Reset to step 1 if Attendance selection changes
-    document.querySelectorAll('input[name="Input.Attending"]').forEach(radio => {
+    document.querySelectorAll('input[name="NewRsvp.Attending"]').forEach(radio => {
         radio.addEventListener("change", () => {
             if (radio.value === "false") {
                 nextBtn.innerText = "Finalize & Submit";
