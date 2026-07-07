@@ -15,6 +15,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
 {
     public required Event EventData { get; set; }
     public bool HasResponded { get; private set; }
+    public bool RespondedAttending { get; private set; }
     public string? AssignedAccommodationCode { get; private set; }
 
     [BindProperty]
@@ -39,6 +40,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
 
         AssignedAccommodationCode = userEvent?.AssignedAccommodationCode;
         HasResponded = rsvp?.SubmittedAt > DateTime.MinValue.AddDays(1);
+        RespondedAttending = rsvp?.Attending ?? false;
 
         return Page();
     }
@@ -47,11 +49,13 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
     {
         var userId = User.GetId();
 
-        var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
+        var rsvp = await db.Rsvps
+            .FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
+
         if (rsvp is null)
         {
-            toastNotification.AddWarningToastMessage("You are not invited to this event");
-            return Redirect("/");
+            rsvp = new Rsvp { EventId = eventId, UserId = userId };
+            db.Rsvps.Add(rsvp);
         }
 
         rsvp.Attending = NewRsvp.Attending;
@@ -70,6 +74,30 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
         return Redirect("/");
     }
 
+    public async Task<IActionResult> OnPostCancelAsync(int eventId)
+    {
+        var userId = User.GetId();
+
+        var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
+        if (rsvp is null)
+        {
+            toastNotification.AddWarningToastMessage("You are not invited to this event");
+            return Redirect("/");
+        }
+
+        rsvp.Attending = true;
+        rsvp.SubmittedAt = DateTime.MinValue;
+        rsvp.AttendanceDays = [];
+        rsvp.CommonDietaryOptions = [];
+        rsvp.OtherDietaryDetails = null;
+        rsvp.Comments = null;
+
+        await db.SaveChangesAsync();
+
+        toastNotification.AddSuccessToastMessage("Your RSVP has been cancelled. You can submit a new response.");
+        return RedirectToPage(new { eventId });
+    }
+
     public bool HasAccommodationInfo()
     {
         return !string.IsNullOrWhiteSpace(AssignedAccommodationCode)
@@ -80,9 +108,9 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
     public sealed class InputModel
     {
         public bool Attending { get; set; } = true;
-        public List<int> AttendanceDays { get; set; } = [];
+        public List<int> AttendanceDays { get; set; } = [1];
 
-        public DietaryOptions[]? CommonDietaryOptions { get; set; }
+        public List<DietaryOptions> CommonDietaryOptions { get; set; } = [];
         public string? OtherDietaryDetails { get; set; }
 
         [StringLength(500)]

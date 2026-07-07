@@ -14,7 +14,7 @@ public class Rsvp
     public bool Attending { get; set; } = true;
 
     public List<int> AttendanceDays { get; set; } = [];
-    public DietaryOptions[]? CommonDietaryOptions { get; set; }
+    public List<DietaryOptions> CommonDietaryOptions { get; set; } = [];
 
     [StringLength(500)]
     public string? OtherDietaryDetails { get; set; }

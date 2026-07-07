@@ -6,6 +6,10 @@
     const prevBtn = document.querySelector(".btn-prev");
     const submitBtn = document.querySelector(".btn-submit");
     const cancelLink = document.getElementById("cancelLink");
+
+    // If the RSVP form is not present (already responded view), skip stepper setup
+    if (!nextBtn || !prevBtn) return;
+
     // Step 1 = attendance selection (no stepper), steps 2-4 = stepper steps 1-3
     let currentStep = 1;
 

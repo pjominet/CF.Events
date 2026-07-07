@@ -41,16 +41,19 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
         {
             e.HasKey(r => new { r.EventId, r.UserId });
 
-            e.Property(r => r.CommonDietaryOptions)
-                .HasConversion(new ArrayConverter<DietaryOptions>()!, new ArrayComparer<DietaryOptions>())
-                .HasMaxLength(4000)
-                .IsRequired(false);
+            e.Property(r => r.CommonDietaryOptions).HasMaxLength(1000);
+
+            e.Property(r => r.AttendanceDays).HasMaxLength(1000);
 
             e.HasOne(r => r.EventUser)
                 .WithOne(u => u.Rsvp)
                 .HasForeignKey<Rsvp>(r => new { r.EventId, r.UserId })
-                .OnDelete(DeleteBehavior.Cascade)
-                .IsRequired(false);
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<Event>(e =>
+        {
+            e.Property(r => r.AccommodationCodes).HasMaxLength(1000);
         });
 
         builder.Entity<EventUser>(e =>
