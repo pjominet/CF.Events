@@ -26,8 +26,6 @@ public class InvitesModel(EventsDbContext db) : PageModel
 
         var query = db.EventUsers
             .Where(r => r.UserId == userId && r.Event.IsActive)
-            .Include(r => r.Event)
-            .Include(r => r.Rsvp)
             .OrderBy(r => r.Event.StartDate);
 
         TotalCount = await query.CountAsync();
@@ -35,7 +33,7 @@ public class InvitesModel(EventsDbContext db) : PageModel
         MyInvites = await query
             .Skip((pageNumber - 1) * PageSize)
             .Take(PageSize)
-            .Select(ue => new InviteRow(ue.Event, ue.Rsvp != null && ue.Rsvp.SubmittedAt > DateTime.UtcNow))
+            .Select(ue => new InviteRow(ue.Event, ue.Rsvp != null && ue.Rsvp.SubmittedAt <= DateTime.UtcNow))
             .ToListAsync();
 
         return Page();
