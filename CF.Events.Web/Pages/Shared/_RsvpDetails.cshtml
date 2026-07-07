@@ -1,0 +1,90 @@
+@using CF.Events.Web.Infrastructure.Extensions
+@model RsvpDetail
+
+<div class="modal fade" id="eventInfoModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title serif" id="eventInfoModalLabel">Event Information</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (Model is { IsAttending: false, HasRsvped: true })
+                {
+                    <div class="alert alert-warning mb-3">
+                        <i class="bi bi-info-circle me-2"></i>You have indicated that you will not be attending this event.
+                    </div>
+                }
+
+                @if (Model.IsAttending)
+                {
+                    <h6 class="serif"><i class="bi bi-house me-1"></i>Accommodation Info</h6>
+                    @if (!string.IsNullOrEmpty(Model.AccommodationDetails))
+                    {
+                        <p class="mb-3">@Html.Raw(Model.AccommodationDetails)</p>
+                    }
+
+                    @if (Model.BookingLinks.Any())
+                    {
+                        <ol class="list-unstyled">
+                            @foreach (var (type, link) in Model.BookingLinks)
+                            {
+                                <li>
+                                    @switch (type)
+                                    {
+                                        case LinkType.Email:
+                                            <a href="mailto:@link" class="btn btn-sm btn-primary mb-1 px-2 py-1">
+                                                <i class="bi bi-envelope me-2"></i>@link
+                                            </a>
+                                            break;
+                                        case LinkType.Phone:
+                                            <a href="tel:@link.Replace(" ", string.Empty)" class="btn btn-sm btn-primary mb-1 px-2 py-1">
+                                                <i class="bi bi-telephone me-2"></i>@link
+                                            </a>
+                                            break;
+                                        case LinkType.Web:
+                                            <a href="@link" target="_blank" rel="noopener" class="btn btn-sm btn-primary mb-1 px-2 py-1">
+                                                <i class="bi bi-box-arrow-up-right me-2"></i>@link
+                                            </a>
+                                            break;
+                                        default:
+                                            throw new ArgumentOutOfRangeException();
+                                    }
+                                </li>
+                            }
+                        </ol>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.AccommodationCode))
+                    {
+                        <div class="alert alert-info py-2 mt-3 mb-0">
+                            <small><i class="bi bi-info-circle me-1"></i>Code: <strong>@Model.AccommodationCode</strong></small>
+                        </div>
+                    }
+
+                    <hr/>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.DonationIban))
+                {
+                    <h6 class="serif"><i class="bi bi-heart me-1"></i>Help Fund Our Event</h6>
+                    <button class="btn btn-outline-primary w-100" type="button"
+                            onclick="copyToClipboardAndShowFeedback(this)">
+                        @Model.DonationIban.FormatAsIban()<i class="bi bi-copy ms-2"></i>
+                    </button>
+                    <div class="form-text text-muted mt-2 mb-0">
+                        <p>
+                            <i class="bi bi-exclamation-diamond text-danger me-2"></i>Add the reference <strong>@($"{Model.DonationReference}")</strong> to your transaction.
+                        </p>
+                        <p class="fst-italic">
+                            <i class="bi bi-info-circle text-info me-2"></i>Any money donated will be used to cover the cost of the event.
+                        </p>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

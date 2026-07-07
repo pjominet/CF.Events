@@ -31,39 +31,85 @@
                 @foreach (var invite in Model.MyInvites)
                 {
                     <div class="col-12 col-md-6 col-xl-4">
-                        <div class="card shadow-lg border-0">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <h5 class="card-title mb-0">@invite.Event.Name</h5>
-                                </div>
-                                <p class="card-text small text-muted mb-3">
-                                    <i class="bi bi-calendar-event me-2"></i>@invite.Event.StartDate.ToShortDateString()
-                                    @if (invite.Event.EndDate != invite.Event.StartDate)
+                        @if (invite.HasRsvped)
+                        {
+                            <div class="card shadow-lg border-0 border-start border-3 @(invite.Attending ? "border-success" : "border-secondary")">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h5 class="card-title mb-0">@invite.Event.Name</h5>
+                                        @if (invite.Attending)
+                                        {
+                                            <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Attending</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary"><i class="bi bi-x-circle me-1"></i>Not Attending</span>
+                                        }
+                                    </div>
+                                    @if (invite.Attending && invite.AttendanceDays.Any())
                                     {
-                                        <text> - @invite.Event.EndDate.ToShortDateString()</text>
+                                        <div class="mb-2">
+                                            @foreach (var day in invite.AttendanceDays.OrderBy(d => d))
+                                            {
+                                                <span class="badge rounded-pill bg-light text-dark border me-1">Day @day</span>
+                                            }
+                                        </div>
                                     }
-                                    <br/>
-                                    <i class="bi bi-geo-alt me-2"></i>@invite.Event.Location
-                                </p>
-                                <hr class="text-muted opacity-25"/>
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <span class="small fw-bold">Status:</span>
-                                    @if (invite.HasRsvped)
-                                    {
-                                        <span class="badge bg-success">RSVP'd</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-warning text-dark">Pending</span>
-                                    }
-                                </div>
-                                <div class="d-grid">
-                                    <a href="/events/@invite.Event.Id/invitation" class="btn btn-primary">
-                                        <i class="bi bi-eye me-2"></i>View Invitation
-                                    </a>
+                                    <p class="card-text small text-muted mb-3">
+                                        <i class="bi bi-calendar-event me-2"></i>@invite.Event.StartDate.ToShortDateString()
+                                        @if (invite.Event.EndDate != invite.Event.StartDate)
+                                        {
+                                            <text> - @invite.Event.EndDate.ToShortDateString()</text>
+                                        }
+                                        <br/>
+                                        <i class="bi bi-geo-alt me-2"></i>@invite.Event.Location
+                                    </p>
+                                    <hr class="text-muted opacity-25"/>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-outline-primary flex-fill"
+                                                data-event-id="@invite.Event.Id">
+                                            <i class="bi bi-eye me-1"></i>View Details
+                                        </button>
+                                        <form method="post" action="/events/@invite.Event.Id/rsvp?handler=Cancel" class="flex-fill">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-danger w-100"
+                                                    onclick="return confirm('Are you sure you want to cancel your RSVP?')">
+                                                <i class="bi bi-x-lg me-1"></i>Cancel
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        }
+                        else
+                        {
+                            <div class="card shadow-lg border-0">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h5 class="card-title mb-0">@invite.Event.Name</h5>
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Pending</span>
+                                    </div>
+                                    <p class="card-text small text-muted mb-3">
+                                        <i class="bi bi-calendar-event me-2"></i>@invite.Event.StartDate.ToShortDateString()
+                                        @if (invite.Event.EndDate != invite.Event.StartDate)
+                                        {
+                                            <text> - @invite.Event.EndDate.ToShortDateString()</text>
+                                        }
+                                        <br/>
+                                        <i class="bi bi-geo-alt me-2"></i>@invite.Event.Location
+                                    </p>
+                                    <hr class="text-muted opacity-25"/>
+                                    <p class="small text-muted mb-3">
+                                        <i class="bi bi-info-circle me-1"></i>You have been invited to this event. Please review and respond.
+                                    </p>
+                                    <div class="d-grid">
+                                        <a href="/events/@invite.Event.Id/invitation" class="btn btn-primary">
+                                            <i class="bi bi-envelope-open me-2"></i>View Invitation & RSVP
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
                     </div>
                 }
 
@@ -77,6 +123,8 @@
         </div>
     }
 </div>
+
+<div id="_rsvpDetailContainer"></div>
 
 @section Scripts {
     <script src="/js/invites.js" type="text/javascript" asp-append-version="true"></script>

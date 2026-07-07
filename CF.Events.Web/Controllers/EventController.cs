@@ -1,4 +1,5 @@
-﻿using CF.Events.Web.Data;
+﻿using System.Security.Claims;
+using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Models;
@@ -53,6 +54,47 @@ public class EventController(
             contentType = "application/octet-stream";
 
         return PhysicalFile(requested, contentType);
+    }
+
+    [HttpGet("{eventId:int}/rsvp-detail")]
+    [Authorize]
+    public async Task<IActionResult> GetRsvpDetail([FromRoute] int eventId)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Unauthorized();
+
+        var eventUser = await db.EventUsers
+            .Where(eu => eu.EventId == eventId && eu.UserId == userId)
+            .Select(eu => new
+            {
+                HasRsvped = eu.Rsvp != null && eu.Rsvp.SubmittedAt <= DateTime.UtcNow,
+                IsAttending = eu.Rsvp != null && eu.Rsvp.Attending,
+                EventName = eu.Event.Name,
+                eu.Event.AccommodationDetails,
+                AccommodationCode = eu.AssignedAccommodationCode,
+                BookingLinks = eu.Event.BookingLinks.Select(bl => new { bl.Type, bl.Link }).ToList(),
+                eu.Event.DonationIban,
+                EventStartDate = eu.Event.StartDate,
+                AttendanceDays = eu.Rsvp != null ? eu.Rsvp.AttendanceDays : new List<int>()
+            })
+            .FirstOrDefaultAsync();
+
+        if (eventUser is null) return NotFound();
+
+        var model = new RsvpDetail
+        {
+            HasRsvped = eventUser.HasRsvped,
+            IsAttending = eventUser.IsAttending,
+            EventName = eventUser.EventName,
+            AccommodationDetails = eventUser.AccommodationDetails,
+            AccommodationCode = eventUser.AccommodationCode,
+            BookingLinks = eventUser.BookingLinks.ToDictionary(bl => bl.Type, bl => bl.Link),
+            DonationIban = eventUser.DonationIban,
+            DonationReference = new Event { Name = eventUser.EventName, StartDate = eventUser.EventStartDate }.GetDonationReference(),
+            AttendanceDays = eventUser.AttendanceDays
+        };
+
+        return PartialView("_RsvpDetails", model);
     }
 
     [HttpPost("{eventId:int}/invite-users")]

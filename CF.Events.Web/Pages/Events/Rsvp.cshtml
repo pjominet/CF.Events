@@ -21,129 +21,10 @@
                 </p>
             </div>
 
-            <div class="d-flex justify-content-center gap-3 mt-4 flex-wrap">
-                @if (Model.HasAccommodationInfo() || !string.IsNullOrWhiteSpace(Model.EventData.DonationIban))
-                {
-                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#eventInfoModal">
-                        <i class="bi bi-info-circle me-1"></i>View Event Info
-                    </button>
-                }
-                <a href="/events/@Model.EventData.Id/rsvp" class="btn btn-primary">
-                    <i class="bi bi-pencil me-1"></i>Edit RSVP
-                </a>
-                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelRsvpModal">
-                    <i class="bi bi-x-circle me-1"></i>Cancel RSVP
-                </button>
-            </div>
-
             <div class="text-center mt-3">
                 <a href="/invites" class="btn btn-secondary">
                     <i class="bi bi-arrow-left me-1"></i>Back to Invites
                 </a>
-            </div>
-
-            <!-- Event Info Modal (readonly) -->
-            @if (Model.HasAccommodationInfo() || !string.IsNullOrWhiteSpace(Model.EventData.DonationIban))
-            {
-                <div class="modal fade" id="eventInfoModal" tabindex="-1" aria-labelledby="eventInfoModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-lg">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title serif" id="eventInfoModalLabel">Event Information</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                @if (Model.HasAccommodationInfo())
-                                {
-                                    <h6 class="serif"><i class="bi bi-house me-1"></i>Accommodation Info</h6>
-                                    @if (!string.IsNullOrWhiteSpace(Model.EventData.AccommodationDetails))
-                                    {
-                                        <p class="mb-3">@Html.Raw(Model.EventData.AccommodationDetails)</p>
-                                    }
-                                    @if (Model.EventData.BookingLinks.Any())
-                                    {
-                                        <ol class="list-unstyled">
-                                            @foreach (var bl in Model.EventData.BookingLinks.OrderBy(bl => bl.Link.Length))
-                                            {
-                                                <li>
-                                                    @switch (bl.Type)
-                                                    {
-                                                        case LinkType.Email:
-                                                            <a href="mailto:@bl.Link" class="btn btn-sm btn-primary mb-1 px-2 py-1">
-                                                                <i class="bi bi-envelope me-2"></i>@bl.Link
-                                                            </a>
-                                                            break;
-                                                        case LinkType.Phone:
-                                                            <a href="tel:@bl.Link.Replace(" ", string.Empty)" class="btn btn-sm btn-primary mb-1 px-2 py-1">
-                                                                <i class="bi bi-telephone me-2"></i>@bl.Link
-                                                            </a>
-                                                            break;
-                                                        case LinkType.Web:
-                                                            <a href="@bl.Link" target="_blank" rel="noopener" class="btn btn-sm btn-primary mb-1 px-2 py-1">
-                                                                <i class="bi bi-box-arrow-up-right me-2"></i>@bl.Link
-                                                            </a>
-                                                            break;
-                                                        default:
-                                                            throw new ArgumentOutOfRangeException();
-                                                    }
-                                                </li>
-                                            }
-                                        </ol>
-                                    }
-                                    @if (!string.IsNullOrEmpty(Model.AssignedAccommodationCode))
-                                    {
-                                        <div class="alert alert-info py-2 mt-3 mb-0">
-                                            <small><i class="bi bi-info-circle me-1"></i>Code: <strong>@Model.AssignedAccommodationCode</strong></small>
-                                        </div>
-                                    }
-                                    <hr />
-                                }
-                                @if (!string.IsNullOrWhiteSpace(Model.EventData.DonationIban))
-                                {
-                                    <h6 class="serif"><i class="bi bi-heart me-1"></i>Help Fund Our Event</h6>
-                                    <button class="btn btn-outline-primary w-100" type="button"
-                                            onclick="copyToClipboardAndShowFeedback(this)">
-                                        @Model.EventData.DonationIban.FormatAsIban()<i class="bi bi-copy ms-2"></i>
-                                    </button>
-                                    <div class="form-text text-muted mt-2 mb-0">
-                                        <p>
-                                            <i class="bi bi-exclamation-diamond text-danger me-2"></i>Add the reference <strong>@($"{Model.EventData.Name}{Model.EventData.StartDate.Year}")</strong> to your transaction.
-                                        </p>
-                                        <p class="fst-italic">
-                                            <i class="bi bi-info-circle text-info me-2"></i>Any money donated will be used to cover the cost of the event.
-                                        </p>
-                                    </div>
-                                }
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-
-            <!-- Cancel RSVP Confirmation Modal -->
-            <div class="modal fade" id="cancelRsvpModal" tabindex="-1" aria-labelledby="cancelRsvpModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title serif" id="cancelRsvpModalLabel">Cancel RSVP</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <p>Are you sure you want to cancel your RSVP? You will be able to submit a new response afterwards.</p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep RSVP</button>
-                            <form method="post" asp-page-handler="Cancel">
-                                <button type="submit" class="btn btn-danger">
-                                    <i class="bi bi-x-circle me-1"></i>Cancel RSVP
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
             </div>
         }
         else
@@ -274,7 +155,7 @@
                             </button>
                             <div class="form-text text-muted mt-2 mb-0">
                                 <p>
-                                    <i class="bi bi-exclamation-diamond text-danger me-2"></i>Add the reference <strong>@($"{Model.EventData.Name}{Model.EventData.StartDate.Year}")</strong> to your transaction.
+                                    <i class="bi bi-exclamation-diamond text-danger me-2"></i>Add the reference <strong>@Model.EventData.GetDonationReference()</strong> to your transaction.
                                 </p>
                                 <p class="fst-italic">
                                     <i class="bi bi-info-circle text-info me-2"></i>Any money donated will be used to cover the cost of the event.

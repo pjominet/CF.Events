@@ -33,11 +33,15 @@ public class InvitesModel(EventsDbContext db) : PageModel
         MyInvites = await query
             .Skip((pageNumber - 1) * PageSize)
             .Take(PageSize)
-            .Select(ue => new InviteRow(ue.Event, ue.Rsvp != null && ue.Rsvp.SubmittedAt <= DateTime.UtcNow))
+            .Select(ue => new InviteRow(
+                ue.Event,
+                ue.Rsvp != null && ue.Rsvp.SubmittedAt <= DateTime.UtcNow,
+                ue.Rsvp != null && ue.Rsvp.SubmittedAt <= DateTime.UtcNow && ue.Rsvp.Attending,
+                ue.Rsvp != null ? ue.Rsvp.AttendanceDays : new List<int>()))
             .ToListAsync();
 
         return Page();
     }
 
-    public record InviteRow(Event Event, bool HasRsvped);
+    public record InviteRow(Event Event, bool HasRsvped, bool Attending, List<int> AttendanceDays);
 }

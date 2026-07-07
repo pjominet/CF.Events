@@ -65,4 +65,37 @@
         window.removeEventListener('scroll', checkScroll);
         window.removeEventListener('resize', checkScroll);
     });
+
+    // RSVP Details Modal handling
+    const rsvpContainer = document.getElementById('_rsvpDetailContainer');
+    if (rsvpContainer) {
+        document.addEventListener('click', async function(e) {
+            const btn = e.target.closest('button[data-event-id]');
+            if (!btn) return;
+
+            const eventId = btn.dataset.eventId;
+            if (!eventId) return;
+
+            try {
+                btn.disabled = true;
+                const response = await fetch(`/events/${eventId}/rsvp-detail`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (response.ok) {
+                    rsvpContainer.innerHTML = await response.text();
+
+                    const modalEl = document.getElementById('eventInfoModal');
+                    if (modalEl) {
+                        const modal = new bootstrap.Modal(modalEl);
+                        modal.show();
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching RSVP details:', error);
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    }
 })();

@@ -55,4 +55,6 @@ public class Event
             return Math.Max(1, duration + 1);
         }
     }
+
+    public string GetDonationReference() => $"{Name}{StartDate.Month}{StartDate.Year}";
 }
