@@ -120,6 +120,21 @@
         }, duration);
     }
 
+    window.copyToClipboardAndShowFeedback = function (element, duration = 750) {
+        const originalText = element.textContent;
+        element.textContent = 'Copied!';
+
+        navigator.clipboard.writeText(originalText)
+            .catch(err => {
+                console.error('Failed to copy:', err);
+                element.textContent = originalText;
+            });
+
+        setTimeout(() => {
+            element.textContent = originalText;
+        }, duration);
+    }
+
     // Show loading overlay
     window.showLoadingOverlay = function () {
         const overlay = document.getElementById('globalLoadingOverlay');

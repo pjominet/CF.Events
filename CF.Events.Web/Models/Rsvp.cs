@@ -30,6 +30,7 @@ public class Rsvp
 
 public enum DietaryOptions
 {
+    None,
     Vegetarian,
     Vegan,
     Pescetarian,

@@ -1,4 +1,5 @@
 ﻿@page "/events/{eventId:int}/rsvp"
+@using CF.Events.Web.Infrastructure.Extensions
 @model CF.Events.Web.Pages.Events.RsvpModel
 @{
     ViewData["Title"] = "RSVP";
@@ -7,10 +8,10 @@
 <div class="container-fluid d-flex justify-content-center pt-4 mb-auto">
     <div class="card border-0 p-4 mx-auto bg-card-custom rounded shadow-sm" style="max-width: 800px; width: 100%;">
         <h2 class="serif text-center mb-4">RSVP for <strong class="fs-1">@Model.EventData.Name</strong></h2>
-        <!-- Progress Indicator -->
-        <div class="stepper-progress mb-4 d-flex justify-content-between">
+        <!-- Progress Indicator (shown only when attending) -->
+        <div class="stepper-progress mb-4 d-flex justify-content-between d-none">
             <div class="step-indicator active px-2 pb-2" data-step="1">1. Attendance</div>
-            <div class="step-indicator px-2 pb-2" data-step="2">2. Details</div>
+            <div class="step-indicator px-2 pb-2" data-step="2">2. Dietary Options</div>
             <div class="step-indicator px-2 pb-2" data-step="3">3. Finalize</div>
         </div>
 
@@ -33,93 +34,114 @@
                     </section>
                 </div>
 
-                <!-- STEP 2: Attendance Days & Accommodation -->
+                <!-- STEP 2: Attendance Schedule & Accommodation -->
                 <div class="form-step d-none" id="step-2">
-                    <div class="d-flex flex-column gap-3">
-                        <label class="form-label serif h5">Attendance Schedule</label>
-                        <section class="row g-3">
-                            <div class="col-12">
-                                @for (var day = 1; day <= Model.EventData.EventDuration; day++)
-                                {
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="Input.AttendanceDays" id="day-@(day)" value="@day"
-                                               @(Model.NewRsvp.AttendanceDays.Contains(day) ? "checked" : string.Empty)/>
-                                        <label class="form-check-label" for="day-@(day)">Attending Day @day</label>
-                                    </div>
-                                }
-                            </div>
+                    <h3 class="h5 serif">Attendance Schedule</h3>
+                    <section class="row mb-3">
+                        <div class="col-12 mt-0">
+                            @for (var day = 1; day <= Model.EventData.EventDuration; day++)
+                            {
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="Input.AttendanceDays" id="day-@(day)" value="@day"
+                                           @(Model.NewRsvp.AttendanceDays.Contains(day) ? "checked" : string.Empty)/>
+                                    <label class="form-check-label" for="day-@(day)">Attending Day @day</label>
+                                </div>
+                            }
+                        </div>
+                    </section>
+
+                    @if (Model.HasAccommodationInfo())
+                    {
+                        <h3 class="h5 serif">Accommodation Info</h3>
+                        <section>
+                            <p class="mb-3">
+                                @Html.Raw(Model.EventData.AccommodationDetails)
+                            </p>
+
+                            @if (Model.EventData.BookingLinks.Any())
+                            {
+                                <ol class="list-unstyled">
+                                    @foreach (var bl in Model.EventData.BookingLinks.OrderBy(bl => bl.Link.Length))
+                                    {
+                                        <li>
+                                            @switch (bl.Type)
+                                            {
+                                                case LinkType.Email:
+                                                    <a href="mailto:@bl.Link" class="btn btn-sm btn-primary mb-1 px-2 py-1">
+                                                        <i class="bi bi-envelope me-2"></i>@bl.Link
+                                                    </a>
+                                                    break;
+                                                case LinkType.Phone:
+                                                    <a href="tel:@bl.Link.Replace(" ", string.Empty)" class="btn btn-sm btn-primary mb-1 px-2 py-1">
+                                                        <i class="bi bi-telephone me-2"></i>@bl.Link
+                                                    </a>
+                                                    break;
+                                                case LinkType.Web:
+                                                    <a href="@bl.Link" target="_blank" rel="noopener" class="btn btn-sm btn-primary mb-1 px-2 py-1">
+                                                        <i class="bi bi-box-arrow-up-right me-2"></i>@bl.Link
+                                                    </a>
+                                                    break;
+                                                default:
+                                                    throw new ArgumentOutOfRangeException();
+                                            }
+                                        </li>
+                                    }
+                                </ol>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.AssignedAccommodationCode))
+                            {
+                                <div class="alert alert-info py-2 mt-3 mb-0" id="accommodationCodeAlert">
+                                    <small><i class="bi bi-info-circle me-1"></i>Code: <strong>@Model.AssignedAccommodationCode</strong></small>
+                                </div>
+                            }
+                            <p class="text-muted mb-0 mt-2 fst-italic">
+                                <i class="bi bi-info-circle text-info me-2"></i>This information can still be viewed after finalising the RSVP.
+                            </p>
                         </section>
-
-                        @if (Model.HasAccommodationInfo())
-                        {
-                            <label class="form-label serif h5">Accommodation Info</label>
-                            <section>
-                                <p class="mb-3">
-                                    @Html.Raw(Model.EventData.AccommodationDetails)
-                                </p>
-
-                                @if (Model.EventData.BookingLinks.Any())
-                                {
-                                    <ol class="list-unstyled">
-                                        @foreach (var bl in Model.EventData.BookingLinks.OrderBy(bl => bl.Link.Length))
-                                        {
-                                            <li>
-                                                @switch (bl.Type)
-                                                {
-                                                    case LinkType.Email:
-                                                        <a href="mailto:@bl.Link" class="btn btn-sm btn-primary mb-1">
-                                                            <i class="bi bi-envelope me-2"></i>@bl.Link
-                                                        </a>
-                                                        break;
-                                                    case LinkType.Phone:
-                                                        <a href="tel:@bl.Link.Replace(" ", string.Empty)" class="btn btn-sm btn-primary mb-1">
-                                                            <i class="bi bi-telephone me-2"></i>@bl.Link
-                                                        </a>
-                                                        break;
-                                                    case LinkType.Web:
-                                                        <a href="@bl.Link" target="_blank" rel="noopener" class="btn btn-sm btn-primary mb-1">
-                                                            <i class="bi bi-box-arrow-up-right me-2"></i>@bl.Link
-                                                        </a>
-                                                        break;
-                                                    default:
-                                                        throw new ArgumentOutOfRangeException();
-                                                }
-                                            </li>
-                                        }
-                                    </ol>
-                                }
-                                @if (!string.IsNullOrEmpty(Model.AssignedAccommodationCode))
-                                {
-                                    <div class="alert alert-info py-2 mt-3 mb-0" id="accommodationCodeAlert">
-                                        <small><i class="bi bi-info-circle me-1"></i>Code: <strong>@Model.AssignedAccommodationCode</strong></small>
-                                    </div>
-                                }
-                            </section>
-                        }
-                    </div>
+                    }
                 </div>
 
-                <!-- STEP 3: Dietary & Comments -->
+                <!-- STEP 3: Dietary Options -->
                 <div class="form-step d-none" id="step-3">
                     <section>
-                        <div class="mt-2">
-                            <label class="form-label serif h5">Dietary Requirements</label>
-                            <select asp-for="NewRsvp.CommonDietaryOptions" class="form-select tom-select" id="dietaryOptions" multiple placeholder="Select dietary options...">
-                                @foreach (var option in Enum.GetValues<DietaryOptions>())
-                                {
-                                    <option value="@option">@option</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="mt-3">
-                            <textarea asp-for="NewRsvp.OtherDietaryDetails" class="form-control" maxlength="500" placeholder="Other dietary details or allergies..." rows="2"></textarea>
-                        </div>
+                        <h3 class="h5 serif">Dietary Requirements</h3>
+                        <select asp-for="NewRsvp.CommonDietaryOptions" class="form-select tom-select" id="dietaryOptions" multiple placeholder="Select dietary options...">
+                            @foreach (var option in Enum.GetValues<DietaryOptions>())
+                            {
+                                <option value="@option">@option</option>
+                            }
+                        </select>
+                        <textarea asp-for="NewRsvp.OtherDietaryDetails" class="form-control mt-2" maxlength="500" placeholder="Other dietary details or allergies..." rows="2"></textarea>
+                        <p class="text-muted mb-0 mt-2 fst-italic">
+                            <i class="bi bi-info-circle text-info me-2"></i>Leave all empty, if none apply.
+                        </p>
                     </section>
+                </div>
 
-                    <section class="mt-4">
-                        <label class="form-label serif h5">Comments</label>
+                <!-- STEP 4: Comments & Donation -->
+                <div class="form-step d-none" id="step-4">
+                    <section class="commentSection">
+                        <h3 class="h5 serif">Comments</h3>
                         <textarea asp-for="NewRsvp.Comments" class="form-control" maxlength="500" placeholder="Add a comment... (optional)" rows="3"></textarea>
                     </section>
+                    @if (!string.IsNullOrWhiteSpace(Model.EventData.DonationIban))
+                    {
+                        <section class="mt-3">
+                            <h3 class="h5 serif">You are welcome to help fund our event</h3>
+                            <button class="btn btn-outline-primary w-100" type="button" id="ibanInfo"
+                                    onclick="copyToClipboardAndShowFeedback(this)">
+                                @Model.EventData.DonationIban.FormatAsIban()<i class="bi bi-copy ms-2"></i>
+                            </button>
+                            <div class="form-text text-muted mt-2 mb-0">
+                                <p>
+                                    <i class="bi bi-exclamation-diamond text-danger me-2"></i>Add the reference <strong>@($"{Model.EventData.Name}{Model.EventData.StartDate.Year}")</strong> to your transaction.
+                                </p>
+                                <p class="fst-italic">
+                                    <i class="bi bi-info-circle text-info me-2"></i>Any money donated will be used to cover the cost of the event.
+                                </p>
+                            </div>
+                        </section>
+                    }
                 </div>
             </div>
 
