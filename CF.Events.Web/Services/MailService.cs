@@ -26,7 +26,7 @@ public class MailService(IMailjetClient mailjetClient) : MailjetService(mailjetC
                             }
                         }
                     },
-                    { "TemplateID", 8136101 },
+                    { "TemplateID", 0 },
                     {
                         "Variables", new JObject
                         {
@@ -35,6 +35,42 @@ public class MailService(IMailjetClient mailjetClient) : MailjetService(mailjetC
                             { "display_name", displayName },
                             { "event_name", eventName },
                             { "custom_design", customDesign }
+                        }
+                    }
+                }
+            });
+
+        await SendMailjetEmailAsync(request, ctx);
+    }
+
+    public async Task SendSaveTheDateAsync(string eventName, string displayName, string email, string returnUrl, CancellationToken ctx = default)
+    {
+        var request = new MailjetRequest
+            {
+                Resource = Send.Resource
+            }
+            .Property(Send.Messages, new JArray
+            {
+                new JObject
+                {
+                    {
+                        Send.To, new JArray
+                        {
+                            new JObject
+                            {
+                                { "Email", email },
+                                { "Name", displayName }
+                            }
+                        }
+                    },
+                    { "TemplateID", 8180011 },
+                    {
+                        "Variables", new JObject
+                        {
+                            { "sender_sig", "Patrick & Éadaoin" },
+                            { "display_name", displayName },
+                            { "event_name", eventName },
+                            { "return_url", returnUrl }
                         }
                     }
                 }

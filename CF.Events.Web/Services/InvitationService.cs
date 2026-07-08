@@ -93,7 +93,7 @@ public class InvitationService(
 
             try
             {
-                var callbackUrl = $"{baseUrl}/events/invite-callback?code={invitation.InviteCode}&email={invitation.UserEmail}";
+                var callbackUrl = $"{baseUrl}/events/invite-callback?code={invitation.InviteCode}&id={invitation.UserId}";
 
                 await mailService.SendInvitationAsync(
                     invitation.EventName,

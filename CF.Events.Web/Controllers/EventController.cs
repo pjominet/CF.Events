@@ -18,8 +18,6 @@ namespace CF.Events.Web.Controllers;
 [Route("events")]
 public class EventController(
     EventsDbContext db,
-    UserManager<AppUser> userManager,
-    SignInManager<AppUser> signInManager,
     IInvitationService invitationService,
     IToastNotification toastNotification,
     ILogger<EventController> logger,
@@ -344,7 +342,7 @@ public class EventController(
 
     [HttpGet("invite-callback")]
     [AllowAnonymous]
-    public async Task<IActionResult> InvitationCallback([FromQuery] string code, [FromQuery] string email)
+    public async Task<IActionResult> InvitationCallback([FromQuery] string code, [FromQuery] string id)
     {
         var invitedEventId = await db.InviteCodes
             .Where(c => c.Code == code && c.ValidUntil > DateTime.UtcNow)
@@ -357,26 +355,19 @@ public class EventController(
             return BadRequest();
         }
 
-        var user = await userManager.FindByEmailAsync(email);
+        var user = await db.EventUsers
+            .Where(eu => eu.EventId == invitedEventId && eu.UserId == id)
+            .Select(eu => eu.User)
+            .FirstOrDefaultAsync();
+
         if (user is null || !user.IsActive)
         {
-            logger.LogWarning("User with email {Email} not found or inactive", email);
+            logger.LogWarning("User with id {Id} not found or inactive", id);
             return BadRequest();
         }
 
-        var isInvited = await db.EventUsers.AnyAsync(eu => eu.EventId == invitedEventId && eu.UserId == user.Id);
-        if (!isInvited)
-        {
-            logger.LogWarning("User with email {Email} was not invited to event {EventId}", email, invitedEventId);
-            return BadRequest();
-        }
-
-        if (signInManager.IsSignedIn(User) && User.Identity?.Name == email)
-            return LocalRedirect("/");
-
-        await signInManager.SignInAsync(user, isPersistent: true);
-
-        if (await userManager.HasPasswordAsync(user) && !user.MustChangePassword)
+        if (User.Identity?.IsAuthenticated == true && User.Identity?.Name == user.Email
+            || string.IsNullOrWhiteSpace(user.PasswordHash) && !user.MustChangePassword)
             return LocalRedirect("/");
 
         return RedirectToPage("/account/manage/FirstLogin");

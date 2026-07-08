@@ -13,7 +13,21 @@ public class NoOpMailService(ILogger<NoOpMailService> logger) : IMailService
                 Callback URL: {CallBackUrl}
                 Custom Design: {CustomDesign}
             """,
-            eventName, displayName, email, callBackUrl, customDesign);
+            eventName, displayName, email, callBackUrl, string.IsNullOrEmpty(customDesign) ? "None" : "Yes");
+        return Task.CompletedTask;
+    }
+
+    public Task SendSaveTheDateAsync(string eventName, string displayName, string email, string returnUrl, CancellationToken ctx = default)
+    {
+        logger.LogDebug(
+            """
+            Fake Save the Date sent:
+                Event: {EventName}
+                Display Name: {DisplayName}
+                Email: {Email},
+                Return URL: {ReturnUrl}
+            """,
+            eventName, displayName, email, returnUrl);
         return Task.CompletedTask;
     }
 }
