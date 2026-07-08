@@ -32,4 +32,63 @@
 
     // Initialize on page load
     updateScheduleInput();
+
+    const selectAllCheckbox = document.getElementById('selectAllInvitees');
+    const inviteeCheckboxes = document.querySelectorAll('.invitee-checkbox');
+    const bulkActionButtons = document.querySelectorAll('.bulk-action-btn');
+
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            inviteeCheckboxes.forEach(cb => {
+                cb.checked = this.checked;
+            });
+            updateBulkButtons();
+        });
+    }
+
+    inviteeCheckboxes.forEach(cb => {
+        cb.addEventListener('change', function() {
+            if (!this.checked) {
+                selectAllCheckbox.checked = false;
+            } else {
+                selectAllCheckbox.checked = Array.from(inviteeCheckboxes).every(c => c.checked);
+            }
+            updateBulkButtons();
+        });
+    });
+
+    function updateBulkButtons() {
+        const anyChecked = Array.from(inviteeCheckboxes).some(cb => cb.checked);
+        bulkActionButtons.forEach(btn => {
+            btn.disabled = !anyChecked;
+        });
+    }
+
+    window.executeBulkAction = function(actionType) {
+        const selectedUserIds = Array.from(inviteeCheckboxes)
+            .filter(cb => cb.checked)
+            .map(cb => cb.value);
+
+        if (selectedUserIds.length === 0) return;
+
+        if (actionType === 'remove' && !confirm(`Remove ${selectedUserIds.length} selected invitees?`)) {
+            return;
+        }
+
+        const form = document.getElementById('bulkActionForm');
+        const userIdsInput = document.getElementById('bulkActionUserIds');
+        const actionInput = document.getElementById('bulkActionType');
+
+        userIdsInput.value = selectedUserIds.join(',');
+        actionInput.value = actionType;
+
+        if (actionType === 'resend') {
+            form.action = form.dataset.resendUrl;
+        } else if (actionType === 'remove') {
+            form.action = form.dataset.removeUrl;
+        }
+
+        showLoadingOverlay();
+        form.submit();
+    };
 })();

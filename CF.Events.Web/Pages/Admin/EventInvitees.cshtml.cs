@@ -50,6 +50,32 @@ public class EventInviteesModel(
         return RedirectToPage(new { id });
     }
 
+    public async Task<IActionResult> OnPostBulkRemoveAsync(int id, string userIds)
+    {
+        if (string.IsNullOrWhiteSpace(userIds))
+        {
+            toastNotification.AddWarningToastMessage("No users selected");
+            return RedirectToPage(new { id });
+        }
+
+        var ids = userIds.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+        var userEvents = await db.EventUsers
+            .Where(r => r.EventId == id && ids.Contains(r.UserId))
+            .ToListAsync();
+
+        if (userEvents.Count == 0)
+        {
+            toastNotification.AddWarningToastMessage("No invitees found to remove");
+            return RedirectToPage(new { id });
+        }
+
+        db.EventUsers.RemoveRange(userEvents);
+        await db.SaveChangesAsync();
+
+        toastNotification.AddSuccessToastMessage($"Successfully removed {userEvents.Count} invitees");
+        return RedirectToPage(new { id });
+    }
+
     private async Task<bool> LoadAsync(int id)
     {
         EventData = await db.Events

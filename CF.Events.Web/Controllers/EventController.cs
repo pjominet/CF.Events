@@ -261,6 +261,87 @@ public class EventController(
         }
     }
 
+    [HttpPost("{eventId:int}/resend-invites")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> BulkResendInvite([FromRoute] int eventId, [FromForm] string userIds)
+    {
+        if (string.IsNullOrWhiteSpace(userIds))
+        {
+            toastNotification.AddWarningToastMessage("No users selected");
+            return LocalRedirect($"/admin/events/{eventId}/invitees");
+        }
+
+        var ids = userIds.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+        var eventUsers = await db.EventUsers
+            .Include(eu => eu.User)
+            .Where(eu => eu.EventId == eventId && ids.Contains(eu.UserId))
+            .Select(eu => new { eu.UserId, eu.User.Email, eu.User.DisplayName, eu.InviteCodeId })
+            .ToListAsync();
+
+        if (eventUsers.Count == 0)
+        {
+            toastNotification.AddWarningToastMessage("No users found to resend invitations");
+            return LocalRedirect($"/admin/events/{eventId}/invitees");
+        }
+
+        var eventData = await db.Events
+            .Where(e => e.Id == eventId)
+            .Select(e => new { e.Id, e.Name })
+            .FirstOrDefaultAsync();
+
+        if (eventData is null)
+        {
+            toastNotification.AddWarningToastMessage("Event does not exist");
+            return LocalRedirect($"/admin/events/{eventId}/invitees");
+        }
+
+        var inviteCodeIds = eventUsers.Select(eu => eu.InviteCodeId).Distinct().ToList();
+        var inviteCodes = await db.InviteCodes
+            .Where(c => c.EventId == eventId && inviteCodeIds.Contains(c.Id) && c.ValidUntil > DateTime.UtcNow)
+            .ToDictionaryAsync(c => c.Id, c => c.Code);
+
+        var successCount = 0;
+        foreach (var user in eventUsers)
+        {
+            if (user.InviteCodeId <= 0 || !inviteCodes.TryGetValue(user.InviteCodeId, out var code))
+                continue;
+            try
+            {
+                await invitationService.SendInvitationAsync(new InviteEmailRequest
+                {
+                    EventId = eventData.Id,
+                    EventName = eventData.Name,
+                    UserDisplayName = user.DisplayName!,
+                    UserEmail = user.Email!,
+                    UserId = user.UserId,
+                    InviteCode = code
+                });
+                successCount++;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to resend invitation to {Email}", user.Email);
+            }
+        }
+
+        if (successCount > 0)
+        {
+            var sentIds = eventUsers
+                .Where(u => u.InviteCodeId > 0 && inviteCodes.ContainsKey(u.InviteCodeId))
+                .Select(u => u.UserId)
+                .ToList();
+
+            await db.EventUsers
+                .Where(eu => eu.EventId == eventId && sentIds.Contains(eu.UserId))
+                .ExecuteUpdateAsync(setter => setter.SetProperty(eu => eu.InviteEmailSent, true));
+
+            toastNotification.AddSuccessToastMessage($"Successfully resent {successCount} invitations");
+        }
+        else toastNotification.AddErrorToastMessage("No invitations could be sent. Check if invite codes are valid/expired.");
+
+        return LocalRedirect($"/admin/events/{eventId}/invitees");
+    }
+
     [HttpGet("invite-callback")]
     [AllowAnonymous]
     public async Task<IActionResult> InvitationCallback([FromQuery] string code, [FromQuery] string email)
