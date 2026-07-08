@@ -20,7 +20,7 @@
                 <p class="text-muted mb-0">@Model.EventData?.StartDate.ToLongDateString()</p>
             </div>
             <div class="d-flex mt-auto mb-0 gap-2">
-                <a href="@Url.Action("ExportInvitees", "Event", new { eventId = Model.EventData!.Id })" class="btn btn-outline-success">
+                <a href="@Url.Action("ExportInvitees", "Event", new { eventId = Model.EventData!.Id })" class="btn btn-outline-success" id="exportExcelBtn">
                     <i class="bi bi-file-earmark-spreadsheet me-1"></i>Export to Excel
                 </a>
                 <button type="button" class="btn btn-outline-primary" title="Regenerate Code"

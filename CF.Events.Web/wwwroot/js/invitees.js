@@ -135,4 +135,29 @@
             }
         });
     }
+
+    // Export Excel with loading spinner
+    const exportExcelBtn = document.getElementById('exportExcelBtn');
+    if (exportExcelBtn) {
+        exportExcelBtn.addEventListener('click', function (e) {
+            showLoadingOverlay();
+
+            // Check for cookie to hide overlay
+            const checkCookie = setInterval(function () {
+                const cookieName = "fileDownload";
+                if (document.cookie.indexOf(cookieName + "=") !== -1) {
+                    // Delete the cookie
+                    document.cookie = cookieName + '=; Max-Age=-99999999; Path=/;';
+
+                    // Small delay before hiding to ensure the download started
+                    setTimeout(function() {
+                        const overlay = document.getElementById('globalLoadingOverlay');
+                        if (overlay) overlay.classList.remove('active');
+                    }, 1000);
+
+                    clearInterval(checkCookie);
+                }
+            }, 500);
+        });
+    }
 })();

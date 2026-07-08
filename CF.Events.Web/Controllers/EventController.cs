@@ -31,6 +31,7 @@ public class EventController(
         try
         {
             var (bytes, fileName) = await exportService.ExportInviteesToExcelAsync(eventId);
+            Response.Cookies.Append("fileDownload", "true", new CookieOptions { HttpOnly = false, SameSite = SameSiteMode.Lax });
             return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
         catch (ArgumentException ex)
