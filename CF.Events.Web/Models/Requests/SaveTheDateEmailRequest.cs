@@ -1,11 +1,12 @@
 namespace CF.Events.Web.Models.Requests;
 
-public class SaveTheDateEmailRequest
+public class SaveTheDateEmailRequest : IEmailRequest
 {
     public required string TemplateId { get; init; }
+    public int EventId { get; set; }
     public required string EventName { get; init; }
+    public required string UserId { get; set; }
     public required string UserName { get; init; }
-    public required string Email { get; init; }
-    public required string ReturnUrl { get; init; }
-    public IEnumerable<EmailInlineAttachment> InlineAttachments { get; init; } = [];
+    public required string UserEmail { get; init; }
+    public IEnumerable<InlineAttachment> InlineAttachments { get; init; } = [];
 }

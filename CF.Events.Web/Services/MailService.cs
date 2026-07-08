@@ -14,7 +14,7 @@ public class MailService(IEmailProvider emailProvider) : IMailService
             { "event_name", request.EventName }
         };
 
-        await emailProvider.SendTemplatedEmailAsync(request.TemplateId, request.Email, variables, request.InlineAttachments, ctx);
+        await emailProvider.SendTemplatedEmailAsync(request.TemplateId, request.UserEmail, variables, request.InlineAttachments, ctx);
     }
 
     public async Task SendSaveTheDateAsync(SaveTheDateEmailRequest request, CancellationToken ctx = default)
@@ -23,10 +23,9 @@ public class MailService(IEmailProvider emailProvider) : IMailService
         {
             { "sender_sig", "Patrick & Éadaoin" },
             { "user_name", request.UserName },
-            { "event_name", request.EventName },
-            { "return_url", request.ReturnUrl }
+            { "event_name", request.EventName }
         };
 
-        await emailProvider.SendTemplatedEmailAsync(request.TemplateId, request.Email, variables, request.InlineAttachments, ctx);
+        await emailProvider.SendTemplatedEmailAsync(request.TemplateId, request.UserEmail, variables, request.InlineAttachments, ctx);
     }
 }

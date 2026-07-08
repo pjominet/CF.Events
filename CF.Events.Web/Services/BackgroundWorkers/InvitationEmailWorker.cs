@@ -18,7 +18,7 @@ public class InvitationEmailWorker(
             {
                 using var scope = scopeFactory.CreateScope();
                 var emailInvitationService = scope.ServiceProvider.GetRequiredService<IInvitationService>();
-                await emailInvitationService.ProcessPendingInvitationsAsync(stoppingToken);
+                await emailInvitationService.ProcessPendingEmails(stoppingToken);
             }
             catch (Exception ex)
             {

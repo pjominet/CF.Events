@@ -228,18 +228,20 @@ public class EventController(
 
             var newInvitations = await db.EventUsers
                 .Where(ue => ue.EventId == eventId && newUserIds.Contains(ue.UserId))
-                .Select(ue => new InviteEmailRequest
+                .Select(ue => new InvitationEmailRequest
                 {
+                    TemplateId = ue.Event.InvitationTemplateId ?? string.Empty,
                     EventId = ue.EventId,
                     UserId = ue.UserId,
                     EventName = ue.Event.Name,
-                    UserDisplayName = ue.User.DisplayName!,
+                    UserName = ue.User.DisplayName!,
                     UserEmail = ue.User.Email!,
-                    InviteCode = inviteCode
+                    InviteCode = inviteCode,
+                    CallBackUrl = (invitationService.AppSettings.BaseUrl ?? string.Empty).TrimEnd('/') + "/events/invite-callback?code=" + inviteCode + "&id=" + ue.UserId
                 })
                 .ToListAsync();
 
-            await invitationService.SendImmediateInvitationsAsync(newInvitations);
+            await invitationService.SendImmediateEmails(newInvitations);
         }
 
         toastNotification.AddSuccessToastMessage($"Successfully created {count} invitations");
@@ -263,12 +265,12 @@ public class EventController(
         }
 
         // get invite codes
-        var eventData = await db.Events
+        var @event = await db.Events
             .Where(e => e.Id == eventId)
             .Select(e => new { e.Id, e.Name })
             .FirstOrDefaultAsync();
 
-        if (eventData is null)
+        if (@event is null)
         {
             toastNotification.AddWarningToastMessage("Event does not exist");
             return RedirectToPage($"/admin/events/{eventId}/invitees");
@@ -288,21 +290,17 @@ public class EventController(
         try
         {
             logger.LogInformation("Re-sending invitation to {Email}", eventUser.Email);
-            await invitationService.SendInvitationAsync(new InviteEmailRequest
+            await invitationService.SendEmail(new InvitationEmailRequest
             {
-                EventId = eventData.Id,
-                EventName = eventData.Name,
-                UserDisplayName = eventUser.DisplayName!,
+                TemplateId = await db.Events.Where(e => e.Id == @event.Id).Select(e => e.InvitationTemplateId).FirstOrDefaultAsync() ?? string.Empty,
+                EventId = @event.Id,
+                EventName = @event.Name,
+                UserName = eventUser.DisplayName!,
                 UserEmail = eventUser.Email!,
                 UserId = userId,
-                InviteCode = inviteCode
+                InviteCode = inviteCode,
+                CallBackUrl = (invitationService.AppSettings.BaseUrl ?? string.Empty).TrimEnd('/') + "/events/invite-callback?code=" + inviteCode + "&id=" + userId
             });
-
-            await db.EventUsers
-                .Where(eu => eu.EventId == eventId && eu.UserId == userId)
-                .ExecuteUpdateAsync(setter => setter.SetProperty(eu => eu.InviteEmailSent, true));
-
-            await db.SaveChangesAsync();
 
             toastNotification.AddSuccessToastMessage("Successfully resent invitation");
             return LocalRedirect($"/admin/events/{eventId}/invitees");
@@ -339,7 +337,7 @@ public class EventController(
 
         var eventData = await db.Events
             .Where(e => e.Id == eventId)
-            .Select(e => new { e.Id, e.Name })
+            .Select(e => new { e.Id, e.Name, e.InvitationTemplateId })
             .FirstOrDefaultAsync();
 
         if (eventData is null)
@@ -353,42 +351,31 @@ public class EventController(
             .Where(c => c.EventId == eventId && inviteCodeIds.Contains(c.Id) && c.ValidUntil > DateTime.UtcNow)
             .ToDictionaryAsync(c => c.Id, c => c.Code);
 
-        var successCount = 0;
+        var requests = new List<InvitationEmailRequest>();
+        var baseUrl = (invitationService.AppSettings.BaseUrl ?? string.Empty).TrimEnd('/');
+
         foreach (var user in eventUsers)
         {
             if (user.InviteCodeId <= 0 || !inviteCodes.TryGetValue(user.InviteCodeId, out var code))
                 continue;
-            try
+
+            requests.Add(new InvitationEmailRequest
             {
-                await invitationService.SendInvitationAsync(new InviteEmailRequest
-                {
-                    EventId = eventData.Id,
-                    EventName = eventData.Name,
-                    UserDisplayName = user.DisplayName!,
-                    UserEmail = user.Email!,
-                    UserId = user.UserId,
-                    InviteCode = code
-                });
-                successCount++;
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Failed to resend invitation to {Email}", user.Email);
-            }
+                TemplateId = eventData.InvitationTemplateId ?? string.Empty,
+                EventId = eventData.Id,
+                EventName = eventData.Name,
+                UserName = user.DisplayName!,
+                UserEmail = user.Email!,
+                UserId = user.UserId,
+                InviteCode = code,
+                CallBackUrl = $"{baseUrl}/events/invite-callback?code={code}&id={user.UserId}"
+            });
         }
 
-        if (successCount > 0)
+        if (requests.Count > 0)
         {
-            var sentIds = eventUsers
-                .Where(u => u.InviteCodeId > 0 && inviteCodes.ContainsKey(u.InviteCodeId))
-                .Select(u => u.UserId)
-                .ToList();
-
-            await db.EventUsers
-                .Where(eu => eu.EventId == eventId && sentIds.Contains(eu.UserId))
-                .ExecuteUpdateAsync(setter => setter.SetProperty(eu => eu.InviteEmailSent, true));
-
-            toastNotification.AddSuccessToastMessage($"Successfully resent {successCount} invitations");
+            await invitationService.SendImmediateEmails(requests);
+            toastNotification.AddSuccessToastMessage($"Successfully resent {requests.Count} invitations");
         }
         else toastNotification.AddErrorToastMessage("No invitations could be sent. Check if invite codes are valid/expired.");
 

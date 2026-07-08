@@ -1,5 +1,7 @@
-﻿using CF.Events.Web.Data;
+﻿using System.Linq.Expressions;
+using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure.Settings;
+using CF.Events.Web.Models;
 using CF.Events.Web.Models.Requests;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -8,9 +10,10 @@ namespace CF.Events.Web.Services;
 
 public interface IInvitationService
 {
-    Task<int> ProcessPendingInvitationsAsync(CancellationToken ctx = default);
-    Task SendImmediateInvitationsAsync(List<InviteEmailRequest> invitations, CancellationToken ctx = default);
-    Task SendInvitationAsync(InviteEmailRequest inviteEmailRequest, CancellationToken ctx = default);
+    AppSettings AppSettings { get; }
+    Task<int> ProcessPendingEmails(CancellationToken ctx = default);
+    Task SendImmediateEmails<T>(List<T> requests, CancellationToken ctx = default) where T : class, IEmailRequest;
+    Task SendEmail<T>(T request, CancellationToken ctx = default) where T : class, IEmailRequest;
 }
 
 public class InvitationService(
@@ -19,103 +22,127 @@ public class InvitationService(
     IOptions<AppSettings> appOptions,
     ILogger<InvitationService> logger) : IInvitationService
 {
+    public AppSettings AppSettings { get; } = appOptions.Value;
     private readonly AppSettings _appSettings = appOptions.Value;
 
-    public async Task<int> ProcessPendingInvitationsAsync(CancellationToken ctx = default)
+    public async Task<int> ProcessPendingEmails(CancellationToken ctx = default)
     {
-        var batchSize = _appSettings.EmailBatchSize ?? int.MaxValue;
+        var baseUrl = _appSettings.BaseUrl?.TrimEnd('/');
 
-        var pendingInvitations = await db.EventUsers
-            .Where(ue => !ue.InviteEmailSent && ue.ScheduledFor != null && ue.ScheduledFor <= DateTime.UtcNow)
-            .OrderBy(ue => ue.ScheduledFor)
-            .Take(batchSize)
-            .Select(ue => new InviteEmailRequest
+        var sentInvitations = await ProcessPendingType<InvitationEmailRequest>(
+            ue => !ue.InviteEmailSent && ue.ScheduledFor != null && ue.ScheduledFor <= DateTime.UtcNow,
+            ue => new InvitationEmailRequest
             {
                 EventId = ue.EventId,
                 UserId = ue.UserId,
                 EventName = ue.Event.Name,
-                UserDisplayName = ue.User.DisplayName!,
+                UserName = ue.User.DisplayName!,
                 UserEmail = ue.User.Email!,
-                InviteCode = ue.Event.InviteCodes
-                    .OrderByDescending(c => c.CreatedAt)
-                    .Select(c => c.Code)
-                    .FirstOrDefault()
-            })
-            .AsSplitQuery()
-            .ToListAsync(ctx);
+                TemplateId = ue.Event.InvitationTemplateId ?? string.Empty,
+                InviteCode = ue.InviteCode.Code,
+                CallBackUrl = baseUrl + "/events/invite-callback?code=" + ue.InviteCode.Code + "&id=" + ue.UserId
+            }, ctx);
 
-        if (pendingInvitations.Count == 0) return 0;
+        var sentSaveTheDates = await ProcessPendingType<SaveTheDateEmailRequest>(
+            ue => !ue.SaveTheDateEmailSent && ue.ScheduledFor != null && ue.ScheduledFor <= DateTime.UtcNow,
+            ue => new SaveTheDateEmailRequest
+            {
+                EventId = ue.EventId,
+                UserId = ue.UserId,
+                EventName = ue.Event.Name,
+                UserName = ue.User.DisplayName!,
+                UserEmail = ue.User.Email!,
+                TemplateId = ue.Event.SaveDateTemplateId ?? string.Empty
+            }, ctx);
 
-        logger.LogInformation("Processing {Count} pending invitation emails", pendingInvitations.Count);
-
-        var sentCount = await SendInvitationEmailsAsync(pendingInvitations, ctx);
-
-        return sentCount;
+        return sentInvitations + sentSaveTheDates;
     }
 
-    public async Task SendImmediateInvitationsAsync(List<InviteEmailRequest> invitations, CancellationToken ctx = default)
+    private async Task<int> ProcessPendingType<T>(
+        Expression<Func<EventUser, bool>> predicate,
+        Expression<Func<EventUser, T>> selector,
+        CancellationToken ctx) where T : class, IEmailRequest
     {
         var batchSize = _appSettings.EmailBatchSize ?? int.MaxValue;
 
-        if (invitations.Count == 0) return;
+        var pending = await db.EventUsers
+            .Where(predicate)
+            .OrderBy(ue => ue.ScheduledFor)
+            .Take(batchSize)
+            .Select(selector)
+            .ToListAsync(ctx);
 
-        if (invitations.Count > batchSize)
-        {
-            logger.LogInformation("Immediate invite count {Count} exceeds batch size {BatchSize}. Sending first batch and scheduling remaining for worker", invitations.Count, batchSize);
+        if (pending.Count == 0) return 0;
 
-            // Set ScheduledFor to UtcNow for all event users, so the worker picks up the rest
-            var eventUsers = invitations
-                .Select(i => new { i.EventId, i.UserId })
-                .ToList();
-            await db.EventUsers
-                .Where(ue => !ue.InviteEmailSent && eventUsers.Contains(new { ue.EventId, ue.UserId }))
-                .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.ScheduledFor, DateTime.UtcNow), ctx);
+        logger.LogInformation("Processing {Count} pending {Type} emails", pending.Count, typeof(T).Name);
 
-            // Send the only first batch immediately
-            invitations = invitations.Take(batchSize).ToList();
-        }
+        await SendImmediateEmails(pending, ctx);
 
-        await SendInvitationEmailsAsync(invitations, ctx);
+        return pending.Count;
     }
 
-    public async Task SendInvitationAsync(InviteEmailRequest inviteEmailRequest, CancellationToken ctx = default)
-        => await SendInvitationEmailsAsync([inviteEmailRequest], ctx);
-
-    private async Task<int> SendInvitationEmailsAsync(List<InviteEmailRequest> invitations, CancellationToken ctx)
+    public async Task SendImmediateEmails<T>(List<T> requests, CancellationToken ctx = default) where T : class, IEmailRequest
     {
-        var sentCount = 0;
-        var baseUrl = _appSettings.BaseUrl?.TrimEnd('/');
+        if (requests.Count == 0) return;
 
-        foreach (var invitation in invitations)
+        var batchSize = _appSettings.EmailBatchSize ?? int.MaxValue;
+        var toSendImmediately = requests;
+
+        if (requests.Count > batchSize)
         {
-            if (ctx.IsCancellationRequested) break;
+            logger.LogInformation("Immediate {Type} count {Count} exceeds batch size {BatchSize}. Sending first batch and scheduling remaining for worker",
+                typeof(T).Name, requests.Count, batchSize);
 
-            try
+            var remainingRequests = requests.Skip(batchSize).Select(r => new { r.EventId, r.UserId }).ToList();
+
+            foreach (var request in remainingRequests)
             {
-                var callbackUrl = $"{baseUrl}/events/invite-callback?code={invitation.InviteCode}&id={invitation.UserId}";
-
-                await mailService.SendInvitationAsync(new InvitationEmailRequest
-                {
-                    TemplateId = "0",
-                    EventName = invitation.EventName,
-                    UserName = invitation.UserDisplayName,
-                    Email = invitation.UserEmail,
-                    CallBackUrl = callbackUrl
-                }, ctx);
-
                 await db.EventUsers
-                    .Where(ue => ue.EventId == invitation.EventId && ue.UserId == invitation.UserId)
-                    .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.InviteEmailSent, true), ctx);
+                    .Where(ue => ue.EventId == request.EventId && ue.UserId == request.UserId)
+                    .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.ScheduledFor, DateTime.UtcNow), ctx);
+            }
 
-                sentCount++;
-                logger.LogInformation("Sent invitation email to {Email} for event {EventName}", invitation.UserEmail, invitation.EventName);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Failed to send invitation email to {Email}", invitation.UserEmail);
-            }
+            toSendImmediately = requests.Take(batchSize).ToList();
         }
 
-        return sentCount;
+        foreach (var request in toSendImmediately)
+        {
+            if (ctx.IsCancellationRequested) break;
+            await SendEmail(request, ctx);
+        }
+    }
+
+    public async Task SendEmail<T>(T request, CancellationToken ctx = default) where T : class, IEmailRequest
+    {
+        try
+        {
+            switch (request)
+            {
+                case InvitationEmailRequest inv when string.IsNullOrEmpty(inv.TemplateId):
+                    logger.LogWarning("No invitation template ID found for event {EventId}", inv.EventId);
+                    return;
+                case InvitationEmailRequest inv:
+                    await mailService.SendInvitationAsync(inv, ctx);
+                    await db.EventUsers
+                        .Where(ue => ue.EventId == inv.EventId && ue.UserId == inv.UserId)
+                        .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.InviteEmailSent, true), ctx);
+                    break;
+                case SaveTheDateEmailRequest std when string.IsNullOrEmpty(std.TemplateId):
+                    logger.LogWarning("No save the date template ID found for event {EventId}", std.EventId);
+                    return;
+                case SaveTheDateEmailRequest std:
+                    await mailService.SendSaveTheDateAsync(std, ctx);
+                    await db.EventUsers
+                        .Where(ue => ue.EventId == std.EventId && ue.UserId == std.UserId)
+                        .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.SaveTheDateEmailSent, true), ctx);
+                    break;
+            }
+
+            logger.LogInformation("Sent {Type} email to {Email} for event {EventName}", typeof(T).Name, request.UserEmail, request.EventName);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to send {Type} email to {Email}", typeof(T).Name, request.UserEmail);
+        }
     }
 }

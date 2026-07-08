@@ -1,5 +1,4 @@
 ﻿using CF.Events.Web.Data;
-using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Models;
 using CF.Events.Web.Models.Requests;
 using CF.Events.Web.Services;
@@ -8,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using NToastNotify;
 using static CF.Events.Web.Infrastructure.Constants;
 
@@ -17,11 +15,9 @@ namespace CF.Events.Web.Pages.Admin;
 [Authorize(Roles = Roles.Admin)]
 public class EventInviteesModel(
     EventsDbContext db,
-    IOptions<AppSettings> appOptions,
-    IMailService mailService,
+    IInvitationService inviteService,
     IToastNotification toastNotification) : PageModel
 {
-    private readonly AppSettings _appSettings = appOptions.Value;
 
     public Event? EventData { get; private set; }
     public List<SelectListItem> CurrentInviteCodes { get; private set; } = [];
@@ -107,21 +103,15 @@ public class EventInviteesModel(
             return RedirectToPage(new { id });
         }
 
-        await mailService.SendSaveTheDateAsync(new SaveTheDateEmailRequest
+        await inviteService.SendEmail(new SaveTheDateEmailRequest
         {
             TemplateId = @event.SaveDateTemplateId,
+            EventId = @event.Id,
             EventName = @event.Name,
+            UserId = userId,
             UserName = user.DisplayName!,
-            Email = user.Email!,
-            ReturnUrl = _appSettings.BaseUrl ?? string.Empty
+            UserEmail = user.Email!
         });
-
-        var eventUser = await db.EventUsers.FirstOrDefaultAsync(eu => eu.EventId == id && eu.UserId == userId);
-        if (eventUser != null)
-        {
-            eventUser.SaveTheDateEmailSent = true;
-            await db.SaveChangesAsync();
-        }
 
         toastNotification.AddSuccessToastMessage($"Save the Date email sent to {user.DisplayName}");
 
@@ -150,41 +140,28 @@ public class EventInviteesModel(
         }
 
         var ids = userIds.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
-        var users = await db.Users
-            .Where(u => ids.Contains(u.Id) && u.IsActive)
+        var requests = await db.EventUsers
+            .Where(eu => eu.EventId == id && ids.Contains(eu.UserId) && eu.User.IsActive)
+            .Select(eu => new SaveTheDateEmailRequest
+            {
+                TemplateId = eu.Event.SaveDateTemplateId!,
+                EventId = eu.EventId,
+                EventName = eu.Event.Name,
+                UserName = eu.User.DisplayName!,
+                UserId = eu.UserId,
+                UserEmail = eu.User.Email!
+            })
             .ToListAsync();
 
-        if (users.Count == 0)
+        if (requests.Count == 0)
         {
-            toastNotification.AddWarningToastMessage("No users found");
+            toastNotification.AddWarningToastMessage("No users found or eligible for Save the Date");
             return RedirectToPage(new { id });
         }
 
-        var count = 0;
-        foreach (var user in users)
-        {
-            await mailService.SendSaveTheDateAsync(new SaveTheDateEmailRequest
-            {
-                TemplateId = @event.SaveDateTemplateId,
-                EventName = @event.Name,
-                UserName = user.DisplayName!,
-                Email = user.Email!,
-                ReturnUrl = _appSettings.BaseUrl ?? string.Empty
-            });
-            count++;
-        }
+        await inviteService.SendImmediateEmails(requests);
 
-        var eventUsers = await db.EventUsers
-            .Where(eu => eu.EventId == id && ids.Contains(eu.UserId))
-            .ToListAsync();
-
-        foreach (var eu in eventUsers)
-        {
-            eu.SaveTheDateEmailSent = true;
-        }
-        await db.SaveChangesAsync();
-
-        toastNotification.AddSuccessToastMessage($"Successfully sent {count} Save the Date emails");
+        toastNotification.AddSuccessToastMessage($"Successfully sent {requests.Count} Save the Date emails");
 
         return RedirectToPage(new { id });
     }

@@ -15,7 +15,7 @@ public class NoOpMailService(ILogger<NoOpMailService> logger) : IMailService
                 Callback URL: {CallBackUrl}
                 Inlines: {InlineCount}
             """,
-            request.EventName, request.UserName, request.Email, request.CallBackUrl, request.InlineAttachments.Count());
+            request.EventName, request.UserName, request.UserEmail, request.CallBackUrl, request.InlineAttachments.Count());
         return Task.CompletedTask;
     }
 
@@ -28,10 +28,9 @@ public class NoOpMailService(ILogger<NoOpMailService> logger) : IMailService
                 Event: {EventName}
                 Display Name: {DisplayName}
                 Email: {Email},
-                Return URL: {ReturnUrl}
-                Inlines: {InlineCount}
+                Inline Attachment Count: {InlineCount}
             """,
-            request.TemplateId, request.EventName, request.UserName, request.Email, request.ReturnUrl, request.InlineAttachments.Count());
+            request.TemplateId, request.EventName, request.UserName, request.UserEmail, request.InlineAttachments.Count());
         return Task.CompletedTask;
     }
 }

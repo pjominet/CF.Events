@@ -37,6 +37,9 @@ public class Event
     [StringLength(255)]
     public string? SaveDateTemplateId { get; set; }
 
+    [StringLength(255)]
+    public string? InvitationTemplateId { get; set; }
+
     public bool IsActive { get; set; } = true;
 
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;

@@ -10,7 +10,7 @@ public class Smtp2GoEmailProvider(IApiService smtp2GoClient, IOptions<AppSetting
 {
     private readonly EmailProviderSettings _settings = settings.Value.EmailProviderSettings;
 
-    public async Task SendTemplatedEmailAsync(string templateId, string to, IDictionary<string, string> variables, IEnumerable<EmailInlineAttachment>? inlineAttachments = null, CancellationToken ctx = default)
+    public async Task SendTemplatedEmailAsync(string templateId, string to, IDictionary<string, string> variables, IEnumerable<InlineAttachment>? inlineAttachments = null, CancellationToken ctx = default)
     {
         var message = new TemplatedEmailMessage(templateId, _settings.SenderEmail, to);
 
