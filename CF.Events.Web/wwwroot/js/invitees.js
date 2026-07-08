@@ -68,19 +68,23 @@
         });
     }
 
-    window.executeBulkAction = function (actionType) {
+    window.executeBulkAction = async function (actionType) {
         const selectedUserIds = Array.from(inviteeCheckboxes)
             .filter(cb => cb.checked)
             .map(cb => cb.value);
 
         if (selectedUserIds.length === 0) return;
 
-        if (actionType === 'remove' && !confirm(`Remove ${selectedUserIds.length} selected invitees?`)) {
-            return;
+        if (actionType === 'remove') {
+            const confirmed = await window.customConfirm(`Remove ${selectedUserIds.length} selected invitees?`);
+            if (!confirmed) return;
         }
 
-        if (actionType === 'save-the-date' && !confirm(`Send Save the Date email to ${selectedUserIds.length} selected invitees?`)) {
-            return;
+        if (actionType === 'save-the-date') {
+            const confirmed = await window.customConfirm(`Send Save the Date email to ${selectedUserIds.length} selected invitees?`, {
+                confirmClass: 'btn-primary'
+            });
+            if (!confirmed) return;
         }
 
         const form = document.getElementById('bulkActionForm');

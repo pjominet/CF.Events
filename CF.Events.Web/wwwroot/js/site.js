@@ -24,12 +24,80 @@
         });
     }
 
+    // Custom confirm modal wrapper
+    window.customConfirm = function (message, options = {}) {
+        return new Promise((resolve) => {
+            const modalEl = document.getElementById('confirmModal');
+            if (!modalEl) {
+                console.warn('Confirm modal not found, falling back to window.confirm');
+                resolve(window.confirm(message));
+                return;
+            }
+
+            const messageEl = document.getElementById('confirmModalMessage');
+            const confirmBtn = document.getElementById('confirmModalConfirmBtn');
+            const cancelBtn = document.getElementById('confirmModalCancelBtn');
+            const titleEl = document.getElementById('confirmModalLabel');
+
+            if (messageEl) messageEl.textContent = message;
+            if (options.title && titleEl) titleEl.textContent = options.title;
+            if (options.confirmText && confirmBtn) confirmBtn.textContent = options.confirmText;
+            if (options.cancelText && cancelBtn) cancelBtn.textContent = options.cancelText;
+
+            if (confirmBtn) {
+                confirmBtn.className = 'btn ' + (options.confirmClass || 'btn-danger');
+            }
+
+            // eslint-disable-next-line no-undef
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+            const onConfirm = () => {
+                cleanup();
+                resolve(true);
+                modal.hide();
+            };
+
+            const onCancel = () => {
+                cleanup();
+                resolve(false);
+                modal.hide();
+            };
+
+            const cleanup = () => {
+                confirmBtn.removeEventListener('click', onConfirm);
+                cancelBtn.removeEventListener('click', onCancel);
+            };
+
+            confirmBtn.addEventListener('click', onConfirm);
+            cancelBtn.addEventListener('click', onCancel);
+
+            modal.show();
+        });
+    }
+
     // Lightweight confirm wrapper for elements with data-confirm="message".
     function initConfirms() {
         document.querySelectorAll('[data-confirm]').forEach(function (el) {
-            el.addEventListener("submit", function (e) {
-                if (!window.confirm(el.getAttribute("data-confirm"))) {
-                    e.preventDefault();
+            const tagName = el.tagName.toLowerCase();
+            const eventName = (tagName === 'form') ? 'submit' : 'click';
+
+            el.addEventListener(eventName, async function (e) {
+                if (el.dataset.confirming) return;
+
+                e.preventDefault();
+                e.stopImmediatePropagation();
+
+                const message = el.getAttribute("data-confirm");
+                const confirmed = await window.customConfirm(message);
+
+                if (confirmed) {
+                    el.dataset.confirming = "true";
+                    if (tagName === 'form') {
+                        el.submit();
+                    } else {
+                        el.click();
+                    }
+                    delete el.dataset.confirming;
                 }
             });
         });

@@ -243,7 +243,7 @@
                                         </button>
                                     </form>
                                     <form method="post" asp-page-handler="Remove" asp-route-id="@Model.EventData!.Id" class="d-inline"
-                                          onsubmit="return confirm('Remove @invitee.DisplayName from this event?');">
+                                          data-confirm="Remove @invitee.DisplayName from this event?">
                                         <input type="hidden" name="userId" value="@invitee.UserId"/>
                                         <button type="submit" class="btn btn-danger btn-sm" title="Remove invitee" data-bs-toggle="tooltip">
                                             <i class="bi bi-x-lg"></i>

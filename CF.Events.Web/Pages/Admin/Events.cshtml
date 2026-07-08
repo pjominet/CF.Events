@@ -84,7 +84,7 @@
                                         <i class="bi bi-people"></i>
                                     </a>
                                     <form method="post" asp-page-handler="Delete" asp-route-id="@eventData.Id"
-                                          onsubmit="return confirm('Delete event &quot;@eventData.Name&quot; and all its invitations? This cannot be undone.');">
+                                          data-confirm="Delete event &quot;@eventData.Name&quot; and all its invitations? This cannot be undone.">
                                         <button type="submit" class="btn btn-danger btn-sm rounded-start-0 rounded-end-1" title="Delete Event" data-bs-toggle="tooltip">
                                             <i class="bi bi-trash"></i>
                                         </button>
