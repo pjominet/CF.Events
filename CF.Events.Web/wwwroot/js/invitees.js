@@ -21,9 +21,11 @@
     const accommodationToggle = document.querySelector('[name="NewInvite.AllowAccommodationCode"]');
     if (accommodationToggle) {
         accommodationToggle.addEventListener('change', function() {
-            const codeWrapper = document.getElementById('accommodationCodeWrapper');
-            if (!!codeWrapper) {
-                codeWrapper.style.display = this.checked ? 'block' : 'none';
+            const codeSelect = document.querySelector('select[name="SelectedAccommodationCode"]');
+            console.log(codeSelect);
+            if (!!codeSelect) {
+                codeSelect.disabled = !this.checked;
+                codeSelect.required = this.checked;
             }
         });
     }
