@@ -30,8 +30,8 @@ public class EventController(
     {
         try
         {
-            var (bytes, fileName) = await exportService.ExportInviteesToCsvAsync(eventId);
-            return File(bytes, "text/csv", fileName);
+            var (bytes, fileName) = await exportService.ExportInviteesToExcelAsync(eventId);
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
         catch (ArgumentException ex)
         {
