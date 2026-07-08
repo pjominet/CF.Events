@@ -23,11 +23,11 @@
                         <label class="form-label fw-bold">Roles</label>
                         <div class="d-flex gap-3">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="SelectedRoles" value="@Roles.User" id="roleUser" @(Model.SelectedRoles.Contains(Roles.User) ? "checked" : "")>
+                                <input class="form-check-input" type="checkbox" name="NewUser.SelectedRoles" value="@Roles.User" id="roleUser">
                                 <label class="form-check-label" for="roleUser">@Roles.User</label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="SelectedRoles" value="@Roles.Guest" id="roleGuest" @(Model.SelectedRoles.Contains(Roles.Guest) ? "checked" : "")>
+                                <input class="form-check-input" type="checkbox" name="NewUser.SelectedRoles" value="@Roles.Guest" id="roleGuest" checked>
                                 <label class="form-check-label" for="roleGuest">@Roles.Guest</label>
                             </div>
                         </div>

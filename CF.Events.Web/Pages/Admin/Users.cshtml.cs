@@ -52,13 +52,14 @@ public class UsersModel(
             return Page();
         }
 
-        if (NewUser.SelectedRoles.Count > 0)
+        if (NewUser.SelectedRoles is { Count: > 0 })
             result = await userManager.AddToRolesAsync(user, NewUser.SelectedRoles);
         else result = await userManager.AddToRoleAsync(user, Roles.Guest);
 
         if (result.Succeeded)
             toastNotification.AddSuccessToastMessage($"Added user {NewUser.Email}");
-        else toastNotification.AddErrorToastMessage($"Failed to add user {NewUser.Email}");
+        else
+            toastNotification.AddErrorToastMessage($"Failed to add roles for user {NewUser.Email}");
 
         return RedirectToPage();
     }
@@ -134,6 +135,63 @@ public class UsersModel(
         return RedirectToPage();
     }
 
+    public async Task<IActionResult> OnPostDeleteAsync(string userId)
+    {
+        var user = await userManager.FindByIdAsync(userId);
+        if (user is null)
+        {
+            toastNotification.AddWarningToastMessage("User not found");
+            return RedirectToPage();
+        }
+
+        if (user.IsActive)
+        {
+            toastNotification.AddErrorToastMessage("Only deactivated users can be deleted");
+            return RedirectToPage();
+        }
+
+        var result = await userManager.DeleteAsync(user);
+        if (result.Succeeded)
+            toastNotification.AddSuccessToastMessage($"Deleted user {user.Email}");
+        else toastNotification.AddErrorToastMessage($"Failed to delete user {user.Email}");
+
+        return RedirectToPage();
+    }
+
+    public async Task<IActionResult> OnPostBulkDeleteAsync(string userIds)
+    {
+        if (string.IsNullOrEmpty(userIds))
+            return RedirectToPage();
+
+        var ids = userIds.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        var count = 0;
+        var failed = 0;
+
+        foreach (var id in ids)
+        {
+            var user = await userManager.FindByIdAsync(id);
+            if (user == null) continue;
+
+            if (user.IsActive)
+            {
+                failed++;
+                continue;
+            }
+
+            var result = await userManager.DeleteAsync(user);
+            if (result.Succeeded) count++;
+            else failed++;
+        }
+
+        if (count > 0)
+            toastNotification.AddSuccessToastMessage($"Successfully deleted {count} users");
+
+        if (failed > 0)
+            toastNotification.AddErrorToastMessage($"Failed to delete {failed} users (they might be active or system protected)");
+
+        return RedirectToPage();
+    }
+
     public record UserRow(string Id, string Email, string Phone, string DisplayName, bool IsActive, IList<string> Roles, bool MustChangePassword);
 
     public sealed class InputModel
@@ -145,7 +203,7 @@ public class UsersModel(
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        public List<string> SelectedRoles { get; set; } = [Roles.Guest];
+        public List<string> SelectedRoles { get; set; } = [];
     }
 
 }
