@@ -107,7 +107,14 @@ public class EventInviteesModel(
             return RedirectToPage(new { id });
         }
 
-        await mailService.SendSaveTheDateAsync(@event.SaveDateTemplateId, @event.Name, user.DisplayName!, user.Email!, _appSettings.BaseUrl ?? string.Empty);
+        await mailService.SendSaveTheDateAsync(new SaveTheDateEmailRequest
+        {
+            TemplateId = @event.SaveDateTemplateId,
+            EventName = @event.Name,
+            UserName = user.DisplayName!,
+            Email = user.Email!,
+            ReturnUrl = _appSettings.BaseUrl ?? string.Empty
+        });
 
         var eventUser = await db.EventUsers.FirstOrDefaultAsync(eu => eu.EventId == id && eu.UserId == userId);
         if (eventUser != null)
@@ -156,7 +163,14 @@ public class EventInviteesModel(
         var count = 0;
         foreach (var user in users)
         {
-            await mailService.SendSaveTheDateAsync(@event.SaveDateTemplateId, @event.Name, user.DisplayName!, user.Email!, _appSettings.BaseUrl ?? string.Empty);
+            await mailService.SendSaveTheDateAsync(new SaveTheDateEmailRequest
+            {
+                TemplateId = @event.SaveDateTemplateId,
+                EventName = @event.Name,
+                UserName = user.DisplayName!,
+                Email = user.Email!,
+                ReturnUrl = _appSettings.BaseUrl ?? string.Empty
+            });
             count++;
         }
 

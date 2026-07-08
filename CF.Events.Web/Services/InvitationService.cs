@@ -94,12 +94,14 @@ public class InvitationService(
             {
                 var callbackUrl = $"{baseUrl}/events/invite-callback?code={invitation.InviteCode}&id={invitation.UserId}";
 
-                await mailService.SendInvitationAsync(
-                    invitation.EventName,
-                    invitation.UserDisplayName,
-                    invitation.UserEmail,
-                    callbackUrl,
-                    ctx: ctx);
+                await mailService.SendInvitationAsync(new InvitationEmailRequest
+                {
+                    TemplateId = "0",
+                    EventName = invitation.EventName,
+                    UserName = invitation.UserDisplayName,
+                    Email = invitation.UserEmail,
+                    CallBackUrl = callbackUrl
+                }, ctx);
 
                 await db.EventUsers
                     .Where(ue => ue.EventId == invitation.EventId && ue.UserId == invitation.UserId)

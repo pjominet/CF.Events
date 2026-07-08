@@ -1,8 +1,10 @@
-﻿namespace CF.Events.Web.Services;
+﻿using CF.Events.Web.Models.Requests;
+
+namespace CF.Events.Web.Services;
 
 public class NoOpMailService(ILogger<NoOpMailService> logger) : IMailService
 {
-    public Task SendInvitationAsync(string eventName, string displayName, string email, string callBackUrl, string? customDesign = null, CancellationToken ctx = default)
+    public Task SendInvitationAsync(InvitationEmailRequest request, CancellationToken ctx = default)
     {
         logger.LogDebug(
             """
@@ -11,13 +13,13 @@ public class NoOpMailService(ILogger<NoOpMailService> logger) : IMailService
                 Display Name: {DisplayName}
                 Email: {Email}
                 Callback URL: {CallBackUrl}
-                Custom Design: {CustomDesign}
+                Inlines: {InlineCount}
             """,
-            eventName, displayName, email, callBackUrl, string.IsNullOrEmpty(customDesign) ? "None" : "Yes");
+            request.EventName, request.UserName, request.Email, request.CallBackUrl, request.InlineAttachments.Count());
         return Task.CompletedTask;
     }
 
-    public Task SendSaveTheDateAsync(string templateId, string eventName, string displayName, string email, string returnUrl, CancellationToken ctx = default)
+    public Task SendSaveTheDateAsync(SaveTheDateEmailRequest request, CancellationToken ctx = default)
     {
         logger.LogDebug(
             """
@@ -27,8 +29,9 @@ public class NoOpMailService(ILogger<NoOpMailService> logger) : IMailService
                 Display Name: {DisplayName}
                 Email: {Email},
                 Return URL: {ReturnUrl}
+                Inlines: {InlineCount}
             """,
-            templateId, eventName, displayName, email, returnUrl);
+            request.TemplateId, request.EventName, request.UserName, request.Email, request.ReturnUrl, request.InlineAttachments.Count());
         return Task.CompletedTask;
     }
 }

@@ -1,71 +1,32 @@
-﻿using CF.Events.Web.Infrastructure.Settings;
-using Mailjet.Client;
-using Mailjet.Client.Resources;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
+using CF.Events.Web.Models.Requests;
 
 namespace CF.Events.Web.Services;
 
-public class MailService(IMailjetClient mailjetClient, IOptions<AppSettings> settings) : MailjetService(mailjetClient), IMailService
+public class MailService(IEmailProvider emailProvider) : IMailService
 {
-    private readonly MailjetSettings _mailjetSettings = settings.Value.Mailjet;
-
-    public async Task SendInvitationAsync(string eventName, string displayName, string email, string callBackUrl, string? customDesign = null, CancellationToken ctx = default)
+    public async Task SendInvitationAsync(InvitationEmailRequest request, CancellationToken ctx = default)
     {
-        var request = new MailjetRequest
-            {
-                Resource = Send.Resource
-            }
-            .Property(Send.FromEmail, _mailjetSettings.SenderEmail)
-            .Property(Send.FromName, _mailjetSettings.SenderName)
-            .Property(Send.Recipients, new JArray
-            {
-                new JObject
-                {
-                    { "Email", email },
-                    { "Name", displayName }
-                }
-            })
-            .Property("Mj-TemplateID", 0)
-            .Property("Mj-TemplateLanguage", true)
-            .Property("Variables", new JObject
-            {
-                { "sender_sig", "Patrick & Éadaoin" },
-                { "invitation_callback", callBackUrl },
-                { "display_name", displayName },
-                { "event_name", eventName },
-                { "custom_design", customDesign }
-            });
+        var variables = new Dictionary<string, string>
+        {
+            { "sender_sig", "Patrick & Éadaoin" },
+            { "invitation_callback", request.CallBackUrl },
+            { "user_name", request.UserName },
+            { "event_name", request.EventName }
+        };
 
-        await SendMailjetEmailAsync(request, ctx);
+        await emailProvider.SendTemplatedEmailAsync(request.TemplateId, request.Email, variables, request.InlineAttachments, ctx);
     }
 
-    public async Task SendSaveTheDateAsync(string templateId,string eventName, string displayName, string email, string returnUrl, CancellationToken ctx = default)
+    public async Task SendSaveTheDateAsync(SaveTheDateEmailRequest request, CancellationToken ctx = default)
     {
-        var request = new MailjetRequest
-            {
-                Resource = Send.Resource
-            }
-            .Property(Send.FromEmail, _mailjetSettings.SenderEmail)
-            .Property(Send.FromName, _mailjetSettings.SenderName)
-            .Property(Send.Recipients, new JArray
-            {
-                new JObject
-                {
-                    { "Email", email },
-                    { "Name", displayName }
-                }
-            })
-            .Property("Mj-TemplateID", templateId)
-            .Property("Mj-TemplateLanguage", true)
-            .Property("Variables", new JObject
-            {
-                { "sender_sig", "Patrick & Éadaoin" },
-                { "display_name", displayName },
-                { "event_name", eventName },
-                { "return_url", returnUrl }
-            });
+        var variables = new Dictionary<string, string>
+        {
+            { "sender_sig", "Patrick & Éadaoin" },
+            { "user_name", request.UserName },
+            { "event_name", request.EventName },
+            { "return_url", request.ReturnUrl }
+        };
 
-        await SendMailjetEmailAsync(request, ctx);
+        await emailProvider.SendTemplatedEmailAsync(request.TemplateId, request.Email, variables, request.InlineAttachments, ctx);
     }
 }
