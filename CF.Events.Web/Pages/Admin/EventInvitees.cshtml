@@ -43,7 +43,7 @@
                 <h5 class="card-title">Invite users</h5>
                 @if (Model.AvailableUsers.Count == 0)
                 {
-                    <p class="text-muted mb-0">All registered users are already invited. Use "Invite New Person" to add someone new.</p>
+                    <p class="text-muted mb-0">All registered users are already invited. Use <a href="/admin/users">Invite New Person</a> to add someone new.</p>
                 }
                 else
                 {
@@ -58,14 +58,14 @@
                                     <input class="form-check-input" type="radio" name="SendEmailsOnInvite" asp-for="NewInvite.SendEmailsOnInvite"
                                            id="noSendRadio" value="@SendEmailAction.NoSend"/>
                                     <label class="form-check-label" for="noSendRadio">
-                                        Don't send invite email yet
+                                        Don't send invitation email yet
                                     </label>
                                 </div>
                                 <div class="form-check mb-3">
                                     <input class="form-check-input" type="radio" name="SendEmailsOnInvite" asp-for="NewInvite.SendEmailsOnInvite"
                                            id="sendNowRadio" value="@SendEmailAction.Immediately"/>
                                     <label class="form-check-label" for="sendNowRadio">
-                                        Immediately send email on invite
+                                        Immediately send invitation email on invite
                                     </label>
                                 </div>
                                 <div class="form-check d-flex align-items-center gap-2">
@@ -116,6 +116,12 @@
         <div class="card-body d-flex justify-content-between align-items-center py-2">
             <div>
                 <span class="text-muted me-2">Bulk actions:</span>
+                @if (!string.IsNullOrEmpty(Model.EventData?.SaveDateTemplateId))
+                {
+                    <button type="button" class="btn btn-primary btn-sm bulk-action-btn" disabled onclick="executeBulkAction('save-the-date')">
+                        <i class="bi bi-calendar-check me-1"></i>Send Save the Date
+                    </button>
+                }
                 <button type="button" class="btn btn-info btn-sm bulk-action-btn" disabled onclick="executeBulkAction('resend')">
                     <i class="bi bi-send me-1"></i>Resend selected
                 </button>
@@ -125,7 +131,8 @@
             </div>
             <form id="bulkActionForm" method="post"
                   data-resend-url="@Url.Action("BulkResendInvite", "Event", new { eventId = Model.EventData!.Id })"
-                  data-remove-url="@Url.Page("", "BulkRemove", new { id = Model.EventData!.Id })">
+                  data-remove-url="@Url.Page("", "BulkRemove", new { id = Model.EventData!.Id })"
+                  data-save-the-date-url="@Url.Page("", "BulkSaveTheDate", new { id = Model.EventData!.Id })">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="userIds" id="bulkActionUserIds" />
                 <input type="hidden" name="actionType" id="bulkActionType" />
@@ -146,7 +153,8 @@
                         <th>Email</th>
                         <th>Assigned Accommodation Code</th>
                         <th>Invite Code</th>
-                        <th class="text-center">Email Sent</th>
+                        <th class="text-center">Save the Date Sent</th>
+                        <th class="text-center">Invitation Sent</th>
                         <th class="text-center">Status</th>
                         <th class="text-end">Actions</th>
                     </tr>
@@ -167,48 +175,70 @@
                                 <div class="badge bg-primary p-1">@invitee.InviteCode</div>
                             </td>
                             <td class="text-center">
+                                @if (invitee.SaveTheDateSent)
+                                {
+                                    <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Sent</span>
+                                }
+                                else if (invitee.Status is AttendanceStatus.Pending)
+                                {
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Pending</span>
+                                }
+                            </td>
+                            <td class="text-center">
                                 @if (invitee.InvitationEmailSent)
                                 {
-                                    <span class="badge bg-success" title="Invitation email sent"><i class="bi bi-check-circle me-1"></i>Sent</span>
+                                    <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Sent</span>
                                 }
                                 else if (invitee.ScheduledFor != null)
                                 {
                                     <div class="d-flex flex-column align-items-center">
-                                        <span class="badge bg-info" title="Scheduled to be sent"><i class="bi bi-calendar-event me-1"></i>Scheduled</span>
+                                        <span class="badge bg-info"><i class="bi bi-calendar-event me-1"></i>Scheduled</span>
                                         <small class="text-muted mt-1" style="font-size: 0.75rem;">@invitee.ScheduledFor.Value.ToString("g")</small>
                                     </div>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-warning text-dark" title="Email not yet sent"><i class="bi bi-clock me-1"></i>Pending</span>
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Pending</span>
                                 }
                             </td>
                             <td class="text-center">
                                 @{
                                     var badge = invitee.Status switch
                                     {
-                                        "Attending" => "bg-success",
-                                        "Declined" => "bg-danger",
+                                        AttendanceStatus.Attending => "bg-success",
+                                        AttendanceStatus.Declined => "bg-danger",
                                         _ => "bg-secondary"
                                     };
                                 }
-                                <span class="badge @badge">@invitee.Status</span>
+                                <span class="badge @badge">@invitee.Status.ToString()</span>
                             </td>
                             <td class="text-end">
-                                <form method="post" asp-action="ResendInvite" asp-controller="Event" asp-route-eventId="@Model.EventData!.Id" class="d-inline">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="userId" value="@invitee.UserId"/>
-                                    <button type="submit" class="btn btn-info btn-sm" title="Resend invite" data-bs-toggle="tooltip">
-                                        <i class="bi bi-send"></i>
-                                    </button>
-                                </form>
-                                <form method="post" asp-page-handler="Remove" asp-route-id="@Model.EventData!.Id" class="d-inline"
-                                      onsubmit="return confirm('Remove @invitee.DisplayName from this event?');">
-                                    <input type="hidden" name="userId" value="@invitee.UserId"/>
-                                    <button type="submit" class="btn btn-danger btn-sm" title="Remove invitee" data-bs-toggle="tooltip">
-                                        <i class="bi bi-x-lg"></i>
-                                    </button>
-                                </form>
+                                <div class="d-flex justify-content-end align-items-center gap-2">
+                                    @if (!string.IsNullOrEmpty(Model.EventData?.SaveDateTemplateId) && invitee.Status is AttendanceStatus.Pending)
+                                    {
+                                        <form method="post" asp-page-handler="SaveTheDate" asp-route-id="@Model.EventData!.Id" asp-route-userId="@invitee.UserId"
+                                              class="d-flex align-items-center justify-content-center">
+                                            <button class="btn btn-sm btn-primary" type="submit"
+                                                    data-bs-toggle="tooltip" data-bs-title="Send Save the Date">
+                                                <i class="bi bi-calendar-check"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    <form method="post" asp-action="ResendInvite" asp-controller="Event" asp-route-eventId="@Model.EventData!.Id" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="userId" value="@invitee.UserId"/>
+                                        <button type="submit" class="btn btn-info btn-sm" title="Resend invite" data-bs-toggle="tooltip">
+                                            <i class="bi bi-send"></i>
+                                        </button>
+                                    </form>
+                                    <form method="post" asp-page-handler="Remove" asp-route-id="@Model.EventData!.Id" class="d-inline"
+                                          onsubmit="return confirm('Remove @invitee.DisplayName from this event?');">
+                                        <input type="hidden" name="userId" value="@invitee.UserId"/>
+                                        <button type="submit" class="btn btn-danger btn-sm" title="Remove invitee" data-bs-toggle="tooltip">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     }

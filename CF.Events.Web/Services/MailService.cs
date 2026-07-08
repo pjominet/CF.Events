@@ -43,7 +43,7 @@ public class MailService(IMailjetClient mailjetClient) : MailjetService(mailjetC
         await SendMailjetEmailAsync(request, ctx);
     }
 
-    public async Task SendSaveTheDateAsync(string eventName, string displayName, string email, string returnUrl, CancellationToken ctx = default)
+    public async Task SendSaveTheDateAsync(string templateId,string eventName, string displayName, string email, string returnUrl, CancellationToken ctx = default)
     {
         var request = new MailjetRequest
             {
@@ -63,7 +63,7 @@ public class MailService(IMailjetClient mailjetClient) : MailjetService(mailjetC
                             }
                         }
                     },
-                    { "TemplateID", 8180011 },
+                    { "TemplateID", templateId },
                     {
                         "Variables", new JObject
                         {

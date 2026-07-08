@@ -57,6 +57,11 @@
                             <label class="form-label fw-bold">Accommodation Details</label>
                             <textarea asp-for="AccommodationDetails" class="form-control" placeholder="Accommodation Details" rows="3"></textarea>
                         </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-bold">Save the Date Template ID</label>
+                            <input asp-for="SaveDateTemplateId" class="form-control" placeholder="template-id-123" />
+                            <div class="form-text">If set, the event will be eligible for 'Save the Date' emails using this template.</div>
+                        </div>
                         <div class="col-12" id="bookingLinksWrapper">
                             <label class="form-label fw-bold">Booking Links</label>
                             <input name="BookingLinks" value="" class="form-control tag-select" autocomplete="off" placeholder="Add booking links..."/>

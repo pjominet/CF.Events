@@ -17,17 +17,18 @@ public class NoOpMailService(ILogger<NoOpMailService> logger) : IMailService
         return Task.CompletedTask;
     }
 
-    public Task SendSaveTheDateAsync(string eventName, string displayName, string email, string returnUrl, CancellationToken ctx = default)
+    public Task SendSaveTheDateAsync(string templateId, string eventName, string displayName, string email, string returnUrl, CancellationToken ctx = default)
     {
         logger.LogDebug(
             """
             Fake Save the Date sent:
+                Template ID: {TemplateId}
                 Event: {EventName}
                 Display Name: {DisplayName}
                 Email: {Email},
                 Return URL: {ReturnUrl}
             """,
-            eventName, displayName, email, returnUrl);
+            templateId, eventName, displayName, email, returnUrl);
         return Task.CompletedTask;
     }
 }

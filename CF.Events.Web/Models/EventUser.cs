@@ -12,6 +12,7 @@ public class EventUser
 
     public int InviteCodeId { get; set; }
     public bool InviteEmailSent { get; set; }
+    public bool SaveTheDateEmailSent { get; set; }
     public DateTime? ScheduledFor { get; set; }
 
     // navigation properties

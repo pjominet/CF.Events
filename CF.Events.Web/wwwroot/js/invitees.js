@@ -75,6 +75,10 @@
             return;
         }
 
+        if (actionType === 'save-the-date' && !confirm(`Send Save the Date email to ${selectedUserIds.length} selected invitees?`)) {
+            return;
+        }
+
         const form = document.getElementById('bulkActionForm');
         const userIdsInput = document.getElementById('bulkActionUserIds');
         const actionInput = document.getElementById('bulkActionType');
@@ -86,6 +90,8 @@
             form.action = form.dataset.resendUrl;
         } else if (actionType === 'remove') {
             form.action = form.dataset.removeUrl;
+        } else if (actionType === 'save-the-date') {
+            form.action = form.dataset.saveTheDateUrl;
         }
 
         showLoadingOverlay();

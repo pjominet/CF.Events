@@ -31,6 +31,7 @@
             editEventModal.querySelector('[name="Location"]').value = eventData.location;
             editEventModal.querySelector('[name="AccommodationDetails"]').value = eventData.accommodationDetails;
             editEventModal.querySelector('[name="Description"]').value = eventData.description;
+            editEventModal.querySelector('[name="SaveDateTemplateId"]').value = eventData.saveDateTemplateId || '';
 
             let codesControl = editEventModal.querySelector('[name="AccommodationCodes"]').tomselect;
             codesControl.addOptions(eventData.accommodationCodes.map(code => ({value: code, text: code})))

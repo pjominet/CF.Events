@@ -18,6 +18,9 @@
     --primary-hover: #2d3c2d;
     --danger-hover: #c9302c;
     --info-hover: #265a78;
+    --primary-disabled: #6d856d;
+    --danger-disabled: #e48683;
+    --info-disabled: #5b92ad;
 
     /* Bootstrap Overrides */
     --bs-primary: var(--primary-color);
@@ -36,6 +39,8 @@
     --bs-btn-hover-border-color: var(--primary-hover);
     --bs-btn-active-bg: var(--primary-hover);
     --bs-btn-active-border-color: var(--primary-hover);
+    --bs-btn-disabled-bg: var(--primary-disabled);
+    --bs-btn-disabled-border-color: var(--primary-disabled);
 }
 
 .btn-danger {
@@ -45,6 +50,8 @@
     --bs-btn-hover-border-color: var(--danger-hover);
     --bs-btn-active-bg: var(--danger-hover);
     --bs-btn-active-border-color: var(--danger-hover);
+    --bs-btn-disabled-bg: var(--danger-disabled);
+    --bs-btn-disabled-border-color: var(--danger-disabled);
 }
 
 .btn-info {
@@ -57,6 +64,9 @@
     --bs-btn-active-color: #fff;
     --bs-btn-active-bg: var(--info-hover);
     --bs-btn-active-border-color: var(--info-hover);
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: var(--info-disabled);
+    --bs-btn-disabled-border-color: var(--info-disabled);
 }
 
 body {
