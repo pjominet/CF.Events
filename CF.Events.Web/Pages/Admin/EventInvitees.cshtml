@@ -40,10 +40,10 @@
     {
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-body">
-                <h5 class="card-title">Invite users</h5>
+                <h5 class="card-title">Invite guests</h5>
                 @if (Model.AvailableUsers.Count == 0)
                 {
-                    <p class="text-muted mb-0">All registered users are already invited. Use <a href="/admin/users">Invite New Person</a> to add someone new.</p>
+                    <p class="text-muted mb-0">All registered <strong>guests</strong> are already invited. Use <a href="/admin/users">Invite New Person</a> to add someone new.</p>
                 }
                 else
                 {

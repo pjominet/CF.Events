@@ -26,6 +26,19 @@
                             <div class="form-text">e.g., comma (,) or semicolon (;)</div>
                         </div>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Roles to Assign</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="selectedRoles" value="@Roles.User" id="importRoleUser">
+                                <label class="form-check-label" for="importRoleUser">@Roles.User</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="selectedRoles" value="@Roles.Guest" id="importRoleGuest" checked>
+                                <label class="form-check-label" for="importRoleGuest">@Roles.Guest</label>
+                            </div>
+                        </div>
+                    </div>
                     @if (errors.Count > 0)
                     {
                         <div class="alert alert-danger">

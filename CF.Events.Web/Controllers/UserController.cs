@@ -16,7 +16,11 @@ public class UserController(
     private readonly string[] _allowedFileExtensions = [".csv", ".txt"];
 
     [HttpPost("import")]
-    public async Task<IActionResult> ImportUsers([FromForm] IFormFile? userList, [FromForm] int skipRows = 0, [FromForm] string delimiter = ",")
+    public async Task<IActionResult> ImportUsers(
+        [FromForm] IFormFile? userList,
+        [FromForm] int skipRows = 0,
+        [FromForm] string delimiter = ",",
+        [FromForm] List<string>? selectedRoles = null)
     {
         if (userList is null || userList.Length == 0)
             return BadRequest("No file uploaded");
@@ -27,6 +31,8 @@ public class UserController(
             return BadRequest("Only CSV files are allowed");
 
         if (string.IsNullOrEmpty(delimiter)) delimiter = ",";
+
+        selectedRoles ??= [Roles.Guest];
 
         // Read all lines from the file
         var users = new List<AppUser>();
@@ -81,7 +87,14 @@ public class UserController(
                 continue;
             }
 
-            await userManager.AddToRoleAsync(user, Roles.Guest);
+            if (selectedRoles.Count > 0)
+            {
+                await userManager.AddToRolesAsync(user, selectedRoles);
+            }
+            else
+            {
+                await userManager.AddToRoleAsync(user, Roles.Guest);
+            }
         }
 
         if (importErrors.Count == 0)

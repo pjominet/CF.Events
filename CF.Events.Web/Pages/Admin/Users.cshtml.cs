@@ -52,7 +52,10 @@ public class UsersModel(
             return Page();
         }
 
-        result = await userManager.AddToRoleAsync(user, Roles.Guest);
+        if (NewUser.SelectedRoles.Count > 0)
+            result = await userManager.AddToRolesAsync(user, NewUser.SelectedRoles);
+        else result = await userManager.AddToRoleAsync(user, Roles.Guest);
+
         if (result.Succeeded)
             toastNotification.AddSuccessToastMessage($"Added user {NewUser.Email}");
         else toastNotification.AddErrorToastMessage($"Failed to add user {NewUser.Email}");
@@ -141,6 +144,8 @@ public class UsersModel(
         [Required]
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
+
+        public List<string> SelectedRoles { get; set; } = [Roles.Guest];
     }
 
 }
