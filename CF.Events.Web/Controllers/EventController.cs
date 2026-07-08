@@ -19,10 +19,33 @@ namespace CF.Events.Web.Controllers;
 public class EventController(
     EventsDbContext db,
     IInvitationService invitationService,
+    IExportService exportService,
     IToastNotification toastNotification,
     ILogger<EventController> logger,
     IWebHostEnvironment env) : Controller
 {
+    [HttpGet("{eventId:int}/export-invitees")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> ExportInvitees([FromRoute] int eventId)
+    {
+        try
+        {
+            var (bytes, fileName) = await exportService.ExportInviteesToCsvAsync(eventId);
+            return File(bytes, "text/csv", fileName);
+        }
+        catch (ArgumentException ex)
+        {
+            toastNotification.AddErrorToastMessage(ex.Message);
+            return RedirectToPage("/Admin/Events");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error exporting invitees for event {EventId}", eventId);
+            toastNotification.AddErrorToastMessage("An error occurred while exporting invitees.");
+            return RedirectToPage("/Admin/Events");
+        }
+    }
+
     [HttpGet("{eventId:int}/asset")]
     public async Task<IActionResult> GetInvitationAsset([FromRoute] int eventId)
     {

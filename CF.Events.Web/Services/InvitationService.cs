@@ -1,6 +1,5 @@
 ﻿using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure.Settings;
-using CF.Events.Web.Models;
 using CF.Events.Web.Models.Requests;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;

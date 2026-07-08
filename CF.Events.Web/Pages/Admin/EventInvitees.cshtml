@@ -19,7 +19,10 @@
                 <h1 class="serif fs-1 mt-3">@Model.EventData?.Name</h1>
                 <p class="text-muted mb-0">@Model.EventData?.StartDate.ToLongDateString()</p>
             </div>
-            <div class="d-flex mt-auto mb-0">
+            <div class="d-flex mt-auto mb-0 gap-2">
+                <a href="@Url.Action("ExportInvitees", "Event", new { eventId = Model.EventData!.Id })" class="btn btn-outline-success">
+                    <i class="bi bi-file-earmark-spreadsheet me-1"></i>Export to CSV
+                </a>
                 <button type="button" class="btn btn-outline-primary" title="Regenerate Code"
                         data-bs-toggle="modal" data-bs-target="#regenerateCodeModal"
                         data-bs-event-id="@Model.EventData!.Id" data-bs-event-name="@Model.EventData!.Name">
