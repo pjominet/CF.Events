@@ -10,5 +10,4 @@ public class RsvpDetail
     public Dictionary<LinkType, string> BookingLinks { get; set; } = [];
     public string? DonationIban { get; set; }
     public string? DonationReference { get; set; }
-    public List<int> AttendanceDays { get; set; } = [];
 }

@@ -1,0 +1,76 @@
+@model RsvpResponses
+@{
+    var displayName = ViewData["UserDisplayName"] as string ?? "User";
+}
+
+<div class="modal fade" id="adminRsvpModal" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title serif">RSVP Details for @displayName</h5>
+            </div>
+            <div class="modal-body">
+
+                <div class="mb-4">
+                    <h6 class="serif fw-bold"><i class="bi bi-calendar-check me-2"></i>Attendance Days</h6>
+                    @if (Model.AttendanceDays.Any())
+                    {
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var day in Model.AttendanceDays.OrderBy(d => d))
+                            {
+                                <span class="badge rounded-pill bg-success">Day @day</span>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-danger mb-0">No days selected.</p>
+                    }
+                </div>
+
+                <hr/>
+
+                <div class="mb-4">
+                    <h6 class="serif fw-bold"><i class="bi bi-fork-knife me-2"></i>Dietary Requirements</h6>
+                    @if (Model.DietaryOptions.Any() || !string.IsNullOrWhiteSpace(Model.OtherDietaryDetails))
+                    {
+                        <ul class="list-unstyled mb-0">
+                            @foreach (var option in Model.DietaryOptions)
+                            {
+                                <li><i class="bi bi-check2 me-2 text-success"></i>@option.ToString()</li>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(Model.OtherDietaryDetails))
+                            {
+                                <li class="mt-2">
+                                    <strong class="serif">Other dietary details:</strong>
+                                    <p class="mb-0 text-muted">@Model.OtherDietaryDetails</p>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-success mb-0">No dietary requirements specified.</p>
+                    }
+                </div>
+
+                <hr/>
+
+                <div class="mb-0">
+                    <h6 class="serif fw-bold"><i class="bi bi-chat-left-text me-2"></i>Comments</h6>
+                    @if (!string.IsNullOrWhiteSpace(Model.Comments))
+                    {
+                        <p class="mb-0 text-muted">@Model.Comments</p>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">No comments provided.</p>
+                    }
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -59,7 +59,7 @@ public class EventController(
     public async Task<IActionResult> GetRsvpDetail([FromRoute] int eventId)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId == null) return Unauthorized();
+        if (userId is null) return Unauthorized();
 
         var eventUser = await db.EventUsers
             .Where(eu => eu.EventId == eventId && eu.UserId == userId)
@@ -88,11 +88,42 @@ public class EventController(
             AccommodationCode = eventUser.AccommodationCode,
             BookingLinks = eventUser.BookingLinks.ToDictionary(bl => bl.Type, bl => bl.Link),
             DonationIban = eventUser.DonationIban,
-            DonationReference = new Event { Name = eventUser.EventName, StartDate = eventUser.EventStartDate }.GetDonationReference(),
-            AttendanceDays = eventUser.AttendanceDays
+            DonationReference = new Event { Name = eventUser.EventName, StartDate = eventUser.EventStartDate }.GetDonationReference()
         };
 
-        return PartialView("_RsvpDetails", model);
+        return PartialView("~/Pages/Shared/_RsvpDetailsModal.cshtml", model);
+    }
+
+    [HttpGet("{eventId:int}/rsvp-responses/{userId}")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> GetRsvpResponses([FromRoute] int eventId, [FromRoute] string userId)
+    {
+        var eventUser = await db.EventUsers
+            .Include(eu => eu.Rsvp)
+            .Where(eu => eu.EventId == eventId && eu.UserId == userId)
+            .Select(eu => new
+            {
+                AttendanceDays = eu.Rsvp != null ? eu.Rsvp.AttendanceDays : new List<int>(),
+                DietaryOptions = eu.Rsvp != null ? eu.Rsvp.CommonDietaryOptions : new List<DietaryOptions>(),
+                OtherDietaryDetails = eu.Rsvp != null ? eu.Rsvp.OtherDietaryDetails : null,
+                Comments = eu.Rsvp != null ? eu.Rsvp.Comments : null,
+                UserDisplayName = eu.User.DisplayName
+            })
+            .FirstOrDefaultAsync();
+
+        if (eventUser is null) return NotFound();
+
+        var model = new RsvpResponses
+        {
+            AttendanceDays = eventUser.AttendanceDays,
+            DietaryOptions = eventUser.DietaryOptions,
+            OtherDietaryDetails = eventUser.OtherDietaryDetails,
+            Comments = eventUser.Comments
+        };
+
+        ViewData["UserDisplayName"] = eventUser.UserDisplayName;
+
+        return PartialView("~/Pages/Admin/Shared/_RsvpResponsesModal.cshtml", model);
     }
 
     [HttpPost("{eventId:int}/invite-users")]

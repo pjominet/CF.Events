@@ -19,12 +19,12 @@
                 @if (Model.IsAttending)
                 {
                     <h6 class="serif"><i class="bi bi-house me-1"></i>Accommodation Info</h6>
-                    @if (!string.IsNullOrEmpty(Model.AccommodationDetails))
+                    if (!string.IsNullOrEmpty(Model.AccommodationDetails))
                     {
                         <p class="mb-3">@Html.Raw(Model.AccommodationDetails)</p>
                     }
 
-                    @if (Model.BookingLinks.Any())
+                    if (Model.BookingLinks.Any())
                     {
                         <ol class="list-unstyled">
                             @foreach (var (type, link) in Model.BookingLinks)
@@ -55,7 +55,7 @@
                         </ol>
                     }
 
-                    @if (!string.IsNullOrEmpty(Model.AccommodationCode))
+                    if (!string.IsNullOrEmpty(Model.AccommodationCode))
                     {
                         <div class="alert alert-info py-2 mt-3 mb-0">
                             <small><i class="bi bi-info-circle me-1"></i>Code: <strong>@Model.AccommodationCode</strong></small>

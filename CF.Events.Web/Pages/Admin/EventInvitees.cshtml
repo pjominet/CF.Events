@@ -214,6 +214,14 @@
                             </td>
                             <td class="text-end">
                                 <div class="d-flex justify-content-end align-items-center gap-2">
+                                    @if (invitee.Status is AttendanceStatus.Attending)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-success"
+                                                title="View RSVP Details" data-bs-toggle="tooltip"
+                                                data-admin-rsvp-user-id="@invitee.UserId" data-admin-rsvp-event-id="@Model.EventData!.Id">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    }
                                     @if (!string.IsNullOrEmpty(Model.EventData?.SaveDateTemplateId) && invitee.Status is AttendanceStatus.Pending)
                                     {
                                         <form method="post" asp-page-handler="SaveTheDate" asp-route-id="@Model.EventData!.Id" asp-route-userId="@invitee.UserId"
@@ -254,6 +262,7 @@
 </div>
 
 <partial name="Shared/_RegenerateCodeModal"/>
+<div id="_rsvpResponsesContainer"></div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial"/>

@@ -1,9 +1,10 @@
-﻿(function() {
+﻿(function () {
     const scheduleRadios = document.querySelectorAll('input[name="SendEmailsOnInvite"]');
     const scheduleOption = document.getElementById('scheduleRadio');
     const scheduleInput = document.querySelector('input[name="ScheduledFor"]');
 
     function updateScheduleInput() {
+        if (!scheduleOption || !scheduleInput) return;
         if (scheduleOption.checked) {
             scheduleInput.disabled = false;
             scheduleInput.required = true;
@@ -14,15 +15,16 @@
         }
     }
 
-    scheduleRadios.forEach(radio => {
-        radio.addEventListener('change', updateScheduleInput);
-    });
+    if (scheduleRadios.length > 0 && scheduleOption) {
+        scheduleRadios.forEach(radio => {
+            radio.addEventListener('change', updateScheduleInput);
+        });
+    }
 
     const accommodationToggle = document.querySelector('[name="NewInvite.AllowAccommodationCode"]');
     if (accommodationToggle) {
-        accommodationToggle.addEventListener('change', function() {
+        accommodationToggle.addEventListener('change', function () {
             const codeSelect = document.querySelector('select[name="SelectedAccommodationCode"]');
-            console.log(codeSelect);
             if (!!codeSelect) {
                 codeSelect.disabled = !this.checked;
                 codeSelect.required = this.checked;
@@ -31,14 +33,16 @@
     }
 
     // Initialize on page load
-    updateScheduleInput();
+    if (scheduleOption) {
+        updateScheduleInput();
+    }
 
     const selectAllCheckbox = document.getElementById('selectAllInvitees');
     const inviteeCheckboxes = document.querySelectorAll('.invitee-checkbox');
     const bulkActionButtons = document.querySelectorAll('.bulk-action-btn');
 
     if (selectAllCheckbox) {
-        selectAllCheckbox.addEventListener('change', function() {
+        selectAllCheckbox.addEventListener('change', function () {
             inviteeCheckboxes.forEach(cb => {
                 cb.checked = this.checked;
             });
@@ -47,7 +51,7 @@
     }
 
     inviteeCheckboxes.forEach(cb => {
-        cb.addEventListener('change', function() {
+        cb.addEventListener('change', function () {
             if (!this.checked) {
                 selectAllCheckbox.checked = false;
             } else {
@@ -64,7 +68,7 @@
         });
     }
 
-    window.executeBulkAction = function(actionType) {
+    window.executeBulkAction = function (actionType) {
         const selectedUserIds = Array.from(inviteeCheckboxes)
             .filter(cb => cb.checked)
             .map(cb => cb.value);
@@ -97,4 +101,38 @@
         showLoadingOverlay();
         form.submit();
     };
+
+    // Admin RSVP Details Modal handling
+    const adminRsvpContainer = document.getElementById('_rsvpResponsesContainer');
+    if (adminRsvpContainer) {
+        document.addEventListener('click', async function (e) {
+            const btn = e.target.closest('button[data-admin-rsvp-user-id]');
+            if (!btn) return;
+
+            const userId = btn.dataset.adminRsvpUserId;
+            const eventId = btn.dataset.adminRsvpEventId;
+            if (!userId || !eventId) return;
+
+            try {
+                btn.disabled = true;
+                const response = await fetch(`/events/${eventId}/rsvp-responses/${userId}`, {
+                    headers: {'X-Requested-With': 'XMLHttpRequest'}
+                });
+
+                if (response.ok) {
+                    adminRsvpContainer.innerHTML = await response.text();
+
+                    const modalEl = document.getElementById('adminRsvpModal');
+                    if (modalEl) {
+                        const modal = new bootstrap.Modal(modalEl);
+                        modal.show();
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching admin RSVP details:', error);
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    }
 })();
