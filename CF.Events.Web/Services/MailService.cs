@@ -22,7 +22,6 @@ public class MailService(IEmailProvider emailProvider) : IMailService
         var variables = new Dictionary<string, string>
         {
             { "sender_sig", "Patrick & Éadaoin" },
-            { "user_name", request.UserName },
             { "event_name", request.EventName }
         };
 

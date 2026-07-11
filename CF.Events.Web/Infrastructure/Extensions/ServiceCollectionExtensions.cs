@@ -109,10 +109,12 @@ public static class ServiceCollectionExtensions
 
     public static void AddHttpClients(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddScoped<IApiService, Smtp2GoApiService>(_ =>
+        services.AddSingleton<IApiService, Smtp2GoApiService>(_ =>
         {
-            var apiKey = configuration["AppSettings:EmailProviderSettings:ApiKey"];
-            return new Smtp2GoApiService(apiKey);
+            var apiKey = configuration["AppSettings:EmailProviderSettings:Smtp2Go:ApiKey"];
+            return string.IsNullOrEmpty(apiKey)
+                ? throw new BootstrappingException("Missing Smtp2Go API key")
+                : new Smtp2GoApiService(apiKey);
         });
     }
 }

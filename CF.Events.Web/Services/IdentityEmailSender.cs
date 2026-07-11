@@ -28,7 +28,7 @@ public class IdentityEmailSender(IEmailProvider emailProvider) : IEmailSender<Ap
             { "sender_sig", "Patrick & Éadaoin" }
         };
 
-        await emailProvider.SendTemplatedEmailAsync("8136026", email, variables, null);
+        await emailProvider.SendTemplatedEmailAsync("", email, variables, null);
     }
 
     public async Task SendPasswordResetCodeAsync(AppUser user, string email, string resetCode)
@@ -41,6 +41,6 @@ public class IdentityEmailSender(IEmailProvider emailProvider) : IEmailSender<Ap
             { "sender_sig", "Patrick & Éadaoin" }
         };
 
-        await emailProvider.SendTemplatedEmailAsync("8136101", email, variables, null);
+        await emailProvider.SendTemplatedEmailAsync("", email, variables, null);
     }
 }

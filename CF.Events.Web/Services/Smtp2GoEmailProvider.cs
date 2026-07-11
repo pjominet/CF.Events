@@ -27,8 +27,11 @@ public class Smtp2GoEmailProvider(IApiService smtp2GoClient, IOptions<AppSetting
         {
             var response = await smtp2GoClient.SendTemplatedEmail(message).ConfigureAwait(false);
 
-            if (response.Data.Succeeded == 0)
+            if (response.ResponseStatus != "OK")
             {
+                if (response.Data is null || response.Data.Succeeded == 0)
+                    throw new Exception("Smtp2go API error: No data returned");
+
                 var errors = response.Data.Failures != null ? string.Join(", ", response.Data.Failures) : response.Data.Error ?? "Unknown error";
                 throw new Exception($"Smtp2go API error: {errors}");
             }
