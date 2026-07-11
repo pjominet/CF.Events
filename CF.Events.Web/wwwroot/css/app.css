@@ -10,7 +10,7 @@
 
     /* Fonts */
     --font-serif: "Domine", serif;
-    --font-cursive: "Kalam", cursive;
+    --font-cursive: "Rouge Script", cursive;
     --font-brand: "Passion One", sans-serif;
     --font-sans: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
@@ -18,6 +18,9 @@
     --primary-hover: #2d3c2d;
     --danger-hover: #c9302c;
     --info-hover: #265a78;
+    --primary-disabled: #6d856d;
+    --danger-disabled: #e48683;
+    --info-disabled: #5b92ad;
 
     /* Bootstrap Overrides */
     --bs-primary: var(--primary-color);
@@ -36,6 +39,8 @@
     --bs-btn-hover-border-color: var(--primary-hover);
     --bs-btn-active-bg: var(--primary-hover);
     --bs-btn-active-border-color: var(--primary-hover);
+    --bs-btn-disabled-bg: var(--primary-disabled);
+    --bs-btn-disabled-border-color: var(--primary-disabled);
 }
 
 .btn-danger {
@@ -45,6 +50,8 @@
     --bs-btn-hover-border-color: var(--danger-hover);
     --bs-btn-active-bg: var(--danger-hover);
     --bs-btn-active-border-color: var(--danger-hover);
+    --bs-btn-disabled-bg: var(--danger-disabled);
+    --bs-btn-disabled-border-color: var(--danger-disabled);
 }
 
 .btn-info {
@@ -57,6 +64,9 @@
     --bs-btn-active-color: #fff;
     --bs-btn-active-bg: var(--info-hover);
     --bs-btn-active-border-color: var(--info-hover);
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: var(--info-disabled);
+    --bs-btn-disabled-border-color: var(--info-disabled);
 }
 
 body {
@@ -75,6 +85,10 @@ h1:focus {
     font-family: var(--font-brand);
 }
 
+.cursive {
+    font-family: var(--font-cursive);
+}
+
 .serif {
     font-family: var(--font-serif);
 }
@@ -84,10 +98,6 @@ h1:focus {
 }
 
 /* RSVP Form Styles */
-#rsvpForm {
-    max-width: 600px;
-    margin: 0 auto;
-}
 #rsvpForm textarea {
     resize: vertical;
 }
@@ -118,8 +128,40 @@ h1:focus {
     position: relative;
 }
 
-/* Invitation Page Styles */
+.step-indicator {
+    opacity: 0.5;
+    font-weight: bold;
+    border-bottom: 3px solid #dee2e6;
+    flex: 1;
+    text-align: center;
+    transition: all 0.3s ease;
+}
 
+.step-indicator.active {
+    opacity: 1;
+    border-bottom: 3px solid var(--bs-primary);
+    color: var(--bs-primary);
+}
+
+.step-content-wrapper {
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#rsvpForm .custom-radio .form-check-input {
+    width: 1.25em;
+    height: 1.25em;
+    margin-top: 0.125em;
+}
+
+#rsvpForm .btn {
+    padding: 0.6rem 1rem;
+    font-weight: 500;
+}
+
+/* Invitation Page Styles */
 .invite-page {
     margin: 0;
     padding: 20px;

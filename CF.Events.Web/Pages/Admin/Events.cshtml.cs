@@ -1,6 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using CF.Events.Web.Data;
+using CF.Events.Web.Infrastructure.Extensions;
+using CF.Events.Web.Infrastructure.ModelBinders;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,8 +24,20 @@ public class EventsModel(
 
     public Dictionary<int, int> InviteeCounts { get; private set; } = [];
 
+    private static DateTime _initEventDate = DateTime.Today.AddDays(1);
+
     [BindProperty]
-    public InputModel NewEvent { get; set; } = new() { Date = DateTime.Today.AddMonths(1) };
+    public InputModel NewEvent { get; set; } = new()
+    {
+        StartDate = _initEventDate,
+        EndDate = _initEventDate
+    };
+
+    private JsonSerializerOptions jsonOptions = new()
+    {
+        ReferenceHandler = ReferenceHandler.IgnoreCycles,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
 
     public async Task OnGetAsync() => await LoadAsync();
 
@@ -52,7 +67,7 @@ public class EventsModel(
         }
         else
         {
-            @event = await db.Events.Include(e => e.EventConfig).FirstOrDefaultAsync(e => e.Id == NewEvent.Id);
+            @event = await db.Events.FirstOrDefaultAsync(e => e.Id == NewEvent.Id);
             if (@event is null)
             {
                 toastNotification.AddErrorToastMessage("Event not found");
@@ -61,10 +76,30 @@ public class EventsModel(
         }
 
         @event.Name = NewEvent.Name;
-        @event.Date = NewEvent.Date;
+        @event.StartDate = NewEvent.StartDate;
+        @event.EndDate = NewEvent.EndDate;
         @event.Location = NewEvent.Location;
         @event.Description = NewEvent.Description;
-        @event.AccommodationCode = NewEvent.AccommodationCode;
+        @event.AccommodationCodes = NewEvent.AccommodationCodes;
+        @event.AccommodationDetails = NewEvent.AccommodationDetails;
+        @event.SaveDateTemplateId = NewEvent.SaveDateTemplateId;
+
+        // fix duplicate save on update
+        @event.BookingLinks = NewEvent.BookingLinks.Select(link =>
+        {
+            link = link.Trim();
+            if (link.IsEmail())
+                return new BookingLink{ Link = link, Type = LinkType.Email};
+
+            if (link.IsPhoneNumber())
+                return new BookingLink{ Link = link, Type = LinkType.Phone};
+
+            if (!(link.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+                link.StartsWith("https://", StringComparison.OrdinalIgnoreCase)))
+                return new BookingLink{ Link = $"https://{link}", Type = LinkType.Web};
+
+            return new BookingLink{ Link = link, Type = LinkType.Web};
+        }).ToList();
 
         if (technicalName is not null)
         {
@@ -73,16 +108,6 @@ public class EventsModel(
             @event.InvitationFileName = technicalName;
             @event.OriginalInvitationFileName = originalName;
         }
-
-        @event.EventConfig ??= new EventConfig { EventId = @event.Id };
-        @event.EventConfig.OfferDinner = NewEvent.OfferDinner;
-        @event.EventConfig.OfferLunch = NewEvent.OfferLunch;
-        @event.EventConfig.OfferBreakfast = NewEvent.OfferBreakfast;
-        @event.EventConfig.OfferBrunch = NewEvent.OfferBrunch;
-        @event.EventConfig.ShowAccommodationOptions = NewEvent.ShowAccommodationOptions;
-        @event.EventConfig.AllowComments = NewEvent.AllowComments;
-        @event.EventConfig.AllowPartners = NewEvent.AllowPartners;
-        @event.EventConfig.AllowKids = NewEvent.AllowKids;
 
         await db.SaveChangesAsync();
 
@@ -110,8 +135,8 @@ public class EventsModel(
 
     public async Task<IActionResult> OnPostDeleteAsync(int id)
     {
-        var ev = await db.Events.FindAsync(id);
-        if (ev is null)
+        var @event = await db.Events.FindAsync(id);
+        if (@event is null)
         {
             toastNotification.AddWarningToastMessage("Event not found");
             return RedirectToPage();
@@ -119,35 +144,30 @@ public class EventsModel(
 
         var rsvps = await db.Rsvps.Where(r => r.EventId == id).ToListAsync();
         db.Rsvps.RemoveRange(rsvps);
-        db.Events.Remove(ev);
+        db.Events.Remove(@event);
         await db.SaveChangesAsync();
 
-        DeleteInvitationImage(ev.Id);
+        DeleteInvitationImage(@event.Id);
 
         toastNotification.AddSuccessToastMessage("Event deleted successfully");
         return RedirectToPage();
     }
 
-    public string GetSerializedEvent(Event @event)
-    {
-        return JsonSerializer.Serialize(new
+    public string GetEventAsJson(Event @event)
+    { return JsonSerializer.Serialize(new
         {
             id = @event.Id,
             name = @event.Name,
-            date = @event.Date.ToString("yyyy-MM-dd"),
+            startDate = @event.StartDate.ToString("yyyy-MM-dd"),
+            endDate = @event.EndDate.ToString("yyyy-MM-dd"),
             location = @event.Location,
             description = @event.Description,
-            offerDinner = @event.EventConfig?.OfferDinner ?? false,
-            offerLunch = @event.EventConfig?.OfferLunch ?? false,
-            offerBreakfast = @event.EventConfig?.OfferBreakfast ?? false,
-            offerBrunch = @event.EventConfig?.OfferBrunch ?? false,
-            accommodationCode = @event.AccommodationCode,
-            showAccommodationOptions = @event.EventConfig?.ShowAccommodationOptions ?? false,
-            allowComments = @event.EventConfig?.AllowComments ?? true,
-            allowPartners = @event.EventConfig?.AllowPartners ?? true,
-            allowKids = @event.EventConfig?.AllowKids ?? true,
+            accommodationCodes = @event.AccommodationCodes,
+            accommodationDetails = @event.AccommodationDetails,
+            saveDateTemplateId = @event.SaveDateTemplateId,
+            bookingLinks = @event.BookingLinks.Select(bl => bl.Link),
             originalInvitationFileName = @event.OriginalInvitationFileName
-        });
+        }, jsonOptions);
     }
 
     public Dictionary<int, string> CurrentInviteCodes { get; private set; } = [];
@@ -156,8 +176,8 @@ public class EventsModel(
     {
         AllEvents = await db.Events
             .Include(e => e.InviteCodes)
-            .Include(e => e.EventConfig)
-            .OrderByDescending(e => e.Date)
+            .Include(e => e.BookingLinks)
+            .OrderByDescending(e => e.StartDate)
             .ToListAsync();
 
         var eventUsers = await db.EventUsers.ToListAsync();
@@ -238,25 +258,26 @@ public class EventsModel(
         [StringLength(100)]
         public string Name { get; init; } = string.Empty;
 
-        public DateTime Date { get; init; }
+        public DateTime StartDate { get; init; }
+        public DateTime EndDate { get; init; }
 
         public string? Location { get; init; }
 
         [StringLength(500)]
         public string? Description { get; init; }
 
-        [StringLength(100)]
-        public string? AccommodationCode { get; init; }
+        [ModelBinder(BinderType = typeof(FlatListModelBinder))]
+        public List<string> AccommodationCodes { get; init; } = [];
+
+        [StringLength(1000)]
+        public string? AccommodationDetails { get; init; }
+
+        [StringLength(255)]
+        public string? SaveDateTemplateId { get; init; }
+
+        [ModelBinder(BinderType = typeof(FlatListModelBinder))]
+        public List<string> BookingLinks { get; init; } = [];
 
         public IFormFile? InvitationImage { get; init; }
-
-        public bool OfferDinner { get; init; }
-        public bool OfferLunch { get; init; }
-        public bool OfferBreakfast { get; init; }
-        public bool OfferBrunch { get; init; }
-        public bool ShowAccommodationOptions { get; init; }
-        public bool AllowComments { get; init; } = true;
-        public bool AllowPartners { get; init; } = true;
-        public bool AllowKids { get; init; } = true;
     }
 }

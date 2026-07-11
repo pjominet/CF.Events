@@ -6,8 +6,8 @@ using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Models;
 using CF.Events.Web.Services;
 using CF.Events.Web.Services.BackgroundWorkers;
-using Mailjet.Client;
 using Microsoft.AspNetCore.DataProtection;
+using Smtp2Go.Api;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -78,15 +78,17 @@ public static class ServiceCollectionExtensions
     {
         services.AddHostedService<InvitationEmailWorker>();
         services.AddScoped<IInvitationService, InvitationService>();
+        services.AddScoped<IExportService, ExportService>();
 
         if (environment.IsDevelopment())
         {
-            services.AddScoped<IEmailSender<AppUser>, NoOpEmailSender>();
+            services.AddScoped<IEmailSender<AppUser>, NoOpIdentitySender>();
             services.AddScoped<IMailService, NoOpMailService>();
         }
         else
         {
-            services.AddScoped<IEmailSender<AppUser>, MailjetEmailSender>();
+            services.AddScoped<IEmailProvider, Smtp2GoEmailProvider>();
+            services.AddScoped<IEmailSender<AppUser>, IdentityEmailSender>();
             services.AddScoped<IMailService, MailService>();
         }
     }
@@ -107,14 +109,12 @@ public static class ServiceCollectionExtensions
 
     public static void AddHttpClients(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddHttpClient<IMailjetClient, MailjetClient>(client =>
+        services.AddSingleton<IApiService, Smtp2GoApiService>(_ =>
         {
-            //set BaseAddress, MediaType, UserAgent
-            client.SetDefaultSettings();
-
-            var apiKey = configuration["AppSettings:Mailjet:ApiKey"];
-            var apiSecret = configuration["AppSettings:Mailjet:ApiSecret"];
-            client.UseBasicAuthentication(apiKey, apiSecret);
+            var apiKey = configuration["AppSettings:EmailProviderSettings:Smtp2Go:ApiKey"];
+            return string.IsNullOrEmpty(apiKey)
+                ? throw new BootstrappingException("Missing Smtp2Go API key")
+                : new Smtp2GoApiService(apiKey);
         });
     }
 }

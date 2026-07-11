@@ -13,7 +13,7 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
     public DbSet<InviteCode> InviteCodes => Set<InviteCode>();
     public DbSet<EventUser> EventUsers => Set<EventUser>();
     public DbSet<Rsvp> Rsvps => Set<Rsvp>();
-    public DbSet<EventConfig> EventConfigs => Set<EventConfig>();
+    public DbSet<BookingLink> BookingLinks => Set<BookingLink>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -37,35 +37,23 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
         builder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims", "identity");
         builder.Entity<IdentityUserToken<string>>().ToTable("UserTokens", "identity");
 
-        builder.Entity<EventConfig>(e =>
-        {
-            e.HasKey(r => r.EventId);
-
-            e.HasOne(r => r.Event)
-                .WithOne(r => r.EventConfig)
-                .HasForeignKey<EventConfig>(r => r.EventId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .IsRequired(false);
-        });
-
         builder.Entity<Rsvp>(e =>
         {
             e.HasKey(r => new { r.EventId, r.UserId });
 
-            e.Property(r => r.CommonDietaryOptions)
-                .HasConversion(new EnumArrayConverter<DietaryOptions>()!, new EnumArrayComparer<DietaryOptions>())
-                .HasMaxLength(4000)
-                .IsRequired(false);
+            e.Property(r => r.CommonDietaryOptions).HasMaxLength(1000);
 
-            e.Property(r => r.KidsDetails)
-                .HasConversion(new DictionaryConverter<KidAgeBracket, int>()!, new DictionaryComparer<KidAgeBracket, int>())
-                .IsRequired(false);
+            e.Property(r => r.AttendanceDays).HasMaxLength(1000);
 
             e.HasOne(r => r.EventUser)
                 .WithOne(u => u.Rsvp)
                 .HasForeignKey<Rsvp>(r => new { r.EventId, r.UserId })
-                .OnDelete(DeleteBehavior.Cascade)
-                .IsRequired(false);
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<Event>(e =>
+        {
+            e.Property(r => r.AccommodationCodes).HasMaxLength(1000);
         });
 
         builder.Entity<EventUser>(e =>
@@ -102,6 +90,14 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
                 .HasForeignKey(r => r.EventId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
+        });
+
+        builder.Entity<BookingLink>(e =>
+        {
+            e.HasOne(r => r.Event)
+                .WithMany(r => r.BookingLinks)
+                .HasForeignKey(r => r.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

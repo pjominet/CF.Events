@@ -1,4 +1,4 @@
-﻿(function() {
+﻿(function () {
     const editEventModal = document.getElementById('editEventModal');
     if (editEventModal) {
         editEventModal.addEventListener('show.bs.modal', event => {
@@ -26,10 +26,20 @@
 
             editEventModal.querySelector('[name="Id"]').value = eventData.id;
             editEventModal.querySelector('[name="Name"]').value = eventData.name;
-            editEventModal.querySelector('[name="Date"]').value = eventData.date;
+            editEventModal.querySelector('[name="StartDate"]').value = eventData.startDate;
+            editEventModal.querySelector('[name="EndDate"]').value = eventData.endDate;
             editEventModal.querySelector('[name="Location"]').value = eventData.location;
+            editEventModal.querySelector('[name="AccommodationDetails"]').value = eventData.accommodationDetails;
             editEventModal.querySelector('[name="Description"]').value = eventData.description;
-            editEventModal.querySelector('[name="AccommodationCode"]').value = eventData.accommodationCode || '';
+            editEventModal.querySelector('[name="SaveDateTemplateId"]').value = eventData.saveDateTemplateId || '';
+
+            let codesControl = editEventModal.querySelector('[name="AccommodationCodes"]').tomselect;
+            codesControl.addOptions(eventData.accommodationCodes.map(code => ({value: code, text: code})))
+            eventData.accommodationCodes.forEach(code => codesControl.addItem(code, true));
+
+            let linksControl = editEventModal.querySelector('[name="BookingLinks"]').tomselect;
+            linksControl.addOptions(eventData.bookingLinks.map(link => ({value: link, text: link})))
+            eventData.bookingLinks.forEach(link => linksControl.addItem(link, true));
 
             const imageWrapper = document.getElementById('currentInvitationImageWrapper');
             const imageNameSpan = document.getElementById('currentInvitationImageName');
@@ -42,35 +52,26 @@
                 }
             }
 
-            const accommodationWrapper = document.getElementById('accommodationCodeWrapper');
-            if (accommodationWrapper) {
-                accommodationWrapper.style.display = eventData.showAccommodationOptions ? 'block' : 'none';
+            const startDateInput = document.getElementById('StartDate');
+            const endDateInput = document.getElementById('EndDate');
+
+            if (startDateInput && endDateInput) {
+                // Function to update the minimum end date
+                const updateMinEndDate = () => {
+                    endDateInput.min = startDateInput.value;
+
+                    // Optional: If the current end date is now before the new start date, reset it
+                    if (endDateInput.value && endDateInput.value < startDateInput.value) {
+                        endDateInput.value = startDateInput.value;
+                    }
+                };
+
+                // Listen for changes on the Start Date
+                startDateInput.addEventListener('change', updateMinEndDate);
+
+                // Run once on load to set initial state (useful when editing an event)
+                updateMinEndDate();
             }
-
-            // Set checkboxes
-            const setCheckbox = (name, value) => {
-                const el = editEventModal.querySelector(`[name="${name}"]`);
-                if (el) el.checked = value;
-            };
-
-            setCheckbox('OfferDinner', eventData.offerDinner);
-            setCheckbox('OfferLunch', eventData.offerLunch);
-            setCheckbox('OfferBreakfast', eventData.offerBreakfast);
-            setCheckbox('OfferBrunch', eventData.offerBrunch);
-            setCheckbox('ShowAccommodationOptions', eventData.showAccommodationOptions);
-            setCheckbox('AllowComments', eventData.allowComments);
-            setCheckbox('AllowPartners', eventData.allowPartners);
-            setCheckbox('AllowKids', eventData.allowKids);
         });
-
-        const accommodationToggle = editEventModal.querySelector('[name="ShowAccommodationOptions"]');
-        if (accommodationToggle) {
-            accommodationToggle.addEventListener('change', function() {
-                const wrapper = document.getElementById('accommodationCodeWrapper');
-                if (wrapper) {
-                    wrapper.style.display = this.checked ? 'block' : 'none';
-                }
-            });
-        }
     }
 })();

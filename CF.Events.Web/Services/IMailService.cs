@@ -1,6 +1,10 @@
-﻿namespace CF.Events.Web.Services;
+﻿using CF.Events.Web.Models.Requests;
+
+namespace CF.Events.Web.Services;
 
 public interface IMailService
 {
-    public Task SendInvitationAsync(string eventName, string displayName, string email, string callBackUrl, string? customDesign = null, CancellationToken ctx = default);
+    public Task SendInvitationAsync(InvitationEmailRequest request, CancellationToken ctx = default);
+
+    public Task SendSaveTheDateAsync(SaveTheDateEmailRequest request, CancellationToken ctx = default);
 }

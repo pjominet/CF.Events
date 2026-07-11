@@ -13,5 +13,5 @@ public class AppUser : IdentityUser
     public bool IsActive { get; set; } = true;
 
     // navigation properties
-    public HashSet<EventUser> UserEvents { get; set; } = [];
+    public List<EventUser> UserEvents { get; set; } = [];
 }

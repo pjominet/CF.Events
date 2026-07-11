@@ -12,6 +12,7 @@ public static class PrincipalExtensions
         public bool IsAuthenticated() => currentPrincipal.Identity?.IsAuthenticated == true;
         public bool IsAdmin() => currentPrincipal.IsInRole(Roles.Admin);
         public bool IsUser() => currentPrincipal.IsInRole(Roles.User);
+        public bool IsGuest() => currentPrincipal.IsInRole(Roles.Guest);
         public string GetId() => currentPrincipal.GetClaimValue(ClaimTypes.NameIdentifier);
         public string GetEmail() => currentPrincipal.GetClaimValue(ClaimTypes.Name);
         public string GetDisplayName() => currentPrincipal.GetClaimValue(EventClaims.DisplayName);

@@ -1,45 +1,30 @@
-﻿using Mailjet.Client;
-using Mailjet.Client.Resources;
-using Newtonsoft.Json.Linq;
+using CF.Events.Web.Models.Requests;
 
 namespace CF.Events.Web.Services;
 
-public class MailService(IMailjetClient mailjetClient) : MailjetService(mailjetClient), IMailService
+public class MailService(IEmailProvider emailProvider) : IMailService
 {
-    public async Task SendInvitationAsync(string eventName, string displayName, string email, string callBackUrl, string? customDesign = null, CancellationToken ctx = default)
+    public async Task SendInvitationAsync(InvitationEmailRequest request, CancellationToken ctx = default)
     {
-        var request = new MailjetRequest
-            {
-                Resource = Send.Resource
-            }
-            .Property(Send.Messages, new JArray
-            {
-                new JObject
-                {
-                    {
-                        Send.To, new JArray
-                        {
-                            new JObject
-                            {
-                                { "Email", email },
-                                { "Name", displayName }
-                            }
-                        }
-                    },
-                    { "TemplateID", 8136101 },
-                    {
-                        "Variables", new JObject
-                        {
-                            { "sender_sig", "Patrick & Éadaoin" },
-                            { "invitation_callback", callBackUrl },
-                            { "display_name", displayName },
-                            { "event_name", eventName },
-                            { "custom_design", customDesign }
-                        }
-                    }
-                }
-            });
+        var variables = new Dictionary<string, string>
+        {
+            { "sender_sig", "Patrick & Éadaoin" },
+            { "invitation_callback", request.CallBackUrl },
+            { "user_name", request.UserName },
+            { "event_name", request.EventName }
+        };
 
-        await SendMailjetEmailAsync(request, ctx);
+        await emailProvider.SendTemplatedEmailAsync(request.TemplateId, request.UserEmail, variables, request.InlineAttachments, ctx);
+    }
+
+    public async Task SendSaveTheDateAsync(SaveTheDateEmailRequest request, CancellationToken ctx = default)
+    {
+        var variables = new Dictionary<string, string>
+        {
+            { "sender_sig", "Patrick & Éadaoin" },
+            { "event_name", request.EventName }
+        };
+
+        await emailProvider.SendTemplatedEmailAsync(request.TemplateId, request.UserEmail, variables, request.InlineAttachments, ctx);
     }
 }

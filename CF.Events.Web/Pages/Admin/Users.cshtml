@@ -28,12 +28,31 @@
         </div>
     </div>
 
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body d-flex justify-content-between align-items-center py-2">
+            <div>
+                <span class="text-muted me-2">Bulk actions:</span>
+                <button type="button" class="btn btn-danger btn-sm bulk-action-btn" disabled onclick="executeBulkAction('delete')">
+                    <i class="bi bi-trash me-1"></i>Delete selected
+                </button>
+            </div>
+            <form id="bulkActionForm" method="post"
+                  data-delete-url="@Url.Page("", "BulkDelete")">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="userIds" id="bulkActionUserIds" />
+            </form>
+        </div>
+    </div>
+
     <div class="card shadow-sm border-0">
         <div class="card-body p-0">
             <div class="table-responsive" style="max-height: 70vh; overflow-y: auto;">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-success sticky-top">
                     <tr>
+                        <th style="width: 40px;">
+                            <input class="form-check-input" type="checkbox" id="selectAllUsers">
+                        </th>
                         <th>Display Name</th>
                         <th>Email</th>
                         <th>Phone</th>
@@ -46,6 +65,9 @@
                     @foreach (var user in Model.AllUsers)
                     {
                         <tr>
+                            <td>
+                                <input class="form-check-input user-checkbox" type="checkbox" value="@user.Id" @(user.IsActive ? "disabled" : "")>
+                            </td>
                             <td class="fw-bold">@user.DisplayName</td>
                             <td>@user.Email</td>
                             <td>@user.Phone</td>
@@ -53,7 +75,14 @@
                                 <div class="d-flex justify-content-start align-items-center gap-1">
                                     @foreach (var role in user.Roles)
                                     {
-                                        <span class="badge bg-info me-1">@role</span>
+                                        var badgeColor = role switch
+                                        {
+                                            Roles.Admin => "bg-danger",
+                                            Roles.User => "bg-secondary",
+                                            Roles.Guest => "bg-info",
+                                            _ => "bg-primary"
+                                        };
+                                        <span class="badge @badgeColor me-1">@role</span>
                                     }
                                 </div>
                             </td>
@@ -71,7 +100,7 @@
                             </td>
                             <td>
                                 <div class="d-flex justify-content-start align-items-center gap-2">
-                                    @if (User.IsAdmin() && User.GetId() != user.Id)
+                                    @if (User.IsAdmin() && User.GetId() != user.Id && !user.Roles.Contains(Roles.Guest))
                                     {
                                         if (!user.Roles.Contains(Roles.Admin))
                                         {
@@ -94,6 +123,16 @@
                                             </form>
                                         }
                                     }
+                                    @if (User.IsAdmin() && User.GetId() != user.Id && !user.IsActive)
+                                    {
+                                        <form method="post" asp-page-handler="Delete" asp-route-userId="@user.Id"
+                                              data-confirm="Delete user &quot;@user.DisplayName&quot;? This cannot be undone.">
+                                            <button class="btn btn-sm btn-outline-danger" type="submit"
+                                                    data-bs-toggle="tooltip" data-bs-title="Delete User">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    }
                                 </div>
                             </td>
                         </tr>
@@ -109,9 +148,10 @@
     </div>
 </div>
 
-<partial name="Shared/_AddUserModal" model="Model.NewUser"/>
+<partial name="Shared/_AddUserModal" for="NewUser"/>
 <partial name="Shared/_ImportUsersModal"/>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial"/>
+    <script src="/js/users.js" type="text/javascript" asp-append-version="true"></script>
 }

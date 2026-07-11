@@ -13,7 +13,7 @@ public class InvitesModel(EventsDbContext db) : PageModel
 {
     public List<InviteRow> MyInvites { get; private set; } = [];
     public int TotalCount { get; private set; }
-    public int PageSize { get; } = 9;
+    public const int PageSize = 9;
     public int PageNumber { get; set; } = 1;
 
     public async Task<IActionResult> OnGetAsync(int pageNumber = 1)
@@ -26,20 +26,22 @@ public class InvitesModel(EventsDbContext db) : PageModel
 
         var query = db.EventUsers
             .Where(r => r.UserId == userId && r.Event.IsActive)
-            .Include(r => r.Event)
-            .Include(r => r.Rsvp)
-            .OrderBy(r => r.Event.Date);
+            .OrderBy(r => r.Event.StartDate);
 
         TotalCount = await query.CountAsync();
 
         MyInvites = await query
             .Skip((pageNumber - 1) * PageSize)
             .Take(PageSize)
-            .Select(ue => new InviteRow(ue.Event, ue.Rsvp != null && ue.Rsvp.SubmittedAt > DateTime.UtcNow))
+            .Select(ue => new InviteRow(
+                ue.Event,
+                ue.Rsvp != null && ue.Rsvp.SubmittedAt <= DateTime.UtcNow,
+                ue.Rsvp != null && ue.Rsvp.SubmittedAt <= DateTime.UtcNow && ue.Rsvp.Attending,
+                ue.Rsvp != null ? ue.Rsvp.AttendanceDays : new List<int>()))
             .ToListAsync();
 
         return Page();
     }
 
-    public record InviteRow(Event Event, bool HasRsvped);
+    public record InviteRow(Event Event, bool HasRsvped, bool Attending, List<int> AttendanceDays);
 }

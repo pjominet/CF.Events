@@ -1,4 +1,5 @@
 ﻿@page "/events/{eventId:int}/rsvp"
+@using CF.Events.Web.Infrastructure.Extensions
 @model CF.Events.Web.Pages.Events.RsvpModel
 @{
     ViewData["Title"] = "RSVP";
@@ -6,189 +7,184 @@
 
 <div class="container-fluid d-flex justify-content-center pt-4 mb-auto">
     <div class="card border-0 p-4 mx-auto bg-card-custom rounded shadow-sm" style="max-width: 800px; width: 100%;">
-        <h2 class="serif text-center mb-4">RSVP for <strong>@Model.EventData?.Name</strong></h2>
-        <p class="text-center mb-4">Will you be joining us?</p>
-        <form method="post" id="rsvpForm" class="d-flex flex-column gap-3">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <h2 class="serif text-center mb-4">RSVP for <strong class="fs-1">@Model.EventData.Name</strong></h2>
 
-            <div class="d-flex justify-content-center gap-4 my-2">
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" asp-for="Input.Attending" value="true" id="accept"/>
-                    <label class="form-check-label" for="accept">Happily Accept</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" asp-for="Input.Attending" value="false" id="decline"/>
-                    <label class="form-check-label" for="decline">Regretfully Decline</label>
-                </div>
+        @if (Model.HasResponded)
+        {
+            <!-- Already Responded View -->
+            <div class="step-content-wrapper rounded p-4 bg-light shadow-sm text-center">
+                <p class="lead cursive fs-1 mb-3">
+                    @(Model.RespondedAttending ? "You have accepted the invitation!" : "You have declined the invitation.")
+                </p>
+                <p class="text-muted fst-italic mb-0">
+                    <i class="bi bi-check-circle text-success me-1"></i>Your RSVP has been recorded.
+                </p>
             </div>
 
-            <div id="additionalOptions" class="d-flex flex-column gap-3 mt-2" style="display:@(Model.Input.Attending ? "block" : "none")">
-                <div class="row g-3 justify-content-center">
-                    @if (Model.EventData?.EventConfig?.AllowPartners == true)
-                    {
-                        <div class="col-auto">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" asp-for="Input.BringsPlusOne" id="plusOne"/>
-                                <label class="form-check-label" for="plusOne">Bringing a +1?</label>
-                            </div>
+            <div class="text-center mt-3">
+                <a href="/invites" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Invites
+                </a>
+            </div>
+        }
+        else
+        {
+        <!-- Progress Indicator (shown only when attending) -->
+        <div class="stepper-progress mb-4 d-flex justify-content-between d-none">
+            <div class="step-indicator active px-2 pb-2" data-step="1">1. Attendance</div>
+            <div class="step-indicator px-2 pb-2" data-step="2">2. Dietary Options</div>
+            <div class="step-indicator px-2 pb-2" data-step="3">3. Finalize</div>
+        </div>
+
+        <form method="post" id="rsvpForm">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="step-content-wrapper rounded p-4 bg-light shadow-sm">
+                <!-- STEP 1: Attendance -->
+                <div class="form-step" id="step-1">
+                    <p class="text-center mb-4 lead cursive fs-1">Will you be joining us?</p>
+                    <section class="d-flex justify-content-center gap-4 my-2">
+                        <div class="form-check custom-radio">
+                            <input class="form-check-input" type="radio" asp-for="NewRsvp.Attending" value="true" id="accept"/>
+                            <label class="form-check-label" for="accept">Happily Accept</label>
                         </div>
-                    }
-                    @if (Model.EventData?.EventConfig?.AllowKids == true)
-                    {
-                        <div class="col-auto">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" asp-for="Input.BringsKids" id="kids"/>
-                                <label class="form-check-label" for="kids">Bringing kids?</label>
-                            </div>
+                        <div class="form-check custom-radio">
+                            <input class="form-check-input" type="radio" asp-for="NewRsvp.Attending" value="false" id="decline"/>
+                            <label class="form-check-label" for="decline">Regretfully Decline</label>
                         </div>
-                    }
+                    </section>
                 </div>
 
-                @if (Model.EventData?.EventConfig?.AllowKids == true)
-                {
-                    <div id="kidsDetailsSection" style="display: @(Model.Input.BringsKids ? "block" : "none")">
-                        <h6 class="serif mb-2">Kids Details</h6>
-                        <div id="kidsRowsContainer" class="d-flex flex-column gap-2 mb-3">
-                            @foreach (var bracket in Enum.GetValues<KidAgeBracket>())
+                <!-- STEP 2: Attendance Schedule & Accommodation -->
+                <div class="form-step d-none" id="step-2">
+                    <h3 class="h5 serif">Attendance Schedule</h3>
+                    <section class="row mb-3">
+                        <div class="col-12 mt-0">
+                            @for (var day = 1; day <= Model.EventData.EventDuration; day++)
                             {
-                                var count = Model.Input.KidsDetails.TryGetValue(bracket, out var c) ? c : 0;
-                                <div class="row align-items-center kids-row @(count > 0 ? "" : "d-none")" data-bracket="@bracket">
-                                    <div class="col-7">
-                                        <span class="text-capitalize">@bracket.ToString().Replace("To", " to ").Replace("Or", " or ")</span>
-                                    </div>
-                                    <div class="col-5">
-                                        <input type="number" name="Input.KidsDetails[@bracket]" value="@count" class="form-control form-control-sm kid-count-input" min="0"/>
-                                    </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="NewRsvp.AttendanceDays" id="day-@(day)" value="@day"
+                                           @(Model.NewRsvp.AttendanceDays.Contains(day) ? "checked" : string.Empty)/>
+                                    <label class="form-check-label" for="day-@(day)">Attending Day @day</label>
                                 </div>
                             }
                         </div>
-                        <div class="row g-2">
-                            <div class="col-8">
-                                <select id="kidAgeBracketSelect" class="form-select form-select-sm">
-                                    <option value="">Add age bracket...</option>
-                                    @foreach (var bracket in Enum.GetValues<KidAgeBracket>())
-                                    {
-                                        <option value="@bracket">@bracket.ToString().Replace("To", " to ").Replace("Or", " or ")</option>
-                                    }
-                                </select>
-                            </div>
-                            <div class="col-4">
-                                <button type="button" id="addKidBracketBtn" class="btn btn-outline-primary btn-sm w-100">Add</button>
-                            </div>
-                        </div>
-                    </div>
-                }
+                    </section>
 
-                <div class="row g-3 justify-content-center">
-                    @if (Model.EventData?.EventConfig?.OfferBreakfast == true)
+                    @if (Model.HasAccommodationInfo())
                     {
-                        <div class="col-auto">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" asp-for="Input.JoinsForBreakfast" id="breakfast"/>
-                                <label class="form-check-label" for="breakfast">Joining Breakfast</label>
-                            </div>
-                        </div>
-                    }
-                    @if (Model.EventData?.EventConfig?.OfferBrunch == true)
-                    {
-                        <div class="col-auto">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" asp-for="Input.JoinsForBrunch" id="brunch"/>
-                                <label class="form-check-label" for="brunch">Joining Brunch</label>
-                            </div>
-                        </div>
-                    }
-                    @if (Model.EventData?.EventConfig?.OfferLunch == true)
-                    {
-                        <div class="col-auto">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" asp-for="Input.JoinsForLunch" id="lunch"/>
-                                <label class="form-check-label" for="lunch">Joining Lunch</label>
-                            </div>
-                        </div>
-                    }
-                    @if (Model.EventData?.EventConfig?.OfferDinner == true)
-                    {
-                        <div class="col-auto">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" asp-for="Input.JoinsForDinner" id="dinner"/>
-                                <label class="form-check-label" for="dinner">Joining Dinner</label>
-                            </div>
-                        </div>
+                        <h3 class="h5 serif">Accommodation Info</h3>
+                        <section>
+                            <p class="mb-3">
+                                @Html.Raw(Model.EventData.AccommodationDetails)
+                            </p>
+
+                            @if (Model.EventData.BookingLinks.Any())
+                            {
+                                <ol class="list-unstyled">
+                                    @foreach (var bl in Model.EventData.BookingLinks.OrderBy(bl => bl.Link.Length))
+                                    {
+                                        <li>
+                                            @switch (bl.Type)
+                                            {
+                                                case LinkType.Email:
+                                                    <a href="mailto:@bl.Link" class="btn btn-sm btn-primary mb-1 px-2 py-1">
+                                                        <i class="bi bi-envelope me-2"></i>@bl.Link
+                                                    </a>
+                                                    break;
+                                                case LinkType.Phone:
+                                                    <a href="tel:@bl.Link.Replace(" ", string.Empty)" class="btn btn-sm btn-primary mb-1 px-2 py-1">
+                                                        <i class="bi bi-telephone me-2"></i>@bl.Link
+                                                    </a>
+                                                    break;
+                                                case LinkType.Web:
+                                                    <a href="@bl.Link" target="_blank" rel="noopener" class="btn btn-sm btn-primary mb-1 px-2 py-1">
+                                                        <i class="bi bi-box-arrow-up-right me-2"></i>@bl.Link
+                                                    </a>
+                                                    break;
+                                                default:
+                                                    throw new ArgumentOutOfRangeException();
+                                            }
+                                        </li>
+                                    }
+                                </ol>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.AssignedAccommodationCode))
+                            {
+                                <div class="alert alert-info py-2 mt-3 mb-0" id="accommodationCodeAlert">
+                                    <small><i class="bi bi-info-circle me-1"></i>Code: <strong>@Model.AssignedAccommodationCode</strong></small>
+                                </div>
+                            }
+                            <p class="text-muted mb-0 mt-2 fst-italic">
+                                <i class="bi bi-info-circle text-info me-2"></i>This information can still be viewed after finalising the RSVP.
+                            </p>
+                        </section>
                     }
                 </div>
 
-                @{
-                    var showDietaryOptions = Model.EventData?.EventConfig?.OfferDinner == true
-                                             || Model.EventData?.EventConfig?.OfferLunch == true
-                                             || Model.EventData?.EventConfig?.OfferBreakfast == true
-                                             || Model.EventData?.EventConfig?.OfferBrunch == true;
-                    var anyFoodSelected = Model.Input.JoinsForBreakfast
-                                          || Model.Input.JoinsForBrunch
-                                          || Model.Input.JoinsForLunch
-                                          || Model.Input.JoinsForDinner;
-                    if (showDietaryOptions)
-                    {
-                        <div id="dietarySection" style="display: @(anyFoodSelected ? "block" : "none")">
-                            <div class="mt-2">
-                                <label class="form-label serif">Dietary Requirements</label>
-                                <select asp-for="Input.CommonDietaryOptions" class="form-select tom-select" id="dietaryOptions" multiple placeholder="Select dietary options...">
-                                    @foreach (var option in Enum.GetValues<DietaryOptions>())
-                                    {
-                                        <option value="@option">@option</option>
-                                    }
-                                </select>
-                            </div>
-                            <div class="mt-2">
-                                <textarea asp-for="Input.OtherDietaryDetails" class="form-control" maxlength="500" placeholder="Other dietary details or allergies..." rows="2"></textarea>
-                            </div>
-                        </div>
-                    }
-                }
+                <!-- STEP 3: Dietary Options -->
+                <div class="form-step d-none" id="step-3">
+                    <section>
+                        <h3 class="h5 serif">Dietary Requirements</h3>
+                        <select asp-for="NewRsvp.CommonDietaryOptions" class="form-select tom-select" id="dietaryOptions" multiple placeholder="Select dietary options...">
+                            @foreach (var option in Enum.GetValues<DietaryOptions>())
+                            {
+                                <option value="@option">@option</option>
+                            }
+                        </select>
+                        <textarea asp-for="NewRsvp.OtherDietaryDetails" class="form-control mt-2" maxlength="500" placeholder="Other dietary details or allergies..." rows="2"></textarea>
+                        <p class="text-muted mb-0 mt-2 fst-italic">
+                            <i class="bi bi-info-circle text-info me-2"></i>Leave all empty, if none apply.
+                        </p>
+                    </section>
+                </div>
 
-                @if (Model.EventData?.EventConfig?.ShowAccommodationOptions == true)
-                {
-                    <div class="row g-3 align-items-center">
-                        <div class="col-auto">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" asp-for="Input.NeedsAccommodation" id="accommodation"/>
-                                <label class="form-check-label" for="accommodation">Need Accommodation?</label>
-                            </div>
-                        </div>
-                        <div class="col" id="accommodationDurationWrapper" style="display: @(Model.Input.NeedsAccommodation ? "block" : "none")">
-                            <div class="input-group input-group-sm">
-                                <input asp-for="Input.AccommodationDuration" type="number" class="form-control" min="1" placeholder="Duration"/>
-                                <span class="input-group-text">days</span>
-                            </div>
-                        </div>
-                    </div>
-                    if (!string.IsNullOrEmpty(Model.AssignedAccommodationCode))
+                <!-- STEP 4: Comments & Donation -->
+                <div class="form-step d-none" id="step-4">
+                    <section class="commentSection">
+                        <h3 class="h5 serif">Comments</h3>
+                        <textarea asp-for="NewRsvp.Comments" class="form-control" maxlength="500" placeholder="Add a comment... (optional)" rows="3"></textarea>
+                    </section>
+                    @if (!string.IsNullOrWhiteSpace(Model.EventData.DonationIban))
                     {
-                        <div class="alert alert-info py-2 mb-0" id="accommodationCodeAlert" style="display: @(Model.Input.NeedsAccommodation ? "block" : "none")">
-                            <small><i class="bi bi-info-circle me-1"></i>Accommodation Code: <strong>@Model.EventData.AccommodationCode</strong></small>
-                        </div>
+                        <section class="mt-3">
+                            <h3 class="h5 serif">You are welcome to help fund our event</h3>
+                            <button class="btn btn-outline-primary w-100" type="button" id="ibanInfo"
+                                    onclick="copyToClipboardAndShowFeedback(this)">
+                                @Model.EventData.DonationIban.FormatAsIban()<i class="bi bi-copy ms-2"></i>
+                            </button>
+                            <div class="form-text text-muted mt-2 mb-0">
+                                <p>
+                                    <i class="bi bi-exclamation-diamond text-danger me-2"></i>Add the reference <strong>@Model.EventData.GetDonationReference()</strong> to your transaction.
+                                </p>
+                                <p class="fst-italic">
+                                    <i class="bi bi-info-circle text-info me-2"></i>Any money donated will be used to cover the cost of the event.
+                                </p>
+                            </div>
+                        </section>
                     }
-                }
-
-                @if (Model.EventData?.EventConfig?.AllowComments == true)
-                {
-                    <div>
-                        <textarea asp-for="Input.Comments" class="form-control" maxlength="500" placeholder="Add a comment... (optional)" rows="3"></textarea>
-                    </div>
-                }
+                </div>
             </div>
 
-            <p class="d-flex justify-content-center my-2 text-muted text-center" style="font-size: 0.8rem;">
-                Information will be stored confidentially and is only visible to the event organizers.
+            <p class="text-muted text-center my-3" style="font-size: 0.8rem;">
+                Any information is stored securely and is only visible to the event organizers.
             </p>
 
-            <div class="d-flex justify-content-center gap-2">
-                <button class="btn btn-primary flex-grow-1" type="submit">
-                    @(Model.HasResponded ? "Update RSVP" : "Send Response")
-                </button>
-                <a href="/invites" class="btn btn-secondary flex-grow-1 d-flex align-items-center justify-content-center">Back</a>
+            <!-- Footer Buttons -->
+            <div class="d-flex justify-content-between align-items-center gap-3">
+                <div style="flex: 1 1 50%;">
+                    <button type="button" class="btn btn-secondary btn-prev d-none w-100">Back</button>
+                    <a href="/invites" id="cancelLink" class="btn btn-secondary w-100">Cancel</a>
+                </div>
+                <div style="flex: 1 1 50%;">
+                    <button type="button" class="btn btn-primary btn-next w-100">Next</button>
+                    <button class="btn btn-primary btn-submit d-none w-100" type="submit">
+                        @(Model.HasResponded ? "Update RSVP" : "Send Response")
+                    </button>
+                </div>
             </div>
         </form>
+        }
     </div>
 </div>
 

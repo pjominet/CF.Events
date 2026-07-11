@@ -8,7 +8,7 @@
             <form method="post" asp-page-handler="Save" enctype="multipart/form-data">
                 <input type="hidden" asp-for="Id" />
                 <div class="modal-header">
-                    <h5 class="modal-title">@(Model.Id == 0 ? "Create New Event" : "Edit Event")</h5>
+                    <h5 class="modal-title">@(Model.Id == 0 ? "Create New Event" : $"Edit Event {Model.Id}")</h5>
                 </div>
                 <div class="modal-body">
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
@@ -18,9 +18,13 @@
                             <input asp-for="Name" class="form-control" placeholder="Wedding" />
                             <span asp-validation-for="Name" class="text-danger"></span>
                         </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label fw-bold">Date</label>
-                            <input asp-for="Date" type="date" class="form-control" />
+                        <div class="col-6 col-md-3">
+                            <label class="form-label fw-bold">Start Date</label>
+                            <input asp-for="StartDate" type="date" min="@Model.StartDate.ToString("yyyy-MM-dd")" class="form-control" />
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label fw-bold">End Date</label>
+                            <input asp-for="EndDate" type="date" class="form-control" />
                         </div>
                     </div>
 
@@ -45,52 +49,22 @@
                             <input asp-for="Location" class="form-control" placeholder="Grand Hall" />
                             <span asp-validation-for="Location" class="text-danger"></span>
                         </div>
-                        <div class="col-12 col-md-6" id="accommodationCodeWrapper" style="display: @(Model.ShowAccommodationOptions ? "block" : "none")">
-                            <label class="form-label fw-bold">Accommodation Code</label>
-                            <input asp-for="AccommodationCode" class="form-control" placeholder="WEDDING2026" />
-                            <span asp-validation-for="AccommodationCode" class="text-danger"></span>
-                            <div class="form-text">This code will be shown to guests if accommodations are enabled.</div>
+                        <div class="col-12 col-md-6" id="accommodationCodeWrapper">
+                            <label class="form-label fw-bold">Accommodation Codes</label>
+                            <input name="AccommodationCodes" value="" class="form-control tag-select" autocomplete="off" placeholder="Add codes..."/>
                         </div>
-                    </div>
-
-                    <hr />
-                    <h6 class="fw-bold mb-3">Event Configuration</h6>
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" asp-for="OfferBreakfast" />
-                                <label class="form-check-label" asp-for="OfferBreakfast">Offer Breakfast</label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" asp-for="OfferBrunch" />
-                                <label class="form-check-label" asp-for="OfferBrunch">Offer Brunch</label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" asp-for="OfferLunch" />
-                                <label class="form-check-label" asp-for="OfferLunch">Offer Lunch</label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" asp-for="OfferDinner" />
-                                <label class="form-check-label" asp-for="OfferDinner">Offer Dinner</label>
-                            </div>
+                        <div class="col-12 my-3">
+                            <label class="form-label fw-bold">Accommodation Details</label>
+                            <textarea asp-for="AccommodationDetails" class="form-control" placeholder="Accommodation Details" rows="3"></textarea>
                         </div>
-                        <div class="col-6">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" asp-for="ShowAccommodationOptions" />
-                                <label class="form-check-label" asp-for="ShowAccommodationOptions">Accommodation</label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" asp-for="AllowPartners" />
-                                <label class="form-check-label" asp-for="AllowPartners">Allow +1s</label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" asp-for="AllowKids" />
-                                <label class="form-check-label" asp-for="AllowKids">Allow Kids</label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" asp-for="AllowComments" />
-                                <label class="form-check-label" asp-for="AllowComments">Allow Comments</label>
-                            </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-bold">Save the Date Template ID</label>
+                            <input asp-for="SaveDateTemplateId" class="form-control" placeholder="template-id-123" />
+                            <div class="form-text">If set, the event will be eligible for 'Save the Date' emails using this template.</div>
+                        </div>
+                        <div class="col-12" id="bookingLinksWrapper">
+                            <label class="form-label fw-bold">Booking Links</label>
+                            <input name="BookingLinks" value="" class="form-control tag-select" autocomplete="off" placeholder="Add booking links..."/>
                         </div>
                     </div>
                 </div>

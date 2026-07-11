@@ -1,70 +1,86 @@
-﻿(function() {
-    const options = document.getElementById("additionalOptions");
-    document.querySelectorAll('input[name="Input.Attending"]').forEach(function (radio) {
-        radio.addEventListener("change", function () {
-            options.style.display = (this.value === "true" || this.value === "True") ? "block" : "none";
+﻿(function () {
+    const steps = document.querySelectorAll(".form-step");
+    const indicators = document.querySelectorAll(".step-indicator");
+    const stepperProgress = document.querySelector(".stepper-progress");
+    const nextBtn = document.querySelector(".btn-next");
+    const prevBtn = document.querySelector(".btn-prev");
+    const submitBtn = document.querySelector(".btn-submit");
+    const cancelLink = document.getElementById("cancelLink");
+
+    // If the RSVP form is not present (already responded view), skip stepper setup
+    if (!nextBtn || !prevBtn) return;
+
+    // Step 1 = attendance selection (no stepper), steps 2-4 = stepper steps 1-3
+    let currentStep = 1;
+
+    function showStep(stepNumber) {
+        // Show the correct form-step div
+        steps.forEach((step, index) => {
+            step.classList.toggle("d-none", index !== stepNumber - 1);
         });
+
+        // Stepper indicators map to steps 2-4 (indices 0-2)
+        indicators.forEach((ind, index) => {
+            ind.classList.toggle("active", index === stepNumber - 2);
+        });
+
+        // Navigation button visibility
+        prevBtn.classList.toggle("d-none", stepNumber === 1);
+        cancelLink.classList.toggle("d-none", stepNumber !== 1);
+
+        // Last step (4) shows submit, others show next
+        if (stepNumber === 4) {
+            nextBtn.classList.add("d-none");
+            submitBtn.classList.remove("d-none");
+        } else {
+            nextBtn.classList.remove("d-none");
+            submitBtn.classList.add("d-none");
+        }
+
+        // Show/hide stepper progress (only for attending flow, steps 2-4)
+        const isAttending = document.querySelector('input[name="NewRsvp.Attending"]:checked')?.value === "true";
+        if (isAttending && stepNumber >= 2) {
+            stepperProgress.classList.remove("d-none");
+        } else {
+            stepperProgress.classList.add("d-none");
+        }
+
+        // Show/hide comment section based on attendance
+        const commentSection = document.querySelector(".commentSection");
+        if (commentSection) {
+            commentSection.classList.toggle("d-none", !isAttending);
+        }
+
+        currentStep = stepNumber;
+    }
+
+    // Handle "Next" button clicks
+    nextBtn.addEventListener("click", () => {
+        const isAttending = document.querySelector('input[name="NewRsvp.Attending"]:checked')?.value === "true";
+
+        if (currentStep === 1) {
+            if (isAttending) {
+                showStep(2);
+            } else {
+                showStep(4);
+            }
+        } else if (currentStep === 2) {
+            showStep(3);
+        } else if (currentStep === 3) {
+            showStep(4);
+        }
     });
 
-    // Kids dynamic rows
-    const kidsCheckbox = document.getElementById("kids");
-    const kidsSection = document.getElementById("kidsDetailsSection");
-    if (kidsCheckbox && kidsSection) {
-        kidsCheckbox.addEventListener("change", function () {
-            kidsSection.style.display = this.checked ? "block" : "none";
-        });
-    }
+    // Handle "Back" button clicks
+    prevBtn.addEventListener("click", () => {
+        if (currentStep === 4) {
+            const isAttending = document.querySelector('input[name="NewRsvp.Attending"]:checked')?.value === "true";
+            showStep(isAttending ? 3 : 1);
+        } else if (currentStep === 3) {
+            showStep(2);
+        } else if (currentStep === 2) {
+            showStep(1);
+        }
+    });
 
-    const addKidBtn = document.getElementById("addKidBracketBtn");
-    const kidSelect = document.getElementById("kidAgeBracketSelect");
-    if (addKidBtn && kidSelect) {
-        addKidBtn.addEventListener("click", function () {
-            let bracket = kidSelect.value;
-            if (!bracket) return;
-            let row = document.querySelector(`.kids-row[data-bracket="${bracket}"]`);
-            if (row) {
-                row.classList.remove("d-none");
-                let input = row.querySelector(".kid-count-input");
-                if (input && input.value === 0) {
-                    input.value = 1;
-                }
-            }
-            kidSelect.value = "";
-        });
-    }
-
-    // Accommodation duration
-    const accCheckbox = document.getElementById("accommodation");
-    const accDurationWrapper = document.getElementById("accommodationDurationWrapper");
-    const accCodeAlert = document.getElementById("accommodationCodeAlert");
-    if (accCheckbox) {
-        accCheckbox.addEventListener("change", function () {
-            if (accDurationWrapper)
-                accDurationWrapper.style.display = this.checked ? "block" : "none";
-            if (accCodeAlert)
-                accCodeAlert.style.display = this.checked ? "block" : "none";
-        });
-    }
-
-    // Dietary options visibility
-    const dietarySection = document.getElementById("dietarySection");
-    const foodCheckboxes = [
-        document.getElementById("breakfast"),
-        document.getElementById("brunch"),
-        document.getElementById("lunch"),
-        document.getElementById("dinner")
-    ];
-
-    if (dietarySection) {
-        const updateDietaryVisibility = () => {
-            const anyFoodSelected = foodCheckboxes.some(cb => cb && cb.checked);
-            dietarySection.style.display = anyFoodSelected ? "block" : "none";
-        };
-
-        foodCheckboxes.forEach(cb => {
-            if (cb) {
-                cb.addEventListener("change", updateDietaryVisibility);
-            }
-        });
-    }
 })();
