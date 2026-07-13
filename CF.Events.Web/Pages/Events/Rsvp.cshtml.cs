@@ -52,7 +52,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
         {
             NewRsvp = new InputModel
             {
-                Participants = user.GuestGroup?.Participants ?? (user.DisplayName != null ? [user.DisplayName] : []),
+                Participants = user.GuestGroup?.Participants ?? (user.DisplayName is not null ? [user.DisplayName] : []),
                 Attending = rsvp.Attending,
                 ParticipantsAttendance = rsvp.ParticipantsAttendance.Select(pa => new ParticipantAttendance
                 {
@@ -60,7 +60,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
                     EventId = pa.EventId,
                     UserId = pa.UserId,
                     ParticipantName = pa.ParticipantName,
-                    AttendingDays = pa.AttendingDays.ToList()
+                    AttendingDays = pa.AttendingDays
                 }).ToList(),
                 ParticipantsDiets = rsvp.ParticipantsDiets.Select(o => new ParticipantDiet
                 {
@@ -68,7 +68,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
                     EventId = o.EventId,
                     UserId = o.UserId,
                     ParticipantName = o.ParticipantName,
-                    Restrictions = o.Restrictions.ToList(),
+                    Restrictions = o.Restrictions,
                     OtherDetails = o.OtherDetails
                 }).ToList(),
                 Comments = rsvp.Comments
@@ -80,14 +80,14 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
             // Default first participant for Day 1
             if (GroupParticipants.Count > 0)
             {
-                NewRsvp.ParticipantsAttendance = new List<ParticipantAttendance>
-                {
+                NewRsvp.ParticipantsAttendance =
+                [
                     new ParticipantAttendance
                     {
                         ParticipantName = GroupParticipants[0],
-                        AttendingDays = new List<int> { 1 }
+                        AttendingDays = [1]
                     }
-                };
+                ];
             }
         }
 
@@ -98,8 +98,10 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
     {
         var userId = User.GetId();
 
-        var user = await db.Users.Include(u => u.GuestGroup).FirstAsync(u => u.Id == userId);
-        if (user.GuestGroup != null)
+        var user = await db.Users
+            .Include(u => u.GuestGroup)
+            .FirstAsync(u => u.Id == userId);
+        if (user.GuestGroup is not null)
         {
             user.GuestGroup.Participants = NewRsvp.Participants;
             db.GuestGroups.Update(user.GuestGroup);
@@ -127,7 +129,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
                 EventId = eventId,
                 UserId = userId,
                 ParticipantName = pa.ParticipantName,
-                AttendingDays = pa.AttendingDays.ToList()
+                AttendingDays = pa.AttendingDays
             }).ToList();
 
             // Handle dietary options update
@@ -137,7 +139,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
                 EventId = eventId,
                 UserId = userId,
                 ParticipantName = o.ParticipantName,
-                Restrictions = o.Restrictions.ToList(),
+                Restrictions = o.Restrictions,
                 OtherDetails = o.OtherDetails
             }).ToList();
 

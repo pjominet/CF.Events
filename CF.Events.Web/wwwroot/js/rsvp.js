@@ -198,8 +198,7 @@
 
     // Prepare hidden inputs for attendance before submit
     document.getElementById("rsvpForm").addEventListener("submit", function() {
-        const participants = Array.from(document.querySelectorAll(".participant-input")).map(i => i.value).filter(v => v);
-        const hiddenContainer = document.getElementById("participant-attendance-hidden");
+        const hiddenContainer = document.getElementById("participant-attendance");
         hiddenContainer.innerHTML = "";
 
         const attendanceMap = new Map(); // participantName -> set of days
@@ -284,7 +283,8 @@
             const select = document.querySelector(`.participant-day-select[data-day="${day}"]`);
             if (select) {
                 if (select.tomselect) {
-                    if (this.checked) select.tomselect.enable();
+                    if (this.checked)
+                        select.tomselect.enable();
                     else {
                         select.tomselect.clear();
                         select.tomselect.disable();
@@ -293,54 +293,4 @@
             }
         });
     });
-
-    // Initialize TomSelect for all selects
-    document.querySelectorAll(".participant-day-select").forEach(select => {
-        if (!select.tomselect) {
-            // eslint-disable-next-line no-undef
-            const ts = new TomSelect(select, {
-                plugins: ['remove_button'],
-                placeholder: select.getAttribute("placeholder") || "Select...",
-                hidePlaceholder: true,
-                dropdownParent: "body"
-            });
-            if (select.disabled) {
-                ts.disable();
-            }
-        }
-    });
-
-    // Handle dietary options changes to show/hide number of people
-    const dietaryOptionsSelect = document.getElementById("dietaryOptions");
-    const dietaryOtherDetails = document.getElementById("dietaryOtherDetails");
-    const dietaryNbrPeopleInput = document.getElementById("dietaryNbrPeople");
-    const dietaryOptionsDetails = document.getElementById("dietaryOptionsDetails");
-
-    function updateDietaryVisibility() {
-        if (!dietaryNbrPeopleInput || !dietaryOptionsDetails) return;
-
-        const count = parseInt(dietaryNbrPeopleInput.value) || 0;
-        const shouldShow = count > 0;
-
-        dietaryOptionsDetails.style.display = shouldShow ? "block" : "none";
-
-        // If hidden, clear the other fields
-        if (!shouldShow) {
-            if (dietaryOptionsSelect && dietaryOptionsSelect.tomselect) {
-                dietaryOptionsSelect.tomselect.clear();
-            }
-            if (dietaryOtherDetails) {
-                dietaryOtherDetails.value = "";
-            }
-        }
-    }
-
-    if (dietaryNbrPeopleInput) {
-        dietaryNbrPeopleInput.addEventListener("input", updateDietaryVisibility);
-        dietaryNbrPeopleInput.addEventListener("change", updateDietaryVisibility);
-    }
-
-    // Initial check
-    updateDietaryVisibility();
-
 })();
