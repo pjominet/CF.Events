@@ -1,13 +1,21 @@
 using CF.Events.Web.Infrastructure.Extensions;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace CF.Events.Web.Infrastructure.Filters;
 
-public class InitPasswordFilter : IAsyncPageFilter, IAsyncActionFilter
+public class InitPasswordFilter(LinkGenerator linkGenerator) : IAsyncPageFilter, IAsyncActionFilter
 {
     public async Task OnPageHandlerExecutionAsync(PageHandlerExecutingContext context, PageHandlerExecutionDelegate next)
     {
+        if (context.HttpContext.GetEndpoint()?.Metadata.GetMetadata<IAllowAnonymous>() != null)
+        {
+            await next();
+            return;
+        }
+
         if (ShouldRedirect(context.HttpContext))
         {
             context.Result = new RedirectToPageResult("/Account/Manage/FirstLogin");
@@ -21,6 +29,12 @@ public class InitPasswordFilter : IAsyncPageFilter, IAsyncActionFilter
 
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
+        if (context.HttpContext.GetEndpoint()?.Metadata.GetMetadata<IAllowAnonymous>() != null)
+        {
+            await next();
+            return;
+        }
+
         if (ShouldRedirect(context.HttpContext))
         {
             context.Result = new RedirectToPageResult("/Account/Manage/FirstLogin");
@@ -30,7 +44,7 @@ public class InitPasswordFilter : IAsyncPageFilter, IAsyncActionFilter
         await next();
     }
 
-    private static bool ShouldRedirect(HttpContext httpContext)
+    private bool ShouldRedirect(HttpContext httpContext)
     {
         var user = httpContext.User;
 
@@ -41,10 +55,16 @@ public class InitPasswordFilter : IAsyncPageFilter, IAsyncActionFilter
         if (!user.InitPassword()) return false;
 
         // 3. Avoid infinite loops: check if we are already on the FirstLogin page or logging out
-        var path = httpContext.Request.Path.Value?.ToLowerInvariant() ?? string.Empty;
+        var path = httpContext.Request.Path.Value ?? string.Empty;
 
-        // Exclude the target page and common exit routes
-        return !path.Contains("/account/manage/firstLogin") &&
-               !path.Contains("/account/logout");
+        var excludedPages = new[]
+        {
+            "/Account/Manage/FirstLogin",
+            "/Account/Logout"
+        };
+
+        return excludedPages
+            .Select(page => linkGenerator.GetPathByPage(page))
+            .All(excludedPath => string.IsNullOrEmpty(excludedPath) || !path.Equals(excludedPath, StringComparison.OrdinalIgnoreCase));
     }
 }
