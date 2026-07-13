@@ -28,6 +28,14 @@
             if (!!codeSelect) {
                 codeSelect.disabled = !this.checked;
                 codeSelect.required = this.checked;
+
+                if (codeSelect.tomselect) {
+                    if (this.checked) {
+                        codeSelect.tomselect.enable();
+                    } else {
+                        codeSelect.tomselect.disable();
+                    }
+                }
             }
         });
     }
