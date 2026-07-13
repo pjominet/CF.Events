@@ -37,11 +37,11 @@ public class InvitesModel(EventsDbContext db) : PageModel
                 ue.Event,
                 ue.Rsvp != null && ue.Rsvp.SubmittedAt <= DateTime.UtcNow,
                 ue.Rsvp != null && ue.Rsvp.SubmittedAt <= DateTime.UtcNow && ue.Rsvp.Attending,
-                ue.Rsvp != null ? ue.Rsvp.AttendanceDays : new List<int>()))
+                ue.Rsvp != null ? ue.Rsvp.AttendanceDays : new Dictionary<int, int>()))
             .ToListAsync();
 
         return Page();
     }
 
-    public record InviteRow(Event Event, bool HasRsvped, bool Attending, List<int> AttendanceDays);
+    public record InviteRow(Event Event, bool HasRsvped, bool Attending, Dictionary<int, int> AttendanceDays);
 }

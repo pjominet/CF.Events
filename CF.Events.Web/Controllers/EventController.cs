@@ -96,8 +96,7 @@ public class EventController(
                 AccommodationCode = eu.AssignedAccommodationCode,
                 BookingLinks = eu.Event.BookingLinks.Select(bl => new { bl.Type, bl.Link }).ToList(),
                 eu.Event.DonationIban,
-                EventStartDate = eu.Event.StartDate,
-                AttendanceDays = eu.Rsvp != null ? eu.Rsvp.AttendanceDays : new List<int>()
+                EventStartDate = eu.Event.StartDate
             })
             .FirstOrDefaultAsync();
 
@@ -127,7 +126,7 @@ public class EventController(
             .Where(eu => eu.EventId == eventId && eu.UserId == userId)
             .Select(eu => new
             {
-                AttendanceDays = eu.Rsvp != null ? eu.Rsvp.AttendanceDays : new List<int>(),
+                AttendanceDays = eu.Rsvp != null ? eu.Rsvp.AttendanceDays : new Dictionary<int, int>(),
                 DietaryOptions = eu.Rsvp != null ? eu.Rsvp.CommonDietaryOptions : new List<DietaryOptions>(),
                 OtherDietaryDetails = eu.Rsvp != null ? eu.Rsvp.OtherDietaryDetails : null,
                 Comments = eu.Rsvp != null ? eu.Rsvp.Comments : null,

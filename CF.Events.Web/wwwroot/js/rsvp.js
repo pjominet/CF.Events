@@ -83,4 +83,15 @@
         }
     });
 
+    // Handle day checkbox changes
+    document.querySelectorAll(".day-checkbox").forEach(checkbox => {
+        checkbox.addEventListener("change", function () {
+            const day = this.getAttribute("data-day");
+            const input = document.querySelector(`input[name="NewRsvp.AttendanceDays[${day}]"]`);
+            if (input) {
+                input.disabled = !this.checked;
+            }
+        });
+    });
+
 })();

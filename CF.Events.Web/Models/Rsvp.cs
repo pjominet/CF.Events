@@ -13,7 +13,7 @@ public class Rsvp
 
     public bool Attending { get; set; } = true;
 
-    public List<int> AttendanceDays { get; set; } = [];
+    public Dictionary<int, int> AttendanceDays { get; set; } = [];
     public List<DietaryOptions> CommonDietaryOptions { get; set; } = [];
 
     [StringLength(500)]

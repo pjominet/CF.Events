@@ -61,7 +61,7 @@ public class ExportService(EventsDbContext db) : IExportService
         foreach (var eu in @event.EventUsers)
         {
             var status = eu.Rsvp == null ? "No Response" : (eu.Rsvp.Attending ? "Attending" : "Declined");
-            var attendingDays = eu.Rsvp != null ? string.Join("|", eu.Rsvp.AttendanceDays) : "";
+            var attendingDays = eu.Rsvp != null ? string.Join("|", eu.Rsvp.AttendanceDays.Select(d => $"Day {d.Key} ({d.Value})")) : "";
             var dietaryOptions = eu.Rsvp != null ? string.Join("|", eu.Rsvp.CommonDietaryOptions) : "";
             var otherDietary = eu.Rsvp?.OtherDietaryDetails ?? "";
             var comments = eu.Rsvp?.Comments ?? "";

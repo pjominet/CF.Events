@@ -43,7 +43,9 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
 
             e.Property(r => r.CommonDietaryOptions).HasMaxLength(1000);
 
-            e.Property(r => r.AttendanceDays).HasMaxLength(1000);
+            e.Property(r => r.AttendanceDays)
+                .HasConversion(new DictionaryConverter<int, int>(), new DictionaryComparer<int, int>())
+                .HasMaxLength(1000);
 
             e.HasOne(r => r.EventUser)
                 .WithOne(u => u.Rsvp)

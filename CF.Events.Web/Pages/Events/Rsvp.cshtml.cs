@@ -108,7 +108,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
     public sealed class InputModel
     {
         public bool Attending { get; set; } = true;
-        public List<int> AttendanceDays { get; set; } = [1];
+        public Dictionary<int, int> AttendanceDays { get; set; } = new (){{ 1, 1 }};
 
         public List<DietaryOptions> CommonDietaryOptions { get; set; } = [];
         public string? OtherDietaryDetails { get; set; }
