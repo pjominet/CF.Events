@@ -172,4 +172,16 @@
             }, 500);
         });
     }
+
+    // Handle Invite Validity Modal population
+    const setInviteValidityModal = document.getElementById('setInviteValidityModal');
+    if (setInviteValidityModal) {
+        setInviteValidityModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const eventId = button.getAttribute('data-bs-event-id');
+
+            const modalEventIdInput = setInviteValidityModal.querySelector('#modalEventId');
+            modalEventIdInput.value = eventId;
+        });
+    }
 })();

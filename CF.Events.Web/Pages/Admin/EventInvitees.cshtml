@@ -16,17 +16,17 @@
                         <li class="breadcrumb-item active">Invitees</li>
                     </ol>
                 </nav>
-                <h1 class="serif fs-1 mt-3">@Model.EventData?.Name</h1>
-                <p class="text-muted mb-0">@Model.EventData?.StartDate.ToLongDateString()</p>
+                <h1 class="serif fs-1 mt-3">@Model.EventData.Name</h1>
+                <p class="text-muted mb-0">@Model.EventData.StartDate.ToLongDateString()</p>
             </div>
             <div class="d-flex mt-auto mb-0 gap-2">
-                <a href="@Url.Action("ExportInvitees", "Event", new { eventId = Model.EventData!.Id })" class="btn btn-outline-success" id="exportExcelBtn">
+                <a href="@Url.Action("ExportInvitees", "Event", new { eventId = Model.EventData.Id })" class="btn btn-outline-success" id="exportExcelBtn">
                     <i class="bi bi-file-earmark-spreadsheet me-1"></i>Export to Excel
                 </a>
                 <button type="button" class="btn btn-outline-primary"
                         data-bs-toggle="modal" data-bs-target="#setInviteValidityModal"
-                        data-bs-event-id="@Model.EventData!.Id" data-bs-event-name="@Model.EventData!.Name">
-                    <i class="bi bi-key-fill me-1"></i>Invite Validity
+                        data-bs-event-id="@Model.EventData.Id" data-bs-event-name="@Model.EventData.Name">
+                    <i class="bi bi-calendar-range me-1"></i>Change Invite Validity
                 </button>
             </div>
         </div>
@@ -40,7 +40,7 @@
             }
             else
             {
-                <form method="post" asp-action="InviteUsers" asp-controller="Event" asp-route-eventId="@Model.EventData!.Id" class="row g-2 align-items-center" onsubmit="showLoadingOverlay()">
+                <form method="post" asp-action="InviteUsers" asp-controller="Event" asp-route-eventId="@Model.EventData.Id" class="row g-2 align-items-center" onsubmit="showLoadingOverlay()">
                     @Html.AntiForgeryToken()
                     <div class="col-12 mb-3">
                         <select name="UserIds" asp-items="Model.AvailableUsers" class="form-select tom-select" required multiple placeholder="Select users to invite..."></select>
@@ -93,6 +93,9 @@
                     </div>
                 </form>
             }
+            <div class="alert alert-info mt-2">
+                Current invite validity: @Model.EventData.InviteValidity days
+            </div>
         </div>
     </div>
 
@@ -100,7 +103,7 @@
         <div class="card-body d-flex justify-content-between align-items-center py-2">
             <div>
                 <span class="text-muted me-2">Bulk actions:</span>
-                @if (!string.IsNullOrEmpty(Model.EventData?.SaveDateTemplateId))
+                @if (!string.IsNullOrEmpty(Model.EventData.SaveDateTemplateId))
                 {
                     <button type="button" class="btn btn-primary btn-sm bulk-action-btn" disabled onclick="executeBulkAction('save-the-date')">
                         <i class="bi bi-calendar-check me-1"></i>Send Save the Date
@@ -114,9 +117,9 @@
                 </button>
             </div>
             <form id="bulkActionForm" method="post"
-                  data-resend-url="@Url.Action("BulkResendInvite", "Event", new { eventId = Model.EventData!.Id })"
-                  data-remove-url="@Url.Page("", "BulkRemove", new { id = Model.EventData!.Id })"
-                  data-save-the-date-url="@Url.Page("", "BulkSaveTheDate", new { id = Model.EventData!.Id })">
+                  data-resend-url="@Url.Action("BulkResendInvite", "Event", new { eventId = Model.EventData.Id })"
+                  data-remove-url="@Url.Page("", "BulkRemove", new { id = Model.EventData.Id })"
+                  data-save-the-date-url="@Url.Page("", "BulkSaveTheDate", new { id = Model.EventData.Id })">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="userIds" id="bulkActionUserIds"/>
                 <input type="hidden" name="actionType" id="bulkActionType"/>
@@ -243,7 +246,7 @@
 
 <div id="_rsvpResponsesContainer"></div>
 
-<partial name="Shared/_InviteValidityModal"/>
+<partial name="Shared/_InviteValidityModal" model="@Model.EventData"/>
 @section Scripts {
     <partial name="_ValidationScriptsPartial"/>
     <script src="/js/invitees.js" type="text/javascript" asp-append-version="true"></script>

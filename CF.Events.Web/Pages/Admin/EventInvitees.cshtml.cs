@@ -19,7 +19,7 @@ public class EventInviteesModel(
     IToastNotification toastNotification) : PageModel
 {
 
-    public Event? EventData { get; private set; }
+    public required Event EventData { get; set; }
     public List<SelectListItem> AccommodationCodes { get; private set; } = [];
 
     public UsersInviteRequest NewInvite { get; set; } = new();
@@ -30,8 +30,48 @@ public class EventInviteesModel(
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
-        if (!await LoadAsync(id))
-            return NotFound();
+        EventData = await db.Events.FirstAsync(e => e.Id == id);
+
+        AccommodationCodes = EventData.AccommodationCodes
+            .Select(ac => new SelectListItem(ac, ac))
+            .ToList();
+
+        var invitedUsers = db.EventUsers
+            .Where(ue => ue.EventId == id)
+            .Include(ue => ue.User)
+            .Select(ue => new { ue.AssignedAccommodationCode, ue.User, InvitationEmailSent = ue.InviteEmailSent, SaveTheDateSent = ue.SaveTheDateEmailSent, ue.ScheduledFor })
+            .ToList();
+        var rsvps = db.Rsvps.Where(r => r.EventId == id).ToList();
+
+        var unavailableUsers = new HashSet<string>();
+        Invitees = invitedUsers
+            .Select(iu =>
+            {
+                var user = iu.User;
+                var rsvp = rsvps.FirstOrDefault(r => r.UserId == user.Id);
+                var responded = rsvp?.SubmittedAt > DateTime.MinValue.AddDays(1);
+                var status = responded ? (rsvp?.Attending == true ? AttendanceStatus.Attending : AttendanceStatus.Declined) : AttendanceStatus.Pending;
+                unavailableUsers.Add(user.Id);
+                return new InviteeRow(
+                    user.Id,
+                    user.DisplayName!,
+                    user.Email!,
+                    iu.AssignedAccommodationCode,
+                    status,
+                    iu.InvitationEmailSent,
+                    iu.SaveTheDateSent,
+                    iu.ScheduledFor);
+            })
+            .OrderBy(i => i.DisplayName)
+            .ToList();
+
+        AvailableUsers = await (from u in db.Users
+                join ur in db.UserRoles on u.Id equals ur.UserId
+                join r in db.Roles on ur.RoleId equals r.Id
+                where u.IsActive && !unavailableUsers.Contains(u.Id) && r.Name == Roles.Guest
+                orderby u.DisplayName
+                select new SelectListItem($"{u.DisplayName} ({u.Email})", u.Id))
+            .ToListAsync();
 
         return Page();
     }
@@ -165,56 +205,18 @@ public class EventInviteesModel(
         return RedirectToPage(new { id });
     }
 
-    private async Task<bool> LoadAsync(int id)
+    public async Task<IActionResult> OnPostSetInviteValidity(int id, int inviteValidity)
     {
-        EventData = await db.Events
-            .FirstOrDefaultAsync(e => e.Id == id);
+        var count = await db.Events
+            .Where(e => e.Id == id)
+            .ExecuteUpdateAsync(setter => setter
+                .SetProperty(e => e.InviteValidity, inviteValidity));
 
-        if (EventData is null)
-            return false;
+        if (count == 0)
+            toastNotification.AddErrorToastMessage("Event not found");
+        else toastNotification.AddSuccessToastMessage($"Invitation validity set to {inviteValidity} days");
 
-        AccommodationCodes = EventData.AccommodationCodes
-            .Select(ac => new SelectListItem(ac, ac))
-            .ToList();
-
-        var invitedUsers = db.EventUsers
-            .Where(ue => ue.EventId == id)
-            .Include(ue => ue.User)
-            .Select(ue => new { ue.AssignedAccommodationCode, ue.User, InvitationEmailSent = ue.InviteEmailSent, SaveTheDateSent = ue.SaveTheDateEmailSent, ue.ScheduledFor })
-            .ToList();
-        var rsvps = db.Rsvps.Where(r => r.EventId == id).ToList();
-
-        var unavailableUsers = new HashSet<string>();
-        Invitees = invitedUsers
-            .Select(iu =>
-            {
-                var user = iu.User;
-                var rsvp = rsvps.FirstOrDefault(r => r.UserId == user.Id);
-                var responded = rsvp?.SubmittedAt > DateTime.MinValue.AddDays(1);
-                var status = responded ? (rsvp?.Attending == true ? AttendanceStatus.Attending : AttendanceStatus.Declined) : AttendanceStatus.Pending;
-                unavailableUsers.Add(user.Id);
-                return new InviteeRow(
-                    user.Id,
-                    user.DisplayName!,
-                    user.Email!,
-                    iu.AssignedAccommodationCode,
-                    status,
-                    iu.InvitationEmailSent,
-                    iu.SaveTheDateSent,
-                    iu.ScheduledFor);
-            })
-            .OrderBy(i => i.DisplayName)
-            .ToList();
-
-        AvailableUsers = await (from u in db.Users
-                join ur in db.UserRoles on u.Id equals ur.UserId
-                join r in db.Roles on ur.RoleId equals r.Id
-                where u.IsActive && !unavailableUsers.Contains(u.Id) && r.Name == Roles.Guest
-                orderby u.DisplayName
-                select new SelectListItem($"{u.DisplayName} ({u.Email})", u.Id))
-            .ToListAsync();
-
-        return true;
+        return RedirectToPage(new { id });
     }
 
     public record InviteeRow(string UserId, string DisplayName, string Email, string? AssignedAccommodationCode, AttendanceStatus Status, bool InvitationEmailSent, bool SaveTheDateSent, DateTime? ScheduledFor);
