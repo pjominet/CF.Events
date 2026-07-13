@@ -283,16 +283,6 @@
             const day = this.getAttribute("data-day");
             const select = document.querySelector(`.participant-day-select[data-day="${day}"]`);
             if (select) {
-                select.disabled = !this.checked;
-                if (this.checked && !select.tomselect) {
-                    // eslint-disable-next-line no-undef
-                    new TomSelect(select, {
-                        plugins: ['remove_button'],
-                        placeholder: select.getAttribute("placeholder") || "Select...",
-                        hidePlaceholder: true,
-                        dropdownParent: "body"
-                    });
-                }
                 if (select.tomselect) {
                     if (this.checked) select.tomselect.enable();
                     else {
@@ -304,16 +294,19 @@
         });
     });
 
-    // Initialize TomSelect for already enabled selects
+    // Initialize TomSelect for all selects
     document.querySelectorAll(".participant-day-select").forEach(select => {
-        if (!select.disabled && !select.tomselect) {
+        if (!select.tomselect) {
             // eslint-disable-next-line no-undef
-            new TomSelect(select, {
+            const ts = new TomSelect(select, {
                 plugins: ['remove_button'],
                 placeholder: select.getAttribute("placeholder") || "Select...",
                 hidePlaceholder: true,
                 dropdownParent: "body"
             });
+            if (select.disabled) {
+                ts.disable();
+            }
         }
     });
 

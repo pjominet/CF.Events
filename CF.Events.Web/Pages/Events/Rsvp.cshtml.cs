@@ -171,16 +171,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
             return Redirect("/");
         }
 
-        rsvp.Attending = true;
-        rsvp.SubmittedAt = DateTime.MinValue;
-
-        db.ParticipantsAttendance.RemoveRange(rsvp.ParticipantsAttendance);
-        rsvp.ParticipantsAttendance = [];
-
-        db.ParticipantsDiets.RemoveRange(rsvp.ParticipantsDiets);
-        rsvp.ParticipantsDiets = [];
-
-        rsvp.Comments = null;
+        db.Rsvps.Remove(rsvp);
 
         await db.SaveChangesAsync();
 
