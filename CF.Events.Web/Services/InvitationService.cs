@@ -281,6 +281,6 @@ public class InvitationService(
         }, ctx);
 
         var baseUrl = _appSettings.BaseUrl.TrimEnd('/');
-        request.CallBackUrl = $"{baseUrl}/events/invite-callback?code={code}?eventId={request.EventId}";
+        request.CallBackUrl = $"{baseUrl}/events/invite-callback?code={code}&eventId={request.EventId}";
     }
 }
