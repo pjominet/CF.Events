@@ -37,7 +37,7 @@ public class Event
     [StringLength(255)]
     public string? SaveDateTemplateId { get; set; }
 
-    public DateTime InviteValidity { get; set; } = DateTime.UtcNow.AddDays(30);
+    public int InviteValidity { get; set; } = 30;
 
     [StringLength(255)]
     public string? InvitationTemplateId { get; set; }

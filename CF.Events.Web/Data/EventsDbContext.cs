@@ -1,5 +1,3 @@
-using CF.Events.Web.Data.Comparers;
-using CF.Events.Web.Data.Converters;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;

@@ -57,10 +57,17 @@ public class UserController(
             var parts = line.Split(delimiter);
 
             var name = parts.Length > 0 ? parts[0].Trim() : null;
+            // Skip if email is invalid
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                importErrors.Add($"Error importing {name}: Name is required.");
+                continue;
+            }
+
             var email = parts.Length > 1 ? parts[1].Trim() : null;
 
             // Skip if email is invalid
-            if (string.IsNullOrEmpty(email) || !email.IsEmail())
+            if (string.IsNullOrWhiteSpace(email) || !email.IsEmail())
             {
                 importErrors.Add($"Error importing {email}: Email is invalid.");
                 continue;
@@ -69,9 +76,9 @@ public class UserController(
             var phone = parts.Length > 2 ? parts[2].Trim() : null;
             var guestGroupLabel = parts.Length > 3 ? parts[3].Trim() : null;
 
-            if (selectedRoles.Contains(Roles.Guest) && string.IsNullOrEmpty(guestGroupLabel))
+            if (selectedRoles.Contains(Roles.Guest) && string.IsNullOrWhiteSpace(guestGroupLabel) && string.IsNullOrWhiteSpace(name))
             {
-                importErrors.Add($"Error importing {email}: Guest Group is required for guest role.");
+                importErrors.Add($"Error importing {email}: Guest group or user name is required for guest role.");
                 continue;
             }
 
@@ -79,7 +86,7 @@ public class UserController(
             {
                 UserName = email,
                 Email = email,
-                PhoneNumber = phone,
+                PhoneNumber = !string.IsNullOrWhiteSpace(phone) ? phone : null,
                 DisplayName = name,
                 MustChangePassword = true,
                 EmailConfirmed = true,
@@ -98,17 +105,12 @@ public class UserController(
 
             await userManager.AddToRolesAsync(user, selectedRoles);
 
-            var userRoles = await userManager.GetRolesAsync(user);
-            if (!userRoles.Contains(Roles.Guest) || string.IsNullOrEmpty(guestGroupLabel))
-                continue;
-
-            var guestGroup = new GuestGroup
+            user.GuestGroup = new GuestGroup
             {
-                Label = guestGroupLabel,
+                Label = !string.IsNullOrWhiteSpace(guestGroupLabel) ? guestGroupLabel : name,
                 GuestUserId = user.Id,
                 Participants = [user.DisplayName!]
             };
-            db.GuestGroups.Add(guestGroup);
             await db.SaveChangesAsync();
         }
 

@@ -15,7 +15,6 @@ public interface IInvitationService
     Task<int> ProcessPendingEmails(CancellationToken ctx = default);
     Task SendImmediateEmails<T>(List<T> requests, CancellationToken ctx = default) where T : class, IEmailRequest;
     Task SendEmail<T>(T request, CancellationToken ctx = default) where T : class, IEmailRequest;
-    Task PrepareInvitationAsync(IEmailRequest request, CancellationToken ctx = default);
     Task<int> InviteUsersAsync(int eventId, UsersInviteRequest inviteRequest, CancellationToken ctx = default);
     Task ResendInvitesAsync(int eventId, List<string> userIds, CancellationToken ctx = default);
 }
@@ -87,20 +86,6 @@ public class InvitationService(
         await SendImmediateEmails(pending, ctx);
 
         return pending.Count;
-    }
-
-    public async Task PrepareInvitationAsync(IEmailRequest request, CancellationToken ctx = default)
-    {
-        var code = CodeGenerator.Generate(32);
-        await db.InviteCodes.AddAsync(new InviteCode
-        {
-            UserId = request.UserId,
-            Value = code,
-            ValidUntil = request.CallbackValidity
-        }, ctx);
-
-        var baseUrl = _appSettings.BaseUrl.TrimEnd('/');
-        request.CallBackUrl = $"{baseUrl}/events/invite-callback?code={code}";
     }
 
     public async Task SendImmediateEmails<T>(List<T> requests, CancellationToken ctx = default) where T : class, IEmailRequest
@@ -283,5 +268,19 @@ public class InvitationService(
 
         if (requests.Count > 0)
             await SendImmediateEmails(requests, ctx);
+    }
+
+    private async Task PrepareInvitationAsync(IEmailRequest request, CancellationToken ctx = default)
+    {
+        var code = CodeGenerator.Generate(32);
+        await db.InviteCodes.AddAsync(new InviteCode
+        {
+            UserId = request.UserId,
+            Value = code,
+            ValidUntil = DateTime.UtcNow.AddDays(request.CallbackValidity)
+        }, ctx);
+
+        var baseUrl = _appSettings.BaseUrl.TrimEnd('/');
+        request.CallBackUrl = $"{baseUrl}/events/invite-callback?code={code}";
     }
 }

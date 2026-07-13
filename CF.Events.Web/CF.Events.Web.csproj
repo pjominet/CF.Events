@@ -28,6 +28,7 @@
       <Folder Include="Data\Migrations\" />
       <Folder Include="logs\" />
       <Folder Include="keys\" />
+      <Folder Include="Resources\" />
     </ItemGroup>
 
 </Project>

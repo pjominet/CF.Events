@@ -7,7 +7,7 @@ public interface IEmailRequest
     public string UserId { get; }
     public string UserName { get; }
     public string UserEmail { get; }
-    public DateTime CallbackValidity { get; }
+    public int CallbackValidity { get; }
     public string CallBackUrl { get; set; }
     IEnumerable<InlineAttachment> InlineAttachments { get; }
 }
@@ -20,7 +20,7 @@ public class InvitationEmailRequest : IEmailRequest
     public required string UserId { get; init; }
     public required string UserName { get; init; }
     public required string UserEmail { get; init; }
-    public DateTime CallbackValidity { get; init; }
+    public int CallbackValidity { get; init; }
     public string CallBackUrl { get; set; } = string.Empty;
     public IEnumerable<InlineAttachment> InlineAttachments { get; set; }
 }
@@ -33,7 +33,7 @@ public class SaveDateEmailRequest : IEmailRequest
     public required string UserId { get; init; }
     public required string UserName { get; init; }
     public required string UserEmail { get; init; }
-    public DateTime CallbackValidity { get; init; }
+    public int CallbackValidity { get; init; }
     public string CallBackUrl { get; set; } = string.Empty;
     public IEnumerable<InlineAttachment> InlineAttachments { get; set; }
 }
