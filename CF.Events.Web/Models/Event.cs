@@ -25,7 +25,7 @@ public class Event
     [StringLength(1000)]
     public string? AccommodationDetails { get; set; }
 
-    [StringLength(1000)]
+    [StringLength(64)]
     public string? DonationIban { get; set; }
 
     [StringLength(255)]

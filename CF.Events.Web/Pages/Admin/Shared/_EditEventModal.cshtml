@@ -67,9 +67,14 @@
                             <input asp-for="InvitationEmailTemplateId" class="form-control" placeholder="56789" />
                             <div class="form-text">If set, the event will be eligible for 'Invite' emails using this template.</div>
                         </div>
-                        <div class="col-12" id="bookingLinksWrapper">
+                        <div class="col-12 mb-3">
                             <label class="form-label fw-bold">Booking Links</label>
                             <input name="BookingLinks" value="" class="form-control tag-select" autocomplete="off" placeholder="Add booking links..."/>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Save the Date Template ID</label>
+                            <input asp-for="DonationIban" class="form-control" placeholder="56789" />
+                            <div class="form-text">If set, the event will be eligible for 'Invite' emails using this template.</div>
                         </div>
                     </div>
                 </div>
