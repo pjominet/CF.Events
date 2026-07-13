@@ -46,12 +46,12 @@
                     <div class="row mb-3">
                         <div class="col-12 col-md-6">
                             <label class="form-label fw-bold">Location</label>
-                            <input asp-for="Location" class="form-control" placeholder="Grand Hall" />
+                            <input asp-for="Location" class="form-control" placeholder="Grand Hotel" />
                             <span asp-validation-for="Location" class="text-danger"></span>
                         </div>
                         <div class="col-12 col-md-6" id="accommodationCodeWrapper">
                             <label class="form-label fw-bold">Accommodation Codes</label>
-                            <input name="AccommodationCodes" value="" class="form-control tag-select" autocomplete="off" placeholder="Add codes..."/>
+                            <input name="AccommodationCodes" value="" class="form-control tag-select" autocomplete="off" data-placeholder="Add codes..."/>
                         </div>
                         <div class="col-12 my-3">
                             <label class="form-label fw-bold">Accommodation Details</label>
@@ -59,8 +59,13 @@
                         </div>
                         <div class="col-12 mb-3">
                             <label class="form-label fw-bold">Save the Date Template ID</label>
-                            <input asp-for="SaveDateTemplateId" class="form-control" placeholder="template-id-123" />
+                            <input asp-for="SaveDateEmailTemplateId" class="form-control" placeholder="12345" />
                             <div class="form-text">If set, the event will be eligible for 'Save the Date' emails using this template.</div>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-bold">Save the Date Template ID</label>
+                            <input asp-for="InvitationEmailTemplateId" class="form-control" placeholder="56789" />
+                            <div class="form-text">If set, the event will be eligible for 'Invite' emails using this template.</div>
                         </div>
                         <div class="col-12" id="bookingLinksWrapper">
                             <label class="form-label fw-bold">Booking Links</label>

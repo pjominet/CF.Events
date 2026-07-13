@@ -21,7 +21,7 @@
         });
     }
 
-    const accommodationToggle = document.querySelector('[name="NewInvite.AllowAccommodationCode"]');
+    const accommodationToggle = document.querySelector('[name="AllowAccommodationCode"]');
     if (accommodationToggle) {
         accommodationToggle.addEventListener('change', function () {
             const codeSelect = document.querySelector('select[name="SelectedAccommodationCode"]');

@@ -82,7 +82,8 @@ public class EventsModel(
         @event.Description = NewEvent.Description;
         @event.AccommodationCodes = NewEvent.AccommodationCodes;
         @event.AccommodationDetails = NewEvent.AccommodationDetails;
-        @event.SaveDateTemplateId = NewEvent.SaveDateTemplateId;
+        @event.SaveDateTemplateId = NewEvent.SaveDateEmailTemplateId;
+        @event.InvitationTemplateId = NewEvent.InvitationEmailTemplateId;
 
         // fix duplicate save on update
         @event.BookingLinks = NewEvent.BookingLinks.Select(link =>
@@ -165,6 +166,7 @@ public class EventsModel(
             accommodationCodes = @event.AccommodationCodes,
             accommodationDetails = @event.AccommodationDetails,
             saveDateTemplateId = @event.SaveDateTemplateId,
+            invitationTemplateId = @event.InvitationTemplateId,
             bookingLinks = @event.BookingLinks.Select(bl => bl.Link),
             originalInvitationFileName = @event.OriginalInvitationFileName
         }, jsonOptions);
@@ -262,7 +264,10 @@ public class EventsModel(
         public string? AccommodationDetails { get; init; }
 
         [StringLength(255)]
-        public string? SaveDateTemplateId { get; init; }
+        public string? SaveDateEmailTemplateId { get; init; }
+
+        [StringLength(255)]
+        public string? InvitationEmailTemplateId { get; init; }
 
         [ModelBinder(BinderType = typeof(FlatListModelBinder))]
         public List<string> BookingLinks { get; init; } = [];

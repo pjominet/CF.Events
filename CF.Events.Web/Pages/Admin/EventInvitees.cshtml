@@ -44,6 +44,7 @@
                     @Html.AntiForgeryToken()
                     <div class="col-12 mb-3">
                         <select name="UserIds" asp-items="Model.AvailableUsers" class="form-select tom-select" required multiple placeholder="Select users to invite..."></select>
+                        <input type="hidden" name="InviteCodeId" value="0" />
                     </div>
                     <div class="col-9 row">
                         <div class="col-5 flex-column gap-2">
@@ -77,7 +78,7 @@
                             <div class="flex-column gap-2">
                                 <div class="d-flex align-items-center gap-2">
                                     <label>Allow using accommodation code:</label>
-                                    <input type="checkbox" asp-for="NewInvite.AllowAccommodationCode" class="me-2"/>
+                                    <input type="checkbox" name="AllowAccommodationCode" asp-for="NewInvite.AllowAccommodationCode" class="me-2"/>
                                 </div>
                             </div>
                             <div class="mt-2">
@@ -109,9 +110,12 @@
                         <i class="bi bi-calendar-check me-1"></i>Send Save the Date
                     </button>
                 }
-                <button type="button" class="btn btn-info btn-sm bulk-action-btn" disabled onclick="executeBulkAction('resend')">
-                    <i class="bi bi-send me-1"></i>Resend selected
-                </button>
+                @if (!string.IsNullOrEmpty(Model.EventData.InvitationTemplateId))
+                {
+                    <button type="button" class="btn btn-info btn-sm bulk-action-btn" disabled onclick="executeBulkAction('resend')">
+                        <i class="bi bi-send me-1"></i>Resend selected
+                    </button>
+                }
                 <button type="button" class="btn btn-danger btn-sm bulk-action-btn" disabled onclick="executeBulkAction('remove')">
                     <i class="bi bi-x-lg me-1"></i>Remove selected
                 </button>
@@ -201,13 +205,13 @@
                                     {
                                         <button type="button" class="btn btn-sm btn-outline-success"
                                                 title="View RSVP Details" data-bs-toggle="tooltip"
-                                                data-admin-rsvp-user-id="@invitee.UserId" data-admin-rsvp-event-id="@Model.EventData!.Id">
+                                                data-admin-rsvp-user-id="@invitee.UserId" data-admin-rsvp-event-id="@Model.EventData.Id">
                                             <i class="bi bi-eye"></i>
                                         </button>
                                     }
-                                    @if (!string.IsNullOrEmpty(Model.EventData?.SaveDateTemplateId) && invitee.Status is AttendanceStatus.Pending)
+                                    @if (!string.IsNullOrEmpty(Model.EventData.SaveDateTemplateId) && invitee.Status is AttendanceStatus.Pending)
                                     {
-                                        <form method="post" asp-page-handler="SaveTheDate" asp-route-id="@Model.EventData!.Id" asp-route-userId="@invitee.UserId"
+                                        <form method="post" asp-page-handler="SaveTheDate" asp-route-id="@Model.EventData.Id" asp-route-userId="@invitee.UserId"
                                               class="d-flex align-items-center justify-content-center">
                                             <button class="btn btn-sm btn-primary" type="submit"
                                                     data-bs-toggle="tooltip" data-bs-title="Send Save the Date">
@@ -215,14 +219,17 @@
                                             </button>
                                         </form>
                                     }
-                                    <form method="post" asp-action="ResendInvite" asp-controller="Event" asp-route-eventId="@Model.EventData!.Id" class="d-inline">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="userId" value="@invitee.UserId"/>
-                                        <button type="submit" class="btn btn-info btn-sm" title="Resend invite" data-bs-toggle="tooltip">
-                                            <i class="bi bi-send"></i>
-                                        </button>
-                                    </form>
-                                    <form method="post" asp-page-handler="Remove" asp-route-id="@Model.EventData!.Id" class="d-inline"
+                                    @if (!string.IsNullOrEmpty(Model.EventData.InvitationTemplateId))
+                                    {
+                                        <form method="post" asp-action="ResendInvite" asp-controller="Event" asp-route-eventId="@Model.EventData.Id" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="userId" value="@invitee.UserId"/>
+                                            <button type="submit" class="btn btn-info btn-sm" title="Resend invite" data-bs-toggle="tooltip">
+                                                <i class="bi bi-send"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    <form method="post" asp-page-handler="Remove" asp-route-id="@Model.EventData.Id" class="d-inline"
                                           data-confirm="Remove @invitee.DisplayName from this event?">
                                         <input type="hidden" name="userId" value="@invitee.UserId"/>
                                         <button type="submit" class="btn btn-danger btn-sm" title="Remove invitee" data-bs-toggle="tooltip">
