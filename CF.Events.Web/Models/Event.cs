@@ -37,6 +37,8 @@ public class Event
     [StringLength(255)]
     public string? SaveDateTemplateId { get; set; }
 
+    public DateTime InviteValidity { get; set; } = DateTime.UtcNow.AddDays(30);
+
     [StringLength(255)]
     public string? InvitationTemplateId { get; set; }
 
@@ -46,7 +48,6 @@ public class Event
 
     // navigation properties
     public List<EventUser> EventUsers { get; set; } = [];
-    public List<InviteCode> InviteCodes { get; set; } = [];
     public List<BookingLink> BookingLinks { get; set; } = [];
 
     // helper

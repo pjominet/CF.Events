@@ -17,4 +17,5 @@ public class AppUser : IdentityUser
     // navigation properties
     public GuestGroup? GuestGroup { get; set; }
     public List<EventUser> UserEvents { get; set; } = [];
+    public List<InviteCode> InviteCodes { get; set; } = [];
 }

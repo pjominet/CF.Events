@@ -80,23 +80,15 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
                 .HasForeignKey(r => r.EventId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
-
-            e.HasOne(r => r.InviteCode)
-                .WithMany(r => r.EventUsers)
-                .HasForeignKey(r => r.InviteCodeId)
-                .OnDelete(DeleteBehavior.NoAction)
-                .IsRequired();
         });
 
         builder.Entity<InviteCode>(e =>
         {
-            e.HasIndex(r => r.Code).IsUnique();
+            e.HasIndex(r => r.Value).IsUnique();
 
-            e.Property(r => r.Label).IsRequired();
-
-            e.HasOne(r => r.Event)
+            e.HasOne(r => r.User)
                 .WithMany(r => r.InviteCodes)
-                .HasForeignKey(r => r.EventId)
+                .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
         });

@@ -8,18 +8,15 @@ public class InviteCode
 
     [Required]
     [StringLength(100)]
-    public required string Code { get; init; }
+    public required string Value { get; init; }
 
-    [StringLength(100)]
-    public string? Label { get; init; }
-
-    public int EventId { get; init; }
+    [StringLength(450)]
+    public required string UserId { get; init; }
 
     public DateTime ValidUntil { get; init; }
 
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 
     // navigation properties
-    public Event Event { get; init; } = null!;
-    public List<EventUser> EventUsers { get; set; } = [];
+    public AppUser User { get; init; } = null!;
 }

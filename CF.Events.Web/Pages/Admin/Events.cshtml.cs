@@ -170,12 +170,9 @@ public class EventsModel(
         }, jsonOptions);
     }
 
-    public Dictionary<int, string> CurrentInviteCodes { get; private set; } = [];
-
     private async Task LoadAsync()
     {
         AllEvents = await db.Events
-            .Include(e => e.InviteCodes)
             .Include(e => e.BookingLinks)
             .OrderByDescending(e => e.StartDate)
             .ToListAsync();
@@ -184,14 +181,6 @@ public class EventsModel(
         InviteeCounts = eventUsers
             .GroupBy(r => r.EventId)
             .ToDictionary(g => g.Key, g => g.Count());
-
-        CurrentInviteCodes = AllEvents.ToDictionary(
-            e => e.Id,
-            e => e.InviteCodes
-                .Where(c => c.ValidUntil > DateTime.UtcNow)
-                .OrderByDescending(c => c.CreatedAt)
-                .FirstOrDefault()?.Code ?? "No valid code"
-        );
     }
 
     private void DeleteInvitationImage(int eventId, string? fileName = null)

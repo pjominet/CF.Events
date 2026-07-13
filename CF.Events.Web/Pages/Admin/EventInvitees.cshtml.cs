@@ -20,7 +20,6 @@ public class EventInviteesModel(
 {
 
     public Event? EventData { get; private set; }
-    public List<SelectListItem> CurrentInviteCodes { get; private set; } = [];
     public List<SelectListItem> AccommodationCodes { get; private set; } = [];
 
     public UsersInviteRequest NewInvite { get; set; } = new();
@@ -103,7 +102,7 @@ public class EventInviteesModel(
             return RedirectToPage(new { id });
         }
 
-        await inviteService.SendEmail(new SaveTheDateEmailRequest
+        await inviteService.SendEmail(new SaveDateEmailRequest
         {
             TemplateId = @event.SaveDateTemplateId,
             EventId = @event.Id,
@@ -142,7 +141,7 @@ public class EventInviteesModel(
         var ids = userIds.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
         var requests = await db.EventUsers
             .Where(eu => eu.EventId == id && ids.Contains(eu.UserId) && eu.User.IsActive)
-            .Select(eu => new SaveTheDateEmailRequest
+            .Select(eu => new SaveDateEmailRequest
             {
                 TemplateId = eu.Event.SaveDateTemplateId!,
                 EventId = eu.EventId,
@@ -169,16 +168,10 @@ public class EventInviteesModel(
     private async Task<bool> LoadAsync(int id)
     {
         EventData = await db.Events
-            .Include(e => e.InviteCodes)
             .FirstOrDefaultAsync(e => e.Id == id);
 
         if (EventData is null)
             return false;
-
-        CurrentInviteCodes = EventData.InviteCodes
-            .Where(ic => ic.ValidUntil > DateTime.UtcNow)
-            .Select(ic => new SelectListItem(GetInviteCodeLabel(ic), ic.Id.ToString(), ic.Id == NewInvite.InviteCodeId))
-            .ToList();
 
         AccommodationCodes = EventData.AccommodationCodes
             .Select(ac => new SelectListItem(ac, ac))
@@ -187,7 +180,7 @@ public class EventInviteesModel(
         var invitedUsers = db.EventUsers
             .Where(ue => ue.EventId == id)
             .Include(ue => ue.User)
-            .Select(ue => new { ue.AssignedAccommodationCode, ue.InviteCode, ue.User, InvitationEmailSent = ue.InviteEmailSent, SaveTheDateSent = ue.SaveTheDateEmailSent, ue.ScheduledFor })
+            .Select(ue => new { ue.AssignedAccommodationCode, ue.User, InvitationEmailSent = ue.InviteEmailSent, SaveTheDateSent = ue.SaveTheDateEmailSent, ue.ScheduledFor })
             .ToList();
         var rsvps = db.Rsvps.Where(r => r.EventId == id).ToList();
 
@@ -205,7 +198,6 @@ public class EventInviteesModel(
                     user.DisplayName!,
                     user.Email!,
                     iu.AssignedAccommodationCode,
-                    GetInviteCodeLabel(iu.InviteCode),
                     status,
                     iu.InvitationEmailSent,
                     iu.SaveTheDateSent,
@@ -225,14 +217,7 @@ public class EventInviteesModel(
         return true;
     }
 
-    private static string GetInviteCodeLabel(InviteCode inviteCode)
-    {
-        var validDays = (int)Math.Round((inviteCode.ValidUntil - DateTime.UtcNow).TotalDays);
-        var label = string.IsNullOrWhiteSpace(inviteCode.Label) ? inviteCode.Code : inviteCode.Label;
-        return validDays <= 0 ? $"{label} (expired)" : $"{label} (valid {validDays} days)";
-    }
-
-    public record InviteeRow(string UserId, string DisplayName, string Email, string? AssignedAccommodationCode, string? InviteCode, AttendanceStatus Status, bool InvitationEmailSent, bool SaveTheDateSent, DateTime? ScheduledFor);
+    public record InviteeRow(string UserId, string DisplayName, string Email, string? AssignedAccommodationCode, AttendanceStatus Status, bool InvitationEmailSent, bool SaveTheDateSent, DateTime? ScheduledFor);
 }
 
 public enum AttendanceStatus

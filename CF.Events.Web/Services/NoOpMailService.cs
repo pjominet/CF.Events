@@ -19,7 +19,7 @@ public class NoOpMailService(ILogger<NoOpMailService> logger) : IMailService
         return Task.CompletedTask;
     }
 
-    public Task SendSaveTheDateAsync(SaveTheDateEmailRequest request, CancellationToken ctx = default)
+    public Task SendSaveTheDateAsync(SaveDateEmailRequest request, CancellationToken ctx = default)
     {
         logger.LogDebug(
             """

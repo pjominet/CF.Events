@@ -5,6 +5,7 @@ using CF.Events.Web.Models;
 using CF.Events.Web.Models.Requests;
 using CF.Events.Web.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,7 @@ namespace CF.Events.Web.Controllers;
 [Route("events")]
 public class EventController(
     EventsDbContext db,
+    SignInManager<AppUser> signInManager,
     IInvitationService invitationService,
     IExportService exportService,
     IToastNotification toastNotification,
@@ -200,8 +202,7 @@ public class EventController(
             UserId = userId,
             AssignedAccommodationCode = inviteRequest.AllowAccommodationCode ? inviteRequest.SelectedAccommodationCode : null,
             ScheduledFor = inviteRequest.ScheduledFor,
-            InviteEmailSent = false,
-            InviteCodeId = inviteRequest.InviteCodeId
+            InviteEmailSent = false
         }).ToList();
 
         db.EventUsers.AddRange(newEventUsers);
@@ -211,16 +212,7 @@ public class EventController(
         // Only send emails for immediate invites (not scheduled ones)
         if (inviteRequest is { SendEmailsOnInvite: SendEmailAction.Immediately, ScheduledFor: null })
         {
-            var inviteCode = db.InviteCodes
-                .Where(c => c.EventId == eventId && c.Id == inviteRequest.InviteCodeId && c.ValidUntil > DateTime.UtcNow)
-                .Select(c => c.Code)
-                .FirstOrDefault();
 
-            if (string.IsNullOrWhiteSpace(inviteCode))
-            {
-                toastNotification.AddWarningToastMessage("Cannot find valid invite code for event");
-                return LocalRedirect($"/admin/events/{eventId}/invitees");
-            }
 
             var newInvitations = await db.EventUsers
                 .Where(ue => ue.EventId == eventId && newUserIds.Contains(ue.UserId))
@@ -232,10 +224,22 @@ public class EventController(
                     EventName = ue.Event.Name,
                     UserName = ue.User.DisplayName!,
                     UserEmail = ue.User.Email!,
-                    InviteCode = inviteCode,
-                    CallBackUrl = (invitationService.AppSettings.BaseUrl ?? string.Empty).TrimEnd('/') + "/events/invite-callback?code=" + inviteCode + "&id=" + ue.UserId
+                    CallbackValidity = ue.Event.InviteValidity
                 })
                 .ToListAsync();
+
+            foreach (var newInvitation in newInvitations)
+            {
+                var code = CodeGenerator.Generate(32);
+                await db.InviteCodes.AddAsync(new InviteCode
+                {
+                    UserId = newInvitation.UserId,
+                    Value = code,
+                    ValidUntil = newInvitation.CallbackValidity
+                });
+                await db.SaveChangesAsync();
+                newInvitation.CallBackUrl = $"{invitationService.AppSettings.BaseUrl.TrimEnd('/')}/events/invite-callback?code={code}";
+            }
 
             await invitationService.SendImmediateEmails(newInvitations);
         }
@@ -251,7 +255,7 @@ public class EventController(
         var eventUser = await db.EventUsers
             .Include(eu => eu.User)
             .Where(eu => eu.EventId == eventId && eu.UserId == userId)
-            .Select(eu => new { eu.User.Email, eu.User.DisplayName, eu.InviteCodeId })
+            .Select(eu => new { eu.User.Email, eu.User.DisplayName })
             .FirstOrDefaultAsync();
 
         if (eventUser is null)
@@ -263,7 +267,7 @@ public class EventController(
         // get invite codes
         var @event = await db.Events
             .Where(e => e.Id == eventId)
-            .Select(e => new { e.Id, e.Name })
+            .Select(e => new { e.Id, e.Name, e.InviteValidity, e.InvitationTemplateId })
             .FirstOrDefaultAsync();
 
         if (@event is null)
@@ -272,20 +276,19 @@ public class EventController(
             return RedirectToPage($"/admin/events/{eventId}/invitees");
         }
 
-        var inviteCode = db.InviteCodes
-            .Where(c => c.EventId == eventId && c.Id == eventUser.InviteCodeId && c.ValidUntil > DateTime.UtcNow)
-            .Select(c => c.Code)
-            .FirstOrDefault();
-
-        if (string.IsNullOrWhiteSpace(inviteCode))
-        {
-            toastNotification.AddWarningToastMessage("Invalid or expired invite code");
-            return RedirectToPage($"/admin/events/{eventId}/invitees");
-        }
-
         try
         {
             logger.LogInformation("Re-sending invitation to {Email}", eventUser.Email);
+            var code = CodeGenerator.Generate(32);
+            await db.InviteCodes.AddAsync(new InviteCode
+            {
+                UserId = userId,
+                Value = code,
+                ValidUntil = @event.InviteValidity
+            });
+
+            await db.SaveChangesAsync();
+
             await invitationService.SendEmail(new InvitationEmailRequest
             {
                 TemplateId = await db.Events.Where(e => e.Id == @event.Id).Select(e => e.InvitationTemplateId).FirstOrDefaultAsync() ?? string.Empty,
@@ -294,8 +297,7 @@ public class EventController(
                 UserName = eventUser.DisplayName!,
                 UserEmail = eventUser.Email!,
                 UserId = userId,
-                InviteCode = inviteCode,
-                CallBackUrl = (invitationService.AppSettings.BaseUrl ?? string.Empty).TrimEnd('/') + "/events/invite-callback?code=" + inviteCode + "&id=" + userId
+                CallBackUrl = $"{invitationService.AppSettings.BaseUrl.TrimEnd('/')}/events/invite-callback?code={code}"
             });
 
             toastNotification.AddSuccessToastMessage("Successfully resent invitation");
@@ -322,7 +324,7 @@ public class EventController(
         var eventUsers = await db.EventUsers
             .Include(eu => eu.User)
             .Where(eu => eu.EventId == eventId && ids.Contains(eu.UserId))
-            .Select(eu => new { eu.UserId, eu.User.Email, eu.User.DisplayName, eu.InviteCodeId })
+            .Select(eu => new { eu.UserId, eu.User.Email, eu.User.DisplayName })
             .ToListAsync();
 
         if (eventUsers.Count == 0)
@@ -333,7 +335,7 @@ public class EventController(
 
         var eventData = await db.Events
             .Where(e => e.Id == eventId)
-            .Select(e => new { e.Id, e.Name, e.InvitationTemplateId })
+            .Select(e => new { e.Id, e.Name, e.InvitationTemplateId, e.InviteValidity})
             .FirstOrDefaultAsync();
 
         if (eventData is null)
@@ -342,18 +344,18 @@ public class EventController(
             return LocalRedirect($"/admin/events/{eventId}/invitees");
         }
 
-        var inviteCodeIds = eventUsers.Select(eu => eu.InviteCodeId).Distinct().ToList();
-        var inviteCodes = await db.InviteCodes
-            .Where(c => c.EventId == eventId && inviteCodeIds.Contains(c.Id) && c.ValidUntil > DateTime.UtcNow)
-            .ToDictionaryAsync(c => c.Id, c => c.Code);
-
         var requests = new List<InvitationEmailRequest>();
-        var baseUrl = (invitationService.AppSettings.BaseUrl ?? string.Empty).TrimEnd('/');
+        var baseUrl = invitationService.AppSettings.BaseUrl.TrimEnd('/');
 
         foreach (var user in eventUsers)
         {
-            if (user.InviteCodeId <= 0 || !inviteCodes.TryGetValue(user.InviteCodeId, out var code))
-                continue;
+            var code = CodeGenerator.Generate(32);
+            await db.InviteCodes.AddAsync(new InviteCode
+            {
+                UserId = user.UserId,
+                Value = code,
+                ValidUntil = eventData.InviteValidity
+            });
 
             requests.Add(new InvitationEmailRequest
             {
@@ -363,10 +365,11 @@ public class EventController(
                 UserName = user.DisplayName!,
                 UserEmail = user.Email!,
                 UserId = user.UserId,
-                InviteCode = code,
-                CallBackUrl = $"{baseUrl}/events/invite-callback?code={code}&id={user.UserId}"
+                CallBackUrl = $"{baseUrl}/events/invite-callback?code={code}"
             });
         }
+
+        await db.SaveChangesAsync();
 
         if (requests.Count > 0)
         {
@@ -380,74 +383,27 @@ public class EventController(
 
     [HttpGet("invite-callback")]
     [AllowAnonymous]
-    public async Task<IActionResult> InvitationCallback([FromQuery] string code, [FromQuery] string id)
+    public async Task<IActionResult> InvitationCallback([FromQuery] string code)
     {
-        var invitedEventId = await db.InviteCodes
-            .Where(c => c.Code == code && c.ValidUntil > DateTime.UtcNow)
-            .Select(ic => ic.EventId)
+        var invitedUser = await db.InviteCodes
+            .Where(c => c.Value == code && c.ValidUntil > DateTime.UtcNow)
+            .Select(ic => ic.User)
             .FirstOrDefaultAsync();
 
-        if (invitedEventId <= 0)
+        if (invitedUser is null)
         {
             logger.LogWarning("Invalid or expired invite code was used: {Code}", code);
             return BadRequest();
         }
 
-        var user = await db.EventUsers
-            .Where(eu => eu.EventId == invitedEventId && eu.UserId == id)
-            .Select(eu => eu.User)
-            .FirstOrDefaultAsync();
-
-        if (user is null || !user.IsActive)
+        if (!invitedUser.IsActive)
         {
-            logger.LogWarning("User with id {Id} not found or inactive", id);
+            logger.LogWarning("User with id {Id} is inactive", invitedUser.Id);
             return BadRequest();
         }
 
-        if (User.Identity?.IsAuthenticated == true && User.Identity?.Name == user.Email
-            || string.IsNullOrWhiteSpace(user.PasswordHash) && !user.MustChangePassword)
-            return LocalRedirect("/");
+        await signInManager.SignInAsync(invitedUser, false);
 
-        return RedirectToPage("/account/manage/firstLogin");
-    }
-
-    [HttpPost("{eventId:int}/regenerate-code")]
-    [Authorize(Roles = Roles.Admin)]
-    public async Task<IActionResult> RegenerateCode([FromRoute] int eventId, [FromForm] int validDays, [FromForm] string? label)
-    {
-        // Try to use referrer for redirect if possible, otherwise default to events list
-        var referrer = Request.Headers.Referer.ToString();
-        var @event = await db.Events.FirstOrDefaultAsync(e => e.Id == eventId);
-        if (@event is null)
-        {
-            toastNotification.AddWarningToastMessage("Event not found");
-            if (!string.IsNullOrEmpty(referrer))
-                return Redirect(referrer);
-            return RedirectToPage("/admin/events");
-        }
-
-        if (string.IsNullOrWhiteSpace(label))
-        {
-            var firstWord = @event.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "EVENT";
-            label = $"{firstWord.ToUpper()}{@event.StartDate.Year}";
-        }
-
-        var newCode = new InviteCode
-        {
-            EventId = eventId,
-            Code = CodeGenerator.Generate(32),
-            Label = label,
-            ValidUntil = DateTime.UtcNow.AddDays(validDays),
-            CreatedAt = DateTime.UtcNow
-        };
-
-        db.InviteCodes.Add(newCode);
-        await db.SaveChangesAsync();
-
-        toastNotification.AddSuccessToastMessage($"New invite code '{label}' generated");
-
-        if (!string.IsNullOrEmpty(referrer))
-            return Redirect(referrer);
-        return RedirectToPage("/admin/events");
+        return LocalRedirect("/");
     }
 }

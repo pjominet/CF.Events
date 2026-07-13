@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using CF.Events.Web.Data;
+using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Models;
 using CF.Events.Web.Models.Requests;
@@ -27,8 +28,6 @@ public class InvitationService(
 
     public async Task<int> ProcessPendingEmails(CancellationToken ctx = default)
     {
-        var baseUrl = _appSettings.BaseUrl?.TrimEnd('/');
-
         var sentInvitations = await ProcessPendingType<InvitationEmailRequest>(
             ue => !ue.InviteEmailSent && ue.ScheduledFor != null && ue.ScheduledFor <= DateTime.UtcNow,
             ue => new InvitationEmailRequest
@@ -39,13 +38,12 @@ public class InvitationService(
                 UserName = ue.User.DisplayName!,
                 UserEmail = ue.User.Email!,
                 TemplateId = ue.Event.InvitationTemplateId ?? string.Empty,
-                InviteCode = ue.InviteCode.Code,
-                CallBackUrl = baseUrl + "/events/invite-callback?code=" + ue.InviteCode.Code + "&id=" + ue.UserId
+                CallbackValidity = ue.Event.InviteValidity
             }, ctx);
 
-        var sentSaveTheDates = await ProcessPendingType<SaveTheDateEmailRequest>(
+        var sentSaveTheDates = await ProcessPendingType<SaveDateEmailRequest>(
             ue => !ue.SaveTheDateEmailSent && ue.ScheduledFor != null && ue.ScheduledFor <= DateTime.UtcNow,
-            ue => new SaveTheDateEmailRequest
+            ue => new SaveDateEmailRequest
             {
                 EventId = ue.EventId,
                 UserId = ue.UserId,
@@ -73,6 +71,22 @@ public class InvitationService(
             .ToListAsync(ctx);
 
         if (pending.Count == 0) return 0;
+
+        var baseUrl = _appSettings.BaseUrl.TrimEnd('/');
+        foreach (var request in pending)
+        {
+            var code = CodeGenerator.Generate(32);
+            await db.InviteCodes.AddAsync(new InviteCode
+            {
+                UserId = request.UserId,
+                Value = code,
+                ValidUntil = request.CallbackValidity
+            }, ctx);
+
+            request.CallBackUrl = baseUrl + "/events/invite-callback?code=" + code;
+        }
+
+        await db.SaveChangesAsync(ctx);
 
         logger.LogInformation("Processing {Count} pending {Type} emails", pending.Count, typeof(T).Name);
 
@@ -127,10 +141,10 @@ public class InvitationService(
                         .Where(ue => ue.EventId == inv.EventId && ue.UserId == inv.UserId)
                         .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.InviteEmailSent, true), ctx);
                     break;
-                case SaveTheDateEmailRequest std when string.IsNullOrEmpty(std.TemplateId):
+                case SaveDateEmailRequest std when string.IsNullOrEmpty(std.TemplateId):
                     logger.LogWarning("No save the date template ID found for event {EventId}", std.EventId);
                     return;
-                case SaveTheDateEmailRequest std:
+                case SaveDateEmailRequest std:
                     await mailService.SendSaveTheDateAsync(std, ctx);
                     await db.EventUsers
                         .Where(ue => ue.EventId == std.EventId && ue.UserId == std.UserId)
