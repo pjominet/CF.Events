@@ -19,5 +19,6 @@ public static class Constants
         public const string ShowAddModal = "ShowAddModal";
         public const string ShowEventModal = "ShowEventModal";
         public const string ImportErrors = "ImportErrors";
+        public const string GuestGroupLabel = "GuestGroupLabel";
     }
 }

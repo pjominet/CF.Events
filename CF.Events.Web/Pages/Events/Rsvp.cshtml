@@ -29,30 +29,32 @@
                         <div class="col-md-6">
                             <h3 class="h5 serif"><i class="bi bi-calendar-check me-2"></i>Attendance</h3>
                             <ul class="list-unstyled">
-                                @foreach (var (day, people) in Model.NewRsvp.AttendanceDays.OrderBy(d => d.Key))
+                                @foreach (var pa in Model.NewRsvp.ParticipantsAttendance.OrderBy(pa => pa.ParticipantName))
                                 {
-                                    <li><strong>Day @day</strong>: @people @(people == 1 ? "person" : "people")</li>
+                                    <li><strong>@pa.ParticipantName</strong>: Days @string.Join(", ", pa.AttendingDays.OrderBy(d => d))</li>
                                 }
                             </ul>
                         </div>
                         <div class="col-md-6">
                             <h3 class="h5 serif"><i class="bi bi-egg-fried me-2"></i>Dietary Requirements</h3>
-                            @if (Model.NewRsvp.CommonDietaryOptions.Any() || !string.IsNullOrWhiteSpace(Model.NewRsvp.OtherDietaryDetails))
+                            @if (Model.NewRsvp.ParticipantsDiets.Any(o => o.Restrictions.Any() || !string.IsNullOrWhiteSpace(o.OtherDetails)))
                             {
-                                <p class="mb-1"><strong>People:</strong> @Model.NewRsvp.DietaryOptionNbrPeople</p>
-                                if (Model.NewRsvp.CommonDietaryOptions.Any())
+                                foreach (var opt in Model.NewRsvp.ParticipantsDiets.Where(o => o.Restrictions.Any() || !string.IsNullOrWhiteSpace(o.OtherDetails)))
                                 {
-                                    <div class="d-flex flex-wrap gap-1 mb-2">
-                                        @foreach (var option in Model.NewRsvp.CommonDietaryOptions)
-                                        {
-                                            <span class="badge bg-info text-dark">@option</span>
-                                        }
-                                    </div>
-                                }
-
-                                if (!string.IsNullOrWhiteSpace(Model.NewRsvp.OtherDietaryDetails))
-                                {
-                                    <p class="small text-muted mb-0">@Model.NewRsvp.OtherDietaryDetails</p>
+                                    <p class="mb-1"><strong>@opt.ParticipantName:</strong></p>
+                                    @if (opt.Restrictions.Any())
+                                    {
+                                        <div class="d-flex flex-wrap gap-1 mb-1">
+                                            @foreach (var option in opt.Restrictions)
+                                            {
+                                                <span class="badge bg-info text-dark">@option</span>
+                                            }
+                                        </div>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(opt.OtherDetails))
+                                    {
+                                        <p class="small text-muted mb-2">@opt.OtherDetails</p>
+                                    }
                                 }
                             }
                             else
@@ -74,9 +76,10 @@
         {
             <!-- Progress Indicator (shown only when attending) -->
             <div class="stepper-progress mb-4 d-flex justify-content-between d-none">
-                <div class="step-indicator active px-2 pb-2" data-step="1">1. Attendance</div>
-                <div class="step-indicator px-2 pb-2" data-step="2">2. Dietary Options</div>
-                <div class="step-indicator px-2 pb-2" data-step="3">3. Finalize</div>
+                <div class="step-indicator active px-2 pb-2" data-step="1">1. Participants</div>
+                <div class="step-indicator px-2 pb-2" data-step="2">2. Attendance</div>
+                <div class="step-indicator px-2 pb-2" data-step="3">3. Dietary Options</div>
+                <div class="step-indicator px-2 pb-2" data-step="4">4. Finalize</div>
             </div>
 
             <form method="post" id="rsvpForm">
@@ -98,32 +101,59 @@
                         </section>
                     </div>
 
-                    <!-- STEP 2: Attendance Schedule & Accommodation -->
+                    <!-- STEP 2: Participants -->
                     <div class="form-step d-none" id="step-2">
+                        <h3 class="h5 serif text-center mb-4">Who is joining us?</h3>
+                        <div id="participant-container">
+                            @for (var i = 0; i < Model.NewRsvp.Participants.Count; i++)
+                            {
+                                <div class="row g-2 mb-2 participant-row">
+                                    <div class="col">
+                                        <input asp-for="NewRsvp.Participants[i]" class="form-control participant-input" placeholder="Participant Name" required />
+                                    </div>
+                                    <div class="col-auto">
+                                        <button type="button" class="btn btn-outline-danger remove-participant"><i class="bi bi-trash"></i></button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="add-participant">
+                            <i class="bi bi-plus-lg me-1"></i>Add Participant
+                        </button>
+                    </div>
+
+                    <!-- STEP 3: Attendance Schedule & Accommodation -->
+                    <div class="form-step d-none" id="step-3">
                         <h3 class="h5 serif">Attendance Schedule</h3>
                         <section class="row mb-3">
                             <div class="col-12 mt-0">
                                 @for (var day = 1; day <= Model.EventData.EventDuration; day++)
                                 {
-                                    var isChecked = Model.NewRsvp.AttendanceDays.ContainsKey(day);
+                                    var attendingParticipants = Model.NewRsvp.ParticipantsAttendance
+                                        .Where(pa => pa.AttendingDays.Contains(day))
+                                        .Select(pa => pa.ParticipantName)
+                                        .ToList();
+                                    var isChecked = attendingParticipants.Any();
                                     <div class="row align-items-center mb-2">
                                         <div class="col-auto">
                                             <div class="form-check">
                                                 <input class="form-check-input day-checkbox" type="checkbox" id="day-@(day)" data-day="@day"
                                                        @(isChecked ? "checked" : string.Empty)/>
-                                                <label class="form-check-label" for="day-@(day)">Attending Day @day</label>
+                                                <label class="form-check-label" for="day-@(day)">Day @day</label>
                                             </div>
                                         </div>
-                                        <div class="col-auto">
-                                            <div class="input-group input-group-sm" style="max-width: 120px;">
-                                                <span class="input-group-text">People</span>
-                                                <input type="number" name="NewRsvp.AttendanceDays[@day]" class="form-control day-people-input"
-                                                       value="@(isChecked ? Model.NewRsvp.AttendanceDays[day] : 1)" min="1" max="4"
-                                                       @(isChecked ? "" : "disabled")/>
-                                            </div>
+                                        <div class="col">
+                                            <select class="form-select tom-select participant-day-select" multiple placeholder="Who is attending?" @(isChecked ? "" : "disabled") data-day="@day">
+                                                @foreach (var p in Model.NewRsvp.Participants)
+                                                {
+                                                    <option value="@p" selected="@(attendingParticipants.Contains(p) ? "selected" : null)">@p</option>
+                                                }
+                                            </select>
                                         </div>
                                     </div>
                                 }
+                                @* Hidden inputs for ParticipantAttendance will be generated by JS *@
+                                <div id="participant-attendance-hidden"></div>
                             </div>
                         </section>
 
@@ -178,23 +208,43 @@
                         }
                     </div>
 
-                    <!-- STEP 3: Dietary Options -->
-                    <div class="form-step d-none" id="step-3">
+                    <!-- STEP 4: Dietary Options -->
+                    <div class="form-step d-none" id="step-4">
                         <section>
                             <h3 class="h5 serif">Dietary Requirements</h3>
-                            <div class=" d-flex align-items-center mb-2">
-                                <label class="form-label mb-0 me-2" for="dietaryNbrPeople">Number of people with dietary requirements:</label>
-                                <input type="number" asp-for="NewRsvp.DietaryOptionNbrPeople" class="form-control form-control-sm" id="dietaryNbrPeople" min="0" max="4" style="width: 80px;"/>
+                            <div id="dietary-participants-container">
+                                @for (var i = 0; i < Model.NewRsvp.ParticipantsDiets.Count; i++)
+                                {
+                                    var opt = Model.NewRsvp.ParticipantsDiets[i];
+                                    var hasOptions = opt.Restrictions.Any();
+                                    <div class="mb-3 p-3 border rounded bg-white dietary-participant-row">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <strong class="participant-name-label">@opt.ParticipantName</strong>
+                                            <input type="hidden" name="NewRsvp.ParticipantsDiets[@i].ParticipantName" value="@opt.ParticipantName" />
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input has-dietary-switch" type="checkbox" id="hasDietary_@i" @(hasOptions ? "checked" : "")>
+                                                <label class="form-check-label" for="hasDietary_@i">Dietary Needs</label>
+                                            </div>
+                                        </div>
+                                        <div class="dietary-options-wrapper @(hasOptions ? "" : "d-none")">
+                                            <select name="NewRsvp.ParticipantsDiets[@i].Restrictions" class="form-select tom-select dietary-options-select" multiple placeholder="Select options...">
+                                                @foreach (var option in Enum.GetValues<DietaryRestrictions>())
+                                                {
+                                                    if (option is DietaryRestrictions.None) continue;
+                                                    <option value="@option" selected="@(opt.Restrictions.Contains(option) ? "selected" : null)">@option</option>
+                                                }
+                                            </select>
+                                            <textarea name="NewRsvp.ParticipantsDiets[@i].OtherDetails" class="form-control mt-2" maxlength="500" placeholder="Other dietary details or allergies..." rows="2">@opt.OtherDetails</textarea>
+                                        </div>
+                                    </div>
+                                }
                             </div>
-                            <div id="dietaryOptionsDetails" style="display: none;">
-                                <select asp-for="NewRsvp.CommonDietaryOptions" class="form-select tom-select" id="dietaryOptions" multiple placeholder="Select dietary options...">
-                                    @foreach (var option in Enum.GetValues<DietaryOptions>())
-                                    {
-                                        if (option is DietaryOptions.None) continue;
-                                        <option value="@option">@option</option>
-                                    }
-                                </select>
-                                <textarea asp-for="NewRsvp.OtherDietaryDetails" class="form-control mt-2" maxlength="500" placeholder="Other dietary details or allergies..." rows="2" id="dietaryOtherDetails"></textarea>
+                            <div id="dietary-options-template" class="d-none">
+                                @foreach (var option in Enum.GetValues<DietaryRestrictions>())
+                                {
+                                    if (option is DietaryRestrictions.None) continue;
+                                    <option value="@option">@option</option>
+                                }
                             </div>
                             <p class="text-muted mb-0 mt-2 fst-italic">
                                 <i class="bi bi-info-circle text-info me-2"></i>Leave all empty, if none apply.
@@ -202,8 +252,8 @@
                         </section>
                     </div>
 
-                    <!-- STEP 4: Comments & Donation -->
-                    <div class="form-step d-none" id="step-4">
+                    <!-- STEP 5: Comments & Donation -->
+                    <div class="form-step d-none" id="step-5">
                         <section class="commentSection">
                             <h3 class="h5 serif">Comments</h3>
                             <textarea asp-for="NewRsvp.Comments" class="form-control" maxlength="500" placeholder="Add a comment... (optional)" rows="3"></textarea>

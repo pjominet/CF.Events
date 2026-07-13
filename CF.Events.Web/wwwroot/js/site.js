@@ -105,7 +105,7 @@
 
     function initMultiSelects() {
         document.querySelectorAll("select.tom-select").forEach(function (el) {
-            if (el.disabled) return;
+            if (el.disabled || el.tomselect) return;
 
             let settings = {
                 placeholder: el.getAttribute("data-placeholder") || "Select...",

@@ -1,3 +1,4 @@
+using CF.Events.Web.Data;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -11,7 +12,8 @@ namespace CF.Events.Web.Controllers;
 [Authorize(Roles = Roles.Admin)]
 public class UserController(
     UserManager<AppUser> userManager,
-    IToastNotification toastNotification) : Controller
+    IToastNotification toastNotification,
+    EventsDbContext db) : Controller
 {
     private readonly string[] _allowedFileExtensions = [".csv", ".txt"];
 
@@ -94,6 +96,22 @@ public class UserController(
             else
             {
                 await userManager.AddToRoleAsync(user, Roles.Guest);
+            }
+
+            var userRoles = await userManager.GetRolesAsync(user);
+            if (userRoles.Contains(Roles.Guest))
+            {
+                var guestGroup = new GuestGroup
+                {
+                    Label = user.DisplayName ?? user.Email!,
+                    GuestUserId = user.Id,
+                    Participants = [user.DisplayName ?? user.Email!]
+                };
+                db.GuestGroups.Add(guestGroup);
+                await db.SaveChangesAsync();
+
+                user.GuestGroupId = guestGroup.Id;
+                await userManager.UpdateAsync(user);
             }
         }
 

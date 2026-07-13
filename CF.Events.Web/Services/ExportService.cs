@@ -28,10 +28,8 @@ public class ExportService(EventsDbContext db) : IExportService
                         Rsvp = eu.Rsvp == null ? null : new
                         {
                             eu.Rsvp.Attending,
-                            eu.Rsvp.AttendanceDays,
-                            eu.Rsvp.DietaryOptionNbrPeople,
-                            eu.Rsvp.CommonDietaryOptions,
-                            eu.Rsvp.OtherDietaryDetails,
+                            ParticipantAttendance = eu.Rsvp.ParticipantsAttendance.ToList(),
+                            DietaryOptions = eu.Rsvp.ParticipantsDiets.ToList(),
                             eu.Rsvp.Comments,
                             eu.Rsvp.SubmittedAt
                         }
@@ -47,7 +45,7 @@ public class ExportService(EventsDbContext db) : IExportService
         var worksheet = workbook.Worksheets.Add("Invitees");
 
         // Header
-        var headers = new[] { "DisplayName", "Email", "Status", "AttendingDays", "DietaryOptions", "OtherDietaryDetails", "Comments", "SubmittedAt" };
+        var headers = new[] { "DisplayName", "Email", "Status", "AttendingDays", "DietaryOptions", "Comments", "SubmittedAt" };
         for (var i = 0; i < headers.Length; i++)
         {
             var cell = worksheet.Cell(1, i + 1);
@@ -61,13 +59,12 @@ public class ExportService(EventsDbContext db) : IExportService
         foreach (var eu in @event.EventUsers)
         {
             var status = eu.Rsvp is null ? "No Response" : (eu.Rsvp.Attending ? "Attending" : "Declined");
-            var attendingDays = eu.Rsvp is not null ? string.Join("|", eu.Rsvp.AttendanceDays.Select(d => $"Day {d.Key} ({d.Value})")) : string.Empty;
-            var dietaryOptions = eu.Rsvp is not null ? string.Join("|", eu.Rsvp.CommonDietaryOptions) : string.Empty;
-            if (eu.Rsvp is not null && eu.Rsvp.DietaryOptionNbrPeople > 0)
-            {
-                dietaryOptions = $"({eu.Rsvp.DietaryOptionNbrPeople} people) {dietaryOptions}";
-            }
-            var otherDietary = eu.Rsvp?.OtherDietaryDetails ?? string.Empty;
+            var attendingDays = eu.Rsvp is not null
+                ? string.Join("|", eu.Rsvp.ParticipantAttendance.Select(pa => $"{pa.ParticipantName}: {string.Join(", ", pa.AttendingDays)}"))
+                : string.Empty;
+            var dietaryOptions = eu.Rsvp is not null
+                ? string.Join("|", eu.Rsvp.DietaryOptions.Select(d => $"{d.ParticipantName}: {string.Join(", ", d.Restrictions)}{(string.IsNullOrWhiteSpace(d.OtherDetails) ? "" : $" (Other: {d.OtherDetails})")}"))
+                : string.Empty;
             var comments = eu.Rsvp?.Comments ?? string.Empty;
             var submittedAt = eu.Rsvp?.SubmittedAt.ToString("yyyy-MM-dd HH:mm:ss") ?? string.Empty;
 
@@ -95,9 +92,8 @@ public class ExportService(EventsDbContext db) : IExportService
 
             worksheet.Cell(row, 4).Value = attendingDays;
             worksheet.Cell(row, 5).Value = dietaryOptions;
-            worksheet.Cell(row, 6).Value = otherDietary;
-            worksheet.Cell(row, 7).Value = comments;
-            worksheet.Cell(row, 8).Value = submittedAt;
+            worksheet.Cell(row, 6).Value = comments;
+            worksheet.Cell(row, 7).Value = submittedAt;
 
             row++;
         }

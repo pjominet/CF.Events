@@ -31,17 +31,19 @@ public class InvitesModel(EventsDbContext db) : PageModel
         TotalCount = await query.CountAsync();
 
         MyInvites = await query
+            .Include(ue => ue.Rsvp)
+            .ThenInclude(r => r!.ParticipantsAttendance)
             .Skip((pageNumber - 1) * PageSize)
             .Take(PageSize)
             .Select(ue => new InviteRow(
                 ue.Event,
                 ue.Rsvp != null && ue.Rsvp.SubmittedAt <= DateTime.UtcNow,
                 ue.Rsvp != null && ue.Rsvp.SubmittedAt <= DateTime.UtcNow && ue.Rsvp.Attending,
-                ue.Rsvp != null ? ue.Rsvp.AttendanceDays : new Dictionary<int, int>()))
+                ue.Rsvp != null ? ue.Rsvp.ParticipantsAttendance.ToList() : new List<ParticipantAttendance>()))
             .ToListAsync();
 
         return Page();
     }
 
-    public record InviteRow(Event Event, bool HasRsvped, bool Attending, Dictionary<int, int> AttendanceDays);
+    public record InviteRow(Event Event, bool HasRsvped, bool Attending, List<ParticipantAttendance> ParticipantAttendance);
 }

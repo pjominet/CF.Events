@@ -81,8 +81,7 @@ public class EventController(
     [Authorize]
     public async Task<IActionResult> GetRsvpDetail([FromRoute] int eventId)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId is null) return Unauthorized();
+        var userId = User.GetId();
 
         var eventUser = await db.EventUsers
             .Where(eu => eu.EventId == eventId && eu.UserId == userId)
@@ -93,9 +92,8 @@ public class EventController(
                 EventName = eu.Event.Name,
                 eu.Event.AccommodationDetails,
                 AccommodationCode = eu.AssignedAccommodationCode,
-                DietaryOptionNbrPeople = eu.Rsvp != null ? eu.Rsvp.DietaryOptionNbrPeople : 0,
-                DietaryOptions = eu.Rsvp != null ? eu.Rsvp.CommonDietaryOptions : new List<DietaryOptions>(),
-                OtherDietaryDetails = eu.Rsvp != null ? eu.Rsvp.OtherDietaryDetails : null,
+                ParticipantAttendance = eu.Rsvp != null ? eu.Rsvp.ParticipantsAttendance : new List<ParticipantAttendance>(),
+                DietaryOptions = eu.Rsvp != null ? eu.Rsvp.ParticipantsDiets : new List<ParticipantDiet>(),
                 BookingLinks = eu.Event.BookingLinks.Select(bl => new { bl.Type, bl.Link }).ToList(),
                 eu.Event.DonationIban,
                 EventStartDate = eu.Event.StartDate
@@ -109,11 +107,10 @@ public class EventController(
             HasRsvped = eventUser.HasRsvped,
             IsAttending = eventUser.IsAttending,
             EventName = eventUser.EventName,
+            ParticipantsAttendance = eventUser.ParticipantAttendance,
             AccommodationDetails = eventUser.AccommodationDetails,
             AccommodationCode = eventUser.AccommodationCode,
-            DietaryOptionNbrPeople = eventUser.DietaryOptionNbrPeople,
-            CommonDietaryOptions = eventUser.DietaryOptions,
-            OtherDietaryDetails = eventUser.OtherDietaryDetails,
+            ParticipantsDiets = eventUser.DietaryOptions,
             BookingLinks = eventUser.BookingLinks.ToDictionary(bl => bl.Type, bl => bl.Link),
             DonationIban = eventUser.DonationIban,
             DonationReference = new Event { Name = eventUser.EventName, StartDate = eventUser.EventStartDate }.GetDonationReference()
@@ -126,32 +123,26 @@ public class EventController(
     [Authorize(Roles = Roles.Admin)]
     public async Task<IActionResult> GetRsvpResponses([FromRoute] int eventId, [FromRoute] string userId)
     {
-        var eventUser = await db.EventUsers
-            .Include(eu => eu.Rsvp)
-            .Where(eu => eu.EventId == eventId && eu.UserId == userId)
-            .Select(eu => new
+        var rsvp = await db.Rsvps
+            .Where(r => r.EventId == eventId && r.UserId == userId)
+            .Select(r => new
             {
-                AttendanceDays = eu.Rsvp != null ? eu.Rsvp.AttendanceDays : new Dictionary<int, int>(),
-                DietaryOptionNbrPeople = eu.Rsvp != null ? eu.Rsvp.DietaryOptionNbrPeople : 0,
-                DietaryOptions = eu.Rsvp != null ? eu.Rsvp.CommonDietaryOptions : new List<DietaryOptions>(),
-                OtherDietaryDetails = eu.Rsvp != null ? eu.Rsvp.OtherDietaryDetails : null,
-                Comments = eu.Rsvp != null ? eu.Rsvp.Comments : null,
-                UserDisplayName = eu.User.DisplayName
+                r.ParticipantsAttendance,
+                r.ParticipantsDiets,
+                r.Comments
             })
             .FirstOrDefaultAsync();
 
-        if (eventUser is null) return NotFound();
+        if (rsvp is null) return NotFound();
 
         var model = new RsvpResponses
         {
-            AttendanceDays = eventUser.AttendanceDays,
-            DietaryOptionNbrPeople = eventUser.DietaryOptionNbrPeople,
-            DietaryOptions = eventUser.DietaryOptions,
-            OtherDietaryDetails = eventUser.OtherDietaryDetails,
-            Comments = eventUser.Comments
+            ParticipantsAttendance = rsvp.ParticipantsAttendance,
+            ParticipantsDiets = rsvp.ParticipantsDiets,
+            Comments = rsvp.Comments
         };
 
-        ViewData["UserDisplayName"] = eventUser.UserDisplayName;
+        ViewData[ViewDataKeys.GuestGroupLabel] = await db.GuestGroups.FirstOrDefaultAsync(gg => gg.GuestUserId == userId);
 
         return PartialView("~/Pages/Admin/Shared/_RsvpResponsesModal.cshtml", model);
     }
