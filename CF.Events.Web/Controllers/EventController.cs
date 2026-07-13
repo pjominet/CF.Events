@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using CF.Events.Web.Data;
+﻿using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Models;

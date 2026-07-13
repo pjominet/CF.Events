@@ -14,10 +14,17 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold">Display Name</label>
                         <input asp-for="DisplayName" class="form-control" placeholder="John Doe" required />
+                        <span asp-validation-for="DisplayName" class="text-danger"></span>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">Email Address</label>
                         <input asp-for="Email" type="email" class="form-control" placeholder="user@@example.com" required />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3 d-none" id="guestGroupContainer">
+                        <label class="form-label fw-bold">Guest Group</label>
+                        <input asp-for="GuestGroup" id="guestGroupInput" class="form-control" placeholder="Family Doe" />
+                        <span asp-validation-for="GuestGroup" class="text-danger"></span>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">Roles</label>
