@@ -158,144 +158,49 @@ public class EventController(
             return LocalRedirect($"/admin/events/{eventId}/invitees");
         }
 
-        // Validate event exists and is active
-        var eventExists = await db.Events.AnyAsync(e => e.Id == eventId && e.IsActive);
-        if (!eventExists)
+        try
         {
-            toastNotification.AddWarningToastMessage("Event not found or not active anymore");
+            var count = await invitationService.InviteUsersAsync(eventId, inviteRequest);
+
+            if (count == 0)
+                toastNotification.AddWarningToastMessage("All selected users are already invited to this event");
+            else toastNotification.AddSuccessToastMessage($"Successfully created {count} invitations");
+
             return LocalRedirect($"/admin/events/{eventId}/invitees");
         }
-
-        // Get users who are already invited to this event
-        var existingUserIds = await db.EventUsers
-            .Where(ue => ue.EventId == eventId)
-            .Select(ue => ue.UserId)
-            .ToListAsync();
-
-        // Filter to only new users (not already invited)
-        var newUserIds = inviteRequest.UserIds
-            .Where(userId => !existingUserIds.Contains(userId))
-            .ToList();
-
-        if (newUserIds.Count == 0)
+        catch (ArgumentException ex)
         {
-            toastNotification.AddWarningToastMessage("All selected users are already invited to this event");
+            toastNotification.AddWarningToastMessage(ex.Message);
             return LocalRedirect($"/admin/events/{eventId}/invitees");
         }
-
-        if (inviteRequest.AllowAccommodationCode)
+        catch (Exception ex)
         {
-            var isValidCode = await db.Events
-                .Where(e => e.Id == eventId)
-                .AnyAsync(e => e.AccommodationCodes.Any(c => c == inviteRequest.SelectedAccommodationCode));
-
-            if (!isValidCode)
-            {
-                toastNotification.AddWarningToastMessage("Selected accommodation code does not exist or is invalid");
-                return LocalRedirect($"/admin/events/{eventId}/invitees");
-            }
+            logger.LogError(ex, "Error inviting users for event {EventId}", eventId);
+            toastNotification.AddErrorToastMessage("An error occurred while inviting users.");
+            return LocalRedirect($"/admin/events/{eventId}/invitees");
         }
-
-        var newEventUsers = newUserIds.Select(userId => new EventUser
-        {
-            EventId = eventId,
-            UserId = userId,
-            AssignedAccommodationCode = inviteRequest.AllowAccommodationCode ? inviteRequest.SelectedAccommodationCode : null,
-            ScheduledFor = inviteRequest.ScheduledFor,
-            InviteEmailSent = false
-        }).ToList();
-
-        db.EventUsers.AddRange(newEventUsers);
-
-        var count = await db.SaveChangesAsync();
-
-        // Only send emails for immediate invites (not scheduled ones)
-        if (inviteRequest is { SendEmailsOnInvite: SendEmailAction.Immediately, ScheduledFor: null })
-        {
-
-
-            var newInvitations = await db.EventUsers
-                .Where(ue => ue.EventId == eventId && newUserIds.Contains(ue.UserId))
-                .Select(ue => new InvitationEmailRequest
-                {
-                    TemplateId = ue.Event.InvitationTemplateId ?? string.Empty,
-                    EventId = ue.EventId,
-                    UserId = ue.UserId,
-                    EventName = ue.Event.Name,
-                    UserName = ue.User.DisplayName!,
-                    UserEmail = ue.User.Email!,
-                    CallbackValidity = ue.Event.InviteValidity
-                })
-                .ToListAsync();
-
-            foreach (var newInvitation in newInvitations)
-            {
-                await invitationService.PrepareInvitationAsync(newInvitation);
-            }
-            await db.SaveChangesAsync();
-
-            await invitationService.SendImmediateEmails(newInvitations);
-        }
-
-        toastNotification.AddSuccessToastMessage($"Successfully created {count} invitations");
-        return LocalRedirect($"/admin/events/{eventId}/invitees");
     }
 
     [HttpPost("{eventId:int}/resend-invite")]
     [Authorize(Roles = Roles.Admin)]
     public async Task<IActionResult> ResendInvite([FromRoute] int eventId, [FromForm] string userId)
     {
-        var eventUser = await db.EventUsers
-            .Include(eu => eu.User)
-            .Where(eu => eu.EventId == eventId && eu.UserId == userId)
-            .Select(eu => new { eu.User.Email, eu.User.DisplayName })
-            .FirstOrDefaultAsync();
-
-        if (eventUser is null)
-        {
-            toastNotification.AddWarningToastMessage("User is not invited to this event");
-            return LocalRedirect($"/admin/events/{eventId}/invitees");
-        }
-
-        // get invite codes
-        var @event = await db.Events
-            .Where(e => e.Id == eventId)
-            .Select(e => new { e.Id, e.Name, e.InviteValidity, e.InvitationTemplateId })
-            .FirstOrDefaultAsync();
-
-        if (@event is null)
-        {
-            toastNotification.AddWarningToastMessage("Event does not exist");
-            return RedirectToPage($"/admin/events/{eventId}/invitees");
-        }
-
         try
         {
-            logger.LogInformation("Re-sending invitation to {Email}", eventUser.Email);
-            var invitationRequest = new InvitationEmailRequest
-            {
-                TemplateId = await db.Events.Where(e => e.Id == @event.Id).Select(e => e.InvitationTemplateId).FirstOrDefaultAsync() ?? string.Empty,
-                EventId = @event.Id,
-                EventName = @event.Name,
-                UserName = eventUser.DisplayName!,
-                UserEmail = eventUser.Email!,
-                UserId = userId,
-                CallbackValidity = @event.InviteValidity
-            };
-
-            await invitationService.PrepareInvitationAsync(invitationRequest);
-            await db.SaveChangesAsync();
-
-            await invitationService.SendEmail(invitationRequest);
-
+            await invitationService.ResendInvitesAsync(eventId, [userId]);
             toastNotification.AddSuccessToastMessage("Successfully resent invitation");
-            return LocalRedirect($"/admin/events/{eventId}/invitees");
         }
-        catch
+        catch (ArgumentException ex)
         {
-            toastNotification.AddErrorToastMessage("Invitations could not be created");
-            return LocalRedirect($"/admin/events/{eventId}/invitees");
+            toastNotification.AddWarningToastMessage(ex.Message);
         }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error resending invitation to {UserId} for event {EventId}", userId, eventId);
+            toastNotification.AddErrorToastMessage("Invitation could not be resent");
+        }
+
+        return LocalRedirect($"/admin/events/{eventId}/invitees");
     }
 
     [HttpPost("{eventId:int}/resend-invites")]
@@ -309,56 +214,21 @@ public class EventController(
         }
 
         var ids = userIds.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
-        var eventUsers = await db.EventUsers
-            .Include(eu => eu.User)
-            .Where(eu => eu.EventId == eventId && ids.Contains(eu.UserId))
-            .Select(eu => new { eu.UserId, eu.User.Email, eu.User.DisplayName })
-            .ToListAsync();
 
-        if (eventUsers.Count == 0)
+        try
         {
-            toastNotification.AddWarningToastMessage("No users found to resend invitations");
-            return LocalRedirect($"/admin/events/{eventId}/invitees");
+            await invitationService.ResendInvitesAsync(eventId, ids);
+            toastNotification.AddSuccessToastMessage($"Successfully resent {ids.Count} invitations");
         }
-
-        var eventData = await db.Events
-            .Where(e => e.Id == eventId)
-            .Select(e => new { e.Id, e.Name, e.InvitationTemplateId, e.InviteValidity})
-            .FirstOrDefaultAsync();
-
-        if (eventData is null)
+        catch (ArgumentException ex)
         {
-            toastNotification.AddWarningToastMessage("Event does not exist");
-            return LocalRedirect($"/admin/events/{eventId}/invitees");
+            toastNotification.AddWarningToastMessage(ex.Message);
         }
-
-        var requests = new List<InvitationEmailRequest>();
-
-        foreach (var user in eventUsers)
+        catch (Exception ex)
         {
-            var request = new InvitationEmailRequest
-            {
-                TemplateId = eventData.InvitationTemplateId ?? string.Empty,
-                EventId = eventData.Id,
-                EventName = eventData.Name,
-                UserName = user.DisplayName!,
-                UserEmail = user.Email!,
-                UserId = user.UserId,
-                CallbackValidity = eventData.InviteValidity
-            };
-
-            await invitationService.PrepareInvitationAsync(request);
-            requests.Add(request);
+            logger.LogError(ex, "Error bulk resending invitations for event {EventId}", eventId);
+            toastNotification.AddErrorToastMessage("Invitations could not be resent");
         }
-
-        await db.SaveChangesAsync();
-
-        if (requests.Count > 0)
-        {
-            await invitationService.SendImmediateEmails(requests);
-            toastNotification.AddSuccessToastMessage($"Successfully resent {requests.Count} invitations");
-        }
-        else toastNotification.AddErrorToastMessage("No invitations could be sent. Check if invite codes are valid/expired.");
 
         return LocalRedirect($"/admin/events/{eventId}/invitees");
     }
