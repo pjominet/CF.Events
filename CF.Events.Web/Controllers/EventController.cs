@@ -234,7 +234,7 @@ public class EventController(
 
     [HttpGet("invite-callback")]
     [AllowAnonymous]
-    public async Task<IActionResult> InvitationCallback([FromQuery] string code)
+    public async Task<IActionResult> InvitationCallback([FromQuery] string code, [FromQuery] int? eventId)
     {
         var invitedUser = await db.InviteCodes
             .Where(c => c.Value == code && c.ValidUntil > DateTime.UtcNow)
@@ -255,6 +255,6 @@ public class EventController(
 
         await signInManager.SignInAsync(invitedUser, false);
 
-        return LocalRedirect("/");
+        return LocalRedirect(eventId.HasValue ? $"/events/{eventId}/invitation" : "/");
     }
 }

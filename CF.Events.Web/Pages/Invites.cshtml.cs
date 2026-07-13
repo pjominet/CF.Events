@@ -1,5 +1,5 @@
-﻿using System.Security.Claims;
-using CF.Events.Web.Data;
+﻿using CF.Events.Web.Data;
+using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,14 +18,10 @@ public class InvitesModel(EventsDbContext db) : PageModel
 
     public async Task<IActionResult> OnGetAsync(int pageNumber = 1)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId is null)
-            return Challenge();
-
         PageNumber = pageNumber;
 
         var query = db.EventUsers
-            .Where(r => r.UserId == userId && r.Event.IsActive)
+            .Where(r => r.UserId == User.GetId() && r.Event.IsActive)
             .OrderBy(r => r.Event.StartDate);
 
         TotalCount = await query.CountAsync();

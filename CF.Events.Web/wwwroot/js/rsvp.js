@@ -26,7 +26,7 @@
                     <input name="NewRsvp.Participants[${index}]" class="form-control participant-input" placeholder="Participant Name" required />
                 </div>
                 <div class="col-auto">
-                    <button type="button" class="btn btn-outline-danger remove-participant"><i class="bi bi-trash"></i></button>
+                    <button type="button" class="btn btn-outline-danger remove-participant"><i class="bi bi-x-lg"></i></button>
                 </div>
             `;
             participantContainer.appendChild(row);

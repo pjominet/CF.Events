@@ -18,7 +18,8 @@ public class InitPasswordFilter(LinkGenerator linkGenerator) : IAsyncPageFilter,
 
         if (ShouldRedirect(context.HttpContext))
         {
-            context.Result = new RedirectToPageResult("/Account/Manage/FirstLogin");
+            var returnUrl = context.HttpContext.Request.Path + context.HttpContext.Request.QueryString;
+            context.Result = new RedirectToPageResult("/Account/Manage/FirstLogin", new { returnUrl });
             return;
         }
 
@@ -37,7 +38,8 @@ public class InitPasswordFilter(LinkGenerator linkGenerator) : IAsyncPageFilter,
 
         if (ShouldRedirect(context.HttpContext))
         {
-            context.Result = new RedirectToPageResult("/Account/Manage/FirstLogin");
+            var returnUrl = context.HttpContext.Request.Path + context.HttpContext.Request.QueryString;
+            context.Result = new RedirectToPageResult("/Account/Manage/FirstLogin", new { returnUrl });
             return;
         }
 

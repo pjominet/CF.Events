@@ -272,7 +272,7 @@ public class InvitationService(
 
     private async Task PrepareInvitationAsync(IEmailRequest request, CancellationToken ctx = default)
     {
-        var code = CodeGenerator.Generate(32);
+        var code = CodeGenerator.Generate(64);
         await db.InviteCodes.AddAsync(new InviteCode
         {
             UserId = request.UserId,
@@ -281,6 +281,6 @@ public class InvitationService(
         }, ctx);
 
         var baseUrl = _appSettings.BaseUrl.TrimEnd('/');
-        request.CallBackUrl = $"{baseUrl}/events/invite-callback?code={code}";
+        request.CallBackUrl = $"{baseUrl}/events/invite-callback?code={code}?eventId={request.EventId}";
     }
 }

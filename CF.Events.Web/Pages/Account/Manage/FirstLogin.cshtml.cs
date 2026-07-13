@@ -77,6 +77,9 @@ public class FirstLoginModel(
 
         await signInManager.RefreshSignInAsync(user);
 
+        if (!string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl))
+            return LocalRedirect(ReturnUrl);
+
         return LocalRedirect("/");
     }
 
