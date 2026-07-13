@@ -105,11 +105,12 @@ public class UserController(
 
             await userManager.AddToRolesAsync(user, selectedRoles);
 
+            var participants = guestGroupLabel?.Split("&").Select(p => p.Trim()).ToList() ??[];
             user.GuestGroup = new GuestGroup
             {
                 Label = !string.IsNullOrWhiteSpace(guestGroupLabel) ? guestGroupLabel : name,
                 GuestUserId = user.Id,
-                Participants = [user.DisplayName!]
+                Participants = participants.Count > 0 ? participants : [user.DisplayName!]
             };
             await db.SaveChangesAsync();
         }

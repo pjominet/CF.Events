@@ -68,11 +68,12 @@ public class UsersModel(
             var userRoles = await userManager.GetRolesAsync(user);
             if (userRoles.Contains(Roles.Guest))
             {
+                var participants = NewUser.GuestGroup.Split("&").Select(p => p.Trim()).ToList();
                 var guestGroup = new GuestGroup
                 {
                     Label = NewUser.GuestGroup,
                     GuestUserId = user.Id,
-                    Participants = [user.DisplayName ?? user.Email]
+                    Participants = participants.Count == 0 ? [user.DisplayName] : participants
                 };
                 db.GuestGroups.Add(guestGroup);
                 await db.SaveChangesAsync();
