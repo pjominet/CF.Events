@@ -21,13 +21,21 @@
         });
     }
 
-    const accommodationToggle = document.querySelector('[name="NewInvite.AllowAccommodationCode"]');
+    const accommodationToggle = document.querySelector('[name="AllowAccommodationCode"]');
     if (accommodationToggle) {
         accommodationToggle.addEventListener('change', function () {
             const codeSelect = document.querySelector('select[name="SelectedAccommodationCode"]');
             if (!!codeSelect) {
                 codeSelect.disabled = !this.checked;
                 codeSelect.required = this.checked;
+
+                if (codeSelect.tomselect) {
+                    if (this.checked) {
+                        codeSelect.tomselect.enable();
+                    } else {
+                        codeSelect.tomselect.disable();
+                    }
+                }
             }
         });
     }
@@ -162,6 +170,18 @@
                     clearInterval(checkCookie);
                 }
             }, 500);
+        });
+    }
+
+    // Handle Invite Validity Modal population
+    const setInviteValidityModal = document.getElementById('setInviteValidityModal');
+    if (setInviteValidityModal) {
+        setInviteValidityModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const eventId = button.getAttribute('data-bs-event-id');
+
+            const modalEventIdInput = setInviteValidityModal.querySelector('#modalEventId');
+            modalEventIdInput.value = eventId;
         });
     }
 })();

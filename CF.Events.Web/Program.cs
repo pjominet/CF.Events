@@ -12,8 +12,9 @@ try
     builder.WebHost.ConfigureKestrel(options =>
     {
         options.AddServerHeader = false;
-        if (!builder.Environment.IsDevelopment())
+        #if !DEBUG
             options.ListenAnyIP(8082);
+        #endif
     });
 
     var startup = new Startup(builder.Configuration, builder.Environment);

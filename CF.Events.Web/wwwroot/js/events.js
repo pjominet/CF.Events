@@ -31,7 +31,9 @@
             editEventModal.querySelector('[name="Location"]').value = eventData.location;
             editEventModal.querySelector('[name="AccommodationDetails"]').value = eventData.accommodationDetails;
             editEventModal.querySelector('[name="Description"]').value = eventData.description;
-            editEventModal.querySelector('[name="SaveDateTemplateId"]').value = eventData.saveDateTemplateId || '';
+            editEventModal.querySelector('[name="SaveDateEmailTemplateId"]').value = eventData.saveDateTemplateId || '';
+            editEventModal.querySelector('[name="InvitationEmailTemplateId"]').value = eventData.invitationTemplateId || '';
+            editEventModal.querySelector('[name="DonationIban"]').value = eventData.donationIban || '';
 
             let codesControl = editEventModal.querySelector('[name="AccommodationCodes"]').tomselect;
             codesControl.addOptions(eventData.accommodationCodes.map(code => ({value: code, text: code})))

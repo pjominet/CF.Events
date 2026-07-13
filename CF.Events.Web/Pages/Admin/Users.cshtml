@@ -53,9 +53,10 @@
                         <th style="width: 40px;">
                             <input class="form-check-input" type="checkbox" id="selectAllUsers">
                         </th>
-                        <th>Display Name</th>
+                        <th>User Name</th>
                         <th>Email</th>
                         <th>Phone</th>
+                        <th>Guest Group</th>
                         <th>Roles</th>
                         <th>Is Active</th>
                         <th>Actions</th>
@@ -71,6 +72,7 @@
                             <td class="fw-bold">@user.DisplayName</td>
                             <td>@user.Email</td>
                             <td>@user.Phone</td>
+                            <td>@user.GuestGroup</td>
                             <td>
                                 <div class="d-flex justify-content-start align-items-center gap-1">
                                     @foreach (var role in user.Roles)

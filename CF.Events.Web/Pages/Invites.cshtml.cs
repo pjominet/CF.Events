@@ -1,5 +1,5 @@
-﻿using System.Security.Claims;
-using CF.Events.Web.Data;
+﻿using CF.Events.Web.Data;
+using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,30 +18,28 @@ public class InvitesModel(EventsDbContext db) : PageModel
 
     public async Task<IActionResult> OnGetAsync(int pageNumber = 1)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId is null)
-            return Challenge();
-
         PageNumber = pageNumber;
 
         var query = db.EventUsers
-            .Where(r => r.UserId == userId && r.Event.IsActive)
+            .Where(r => r.UserId == User.GetId() && r.Event.IsActive)
             .OrderBy(r => r.Event.StartDate);
 
         TotalCount = await query.CountAsync();
 
         MyInvites = await query
+            .Include(ue => ue.Rsvp)
+            .ThenInclude(r => r!.ParticipantsAttendance)
             .Skip((pageNumber - 1) * PageSize)
             .Take(PageSize)
             .Select(ue => new InviteRow(
                 ue.Event,
                 ue.Rsvp != null && ue.Rsvp.SubmittedAt <= DateTime.UtcNow,
                 ue.Rsvp != null && ue.Rsvp.SubmittedAt <= DateTime.UtcNow && ue.Rsvp.Attending,
-                ue.Rsvp != null ? ue.Rsvp.AttendanceDays : new List<int>()))
+                ue.Rsvp != null ? ue.Rsvp.ParticipantsAttendance.ToList() : new List<ParticipantAttendance>()))
             .ToListAsync();
 
         return Page();
     }
 
-    public record InviteRow(Event Event, bool HasRsvped, bool Attending, List<int> AttendanceDays);
+    public record InviteRow(Event Event, bool HasRsvped, bool Attending, List<ParticipantAttendance> ParticipantAttendance);
 }

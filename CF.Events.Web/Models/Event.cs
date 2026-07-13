@@ -25,7 +25,7 @@ public class Event
     [StringLength(1000)]
     public string? AccommodationDetails { get; set; }
 
-    [StringLength(1000)]
+    [StringLength(64)]
     public string? DonationIban { get; set; }
 
     [StringLength(255)]
@@ -37,6 +37,8 @@ public class Event
     [StringLength(255)]
     public string? SaveDateTemplateId { get; set; }
 
+    public int InviteValidity { get; set; } = 30;
+
     [StringLength(255)]
     public string? InvitationTemplateId { get; set; }
 
@@ -46,7 +48,6 @@ public class Event
 
     // navigation properties
     public List<EventUser> EventUsers { get; set; } = [];
-    public List<InviteCode> InviteCodes { get; set; } = [];
     public List<BookingLink> BookingLinks { get; set; } = [];
 
     // helper

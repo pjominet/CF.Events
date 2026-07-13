@@ -2,11 +2,10 @@
 @model RsvpDetail
 
 <div class="modal fade" id="eventInfoModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title serif" id="eventInfoModalLabel">Event Information</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title serif" id="eventInfoModalLabel">RSVP Details</h5>
             </div>
             <div class="modal-body">
                 @if (Model is { IsAttending: false, HasRsvped: true })
@@ -18,6 +17,36 @@
 
                 @if (Model.IsAttending)
                 {
+                    @if (Model.ParticipantsDiets.Any(o => o.Restrictions.Any() || !string.IsNullOrWhiteSpace(o.OtherDetails)))
+                    {
+                        <h6 class="serif"><i class="bi bi-fork-knife me-1"></i>Dietary Requirements</h6>
+                        @foreach (var participant in Model.ParticipantsDiets.Where(o => o.Restrictions.Any() || !string.IsNullOrWhiteSpace(o.OtherDetails)))
+                        {
+                            <p class="mb-1"><strong>@participant.ParticipantName:</strong></p>
+                            @if (participant.Restrictions.Any())
+                            {
+                                <ul>
+                                    @foreach (var option in participant.Restrictions)
+                                    {
+                                        <li>@option.ToString()</li>
+                                    }
+                                </ul>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(participant.OtherDetails))
+                            {
+                                <p class="small text-muted ms-3">@participant.OtherDetails</p>
+                            }
+                        }
+                        <hr/>
+                    }
+
+                    <h6 class="serif"><i class="bi bi-calendar-check me-1"></i>Attendance</h6>
+                    @foreach (var pa in Model.ParticipantsAttendance.OrderBy(pa => pa.ParticipantName))
+                    {
+                        <p class="mb-1"><strong>@pa.ParticipantName</strong>: Days @string.Join(", ", pa.AttendingDays.OrderBy(d => d))</p>
+                    }
+                    <hr/>
+
                     <h6 class="serif"><i class="bi bi-house me-1"></i>Accommodation Info</h6>
                     if (!string.IsNullOrEmpty(Model.AccommodationDetails))
                     {
@@ -61,13 +90,12 @@
                             <small><i class="bi bi-info-circle me-1"></i>Code: <strong>@Model.AccommodationCode</strong></small>
                         </div>
                     }
-
                     <hr/>
                 }
 
                 @if (!string.IsNullOrEmpty(Model.DonationIban))
                 {
-                    <h6 class="serif"><i class="bi bi-heart me-1"></i>Help Fund Our Event</h6>
+                    <h6 class="serif"><i class="bi bi-heart me-1"></i>Do you wish to help fund our event?</h6>
                     <button class="btn btn-outline-primary w-100" type="button"
                             onclick="copyToClipboardAndShowFeedback(this)">
                         @Model.DonationIban.FormatAsIban()<i class="bi bi-copy ms-2"></i>

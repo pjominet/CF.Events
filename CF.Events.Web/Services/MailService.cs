@@ -17,7 +17,7 @@ public class MailService(IEmailProvider emailProvider) : IMailService
         await emailProvider.SendTemplatedEmailAsync(request.TemplateId, request.UserEmail, variables, request.InlineAttachments, ctx);
     }
 
-    public async Task SendSaveTheDateAsync(SaveTheDateEmailRequest request, CancellationToken ctx = default)
+    public async Task SendSaveTheDateAsync(SaveDateEmailRequest request, CancellationToken ctx = default)
     {
         var variables = new Dictionary<string, string>
         {

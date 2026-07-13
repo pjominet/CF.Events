@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using CF.Events.Web.Data;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -13,7 +14,8 @@ namespace CF.Events.Web.Pages.Admin;
 [Authorize(Roles = Roles.Admin)]
 public class UsersModel(
     UserManager<AppUser> userManager,
-    IToastNotification toastNotification) : PageModel
+    IToastNotification toastNotification,
+    EventsDbContext db) : PageModel
 {
     public List<UserRow> AllUsers { get; private set; } = [];
 
@@ -26,6 +28,11 @@ public class UsersModel(
 
     public async Task<IActionResult> OnPostAddAsync()
     {
+        if (NewUser.SelectedRoles.Contains(Roles.Guest) && string.IsNullOrWhiteSpace(NewUser.GuestGroup))
+        {
+            ModelState.AddModelError("NewUser.GuestGroup", "Guest Group Label is required for guests.");
+        }
+
         if (!ModelState.IsValid)
         {
             ViewData[ViewDataKeys.ShowAddModal] = true;
@@ -57,7 +64,26 @@ public class UsersModel(
         else result = await userManager.AddToRoleAsync(user, Roles.Guest);
 
         if (result.Succeeded)
+        {
+            var userRoles = await userManager.GetRolesAsync(user);
+            if (userRoles.Contains(Roles.Guest))
+            {
+                var participants = NewUser.GuestGroup.Split("&").Select(p => p.Trim()).ToList();
+                var guestGroup = new GuestGroup
+                {
+                    Label = NewUser.GuestGroup,
+                    GuestUserId = user.Id,
+                    Participants = participants.Count == 0 ? [user.DisplayName] : participants
+                };
+                db.GuestGroups.Add(guestGroup);
+                await db.SaveChangesAsync();
+
+                user.GuestGroupId = guestGroup.Id;
+                await userManager.UpdateAsync(user);
+            }
+
             toastNotification.AddSuccessToastMessage($"Added user {NewUser.Email}");
+        }
         else
             toastNotification.AddErrorToastMessage($"Failed to add roles for user {NewUser.Email}");
 
@@ -66,7 +92,9 @@ public class UsersModel(
 
     private async Task LoadAsync()
     {
-        var users = await userManager.Users.ToListAsync();
+        var users = await userManager.Users
+            .Include(u => u.GuestGroup)
+            .ToListAsync();
         AllUsers = [];
         foreach (var u in users)
         {
@@ -76,6 +104,7 @@ public class UsersModel(
                 u.Email ?? "undefined",
                 u.PhoneNumber ?? "n/a",
                 u.DisplayName ?? "undefined",
+                u.GuestGroup?.Label ?? "n/a",
                 u.IsActive,
                 roles,
                 u.MustChangePassword));
@@ -192,12 +221,14 @@ public class UsersModel(
         return RedirectToPage();
     }
 
-    public record UserRow(string Id, string Email, string Phone, string DisplayName, bool IsActive, IList<string> Roles, bool MustChangePassword);
+    public record UserRow(string Id, string Email, string Phone, string DisplayName, string GuestGroup, bool IsActive, IList<string> Roles, bool MustChangePassword);
 
     public sealed class InputModel
     {
         [Required]
         public string DisplayName { get; set; } = string.Empty;
+
+        public string GuestGroup { get; set; } = string.Empty;
 
         [Required]
         [EmailAddress]

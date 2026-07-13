@@ -46,12 +46,18 @@
                                             <span class="badge bg-secondary"><i class="bi bi-x-circle me-1"></i>Not Attending</span>
                                         }
                                     </div>
-                                    @if (invite.Attending && invite.AttendanceDays.Any())
+                                    @if (invite.Attending && invite.ParticipantAttendance.Any())
                                     {
                                         <div class="mb-2">
-                                            @foreach (var day in invite.AttendanceDays.OrderBy(d => d))
+                                            @foreach (var pa in invite.ParticipantAttendance.OrderBy(pa => pa.ParticipantName))
                                             {
-                                                <span class="badge rounded-pill bg-light text-dark border me-1">Day @day</span>
+                                                <div class="small mb-1">
+                                                    <strong>@pa.ParticipantName</strong>:
+                                                    @foreach (var day in pa.AttendingDays.OrderBy(d => d))
+                                                    {
+                                                        <span class="badge rounded-pill bg-light text-dark border px-2 py-1 ms-1">Day @day</span>
+                                                    }
+                                                </div>
                                             }
                                         </div>
                                     }

@@ -4,6 +4,7 @@ using CF.Events.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CF.Events.Web.Data.Migrations
 {
     [DbContext(typeof(EventsDbContext))]
-    partial class EventsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260713120059_AddGuestGroups")]
+    partial class AddGuestGroups
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -158,8 +161,8 @@ namespace CF.Events.Web.Data.Migrations
                         .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("DonationIban")
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
@@ -171,9 +174,6 @@ namespace CF.Events.Web.Data.Migrations
                     b.Property<string>("InvitationTemplateId")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
-
-                    b.Property<int>("InviteValidity")
-                        .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -216,6 +216,9 @@ namespace CF.Events.Web.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int>("InviteCodeId")
+                        .HasColumnType("int");
+
                     b.Property<bool>("InviteEmailSent")
                         .HasColumnType("bit");
 
@@ -226,6 +229,8 @@ namespace CF.Events.Web.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("EventId", "UserId");
+
+                    b.HasIndex("InviteCodeId");
 
                     b.HasIndex("UserId");
 
@@ -271,28 +276,31 @@ namespace CF.Events.Web.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("ValidUntil")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Value")
+                    b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("EventId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("ValidUntil")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("Value")
+                    b.HasIndex("Code")
                         .IsUnique();
+
+                    b.HasIndex("EventId");
 
                     b.ToTable("InviteCodes", "app");
                 });
@@ -543,6 +551,12 @@ namespace CF.Events.Web.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("CF.Events.Web.Models.InviteCode", "InviteCode")
+                        .WithMany("EventUsers")
+                        .HasForeignKey("InviteCodeId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
                     b.HasOne("CF.Events.Web.Models.AppUser", "User")
                         .WithMany("UserEvents")
                         .HasForeignKey("UserId")
@@ -550,6 +564,8 @@ namespace CF.Events.Web.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Event");
+
+                    b.Navigation("InviteCode");
 
                     b.Navigation("User");
                 });
@@ -567,13 +583,13 @@ namespace CF.Events.Web.Data.Migrations
 
             modelBuilder.Entity("CF.Events.Web.Models.InviteCode", b =>
                 {
-                    b.HasOne("CF.Events.Web.Models.AppUser", "User")
+                    b.HasOne("CF.Events.Web.Models.Event", "Event")
                         .WithMany("InviteCodes")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Event");
                 });
 
             modelBuilder.Entity("CF.Events.Web.Models.ParticipantAttendance", b =>
@@ -664,8 +680,6 @@ namespace CF.Events.Web.Data.Migrations
                 {
                     b.Navigation("GuestGroup");
 
-                    b.Navigation("InviteCodes");
-
                     b.Navigation("UserEvents");
                 });
 
@@ -674,11 +688,18 @@ namespace CF.Events.Web.Data.Migrations
                     b.Navigation("BookingLinks");
 
                     b.Navigation("EventUsers");
+
+                    b.Navigation("InviteCodes");
                 });
 
             modelBuilder.Entity("CF.Events.Web.Models.EventUser", b =>
                 {
                     b.Navigation("Rsvp");
+                });
+
+            modelBuilder.Entity("CF.Events.Web.Models.InviteCode", b =>
+                {
+                    b.Navigation("EventUsers");
                 });
 
             modelBuilder.Entity("CF.Events.Web.Models.Rsvp", b =>

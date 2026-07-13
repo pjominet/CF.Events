@@ -1,3 +1,5 @@
+using CF.Events.Web.Data;
+using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -11,7 +13,8 @@ namespace CF.Events.Web.Controllers;
 [Authorize(Roles = Roles.Admin)]
 public class UserController(
     UserManager<AppUser> userManager,
-    IToastNotification toastNotification) : Controller
+    IToastNotification toastNotification,
+    EventsDbContext db) : Controller
 {
     private readonly string[] _allowedFileExtensions = [".csv", ".txt"];
 
@@ -35,7 +38,7 @@ public class UserController(
         selectedRoles ??= [Roles.Guest];
 
         // Read all lines from the file
-        var users = new List<AppUser>();
+        List<string> importErrors = [];
         using var reader = new StreamReader(userList.OpenReadStream());
 
         var currentRow = 0;
@@ -53,48 +56,63 @@ public class UserController(
 
             var parts = line.Split(delimiter);
 
-            var email = parts.Length > 1 ? parts[1].Trim() : null;
-            // Skip if email is invalid
-            if (string.IsNullOrEmpty(email) || !email.Contains('@'))
-                continue;
-
             var name = parts.Length > 0 ? parts[0].Trim() : null;
-            var phone = parts.Length > 2 ? parts[2].Trim() : null;
+            // Skip if email is invalid
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                importErrors.Add($"Error importing {name}: Name is required.");
+                continue;
+            }
 
-            users.Add(new AppUser
+            var email = parts.Length > 1 ? parts[1].Trim() : null;
+
+            // Skip if email is invalid
+            if (string.IsNullOrWhiteSpace(email) || !email.IsEmail())
+            {
+                importErrors.Add($"Error importing {email}: Email is invalid.");
+                continue;
+            }
+
+            var phone = parts.Length > 2 ? parts[2].Trim() : null;
+            var guestGroupLabel = parts.Length > 3 ? parts[3].Trim() : null;
+
+            if (selectedRoles.Contains(Roles.Guest) && string.IsNullOrWhiteSpace(guestGroupLabel) && string.IsNullOrWhiteSpace(name))
+            {
+                importErrors.Add($"Error importing {email}: Guest group or user name is required for guest role.");
+                continue;
+            }
+
+            var user = new AppUser
             {
                 UserName = email,
                 Email = email,
-                PhoneNumber = phone,
+                PhoneNumber = !string.IsNullOrWhiteSpace(phone) ? phone : null,
                 DisplayName = name,
                 MustChangePassword = true,
                 EmailConfirmed = true,
                 IsActive = true
-            });
-        }
+            };
 
-        // Create users in database
-        List<string> importErrors = [];
-        foreach (var user in users)
-        {
             var result = await userManager.CreateAsync(user);
             if (!result.Succeeded)
             {
                 if (result.Errors.Any(error => error.Code is "DuplicateUserName" or "DuplicateEmail"))
                     continue;
 
-                importErrors.AddRange(result.Errors.Select(error => $"Error creating user {user.Email}: {error.Description}"));
+                importErrors.Add($"Error creating user {email}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
                 continue;
             }
 
-            if (selectedRoles.Count > 0)
+            await userManager.AddToRolesAsync(user, selectedRoles);
+
+            var participants = guestGroupLabel?.Split("&").Select(p => p.Trim()).ToList() ??[];
+            user.GuestGroup = new GuestGroup
             {
-                await userManager.AddToRolesAsync(user, selectedRoles);
-            }
-            else
-            {
-                await userManager.AddToRoleAsync(user, Roles.Guest);
-            }
+                Label = !string.IsNullOrWhiteSpace(guestGroupLabel) ? guestGroupLabel : name,
+                GuestUserId = user.Id,
+                Participants = participants.Count > 0 ? participants : [user.DisplayName!]
+            };
+            await db.SaveChangesAsync();
         }
 
         if (importErrors.Count == 0)

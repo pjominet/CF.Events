@@ -54,4 +54,25 @@
         window.showLoadingOverlay();
         form.submit();
     };
+
+    const roleGuestCheckbox = document.getElementById('roleGuest');
+    const guestGroupContainer = document.getElementById('guestGroupContainer');
+    const guestGroupInput = document.getElementById('guestGroupInput');
+
+    if (roleGuestCheckbox && guestGroupContainer && guestGroupInput) {
+        const toggleGuestGroup = () => {
+            if (roleGuestCheckbox.checked) {
+                guestGroupContainer.classList.remove('d-none');
+                guestGroupInput.required = true;
+            } else {
+                guestGroupContainer.classList.add('d-none');
+                guestGroupInput.required = false;
+                guestGroupInput.value = '';
+            }
+        };
+
+        roleGuestCheckbox.addEventListener('change', toggleGuestGroup);
+        // Initial check
+        toggleGuestGroup();
+    }
 })();

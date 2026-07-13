@@ -156,7 +156,7 @@ h1:focus {
     margin-top: 0.125em;
 }
 
-#rsvpForm .btn {
+#rsvpForm .btn-rsvp {
     padding: 0.6rem 1rem;
     font-weight: 500;
 }

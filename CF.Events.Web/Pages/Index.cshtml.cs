@@ -1,4 +1,5 @@
 ﻿using CF.Events.Web.Infrastructure;
+using CF.Events.Web.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -10,6 +11,9 @@ public class IndexModel : PageModel
     {
         if (User.Identity?.IsAuthenticated != true)
             return Redirect("/account/login");
+
+        if (User.InitPassword())
+            return RedirectToPage("/account/manage/firstLogin");
 
         return User.IsInRole(Constants.Roles.Admin)
             ? Redirect("/admin")

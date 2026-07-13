@@ -82,7 +82,9 @@ public class EventsModel(
         @event.Description = NewEvent.Description;
         @event.AccommodationCodes = NewEvent.AccommodationCodes;
         @event.AccommodationDetails = NewEvent.AccommodationDetails;
-        @event.SaveDateTemplateId = NewEvent.SaveDateTemplateId;
+        @event.SaveDateTemplateId = NewEvent.SaveDateEmailTemplateId;
+        @event.InvitationTemplateId = NewEvent.InvitationEmailTemplateId;
+        @event.DonationIban = NewEvent.DonationIban;
 
         // fix duplicate save on update
         @event.BookingLinks = NewEvent.BookingLinks.Select(link =>
@@ -165,17 +167,16 @@ public class EventsModel(
             accommodationCodes = @event.AccommodationCodes,
             accommodationDetails = @event.AccommodationDetails,
             saveDateTemplateId = @event.SaveDateTemplateId,
+            invitationTemplateId = @event.InvitationTemplateId,
+            donationIban = @event.DonationIban,
             bookingLinks = @event.BookingLinks.Select(bl => bl.Link),
             originalInvitationFileName = @event.OriginalInvitationFileName
         }, jsonOptions);
     }
 
-    public Dictionary<int, string> CurrentInviteCodes { get; private set; } = [];
-
     private async Task LoadAsync()
     {
         AllEvents = await db.Events
-            .Include(e => e.InviteCodes)
             .Include(e => e.BookingLinks)
             .OrderByDescending(e => e.StartDate)
             .ToListAsync();
@@ -184,14 +185,6 @@ public class EventsModel(
         InviteeCounts = eventUsers
             .GroupBy(r => r.EventId)
             .ToDictionary(g => g.Key, g => g.Count());
-
-        CurrentInviteCodes = AllEvents.ToDictionary(
-            e => e.Id,
-            e => e.InviteCodes
-                .Where(c => c.ValidUntil > DateTime.UtcNow)
-                .OrderByDescending(c => c.CreatedAt)
-                .FirstOrDefault()?.Code ?? "No valid code"
-        );
     }
 
     private void DeleteInvitationImage(int eventId, string? fileName = null)
@@ -273,7 +266,13 @@ public class EventsModel(
         public string? AccommodationDetails { get; init; }
 
         [StringLength(255)]
-        public string? SaveDateTemplateId { get; init; }
+        public string? SaveDateEmailTemplateId { get; init; }
+
+        [StringLength(255)]
+        public string? InvitationEmailTemplateId { get; init; }
+
+        [StringLength(64)]
+        public string? DonationIban { get; init; }
 
         [ModelBinder(BinderType = typeof(FlatListModelBinder))]
         public List<string> BookingLinks { get; init; } = [];

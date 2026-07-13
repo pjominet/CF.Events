@@ -1,5 +1,3 @@
-using CF.Events.Web.Data.Comparers;
-using CF.Events.Web.Data.Converters;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -14,6 +12,9 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
     public DbSet<EventUser> EventUsers => Set<EventUser>();
     public DbSet<Rsvp> Rsvps => Set<Rsvp>();
     public DbSet<BookingLink> BookingLinks => Set<BookingLink>();
+    public DbSet<ParticipantDiet> ParticipantsDiets => Set<ParticipantDiet>();
+    public DbSet<ParticipantAttendance> ParticipantsAttendance => Set<ParticipantAttendance>();
+    public DbSet<GuestGroup> GuestGroups => Set<GuestGroup>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -41,9 +42,15 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
         {
             e.HasKey(r => new { r.EventId, r.UserId });
 
-            e.Property(r => r.CommonDietaryOptions).HasMaxLength(1000);
+            e.HasMany(r => r.ParticipantsDiets)
+                .WithOne(o => o.Rsvp)
+                .HasForeignKey(o => new { o.EventId, o.UserId })
+                .OnDelete(DeleteBehavior.Cascade);
 
-            e.Property(r => r.AttendanceDays).HasMaxLength(1000);
+            e.HasMany(r => r.ParticipantsAttendance)
+                .WithOne(o => o.Rsvp)
+                .HasForeignKey(o => new { o.EventId, o.UserId })
+                .OnDelete(DeleteBehavior.Cascade);
 
             e.HasOne(r => r.EventUser)
                 .WithOne(u => u.Rsvp)
@@ -71,33 +78,43 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
                 .HasForeignKey(r => r.EventId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
-
-            e.HasOne(r => r.InviteCode)
-                .WithMany(r => r.EventUsers)
-                .HasForeignKey(r => r.InviteCodeId)
-                .OnDelete(DeleteBehavior.NoAction)
-                .IsRequired();
         });
 
         builder.Entity<InviteCode>(e =>
         {
-            e.HasIndex(r => r.Code).IsUnique();
+            e.HasIndex(r => r.Value).IsUnique();
 
-            e.Property(r => r.Label).IsRequired();
-
-            e.HasOne(r => r.Event)
+            e.HasOne(r => r.User)
                 .WithMany(r => r.InviteCodes)
-                .HasForeignKey(r => r.EventId)
+                .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
         });
 
-        builder.Entity<BookingLink>(e =>
+        builder.Entity<GuestGroup>(e =>
         {
-            e.HasOne(r => r.Event)
-                .WithMany(r => r.BookingLinks)
-                .HasForeignKey(r => r.EventId)
+            e.HasKey(g => g.Id);
+            e.Property(g => g.Participants)
+                .HasMaxLength(1000);
+
+            e.HasOne(u => u.GuestUser)
+                .WithOne(g => g.GuestGroup)
+                .HasForeignKey<GuestGroup>(g => g.GuestUserId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<ParticipantDiet>(e =>
+        {
+            e.HasKey(o => o.Id);
+            e.Property(o => o.Restrictions)
+                .HasMaxLength(1000);
+        });
+
+        builder.Entity<ParticipantAttendance>(e =>
+        {
+            e.HasKey(o => o.Id);
+            e.Property(o => o.AttendingDays)
+                .HasMaxLength(1000);
         });
     }
 }

@@ -104,18 +104,18 @@
     }
 
     function initMultiSelects() {
-        document.querySelectorAll("select.tom-select").forEach(function (el) {
-            if (el.disabled) return;
+        document.querySelectorAll("select.tom-select").forEach(function (select) {
+            if (select.tomselect) return;
 
             let settings = {
-                placeholder: el.getAttribute("data-placeholder") || "Select...",
+                placeholder: select.getAttribute("data-placeholder") || "Select...",
                 hidePlaceholder: true,
                 allowEmptyOption: false,
                 maxOptions: 20,
                 dropdownParent: "body"
             }
 
-            if (!!el.hasAttribute("multiple")) {
+            if (!!select.hasAttribute("multiple")) {
                 settings.plugins = ['remove_button'];
                 settings.maxItems = null;
                 settings.clearAfterSelect = false;
@@ -129,7 +129,7 @@
                 };
             }
 
-            if (el.classList.contains("tom-select-html")) {
+            if (select.classList.contains("tom-select-html")) {
                 settings.render = {
                     option: function (data, escape) {
                         return '<div>' + (data.html || escape(data.text)) + '</div>';
@@ -140,7 +140,10 @@
                 };
             }
 
-            new TomSelect(el, settings);
+            const ts = new TomSelect(select, settings);
+            if (select.disabled) {
+                ts.disable();
+            }
         });
     }
 

@@ -1,6 +1,6 @@
 @model RsvpResponses
 @{
-    var displayName = ViewData["UserDisplayName"] as string ?? "User";
+    var displayName = ViewData[ViewDataKeys.GuestGroupLabel] as string ?? "User";
 }
 
 <div class="modal fade" id="adminRsvpModal" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
@@ -10,52 +10,66 @@
                 <h5 class="modal-title serif">RSVP Details for @displayName</h5>
             </div>
             <div class="modal-body">
-
                 <div class="mb-4">
                     <h6 class="serif fw-bold"><i class="bi bi-calendar-check me-2"></i>Attendance Days</h6>
-                    @if (Model.AttendanceDays.Any())
+                    @if (Model.ParticipantsAttendance.Any())
                     {
-                        <div class="d-flex flex-wrap gap-2">
-                            @foreach (var day in Model.AttendanceDays.OrderBy(d => d))
+                        <div class="d-flex flex-column gap-2">
+                            @foreach (var pa in Model.ParticipantsAttendance.OrderBy(pa => pa.ParticipantName))
                             {
-                                <span class="badge rounded-pill bg-success">Day @day</span>
+                                <div>
+                                    <b>@pa.ParticipantName</b>:
+                                    @foreach (var day in pa.AttendingDays.OrderBy(d => d))
+                                    {
+                                        <span class="badge rounded-pill bg-success px-2 py-1 ms-1">Day @day</span>
+                                    }
+                                </div>
                             }
                         </div>
                     }
                     else
                     {
-                        <p class="text-danger mb-0">No days selected.</p>
+                        <p class="text-danger mb-0">Not participating any days.</p>
                     }
                 </div>
-
                 <hr/>
-
                 <div class="mb-4">
                     <h6 class="serif fw-bold"><i class="bi bi-fork-knife me-2"></i>Dietary Requirements</h6>
-                    @if (Model.DietaryOptions.Any() || !string.IsNullOrWhiteSpace(Model.OtherDietaryDetails))
-                    {
-                        <ul class="list-unstyled mb-0">
-                            @foreach (var option in Model.DietaryOptions)
-                            {
-                                <li><i class="bi bi-check2 me-2 text-success"></i>@option.ToString()</li>
-                            }
-                            @if (!string.IsNullOrWhiteSpace(Model.OtherDietaryDetails))
-                            {
-                                <li class="mt-2">
-                                    <strong class="serif">Other dietary details:</strong>
-                                    <p class="mb-0 text-muted">@Model.OtherDietaryDetails</p>
-                                </li>
-                            }
-                        </ul>
-                    }
-                    else
-                    {
-                        <p class="text-success mb-0">No dietary requirements specified.</p>
+                    @{
+                        var participantRestrictions = Model.ParticipantsDiets
+                            .Where(pdr => pdr.Restrictions.Count > 0 || !string.IsNullOrWhiteSpace(pdr.OtherDetails))
+                            .ToList();
+                        if (participantRestrictions.Count > 0)
+                        {
+                            <ul class="list-unstyled mb-0">
+                                @foreach (var participantRestriction in participantRestrictions)
+                                {
+                                    <li>
+                                        <strong>@participantRestriction.ParticipantName:</strong>
+                                        @if (participantRestriction.Restrictions.Count > 0)
+                                        {
+                                            <ul>
+                                                @foreach (var restriction in participantRestriction.Restrictions)
+                                                {
+                                                    <li>@restriction.ToString()</li>
+                                                }
+                                            </ul>
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(participantRestriction.OtherDetails))
+                                        {
+                                            <p class="mb-0 text-muted ms-3">@participantRestriction.OtherDetails</p>
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <p class="text-success mb-0">No special dietary requirements specified.</p>
+                        }
                     }
                 </div>
-
                 <hr/>
-
                 <div class="mb-0">
                     <h6 class="serif fw-bold"><i class="bi bi-chat-left-text me-2"></i>Comments</h6>
                     @if (!string.IsNullOrWhiteSpace(Model.Comments))

@@ -17,6 +17,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
     public bool HasResponded { get; private set; }
     public bool RespondedAttending { get; private set; }
     public string? AssignedAccommodationCode { get; private set; }
+    public List<string> GroupParticipants { get; private set; } = [];
 
     [BindProperty]
     public InputModel NewRsvp { get; set; } = new();
@@ -24,6 +25,8 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
     public async Task<IActionResult> OnGetAsync(int eventId)
     {
         var userId = User.GetId();
+        var user = await db.Users.Include(u => u.GuestGroup).FirstAsync(u => u.Id == userId);
+        GroupParticipants = user.GuestGroup?.Participants ?? (user.DisplayName != null ? [user.DisplayName] : []);
 
         var userEvent = await db.EventUsers.FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
         if (userEvent is null && !User.IsAdmin())
@@ -32,7 +35,10 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
             return Redirect("/");
         }
 
-        var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
+        var rsvp = await db.Rsvps
+            .Include(r => r.ParticipantsDiets)
+            .Include(r => r.ParticipantsAttendance)
+            .FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
 
         EventData = await db.Events
             .Include(e => e.BookingLinks)
@@ -42,6 +48,49 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
         HasResponded = rsvp?.SubmittedAt > DateTime.MinValue.AddDays(1);
         RespondedAttending = rsvp?.Attending ?? false;
 
+        if (rsvp is not null)
+        {
+            NewRsvp = new InputModel
+            {
+                Participants = user.GuestGroup?.Participants ?? (user.DisplayName is not null ? [user.DisplayName] : []),
+                Attending = rsvp.Attending,
+                ParticipantsAttendance = rsvp.ParticipantsAttendance.Select(pa => new ParticipantAttendance
+                {
+                    Id = pa.Id,
+                    EventId = pa.EventId,
+                    UserId = pa.UserId,
+                    ParticipantName = pa.ParticipantName,
+                    AttendingDays = pa.AttendingDays
+                }).ToList(),
+                ParticipantsDiets = rsvp.ParticipantsDiets.Select(o => new ParticipantDiet
+                {
+                    Id = o.Id,
+                    EventId = o.EventId,
+                    UserId = o.UserId,
+                    ParticipantName = o.ParticipantName,
+                    Restrictions = o.Restrictions,
+                    OtherDetails = o.OtherDetails
+                }).ToList(),
+                Comments = rsvp.Comments
+            };
+        }
+        else
+        {
+            NewRsvp.Participants = GroupParticipants;
+            // Default first participant for Day 1
+            if (GroupParticipants.Count > 0)
+            {
+                NewRsvp.ParticipantsAttendance =
+                [
+                    new ParticipantAttendance
+                    {
+                        ParticipantName = GroupParticipants[0],
+                        AttendingDays = [1]
+                    }
+                ];
+            }
+        }
+
         return Page();
     }
 
@@ -49,7 +98,18 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
     {
         var userId = User.GetId();
 
+        var user = await db.Users
+            .Include(u => u.GuestGroup)
+            .FirstAsync(u => u.Id == userId);
+        if (user.GuestGroup is not null)
+        {
+            user.GuestGroup.Participants = NewRsvp.Participants;
+            db.GuestGroups.Update(user.GuestGroup);
+        }
+
         var rsvp = await db.Rsvps
+            .Include(r => r.ParticipantsDiets)
+            .Include(r => r.ParticipantsAttendance)
             .FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
 
         if (rsvp is null)
@@ -62,10 +122,35 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
         rsvp.SubmittedAt = DateTime.UtcNow;
         if (NewRsvp.Attending)
         {
-            rsvp.AttendanceDays = NewRsvp.AttendanceDays;
-            rsvp.CommonDietaryOptions = NewRsvp.CommonDietaryOptions;
-            rsvp.OtherDietaryDetails = NewRsvp.OtherDietaryDetails;
+            // Handle attendance update
+            db.ParticipantsAttendance.RemoveRange(rsvp.ParticipantsAttendance);
+            rsvp.ParticipantsAttendance = NewRsvp.ParticipantsAttendance.Select(pa => new ParticipantAttendance
+            {
+                EventId = eventId,
+                UserId = userId,
+                ParticipantName = pa.ParticipantName,
+                AttendingDays = pa.AttendingDays
+            }).ToList();
+
+            // Handle dietary options update
+            db.ParticipantsDiets.RemoveRange(rsvp.ParticipantsDiets);
+            rsvp.ParticipantsDiets = NewRsvp.ParticipantsDiets.Select(o => new ParticipantDiet
+            {
+                EventId = eventId,
+                UserId = userId,
+                ParticipantName = o.ParticipantName,
+                Restrictions = o.Restrictions,
+                OtherDetails = o.OtherDetails
+            }).ToList();
+
             rsvp.Comments = NewRsvp.Comments;
+        }
+        else
+        {
+            db.ParticipantsAttendance.RemoveRange(rsvp.ParticipantsAttendance);
+            rsvp.ParticipantsAttendance = [];
+            db.ParticipantsDiets.RemoveRange(rsvp.ParticipantsDiets);
+            rsvp.ParticipantsDiets = [];
         }
 
         await db.SaveChangesAsync();
@@ -78,19 +163,17 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
     {
         var userId = User.GetId();
 
-        var rsvp = await db.Rsvps.FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
+        var rsvp = await db.Rsvps
+            .Include(r => r.ParticipantsDiets)
+            .Include(r => r.ParticipantsAttendance)
+            .FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
         if (rsvp is null)
         {
             toastNotification.AddWarningToastMessage("You are not invited to this event");
             return Redirect("/");
         }
 
-        rsvp.Attending = true;
-        rsvp.SubmittedAt = DateTime.MinValue;
-        rsvp.AttendanceDays = [];
-        rsvp.CommonDietaryOptions = [];
-        rsvp.OtherDietaryDetails = null;
-        rsvp.Comments = null;
+        db.Rsvps.Remove(rsvp);
 
         await db.SaveChangesAsync();
 
@@ -107,12 +190,10 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
 
     public sealed class InputModel
     {
+        public List<string> Participants { get; set; } = [];
         public bool Attending { get; set; } = true;
-        public List<int> AttendanceDays { get; set; } = [1];
-
-        public List<DietaryOptions> CommonDietaryOptions { get; set; } = [];
-        public string? OtherDietaryDetails { get; set; }
-
+        public List<ParticipantAttendance> ParticipantsAttendance { get; set; } = [];
+        public List<ParticipantDiet> ParticipantsDiets { get; set; } = [];
         [StringLength(500)]
         public string? Comments { get; set; }
     }

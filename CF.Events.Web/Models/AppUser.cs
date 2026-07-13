@@ -12,6 +12,10 @@ public class AppUser : IdentityUser
     public DateTime? LastLogin { get; set; }
     public bool IsActive { get; set; } = true;
 
+    public int? GuestGroupId { get; set; }
+
     // navigation properties
+    public GuestGroup? GuestGroup { get; set; }
     public List<EventUser> UserEvents { get; set; } = [];
+    public List<InviteCode> InviteCodes { get; set; } = [];
 }
