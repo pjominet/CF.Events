@@ -96,6 +96,7 @@ public class EventController(
                 DietaryOptions = eu.Rsvp != null ? eu.Rsvp.ParticipantsDiets : new List<ParticipantDiet>(),
                 BookingLinks = eu.Event.BookingLinks.Select(bl => new { bl.Type, bl.Link }).ToList(),
                 eu.Event.DonationIban,
+                eu.Event.DonationLink,
                 EventStartDate = eu.Event.StartDate
             })
             .FirstOrDefaultAsync();
@@ -113,6 +114,7 @@ public class EventController(
             ParticipantsDiets = eventUser.DietaryOptions,
             BookingLinks = eventUser.BookingLinks.ToDictionary(bl => bl.Type, bl => bl.Link),
             DonationIban = eventUser.DonationIban,
+            DonationLink = eventUser.DonationLink,
             DonationReference = new Event { Name = eventUser.EventName, StartDate = eventUser.EventStartDate }.GetDonationReference()
         };
 

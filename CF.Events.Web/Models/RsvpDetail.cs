@@ -11,5 +11,6 @@ public class RsvpDetail
     public List<ParticipantDiet> ParticipantsDiets { get; set; } = [];
     public Dictionary<LinkType, string> BookingLinks { get; set; } = [];
     public string? DonationIban { get; set; }
+    public string? DonationLink { get; set; }
     public string? DonationReference { get; set; }
 }

@@ -56,25 +56,48 @@
                         <div class="col-12 my-3">
                             <label class="form-label fw-bold">Accommodation Details</label>
                             <textarea asp-for="AccommodationDetails" class="form-control" placeholder="Accommodation Details" rows="3"></textarea>
-                        </div>
-                        <div class="col-12 mb-3">
-                            <label class="form-label fw-bold">Save the Date Template ID</label>
-                            <input asp-for="SaveDateEmailTemplateId" class="form-control" placeholder="12345" />
-                            <div class="form-text">If set, the event will be eligible for 'Save the Date' emails using this template.</div>
-                        </div>
-                        <div class="col-12 mb-3">
-                            <label class="form-label fw-bold">Save the Date Template ID</label>
-                            <input asp-for="InvitationEmailTemplateId" class="form-control" placeholder="56789" />
-                            <div class="form-text">If set, the event will be eligible for 'Invite' emails using this template.</div>
+                            <div class="form-text">Descriptive text explaining on how to book accommodation.</div>
                         </div>
                         <div class="col-12 mb-3">
                             <label class="form-label fw-bold">Booking Links</label>
                             <input name="BookingLinks" value="" class="form-control tag-select" autocomplete="off" placeholder="Add booking links..."/>
                         </div>
-                        <div class="col-12">
+                        <div class="col-12 col-md-6 mb-3">
                             <label class="form-label fw-bold">Save the Date Template ID</label>
-                            <input asp-for="DonationIban" class="form-control" placeholder="56789" />
+                            <input asp-for="SaveDateEmailTemplateId" class="form-control" placeholder="12345" />
+                            <div class="form-text">If set, the event will be eligible for 'Save the Date' emails using this template.</div>
+                        </div>
+                        <div class="col-12 col-md-6 mb-3">
+                            <label class="form-label fw-bold">Save the Date Template ID</label>
+                            <input asp-for="InvitationEmailTemplateId" class="form-control" placeholder="56789" />
                             <div class="form-text">If set, the event will be eligible for 'Invite' emails using this template.</div>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-bold">Donation Type</label>
+                            <div class="d-flex gap-3 mt-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="DonationType" id="donationTypeNone" value="none" checked>
+                                    <label class="form-check-label" for="donationTypeNone">None</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="DonationType" id="donationTypeIban" value="iban">
+                                    <label class="form-check-label" for="donationTypeIban">IBAN</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="DonationType" id="donationTypeLink" value="link">
+                                    <label class="form-check-label" for="donationTypeLink">Link</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 mb-3 donation-field" id="donationIbanWrapper" style="display: none;">
+                            <label class="form-label fw-bold">Donation IBAN</label>
+                            <input asp-for="DonationIban" class="form-control" />
+                            <div class="form-text">If set, the event will be eligible for donations.</div>
+                        </div>
+                        <div class="col-12 mb-3 donation-field" id="donationLinkWrapper" style="display: none;">
+                            <label class="form-label fw-bold">Donation Link</label>
+                            <input asp-for="DonationLink" class="form-control" />
+                            <div class="form-text">If set, the event will be eligible for donations via an external service.</div>
                         </div>
                     </div>
                 </div>

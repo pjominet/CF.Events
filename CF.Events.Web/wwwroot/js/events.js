@@ -1,6 +1,20 @@
 ﻿(function () {
     const editEventModal = document.getElementById('editEventModal');
+
+    const updateDonationFields = () => {
+        const donationType = editEventModal.querySelector('input[name="DonationType"]:checked').value;
+        const ibanWrapper = document.getElementById('donationIbanWrapper');
+        const linkWrapper = document.getElementById('donationLinkWrapper');
+
+        ibanWrapper.style.display = donationType === 'iban' ? 'block' : 'none';
+        linkWrapper.style.display = donationType === 'link' ? 'block' : 'none';
+    };
+
     if (editEventModal) {
+        editEventModal.querySelectorAll('input[name="DonationType"]').forEach(radio => {
+            radio.addEventListener('change', updateDonationFields);
+        });
+
         editEventModal.addEventListener('show.bs.modal', event => {
             const button = event.relatedTarget;
             if (!button || button.id === 'newEventBtn') {
@@ -12,6 +26,8 @@
 
                 const imageWrapper = document.getElementById('currentInvitationImageWrapper');
                 if (imageWrapper) imageWrapper.style.display = 'none';
+
+                updateDonationFields();
                 return;
             }
 
@@ -34,6 +50,16 @@
             editEventModal.querySelector('[name="SaveDateEmailTemplateId"]').value = eventData.saveDateTemplateId || '';
             editEventModal.querySelector('[name="InvitationEmailTemplateId"]').value = eventData.invitationTemplateId || '';
             editEventModal.querySelector('[name="DonationIban"]').value = eventData.donationIban || '';
+            editEventModal.querySelector('[name="DonationLink"]').value = eventData.donationLink || '';
+
+            if (eventData.donationIban) {
+                editEventModal.querySelector('#donationTypeIban').checked = true;
+            } else if (eventData.donationLink) {
+                editEventModal.querySelector('#donationTypeLink').checked = true;
+            } else {
+                editEventModal.querySelector('#donationTypeNone').checked = true;
+            }
+            updateDonationFields();
 
             let codesControl = editEventModal.querySelector('[name="AccommodationCodes"]').tomselect;
             codesControl.addOptions(eventData.accommodationCodes.map(code => ({value: code, text: code})))

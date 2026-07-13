@@ -28,6 +28,9 @@ public class Event
     [StringLength(64)]
     public string? DonationIban { get; set; }
 
+    [StringLength(1000)]
+    public string? DonationLink { get; set; }
+
     [StringLength(255)]
     public string? InvitationFileName { get; set; }
 

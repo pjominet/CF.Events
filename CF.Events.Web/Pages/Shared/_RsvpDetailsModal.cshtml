@@ -109,6 +109,15 @@
                         </p>
                     </div>
                 }
+                @if (!string.IsNullOrWhiteSpace(Model.DonationLink))
+                {
+                    <section class="mt-3">
+                        <h3 class="h5 serif">Want to contribute?</h3>
+                        <a class="btn btn-outline-primary w-100" href="@Model.DonationLink" target="_blank" rel="noopener">
+                            @Model.DonationLink<i class="bi bi-box-arrow-in-up-right ms-2"></i>
+                        </a>
+                    </section>
+                }
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
