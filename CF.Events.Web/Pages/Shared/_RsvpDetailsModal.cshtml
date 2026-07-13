@@ -18,6 +18,27 @@
 
                 @if (Model.IsAttending)
                 {
+                    if (Model.DietaryOptionNbrPeople > 0)
+                    {
+                        var peopleLabel = Model.DietaryOptionNbrPeople == 1 ? "person" : "people";
+                        <h6 class="serif"><i class="bi bi-fork-knife me-1"></i>Dietary Restrictions</h6>
+                        <p>
+                            Dietary restrictions apply for @Model.DietaryOptionNbrPeople @peopleLabel.
+                        </p>
+                        <ul>
+                            @foreach (var restriction in Model.CommonDietaryOptions)
+                            {
+                                <li>@restriction</li>
+                            }
+                        </ul>
+                        <p>
+                            <i>Other Dietary restrictions:</i>
+                            <br/>
+                            @Model.OtherDietaryDetails
+                        </p>
+                        <hr/>
+                    }
+
                     <h6 class="serif"><i class="bi bi-house me-1"></i>Accommodation Info</h6>
                     if (!string.IsNullOrEmpty(Model.AccommodationDetails))
                     {
@@ -61,13 +82,12 @@
                             <small><i class="bi bi-info-circle me-1"></i>Code: <strong>@Model.AccommodationCode</strong></small>
                         </div>
                     }
-
                     <hr/>
                 }
 
                 @if (!string.IsNullOrEmpty(Model.DonationIban))
                 {
-                    <h6 class="serif"><i class="bi bi-heart me-1"></i>Help Fund Our Event</h6>
+                    <h6 class="serif"><i class="bi bi-heart me-1"></i>Do you wish to help fund our event?</h6>
                     <button class="btn btn-outline-primary w-100" type="button"
                             onclick="copyToClipboardAndShowFeedback(this)">
                         @Model.DonationIban.FormatAsIban()<i class="bi bi-copy ms-2"></i>

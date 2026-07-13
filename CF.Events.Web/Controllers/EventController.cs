@@ -6,7 +6,6 @@ using CF.Events.Web.Models;
 using CF.Events.Web.Models.Requests;
 using CF.Events.Web.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
@@ -94,6 +93,9 @@ public class EventController(
                 EventName = eu.Event.Name,
                 eu.Event.AccommodationDetails,
                 AccommodationCode = eu.AssignedAccommodationCode,
+                DietaryOptionNbrPeople = eu.Rsvp != null ? eu.Rsvp.DietaryOptionNbrPeople : 0,
+                DietaryOptions = eu.Rsvp != null ? eu.Rsvp.CommonDietaryOptions : new List<DietaryOptions>(),
+                OtherDietaryDetails = eu.Rsvp != null ? eu.Rsvp.OtherDietaryDetails : null,
                 BookingLinks = eu.Event.BookingLinks.Select(bl => new { bl.Type, bl.Link }).ToList(),
                 eu.Event.DonationIban,
                 EventStartDate = eu.Event.StartDate
@@ -109,6 +111,9 @@ public class EventController(
             EventName = eventUser.EventName,
             AccommodationDetails = eventUser.AccommodationDetails,
             AccommodationCode = eventUser.AccommodationCode,
+            DietaryOptionNbrPeople = eventUser.DietaryOptionNbrPeople,
+            CommonDietaryOptions = eventUser.DietaryOptions,
+            OtherDietaryDetails = eventUser.OtherDietaryDetails,
             BookingLinks = eventUser.BookingLinks.ToDictionary(bl => bl.Type, bl => bl.Link),
             DonationIban = eventUser.DonationIban,
             DonationReference = new Event { Name = eventUser.EventName, StartDate = eventUser.EventStartDate }.GetDonationReference()
