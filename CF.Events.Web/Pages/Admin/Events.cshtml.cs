@@ -39,6 +39,9 @@ public class EventsModel(
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
+    [BindProperty]
+    public string? DonationType { get; set; }
+
     public async Task OnGetAsync() => await LoadAsync();
 
     public async Task<IActionResult> OnPostSaveAsync()
@@ -84,7 +87,8 @@ public class EventsModel(
         @event.AccommodationDetails = NewEvent.AccommodationDetails;
         @event.SaveDateTemplateId = NewEvent.SaveDateEmailTemplateId;
         @event.InvitationTemplateId = NewEvent.InvitationEmailTemplateId;
-        @event.DonationIban = NewEvent.DonationIban;
+        @event.DonationIban = DonationType == "iban" ? NewEvent.DonationIban : null;
+        @event.DonationLink = DonationType == "link" ? NewEvent.DonationLink : null;
 
         // fix duplicate save on update
         @event.BookingLinks = NewEvent.BookingLinks.Select(link =>
@@ -169,6 +173,7 @@ public class EventsModel(
             saveDateTemplateId = @event.SaveDateTemplateId,
             invitationTemplateId = @event.InvitationTemplateId,
             donationIban = @event.DonationIban,
+            donationLink = @event.DonationLink,
             bookingLinks = @event.BookingLinks.Select(bl => bl.Link),
             originalInvitationFileName = @event.OriginalInvitationFileName
         }, jsonOptions);
@@ -273,6 +278,9 @@ public class EventsModel(
 
         [StringLength(64)]
         public string? DonationIban { get; init; }
+
+        [StringLength(64)]
+        public string? DonationLink { get; init; }
 
         [ModelBinder(BinderType = typeof(FlatListModelBinder))]
         public List<string> BookingLinks { get; init; } = [];
