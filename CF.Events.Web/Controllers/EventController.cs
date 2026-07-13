@@ -127,6 +127,7 @@ public class EventController(
             .Select(eu => new
             {
                 AttendanceDays = eu.Rsvp != null ? eu.Rsvp.AttendanceDays : new Dictionary<int, int>(),
+                DietaryOptionNbrPeople = eu.Rsvp != null ? eu.Rsvp.DietaryOptionNbrPeople : 0,
                 DietaryOptions = eu.Rsvp != null ? eu.Rsvp.CommonDietaryOptions : new List<DietaryOptions>(),
                 OtherDietaryDetails = eu.Rsvp != null ? eu.Rsvp.OtherDietaryDetails : null,
                 Comments = eu.Rsvp != null ? eu.Rsvp.Comments : null,
@@ -139,6 +140,7 @@ public class EventController(
         var model = new RsvpResponses
         {
             AttendanceDays = eventUser.AttendanceDays,
+            DietaryOptionNbrPeople = eventUser.DietaryOptionNbrPeople,
             DietaryOptions = eventUser.DietaryOptions,
             OtherDietaryDetails = eventUser.OtherDietaryDetails,
             Comments = eventUser.Comments

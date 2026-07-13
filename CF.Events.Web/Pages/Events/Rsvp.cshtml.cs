@@ -42,6 +42,19 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
         HasResponded = rsvp?.SubmittedAt > DateTime.MinValue.AddDays(1);
         RespondedAttending = rsvp?.Attending ?? false;
 
+        if (rsvp is not null)
+        {
+            NewRsvp = new InputModel
+            {
+                Attending = rsvp.Attending,
+                AttendanceDays = rsvp.AttendanceDays,
+                DietaryOptionNbrPeople = rsvp.DietaryOptionNbrPeople,
+                CommonDietaryOptions = rsvp.CommonDietaryOptions,
+                OtherDietaryDetails = rsvp.OtherDietaryDetails,
+                Comments = rsvp.Comments
+            };
+        }
+
         return Page();
     }
 
@@ -63,6 +76,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
         if (NewRsvp.Attending)
         {
             rsvp.AttendanceDays = NewRsvp.AttendanceDays;
+            rsvp.DietaryOptionNbrPeople = NewRsvp.DietaryOptionNbrPeople;
             rsvp.CommonDietaryOptions = NewRsvp.CommonDietaryOptions;
             rsvp.OtherDietaryDetails = NewRsvp.OtherDietaryDetails;
             rsvp.Comments = NewRsvp.Comments;
@@ -88,6 +102,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
         rsvp.Attending = true;
         rsvp.SubmittedAt = DateTime.MinValue;
         rsvp.AttendanceDays = [];
+        rsvp.DietaryOptionNbrPeople = 0;
         rsvp.CommonDietaryOptions = [];
         rsvp.OtherDietaryDetails = null;
         rsvp.Comments = null;
@@ -110,6 +125,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
         public bool Attending { get; set; } = true;
         public Dictionary<int, int> AttendanceDays { get; set; } = new (){{ 1, 1 }};
 
+        public int DietaryOptionNbrPeople { get; set; }
         public List<DietaryOptions> CommonDietaryOptions { get; set; } = [];
         public string? OtherDietaryDetails { get; set; }
 

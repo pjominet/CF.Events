@@ -94,4 +94,37 @@
         });
     });
 
+    // Handle dietary options changes to show/hide number of people
+    const dietaryOptionsSelect = document.getElementById("dietaryOptions");
+    const dietaryOtherDetails = document.getElementById("dietaryOtherDetails");
+    const dietaryNbrPeopleInput = document.getElementById("dietaryNbrPeople");
+    const dietaryOptionsDetails = document.getElementById("dietaryOptionsDetails");
+
+    function updateDietaryVisibility() {
+        if (!dietaryNbrPeopleInput || !dietaryOptionsDetails) return;
+
+        const count = parseInt(dietaryNbrPeopleInput.value) || 0;
+        const shouldShow = count > 0;
+
+        dietaryOptionsDetails.style.display = shouldShow ? "block" : "none";
+
+        // If hidden, clear the other fields
+        if (!shouldShow) {
+            if (dietaryOptionsSelect && dietaryOptionsSelect.tomselect) {
+                dietaryOptionsSelect.tomselect.clear();
+            }
+            if (dietaryOtherDetails) {
+                dietaryOtherDetails.value = "";
+            }
+        }
+    }
+
+    if (dietaryNbrPeopleInput) {
+        dietaryNbrPeopleInput.addEventListener("input", updateDietaryVisibility);
+        dietaryNbrPeopleInput.addEventListener("change", updateDietaryVisibility);
+    }
+
+    // Initial check
+    updateDietaryVisibility();
+
 })();

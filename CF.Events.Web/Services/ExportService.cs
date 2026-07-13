@@ -1,4 +1,3 @@
-using System.Text;
 using CF.Events.Web.Data;
 using ClosedXML.Excel;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +29,7 @@ public class ExportService(EventsDbContext db) : IExportService
                         {
                             eu.Rsvp.Attending,
                             eu.Rsvp.AttendanceDays,
+                            eu.Rsvp.DietaryOptionNbrPeople,
                             eu.Rsvp.CommonDietaryOptions,
                             eu.Rsvp.OtherDietaryDetails,
                             eu.Rsvp.Comments,
@@ -60,12 +60,16 @@ public class ExportService(EventsDbContext db) : IExportService
         var row = 2;
         foreach (var eu in @event.EventUsers)
         {
-            var status = eu.Rsvp == null ? "No Response" : (eu.Rsvp.Attending ? "Attending" : "Declined");
-            var attendingDays = eu.Rsvp != null ? string.Join("|", eu.Rsvp.AttendanceDays.Select(d => $"Day {d.Key} ({d.Value})")) : "";
-            var dietaryOptions = eu.Rsvp != null ? string.Join("|", eu.Rsvp.CommonDietaryOptions) : "";
-            var otherDietary = eu.Rsvp?.OtherDietaryDetails ?? "";
-            var comments = eu.Rsvp?.Comments ?? "";
-            var submittedAt = eu.Rsvp?.SubmittedAt.ToString("yyyy-MM-dd HH:mm:ss") ?? "";
+            var status = eu.Rsvp is null ? "No Response" : (eu.Rsvp.Attending ? "Attending" : "Declined");
+            var attendingDays = eu.Rsvp is not null ? string.Join("|", eu.Rsvp.AttendanceDays.Select(d => $"Day {d.Key} ({d.Value})")) : string.Empty;
+            var dietaryOptions = eu.Rsvp is not null ? string.Join("|", eu.Rsvp.CommonDietaryOptions) : string.Empty;
+            if (eu.Rsvp is not null && eu.Rsvp.DietaryOptionNbrPeople > 0)
+            {
+                dietaryOptions = $"({eu.Rsvp.DietaryOptionNbrPeople} people) {dietaryOptions}";
+            }
+            var otherDietary = eu.Rsvp?.OtherDietaryDetails ?? string.Empty;
+            var comments = eu.Rsvp?.Comments ?? string.Empty;
+            var submittedAt = eu.Rsvp?.SubmittedAt.ToString("yyyy-MM-dd HH:mm:ss") ?? string.Empty;
 
             worksheet.Cell(row, 1).Value = eu.DisplayName;
             worksheet.Cell(row, 2).Value = eu.Email;

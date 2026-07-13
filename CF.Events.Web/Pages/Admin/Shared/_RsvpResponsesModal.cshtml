@@ -37,6 +37,7 @@
                     <h6 class="serif fw-bold"><i class="bi bi-fork-knife me-2"></i>Dietary Requirements</h6>
                     @if (Model.DietaryOptions.Any() || !string.IsNullOrWhiteSpace(Model.OtherDietaryDetails))
                     {
+                        <p class="mb-2"><strong>Number of people:</strong> @Model.DietaryOptionNbrPeople</p>
                         <ul class="list-unstyled mb-0">
                             @foreach (var option in Model.DietaryOptions)
                             {

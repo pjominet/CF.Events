@@ -14,6 +14,8 @@ public class Rsvp
     public bool Attending { get; set; } = true;
 
     public Dictionary<int, int> AttendanceDays { get; set; } = [];
+
+    public int DietaryOptionNbrPeople { get; set; }
     public List<DietaryOptions> CommonDietaryOptions { get; set; } = [];
 
     [StringLength(500)]
