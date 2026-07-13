@@ -15,6 +15,7 @@ public interface IInvitationService
     Task<int> ProcessPendingEmails(CancellationToken ctx = default);
     Task SendImmediateEmails<T>(List<T> requests, CancellationToken ctx = default) where T : class, IEmailRequest;
     Task SendEmail<T>(T request, CancellationToken ctx = default) where T : class, IEmailRequest;
+    Task PrepareInvitationAsync(IEmailRequest request, CancellationToken ctx = default);
 }
 
 public class InvitationService(
@@ -72,18 +73,9 @@ public class InvitationService(
 
         if (pending.Count == 0) return 0;
 
-        var baseUrl = _appSettings.BaseUrl.TrimEnd('/');
         foreach (var request in pending)
         {
-            var code = CodeGenerator.Generate(32);
-            await db.InviteCodes.AddAsync(new InviteCode
-            {
-                UserId = request.UserId,
-                Value = code,
-                ValidUntil = request.CallbackValidity
-            }, ctx);
-
-            request.CallBackUrl = baseUrl + "/events/invite-callback?code=" + code;
+            await PrepareInvitationAsync(request, ctx);
         }
 
         await db.SaveChangesAsync(ctx);
@@ -93,6 +85,20 @@ public class InvitationService(
         await SendImmediateEmails(pending, ctx);
 
         return pending.Count;
+    }
+
+    public async Task PrepareInvitationAsync(IEmailRequest request, CancellationToken ctx = default)
+    {
+        var code = CodeGenerator.Generate(32);
+        await db.InviteCodes.AddAsync(new InviteCode
+        {
+            UserId = request.UserId,
+            Value = code,
+            ValidUntil = request.CallbackValidity
+        }, ctx);
+
+        var baseUrl = _appSettings.BaseUrl.TrimEnd('/');
+        request.CallBackUrl = $"{baseUrl}/events/invite-callback?code={code}";
     }
 
     public async Task SendImmediateEmails<T>(List<T> requests, CancellationToken ctx = default) where T : class, IEmailRequest

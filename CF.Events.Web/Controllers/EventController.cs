@@ -230,16 +230,9 @@ public class EventController(
 
             foreach (var newInvitation in newInvitations)
             {
-                var code = CodeGenerator.Generate(32);
-                await db.InviteCodes.AddAsync(new InviteCode
-                {
-                    UserId = newInvitation.UserId,
-                    Value = code,
-                    ValidUntil = newInvitation.CallbackValidity
-                });
-                await db.SaveChangesAsync();
-                newInvitation.CallBackUrl = $"{invitationService.AppSettings.BaseUrl.TrimEnd('/')}/events/invite-callback?code={code}";
+                await invitationService.PrepareInvitationAsync(newInvitation);
             }
+            await db.SaveChangesAsync();
 
             await invitationService.SendImmediateEmails(newInvitations);
         }
@@ -279,17 +272,7 @@ public class EventController(
         try
         {
             logger.LogInformation("Re-sending invitation to {Email}", eventUser.Email);
-            var code = CodeGenerator.Generate(32);
-            await db.InviteCodes.AddAsync(new InviteCode
-            {
-                UserId = userId,
-                Value = code,
-                ValidUntil = @event.InviteValidity
-            });
-
-            await db.SaveChangesAsync();
-
-            await invitationService.SendEmail(new InvitationEmailRequest
+            var invitationRequest = new InvitationEmailRequest
             {
                 TemplateId = await db.Events.Where(e => e.Id == @event.Id).Select(e => e.InvitationTemplateId).FirstOrDefaultAsync() ?? string.Empty,
                 EventId = @event.Id,
@@ -297,8 +280,13 @@ public class EventController(
                 UserName = eventUser.DisplayName!,
                 UserEmail = eventUser.Email!,
                 UserId = userId,
-                CallBackUrl = $"{invitationService.AppSettings.BaseUrl.TrimEnd('/')}/events/invite-callback?code={code}"
-            });
+                CallbackValidity = @event.InviteValidity
+            };
+
+            await invitationService.PrepareInvitationAsync(invitationRequest);
+            await db.SaveChangesAsync();
+
+            await invitationService.SendEmail(invitationRequest);
 
             toastNotification.AddSuccessToastMessage("Successfully resent invitation");
             return LocalRedirect($"/admin/events/{eventId}/invitees");
@@ -345,19 +333,10 @@ public class EventController(
         }
 
         var requests = new List<InvitationEmailRequest>();
-        var baseUrl = invitationService.AppSettings.BaseUrl.TrimEnd('/');
 
         foreach (var user in eventUsers)
         {
-            var code = CodeGenerator.Generate(32);
-            await db.InviteCodes.AddAsync(new InviteCode
-            {
-                UserId = user.UserId,
-                Value = code,
-                ValidUntil = eventData.InviteValidity
-            });
-
-            requests.Add(new InvitationEmailRequest
+            var request = new InvitationEmailRequest
             {
                 TemplateId = eventData.InvitationTemplateId ?? string.Empty,
                 EventId = eventData.Id,
@@ -365,8 +344,11 @@ public class EventController(
                 UserName = user.DisplayName!,
                 UserEmail = user.Email!,
                 UserId = user.UserId,
-                CallBackUrl = $"{baseUrl}/events/invite-callback?code={code}"
-            });
+                CallbackValidity = eventData.InviteValidity
+            };
+
+            await invitationService.PrepareInvitationAsync(request);
+            requests.Add(request);
         }
 
         await db.SaveChangesAsync();
