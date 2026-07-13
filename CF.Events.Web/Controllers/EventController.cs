@@ -408,7 +408,7 @@ public class EventController(
             || string.IsNullOrWhiteSpace(user.PasswordHash) && !user.MustChangePassword)
             return LocalRedirect("/");
 
-        return RedirectToPage("/account/manage/FirstLogin");
+        return RedirectToPage("/account/manage/firstLogin");
     }
 
     [HttpPost("{eventId:int}/regenerate-code")]
