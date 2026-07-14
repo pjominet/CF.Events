@@ -29,6 +29,55 @@ function initRichTextEditors() {
             holder: container,
             placeholder: textarea.placeholder || 'Let\'s write an awesome story!',
             data: initialData,
+            tools: {
+                header: {
+                    class: Header,
+                    inlineToolbar: true,
+                    config: {
+                        placeholder: 'Enter a header',
+                        levels: [2, 3, 4],
+                        defaultLevel: 3
+                    }
+                },
+                list: {
+                    class: EditorjsList,
+                    inlineToolbar: true,
+                    config: {
+                        defaultStyle: 'unordered'
+                    }
+                },
+                table: {
+                    class: Table,
+                    inlineToolbar: true,
+                    config: {
+                        rows: 2,
+                        cols: 3,
+                    },
+                },
+                image: {
+                    class: ImageTool,
+                    config: {
+                        endpoints: {
+                            byFile: '/api/image-upload', // Your backend file uploader endpoint
+                            byUrl: '/api/image-fetch', // Your endpoint that provides uploading by Url
+                        }
+                    }
+                },
+                delimiter: Delimiter,
+                quote: {
+                    class: Quote,
+                    inlineToolbar: true,
+                    config: {
+                        quotePlaceholder: 'Enter a quote',
+                        captionPlaceholder: 'Quote\'s author',
+                    },
+                },
+                checklist: {
+                    class: Checklist,
+                    inlineToolbar: true,
+                },
+                underline: Underline,
+            },
             onChange: (api, event) => {
                 editor.save().then((outputData) => {
                     textarea.value = JSON.stringify(outputData);
