@@ -20,10 +20,14 @@ function initRichTextEditors() {
                 initialData = JSON.parse(textarea.value);
             } catch (e) {
                 console.error('Failed to parse initial data for Editor.js', e);
-                // If it's not JSON, we might want to wrap it in a paragraph block if we want to support legacy text
-                // but for now, we assume it's JSON as produced by Editor.js
             }
         }
+
+        // Try to find an event ID from a hidden input or similar
+        const eventIdInput = document.getElementById('Id');
+        const eventId = eventIdInput ? eventIdInput.value : 0;
+        const uploadSessionId = document.getElementById('UploadSessionId')?.value;
+        const folderName = (eventId === '0' || eventId === 0) && uploadSessionId ? uploadSessionId : eventId;
 
         const editor = new EditorJS({
             holder: container,
@@ -58,8 +62,7 @@ function initRichTextEditors() {
                     class: ImageTool,
                     config: {
                         endpoints: {
-                            byFile: '/api/image-upload', // Your backend file uploader endpoint
-                            byUrl: '/api/image-fetch', // Your endpoint that provides uploading by Url
+                            byFile: `/file/upload-image/${folderName}`,
                         }
                     }
                 },

@@ -1,6 +1,7 @@
 @model EditEventModel.EventModel
 
 <input type="hidden" asp-for="Id" />
+<input type="hidden" asp-for="UploadSessionId" />
 
 <ul class="nav nav-tabs mb-4" id="eventEditorTabs" role="tablist">
     <li class="nav-item" role="presentation">
@@ -75,15 +76,15 @@
             <label class="form-label fw-bold">Donation Type</label>
             <div class="d-flex gap-3 mt-2">
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="DonationType" id="donationTypeNone" value="none" @(Model.DonationType is EditEventModel.DonationType.None ? "checked" : "")>
+                    <input class="form-check-input" type="radio" name="Event.DonationType" id="donationTypeNone" value="none" @(Model.DonationType is EditEventModel.DonationType.None ? "checked" : "")>
                     <label class="form-check-label" for="donationTypeNone">None</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="DonationType" id="donationTypeIban" value="iban" @(Model.DonationType is EditEventModel.DonationType.Iban ? "checked" : "")>
+                    <input class="form-check-input" type="radio" name="Event.DonationType" id="donationTypeIban" value="iban" @(Model.DonationType is EditEventModel.DonationType.Iban ? "checked" : "")>
                     <label class="form-check-label" for="donationTypeIban">IBAN</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="DonationType" id="donationTypeLink" value="link" @(Model.DonationType is EditEventModel.DonationType.Link ? "checked" : "")>
+                    <input class="form-check-input" type="radio" name="Event.DonationType" id="donationTypeLink" value="link" @(Model.DonationType is EditEventModel.DonationType.Link ? "checked" : "")>
                     <label class="form-check-label" for="donationTypeLink">Link</label>
                 </div>
             </div>
@@ -112,7 +113,7 @@
             </div>
             <div class="col-12 col-md-6">
                 <label class="form-label fw-bold">Accommodation Codes</label>
-                <input asp-for="AccommodationCodes" value="@string.Join(", ", Model.AccommodationCodes)" class="form-control tag-select" autocomplete="off" data-placeholder="Add codes..."/>
+                <input asp-for="AccommodationCodes" value="@string.Join(", ", Model.AccommodationCodes)" name="Event.AccommodationCodes" class="form-control tom-select" autocomplete="off" data-placeholder="Add codes..."/>
             </div>
         </div>
 
@@ -124,7 +125,7 @@
 
         <div class="mb-3">
             <label class="form-label fw-bold">Booking Links</label>
-            <input asp-for="BookingLinks" value="@string.Join(", ", Model.BookingLinks)" class="form-control tag-select" autocomplete="off" placeholder="Add booking links..."/>
+            <input asp-for="BookingLinks" value="@string.Join(", ", Model.BookingLinks)" name="Event.BookingLinks" class="form-control tom-select" autocomplete="off" placeholder="Add booking links..."/>
             <div class="form-text">Supports phone numbers, emails, and web links</div>
         </div>
     </div>

@@ -77,6 +77,35 @@ public class EventController(
         return PhysicalFile(requested, contentType);
     }
 
+    [HttpGet("{folderName}/image/{fileName}")]
+    public async Task<IActionResult> GetEventImage([FromRoute] string folderName, [FromRoute] string fileName)
+    {
+        var userId = User.GetId();
+        bool isInvited;
+
+        if (int.TryParse(folderName, out var eventId))
+            isInvited = await db.EventUsers.AnyAsync(r => r.EventId == eventId && r.UserId == userId);
+        else isInvited = false;
+
+        if (!isInvited && !User.IsAdmin())
+            return Forbid();
+
+        var eventsRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources", "Events"));
+        var requested = Path.GetFullPath(Path.Combine(eventsRoot, folderName, fileName));
+
+        if (!requested.StartsWith(eventsRoot + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+            return Forbid();
+
+        if (!System.IO.File.Exists(requested))
+            return NotFound();
+
+        var provider = new FileExtensionContentTypeProvider();
+        if (!provider.TryGetContentType(requested, out var contentType))
+            contentType = "application/octet-stream";
+
+        return PhysicalFile(requested, contentType);
+    }
+
     [HttpGet("{eventId:int}/rsvp-detail")]
     [Authorize]
     public async Task<IActionResult> GetRsvpDetail([FromRoute] int eventId)

@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Donation type toggle
-    const donationRadios = document.querySelectorAll('input[name="DonationType"]');
+    const donationRadios = document.querySelectorAll('input[name="Event.DonationType"]');
     if (donationRadios.length > 0) {
         donationRadios.forEach(radio => {
             radio.addEventListener('change', function() {
@@ -53,13 +53,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const html = `
                 <div class="row mb-2 schedule-row">
                     <div class="col-md-2">
-                        <input name="Input.ScheduleSteps[${index}].Day" class="form-control" placeholder="Day" />
+                        <input name="Event.ScheduleSteps[${index}].Day" class="form-control" placeholder="Day" />
                     </div>
                     <div class="col-md-3">
-                        <input name="Input.ScheduleSteps[${index}].TimeStamp" type="time" class="form-control" />
+                        <input name="Event.ScheduleSteps[${index}].TimeStamp" type="time" class="form-control" />
                     </div>
                     <div class="col-md-5">
-                        <input name="Input.ScheduleSteps[${index}].Label" class="form-control" placeholder="Label" />
+                        <input name="Event.ScheduleSteps[${index}].Label" class="form-control" placeholder="Label" />
                     </div>
                     <div class="col-md-2">
                         <button type="button" class="btn btn-danger remove-row">Remove</button>
@@ -77,10 +77,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const html = `
                 <div class="mb-3 faq-row border p-2">
                     <div class="mb-2">
-                        <input name="Input.FaqItems[${index}].Question" class="form-control" placeholder="Question" />
+                        <input name="Event.FaqItems[${index}].Question" class="form-control" placeholder="Question" />
                     </div>
                     <div class="mb-2">
-                        <textarea name="Input.FaqItems[${index}].Answer" class="form-control" placeholder="Answer"></textarea>
+                        <textarea name="Event.FaqItems[${index}].Answer" class="form-control" placeholder="Answer"></textarea>
                     </div>
                     <button type="button" class="btn btn-danger btn-sm remove-row">Remove</button>
                 </div>`;
@@ -89,8 +89,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Start/End date validation
-    const startDateInput = document.getElementById('Input_StartDate');
-    const endDateInput = document.getElementById('Input_EndDate');
+    const startDateInput = document.getElementById('Event_StartDate');
+    const endDateInput = document.getElementById('Event_EndDate');
 
     if (startDateInput && endDateInput) {
         const updateMinEndDate = () => {
@@ -102,14 +102,4 @@ document.addEventListener('DOMContentLoaded', function() {
         startDateInput.addEventListener('change', updateMinEndDate);
         updateMinEndDate();
     }
-
-    // TomSelect initialization for tags
-    document.querySelectorAll('.tag-select').forEach(el => {
-        if (el.tomselect) return;
-        new TomSelect(el, {
-            create: true,
-            persist: false,
-            plugins: ['remove_button']
-        });
-    });
 });

@@ -66,7 +66,8 @@ public class EditEventModel(
             {
                 StartDate = DateTime.Today.AddDays(1),
                 EndDate = DateTime.Today.AddDays(1),
-                DonationType = DonationType.None
+                DonationType = DonationType.None,
+                UploadSessionId = Guid.NewGuid().ToString()
             };
         }
 
@@ -156,6 +157,27 @@ public class EditEventModel(
 
         await db.SaveChangesAsync();
 
+        if (isNew && !string.IsNullOrEmpty(Event.UploadSessionId))
+        {
+            await fileService.MoveEventImagesAsync(Event.UploadSessionId, @event.Id);
+
+            // Update URLs in Description and TravelInstructions
+            var tempPath = $"/events/{Event.UploadSessionId}/image/";
+            var permanentPath = $"/events/{@event.Id}/image/";
+
+            if (!string.IsNullOrEmpty(@event.Description))
+            {
+                @event.Description = @event.Description.Replace(tempPath, permanentPath);
+            }
+
+            if (!string.IsNullOrEmpty(@event.TravelInstructions))
+            {
+                @event.TravelInstructions = @event.TravelInstructions.Replace(tempPath, permanentPath);
+            }
+
+            await db.SaveChangesAsync();
+        }
+
         if (technicalName is not null)
             await SaveInvitationImageAsync(@event.Id, Event.InvitationImage!, technicalName);
 
@@ -195,6 +217,7 @@ public class EditEventModel(
     public class EventModel
     {
         public int Id { get; set; }
+        public string? UploadSessionId { get; set; }
         [Required, StringLength(100)]
         public string Name { get; set; } = string.Empty;
         public DateTime StartDate { get; init; }
