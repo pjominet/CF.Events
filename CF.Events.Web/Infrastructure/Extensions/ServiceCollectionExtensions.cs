@@ -79,6 +79,7 @@ public static class ServiceCollectionExtensions
         services.AddHostedService<InvitationEmailWorker>();
         services.AddScoped<IInvitationService, InvitationService>();
         services.AddScoped<IExportService, ExportService>();
+        services.AddScoped<IFileService, FileService>();
 
         if (environment.IsDevelopment())
         {

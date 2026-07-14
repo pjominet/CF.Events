@@ -14,15 +14,15 @@ public class Event
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
 
-    [StringLength(500)]
-    public string? Description { get; set; }
-
     [StringLength(100)]
     public string? Location { get; set; }
 
+    public string? Description { get; set; }
+    public string? TravelInstructions { get; set; }
+
     public List<string> AccommodationCodes { get; set; } = [];
 
-    [StringLength(1000)]
+    [StringLength(500)]
     public string? AccommodationDetails { get; set; }
 
     [StringLength(64)]
@@ -52,6 +52,8 @@ public class Event
     // navigation properties
     public List<EventUser> EventUsers { get; set; } = [];
     public List<BookingLink> BookingLinks { get; set; } = [];
+    public List<EventFaqItem> EventFaq { get; set; } = [];
+    public List<EventScheduleStep> EventSchedule { get; set; } = [];
 
     // helper
     [NotMapped]
@@ -59,9 +61,8 @@ public class Event
     {
         get
         {
-            // Calculate the difference in days.
             var duration = (int)Math.Round((EndDate - StartDate).TotalDays);
-            // Return the number of days + 1 to include both start and end dates as part of the duration.
+            // Return the number of days + 1 to include both start and end dates as part of the duration
             return Math.Max(1, duration + 1);
         }
     }

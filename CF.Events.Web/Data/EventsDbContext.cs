@@ -15,6 +15,8 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
     public DbSet<ParticipantDiet> ParticipantsDiets => Set<ParticipantDiet>();
     public DbSet<ParticipantAttendance> ParticipantsAttendance => Set<ParticipantAttendance>();
     public DbSet<GuestGroup> GuestGroups => Set<GuestGroup>();
+    public DbSet<EventFaqItem> EventFaq => Set<EventFaqItem>();
+    public DbSet<EventScheduleStep> EventSchedule => Set<EventScheduleStep>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -61,6 +63,24 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
         builder.Entity<Event>(e =>
         {
             e.Property(r => r.AccommodationCodes).HasMaxLength(1000);
+        });
+
+        builder.Entity<EventFaqItem>(e =>
+        {
+            e.HasOne(r => r.Event)
+                .WithMany(r => r.EventFaq)
+                .HasForeignKey(r => r.EventId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+        });
+
+        builder.Entity<EventScheduleStep>(e =>
+        {
+            e.HasOne(r => r.Event)
+                .WithMany(r => r.EventSchedule)
+                .HasForeignKey(r => r.EventId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
         });
 
         builder.Entity<EventUser>(e =>
