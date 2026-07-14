@@ -19,8 +19,7 @@ namespace CF.Events.Web.Pages.Admin;
 public class EventsModel(
     EventsDbContext db,
     IFileService fileService,
-    IToastNotification toastNotification,
-    IWebHostEnvironment env) : PageModel
+    IToastNotification toastNotification) : PageModel
 {
     public List<Event> AllEvents { get; private set; } = [];
 

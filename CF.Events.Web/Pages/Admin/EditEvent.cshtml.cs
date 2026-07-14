@@ -21,7 +21,7 @@ public class EditEventModel(
     IWebHostEnvironment env) : PageModel
 {
     [BindProperty]
-    public InputModel Input { get; set; } = new();
+    public EventModel Event { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync(int? id)
     {
@@ -39,7 +39,7 @@ public class EditEventModel(
                 return RedirectToPage("/Admin/Events");
             }
 
-            Input = new InputModel
+            Event = new EventModel
             {
                 Id = @event.Id,
                 Name = @event.Name,
@@ -62,7 +62,7 @@ public class EditEventModel(
         }
         else
         {
-            Input = new InputModel
+            Event = new EventModel
             {
                 StartDate = DateTime.Today.AddDays(1),
                 EndDate = DateTime.Today.AddDays(1),
@@ -78,11 +78,11 @@ public class EditEventModel(
         if (!ModelState.IsValid) return Page();
 
         // Handle Image
-        var (originalName, technicalName) = PrepareInvitationImage(Input.InvitationImage);
+        var (originalName, technicalName) = PrepareInvitationImage(Event.InvitationImage);
         if (!ModelState.IsValid) return Page();
 
         Event? @event;
-        var isNew = Input.Id == 0;
+        var isNew = Event.Id == 0;
 
         if (isNew)
         {
@@ -95,7 +95,7 @@ public class EditEventModel(
                 .Include(e => e.BookingLinks)
                 .Include(e => e.EventFaq)
                 .Include(e => e.EventSchedule)
-                .FirstOrDefaultAsync(e => e.Id == Input.Id);
+                .FirstOrDefaultAsync(e => e.Id == Event.Id);
 
             if (@event is null)
             {
@@ -104,23 +104,23 @@ public class EditEventModel(
             }
         }
 
-        @event.Name = Input.Name;
-        @event.StartDate = Input.StartDate;
-        @event.EndDate = Input.EndDate;
-        @event.Location = Input.Location;
-        @event.Description = Input.Description;
-        @event.TravelInstructions = Input.TravelInstructions;
-        @event.AccommodationCodes = Input.AccommodationCodes;
-        @event.AccommodationDetails = Input.AccommodationDetails;
-        @event.SaveDateTemplateId = Input.SaveDateEmailTemplateId;
-        @event.InvitationTemplateId = Input.InvitationEmailTemplateId;
+        @event.Name = Event.Name;
+        @event.StartDate = Event.StartDate;
+        @event.EndDate = Event.EndDate;
+        @event.Location = Event.Location;
+        @event.Description = Event.Description;
+        @event.TravelInstructions = Event.TravelInstructions;
+        @event.AccommodationCodes = Event.AccommodationCodes;
+        @event.AccommodationDetails = Event.AccommodationDetails;
+        @event.SaveDateTemplateId = Event.SaveDateEmailTemplateId;
+        @event.InvitationTemplateId = Event.InvitationEmailTemplateId;
 
-        @event.DonationIban = Input.DonationType is DonationType.Iban ? Input.DonationIban : null;
-        @event.DonationLink = Input.DonationType is DonationType.Link ? Input.DonationLink : null;
+        @event.DonationIban = Event.DonationType is DonationType.Iban ? Event.DonationIban : null;
+        @event.DonationLink = Event.DonationType is DonationType.Link ? Event.DonationLink : null;
 
         // Booking Links
         @event.BookingLinks.Clear();
-        foreach (var link in Input.BookingLinks.Where(l => !string.IsNullOrWhiteSpace(l)))
+        foreach (var link in Event.BookingLinks.Where(l => !string.IsNullOrWhiteSpace(l)))
         {
             var trimmedLink = link.Trim();
             var type = LinkType.Web;
@@ -133,14 +133,14 @@ public class EditEventModel(
 
         // FAQ
         @event.EventFaq.Clear();
-        foreach (var faq in Input.FaqItems.Where(f => !string.IsNullOrWhiteSpace(f.Question) && !string.IsNullOrWhiteSpace(f.Answer)))
+        foreach (var faq in Event.FaqItems.Where(f => !string.IsNullOrWhiteSpace(f.Question) && !string.IsNullOrWhiteSpace(f.Answer)))
         {
             @event.EventFaq.Add(new EventFaqItem { Question = faq.Question, Answer = faq.Answer });
         }
 
         // Schedule
         @event.EventSchedule.Clear();
-        foreach (var step in Input.ScheduleSteps.Where(s => !string.IsNullOrWhiteSpace(s.Label)))
+        foreach (var step in Event.ScheduleSteps.Where(s => !string.IsNullOrWhiteSpace(s.Label)))
         {
             @event.EventSchedule.Add(new EventScheduleStep { Day = step.Day, TimeStamp = step.TimeStamp, Label = step.Label });
         }
@@ -157,7 +157,7 @@ public class EditEventModel(
         await db.SaveChangesAsync();
 
         if (technicalName is not null)
-            await SaveInvitationImageAsync(@event.Id, Input.InvitationImage!, technicalName);
+            await SaveInvitationImageAsync(@event.Id, Event.InvitationImage!, technicalName);
 
         toastNotification.AddSuccessToastMessage($"Event {(isNew ? "created" : "updated")} successfully!");
         return RedirectToPage("/Admin/Events");
@@ -192,7 +192,7 @@ public class EditEventModel(
                 ? DonationType.Link : DonationType.None;
     }
 
-    public class InputModel
+    public class EventModel
     {
         public int Id { get; set; }
         [Required, StringLength(100)]

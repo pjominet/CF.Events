@@ -1,7 +1,7 @@
 @page "{id:int?}"
-@model CF.Events.Web.Pages.Admin.EditEventModel
+@model EditEventModel
 @{
-    ViewData["Title"] = Model.Input.Id == 0 ? "Create Event" : $"Edit Event: {Model.Input.Name}";
+    ViewData["Title"] = Model.Event.Id == 0 ? "Create Event" : $"Edit Event: {Model.Event.Name}";
 }
 
 <div class="container-fluid px-md-4 mb-3">
@@ -9,11 +9,11 @@
     <ol class="breadcrumb mb-4">
         <li class="breadcrumb-item"><a asp-page="/Admin/Dashboard">Dashboard</a></li>
         <li class="breadcrumb-item"><a asp-page="/Admin/Events">Events</a></li>
-        <li class="breadcrumb-item active">@(Model.Input.Id == 0 ? "Create" : Model.Input.Name)</li>
+        <li class="breadcrumb-item active">@(Model.Event.Id == 0 ? "Create" : Model.Event.Name)</li>
     </ol>
 
     <form method="post" enctype="multipart/form-data" id="eventForm">
-        <partial name="Shared/_EventEditor" model="Model.Input" />
+        <partial name="Shared/_EventEditor" model="Model.Event" />
         <div class="mt-4 d-flex gap-2">
             <button type="submit" class="btn btn-primary" id="saveButton">
                 <i class="fas fa-save me-1"></i> Save Event
