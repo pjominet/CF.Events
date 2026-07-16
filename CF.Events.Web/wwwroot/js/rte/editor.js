@@ -58,15 +58,18 @@ function initRichTextEditors() {
                         cols: 3,
                     },
                 },
+
                 image: {
                     class: ImageTool,
+                    tunes: ['imageSize'],
                     config: {
                         endpoints: {
                             byFile: `/file/upload-image/${folderName}`,
                         }
                     }
                 },
-                delimiter: Delimiter,
+                imageSize: ImageSizeTune,
+                linkButton: LinkButton,
                 quote: {
                     class: Quote,
                     inlineToolbar: true,
@@ -79,7 +82,8 @@ function initRichTextEditors() {
                     class: Checklist,
                     inlineToolbar: true,
                 },
-                underline: Underline,
+                delimiter: Delimiter,
+                underline: Underline
             },
             onChange: (api, event) => {
                 editor.save().then((outputData) => {
