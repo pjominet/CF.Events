@@ -1,7 +1,6 @@
 @model EditEventModel.EventModel
 
-<input type="hidden" asp-for="Id" />
-<input type="hidden" asp-for="UploadSessionId" />
+<input type="hidden" asp-for="Id" data-upload-id="@Model.UploadSessionId" />
 
 <ul class="nav nav-tabs mb-4" id="eventEditorTabs" role="tablist">
     <li class="nav-item" role="presentation">

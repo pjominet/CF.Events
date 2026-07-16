@@ -24,10 +24,10 @@ function initRichTextEditors() {
         }
 
         // Try to find an event ID from a hidden input or similar
-        const eventIdInput = document.getElementById('Id');
-        const eventId = eventIdInput ? eventIdInput.value : 0;
-        const uploadSessionId = document.getElementById('UploadSessionId')?.value;
-        const folderName = (eventId === '0' || eventId === 0) && uploadSessionId ? uploadSessionId : eventId;
+        const objectIdInput = document.querySelector('[data-upload-id]');
+        const objectId = objectIdInput ? objectIdInput.value : 0;
+        const uploadSessionId = objectIdInput.getAttribute('data-upload-id');
+        const folderName = (objectId === '0' || objectId === 0) && uploadSessionId ? uploadSessionId : objectId;
 
         const editor = new EditorJS({
             holder: container,

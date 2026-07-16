@@ -5,7 +5,7 @@ namespace CF.Events.Web.Models;
 
 public class Event
 {
-    public int Id { get; init; }
+    public int Id { get; set; }
 
     [Required]
     [StringLength(100)]

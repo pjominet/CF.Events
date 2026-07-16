@@ -161,20 +161,16 @@ public class EditEventModel(
             var permanentPath = $"/events/{@event.Id}/image/";
 
             if (!string.IsNullOrEmpty(@event.Description))
-            {
                 @event.Description = @event.Description.Replace(tempPath, permanentPath);
-            }
 
             if (!string.IsNullOrEmpty(@event.TravelInstructions))
-            {
                 @event.TravelInstructions = @event.TravelInstructions.Replace(tempPath, permanentPath);
-            }
 
             await db.SaveChangesAsync();
         }
 
         toastNotification.AddSuccessToastMessage($"Event {(isNew ? "created" : "updated")} successfully!");
-        return RedirectToPage("/Admin/Events");
+        return Page();
     }
 
     private static DonationType GetDonationType(Event @event)
