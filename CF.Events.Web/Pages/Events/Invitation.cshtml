@@ -27,7 +27,7 @@
                     }
                     @if (!string.IsNullOrEmpty(Model.EventData.Description))
                     {
-                        <p>@Model.EventData.Description</p>
+                        <jsonrenderer input="@Model.EventData.Description" />
                     }
                 </div>
             </div>

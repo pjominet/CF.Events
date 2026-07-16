@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     /* Colors */
     --primary-color: #3e523e;
     --secondary-color: #d68d8d;
@@ -329,3 +329,9 @@ h1:focus {
     opacity: 1;
     visibility: visible;
 }
+
+/* Editor.js Image Sizing */
+.img-sz-25 img { width: 25% !important; height: auto !important; }
+.img-sz-50 img { width: 50% !important; height: auto !important; }
+.img-sz-75 img { width: 75% !important; height: auto !important; }
+.img-sz-100 img { width: 100% !important; height: auto !important; }

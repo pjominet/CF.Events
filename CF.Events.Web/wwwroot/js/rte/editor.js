@@ -68,7 +68,7 @@ function initRichTextEditors() {
                         }
                     }
                 },
-                imageSize: ImageSizeTune,
+                //imageSize: ImageSizeTune,
                 quote: {
                     class: Quote,
                     inlineToolbar: true,

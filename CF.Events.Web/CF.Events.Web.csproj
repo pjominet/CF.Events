@@ -9,6 +9,7 @@
 
     <ItemGroup>
         <PackageReference Include="ClosedXML" Version="0.105.0" />
+        <PackageReference Include="EditorJsonToHtmlConverter" Version="1.0.0.26" />
         <PackageReference Include="Mailjet.Api" Version="4.0.0" />
         <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.8" />
         <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.8" />
