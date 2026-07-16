@@ -67,14 +67,16 @@ function initRichTextEditors() {
 
                 image: {
                     class: ImageTool,
-                    tunes: ['imageSize'],
+                    tunes: ['imageTunePlus'],
                     config: {
                         endpoints: {
                             byFile: `/file/upload-image/${folderName}`,
                         }
                     }
                 },
-                //imageSize: ImageSizeTune,
+                imageTunePlus: {
+                    class: ImageTunePlus,
+                },
                 quote: {
                     class: Quote,
                     inlineToolbar: true,

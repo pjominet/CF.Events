@@ -1,4 +1,5 @@
-﻿using CF.Events.Web.Data;
+﻿using AngleSharp.Html.Parser;
+using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure.Exceptions;
 using CF.Events.Web.Infrastructure.Factories;
 using CF.Events.Web.Infrastructure.Providers;
@@ -78,6 +79,7 @@ public static class ServiceCollectionExtensions
     public static void AddAppServices(this IServiceCollection services, IWebHostEnvironment environment)
     {
         services.AddScopedEditorJsonProcessorServices();
+        services.AddScoped<IHtmlParser, HtmlParser>();
         services.AddHostedService<InvitationEmailWorker>();
         services.AddScoped<IInvitationService, InvitationService>();
         services.AddScoped<IExportService, ExportService>();

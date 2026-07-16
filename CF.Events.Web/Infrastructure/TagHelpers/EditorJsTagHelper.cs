@@ -1,4 +1,5 @@
 using System.Text.Json;
+using AngleSharp.Html.Parser;
 using EditorJsonToHtmlConverter;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Razor.TagHelpers;
@@ -6,7 +7,7 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 namespace CF.Events.Web.Infrastructure.TagHelpers;
 
 [HtmlTargetElement("jsonrenderer", Attributes = "input")]
-public class EditorJsTagHelper(HtmlRenderer htmlRenderer) : TagHelper
+public class EditorJsTagHelper(HtmlRenderer htmlRenderer, IHtmlParser parser) : TagHelper
 {
     public string? Input { get; set; }
 
@@ -31,6 +32,7 @@ public class EditorJsTagHelper(HtmlRenderer htmlRenderer) : TagHelper
 
             var renderer = new EjsHtmlRenderer(htmlRenderer);
             var html = await renderer.ParseAsync(Input);
+            html = await ApplyImageTunesAsync(html, Input);
 
             output.Content.SetHtmlContent(html);
         }
@@ -41,37 +43,84 @@ public class EditorJsTagHelper(HtmlRenderer htmlRenderer) : TagHelper
         }
     }
 
-    private static string? BuildStylingMap(string json)
+    private async Task<string> ApplyImageTunesAsync(string html, string json)
     {
         try
         {
-            using var doc = JsonDocument.Parse(json);
-            if (!doc.RootElement.TryGetProperty("blocks", out var blocks) || blocks.ValueKind != JsonValueKind.Array)
-                return null;
+            using var jsonDoc = JsonDocument.Parse(json);
+            if (!jsonDoc.RootElement.TryGetProperty("blocks", out var blocks) || blocks.ValueKind is not JsonValueKind.Array)
+                return html;
 
-            var mappings = new List<object>();
-            foreach (var block in blocks.EnumerateArray())
+            // Find image blocks with imageTunePlus
+            var imageBlocks = blocks.EnumerateArray()
+                .Where(b => b.GetProperty("type").GetString() == "image" &&
+                            b.TryGetProperty("tunes", out var tunes) &&
+                            tunes.TryGetProperty("imageTunePlus", out _))
+                .ToList();
+
+            if (imageBlocks.Count == 0) return html;
+
+            // Use AngleSharp to parse HTML
+            using var document = await parser.ParseDocumentAsync(html);
+
+            var images = document.QuerySelectorAll("img").ToList();
+
+            if (images.Count == 0) return html;
+
+            for (var i = 0; i < Math.Min(imageBlocks.Count, images.Count); i++)
             {
-                if (block.TryGetProperty("type", out var type) && type.GetString() == "image" &&
-                    block.TryGetProperty("id", out var id) &&
-                    block.TryGetProperty("tunes", out var tunes) &&
-                    tunes.TryGetProperty("imageSize", out var imageSize) &&
-                    imageSize.TryGetProperty("size", out var size))
+                var block = imageBlocks[i];
+                var img = images[i];
+                var tunes = block.GetProperty("tunes").GetProperty("imageTunePlus");
+
+                var styles = new List<string>();
+
+                if (tunes.TryGetProperty("width", out var width) && width.ValueKind is not JsonValueKind.Null)
                 {
-                    mappings.Add(new
-                    {
-                        type = "image",
-                        id = id.GetString(),
-                        @class = $"img-sz-{size.GetString()}"
-                    });
+                    styles.Add($"width: {width.GetString()};");
                 }
+
+                if (tunes.TryGetProperty("ratio", out var ratio) && ratio.ValueKind is not JsonValueKind.Null)
+                {
+                    styles.Add($"aspect-ratio: {ratio.GetString()?.Replace(":", " / ")};");
+                    styles.Add("object-fit: cover;");
+                }
+
+                if (tunes.TryGetProperty("borderRadius", out var borderRadius) && borderRadius.ValueKind is not JsonValueKind.Null)
+                {
+                    styles.Add($"border-radius: {borderRadius.GetString()};");
+                }
+
+                if (tunes.TryGetProperty("alignment", out var alignment) && alignment.ValueKind is not JsonValueKind.Null)
+                {
+                    var align = alignment.GetString();
+                    switch (align)
+                    {
+                        case "center":
+                            styles.Add("margin-left: auto; margin-right: auto; display: block;");
+                            break;
+                        case "left":
+                            styles.Add("margin-right: auto; margin-left: 0; display: block;");
+                            break;
+                        case "right":
+                            styles.Add("margin-left: auto; margin-right: 0; display: block;");
+                            break;
+                    }
+                }
+
+                if (styles.Count <= 0) continue;
+
+                var existingStyle = img.GetAttribute("style");
+                var newStyles = string.Join(" ", styles);
+                img.SetAttribute("style", string.IsNullOrEmpty(existingStyle) ? newStyles : $"{existingStyle.TrimEnd(';', ' ' )}; {newStyles}");
             }
 
-            return mappings.Count > 0 ? JsonSerializer.Serialize(mappings) : null;
+            // Return the body content or the whole HTML if no body
+            return document.Body?.InnerHtml ?? document.Source.Text;
         }
         catch
         {
-            return null;
+            return html;
         }
     }
 }
