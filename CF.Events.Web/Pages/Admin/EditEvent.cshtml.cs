@@ -208,15 +208,15 @@ public class EditEventModel(
 
     public class FaqInputModel
     {
-        public string Question { get; set; } = string.Empty;
-        public string Answer { get; set; } = string.Empty;
+        public string Question { get; set; } = null!;
+        public string Answer { get; set; } = null!;
     }
 
     public class ScheduleInputModel
     {
         public int Day { get; set; }
         public TimeOnly TimeStamp { get; set; }
-        public string Label { get; set; } = string.Empty;
+        public string Label { get; set; } = null!;
     }
 
     public enum DonationType

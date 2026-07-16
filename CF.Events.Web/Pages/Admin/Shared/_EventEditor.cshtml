@@ -7,13 +7,10 @@
         <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab" aria-controls="basic" aria-selected="true">Basic Info</button>
     </li>
     <li class="nav-item" role="presentation">
-        <button class="nav-link" id="accommodation-tab" data-bs-toggle="tab" data-bs-target="#accommodation" type="button" role="tab" aria-controls="accommodation" aria-selected="false">Accommodation Info</button>
+        <button class="nav-link" id="travel-accommodation-tab" data-bs-toggle="tab" data-bs-target="#travel-accommodation" type="button" role="tab" aria-controls="travel-accommodation" aria-selected="false">Travel & Accommodation</button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="donation-tab" data-bs-toggle="tab" data-bs-target="#donation" type="button" role="tab" aria-controls="donation" aria-selected="false">Donations</button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link" id="travel-tab" data-bs-toggle="tab" data-bs-target="#travel" type="button" role="tab" aria-controls="travel" aria-selected="false">Travel</button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="schedule-tab" data-bs-toggle="tab" data-bs-target="#schedule" type="button" role="tab" aria-controls="schedule" aria-selected="false">Schedule</button>
@@ -26,38 +23,43 @@
 <div class="tab-content" id="eventEditorTabsContent">
     <!-- Basic Info Tab -->
     <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="basic-tab">
-        <div class="row mb-3">
-            <div class="col-12 col-md-6">
-                <label class="form-label fw-bold">Event Name</label>
-                <input asp-for="Name" class="form-control" placeholder="Wedding" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-            <div class="col-6 col-md-3">
-                <label class="form-label fw-bold">Start Date</label>
-                <input asp-for="StartDate" type="date" class="form-control" />
-            </div>
-            <div class="col-6 col-md-3">
-                <label class="form-label fw-bold">End Date</label>
-                <input asp-for="EndDate" type="date" class="form-control" />
-            </div>
-        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="row mb-3">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-bold">Event Name</label>
+                        <input asp-for="Name" class="form-control" placeholder="Wedding" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label fw-bold">Start Date</label>
+                        <input asp-for="StartDate" type="date" class="form-control" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label fw-bold">End Date</label>
+                        <input asp-for="EndDate" type="date" class="form-control" />
+                    </div>
+                </div>
 
-        <div class="mb-3">
-            <label class="form-label fw-bold">Description</label>
-            <textarea asp-for="Description" class="form-control rte-editor" rows="3" placeholder="Begin writing or select other block type..."></textarea>
-            <span asp-validation-for="Description" class="text-danger"></span>
-        </div>
-
-        <div class="row mb-3">
-            <div class="col-12 col-md-6">
-                <label class="form-label fw-bold">Save the Date Template ID</label>
-                <input asp-for="SaveDateEmailTemplateId" class="form-control" />
-                <div class="form-text">If set, the event will be eligible for 'Save the Date' emails using this template.</div>
+                <div class="row mb-3">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-bold">Save the Date Template ID</label>
+                        <input asp-for="SaveDateEmailTemplateId" class="form-control" />
+                        <div class="form-text">If set, the event will be eligible for 'Save the Date' emails using this template.</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-bold">Invitation Template ID</label>
+                        <input asp-for="InvitationEmailTemplateId" class="form-control" />
+                        <div class="form-text">If set, the event will be eligible for 'Invite' emails using this template.</div>
+                    </div>
+                </div>
             </div>
-            <div class="col-12 col-md-6">
-                <label class="form-label fw-bold">Invitation Template ID</label>
-                <input asp-for="InvitationEmailTemplateId" class="form-control" />
-                <div class="form-text">If set, the event will be eligible for 'Invite' emails using this template.</div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Description</label>
+                    <textarea asp-for="Description" class="form-control rte-editor" rows="3" placeholder="Begin writing or select other block type..."></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
             </div>
         </div>
     </div>
@@ -95,39 +97,41 @@
         </div>
     </div>
 
-    <!-- Accommodation Info Tab -->
-    <div class="tab-pane fade" id="accommodation" role="tabpanel" aria-labelledby="accommodation-tab">
-        <div class="row mb-3">
-            <div class="col-12 col-md-6">
-                <label class="form-label fw-bold">Location</label>
-                <input asp-for="Location" class="form-control" placeholder="Grand Hotel" />
-                <span asp-validation-for="Location" class="text-danger"></span>
+    <!-- Travel & Accommodation Tab -->
+    <div class="tab-pane fade" id="travel-accommodation" role="tabpanel" aria-labelledby="travel-accommodation-tab">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Travel Instructions</label>
+                    <textarea asp-for="TravelInstructions" class="form-control rte-editor" rows="3" placeholder="Begin writing or select other block type..."></textarea>
+                    <span asp-validation-for="TravelInstructions" class="text-danger"></span>
+                </div>
             </div>
-            <div class="col-12 col-md-6">
-                <label class="form-label fw-bold">Accommodation Codes</label>
-                <input asp-for="AccommodationCodes" value="@string.Join(", ", Model.AccommodationCodes)" class="form-control tag-select" autocomplete="off" data-placeholder="Add codes..."/>
+            <div class="col-md-6">
+                <div class="row mb-3">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-bold">Location</label>
+                        <input asp-for="Location" class="form-control" placeholder="Grand Hotel" />
+                        <span asp-validation-for="Location" class="text-danger"></span>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-bold">Accommodation Codes</label>
+                        <input asp-for="AccommodationCodes" value="@string.Join(", ", Model.AccommodationCodes)" class="form-control tag-select" autocomplete="off" data-placeholder="Add codes..."/>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Accommodation Details</label>
+                    <textarea asp-for="AccommodationDetails" class="form-control" rows="3"></textarea>
+                    <div class="form-text">Descriptive text explaining on how to book accommodation.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Booking Links</label>
+                    <input asp-for="BookingLinks" value="@string.Join(", ", Model.BookingLinks)" class="form-control tag-select" autocomplete="off" placeholder="Add booking links..."/>
+                    <div class="form-text">Supports phone numbers, emails, and web links</div>
+                </div>
             </div>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label fw-bold">Accommodation Details</label>
-            <textarea asp-for="AccommodationDetails" class="form-control" rows="3"></textarea>
-            <div class="form-text">Descriptive text explaining on how to book accommodation.</div>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label fw-bold">Booking Links</label>
-            <input asp-for="BookingLinks" value="@string.Join(", ", Model.BookingLinks)" class="form-control tag-select" autocomplete="off" placeholder="Add booking links..."/>
-            <div class="form-text">Supports phone numbers, emails, and web links</div>
-        </div>
-    </div>
-
-    <!-- Travel Tab -->
-    <div class="tab-pane fade" id="travel" role="tabpanel" aria-labelledby="travel-tab">
-        <div class="mb-3">
-            <label class="form-label fw-bold">Travel Instructions</label>
-            <textarea asp-for="TravelInstructions" class="form-control rte-editor" rows="3" placeholder="Begin writing or select other block type..."></textarea>
-            <span asp-validation-for="TravelInstructions" class="text-danger"></span>
         </div>
     </div>
 
