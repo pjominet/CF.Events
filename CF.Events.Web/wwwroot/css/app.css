@@ -330,8 +330,36 @@ h1:focus {
     visibility: visible;
 }
 
+/* RTE Loader centering */
+.rte-container {
+    position: relative;
+}
+
+.rte-container .loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotateZ(45deg);
+    z-index: 10;
+}
+
 /* Editor.js Image Sizing */
 .img-sz-25 img { width: 25% !important; height: auto !important; }
 .img-sz-50 img { width: 50% !important; height: auto !important; }
 .img-sz-75 img { width: 75% !important; height: auto !important; }
 .img-sz-100 img { width: 100% !important; height: auto !important; }
+
+/* Floating Action Buttons */
+.floating-actions {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
+    padding: 5px;
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(5px);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    gap: 7px;
+}

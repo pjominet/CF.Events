@@ -12,6 +12,12 @@ function initRichTextEditors() {
         const container = document.createElement('div');
         container.className = 'rte-container border rounded p-2 bg-light';
         container.style.minHeight = '200px';
+
+        // Add loader
+        const loader = document.createElement('div');
+        loader.className = 'loader';
+        container.appendChild(loader);
+
         textarea.parentNode.insertBefore(container, textarea.nextSibling);
 
         let initialData = {};
@@ -84,6 +90,13 @@ function initRichTextEditors() {
                 delimiter: Delimiter,
                 underline: Underline
             },
+            onReady: () => {
+                // Remove loader when editor is ready
+                const loader = container.querySelector('.loader');
+                if (loader) {
+                    loader.remove();
+                }
+            },
             onChange: (api, event) => {
                 editor.save().then((outputData) => {
                     textarea.value = JSON.stringify(outputData);
@@ -109,4 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
             initRichTextEditors();
         });
     });
+
+    // Also check for visible editors on load (in case tab was set by persistence)
+    setTimeout(initRichTextEditors, 100);
 });

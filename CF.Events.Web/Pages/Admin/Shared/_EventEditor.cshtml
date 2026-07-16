@@ -1,6 +1,6 @@
 @model EditEventModel.EventModel
 
-<input type="hidden" asp-for="Id" data-upload-id="@Model.UploadSessionId" />
+<input type="hidden" asp-for="Id" data-upload-id="@Model.UploadSessionId"/>
 
 <ul class="nav nav-tabs mb-4" id="eventEditorTabs" role="tablist">
     <li class="nav-item" role="presentation">
@@ -25,40 +25,75 @@
     <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="basic-tab">
         <div class="row">
             <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Event Name</label>
+                    <input asp-for="Name" class="form-control" placeholder="Wedding"/>
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
                 <div class="row mb-3">
                     <div class="col-12 col-md-6">
-                        <label class="form-label fw-bold">Event Name</label>
-                        <input asp-for="Name" class="form-control" placeholder="Wedding" />
-                        <span asp-validation-for="Name" class="text-danger"></span>
-                    </div>
-                    <div class="col-6 col-md-3">
                         <label class="form-label fw-bold">Start Date</label>
-                        <input asp-for="StartDate" type="date" class="form-control" />
+                        <input asp-for="StartDate" type="date" class="form-control"/>
                     </div>
-                    <div class="col-6 col-md-3">
+                    <div class="col-12 col-md-6">
                         <label class="form-label fw-bold">End Date</label>
-                        <input asp-for="EndDate" type="date" class="form-control" />
+                        <input asp-for="EndDate" type="date" class="form-control"/>
                     </div>
                 </div>
-
-                <div class="row mb-3">
-                    <div class="col-12 col-md-6">
-                        <label class="form-label fw-bold">Save the Date Template ID</label>
-                        <input asp-for="SaveDateEmailTemplateId" class="form-control" />
-                        <div class="form-text">If set, the event will be eligible for 'Save the Date' emails using this template.</div>
-                    </div>
-                    <div class="col-12 col-md-6">
-                        <label class="form-label fw-bold">Invitation Template ID</label>
-                        <input asp-for="InvitationEmailTemplateId" class="form-control" />
-                        <div class="form-text">If set, the event will be eligible for 'Invite' emails using this template.</div>
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Save the Date Email Template ID</label>
+                    <input asp-for="SaveDateEmailTemplateId" class="form-control"/>
+                    <div class="form-text">If set, the event will be eligible for 'Save the Date' emails using this template.</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Invitation Email Template ID</label>
+                    <input asp-for="InvitationEmailTemplateId" class="form-control"/>
+                    <div class="form-text">If set, the event will be eligible for 'Invite' emails using this template.</div>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="mb-3">
                     <label class="form-label fw-bold">Description</label>
-                    <textarea asp-for="Description" class="form-control rte-editor" rows="3" placeholder="Begin writing or select other block type..."></textarea>
+                    <textarea asp-for="Description" class="form-control rte-editor visually-hidden" placeholder="Begin writing or select other block type..."></textarea>
                     <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Travel & Accommodation Tab -->
+    <div class="tab-pane fade" id="travel-accommodation" role="tabpanel" aria-labelledby="travel-accommodation-tab">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Travel Instructions</label>
+                    <textarea asp-for="TravelInstructions" class="form-control rte-editor visually-hidden" placeholder="Begin writing or select other block type..."></textarea>
+                    <span asp-validation-for="TravelInstructions" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row mb-3">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-bold">Location</label>
+                        <input asp-for="Location" class="form-control" placeholder="Grand Hotel"/>
+                        <span asp-validation-for="Location" class="text-danger"></span>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-bold">Accommodation Codes</label>
+                        <input asp-for="AccommodationCodes" value="@string.Join(", ", Model.AccommodationCodes)" class="form-control tag-select" autocomplete="off" data-placeholder="Add codes..."/>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Accommodation Details</label>
+                    <textarea asp-for="AccommodationDetails" class="form-control" rows="3"></textarea>
+                    <div class="form-text">Descriptive text explaining on how to book accommodation.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Booking Links</label>
+                    <input asp-for="BookingLinks" value="@string.Join(", ", Model.BookingLinks)" class="form-control tag-select" autocomplete="off" placeholder="Add booking links..."/>
+                    <div class="form-text">Supports phone numbers, emails, and web links</div>
                 </div>
             </div>
         </div>
@@ -86,52 +121,14 @@
 
         <div id="donationIbanWrapper" style="display: @(Model.DonationType is EditEventModel.DonationType.Iban ? "block" : "none")" class="mb-3">
             <label class="form-label fw-bold">Donation IBAN</label>
-            <input asp-for="DonationIban" class="form-control" />
+            <input asp-for="DonationIban" class="form-control"/>
             <div class="form-text">If set, the event will be eligible for donations.</div>
         </div>
 
         <div id="donationLinkWrapper" style="display: @(Model.DonationType is EditEventModel.DonationType.Link ? "block" : "none")" class="mb-3">
             <label class="form-label fw-bold">Donation Link</label>
-            <input asp-for="DonationLink" class="form-control" />
+            <input asp-for="DonationLink" class="form-control"/>
             <div class="form-text">If set, the event will be eligible for donations via an external service.</div>
-        </div>
-    </div>
-
-    <!-- Travel & Accommodation Tab -->
-    <div class="tab-pane fade" id="travel-accommodation" role="tabpanel" aria-labelledby="travel-accommodation-tab">
-        <div class="row">
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Travel Instructions</label>
-                    <textarea asp-for="TravelInstructions" class="form-control rte-editor" rows="3" placeholder="Begin writing or select other block type..."></textarea>
-                    <span asp-validation-for="TravelInstructions" class="text-danger"></span>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="row mb-3">
-                    <div class="col-12 col-md-6">
-                        <label class="form-label fw-bold">Location</label>
-                        <input asp-for="Location" class="form-control" placeholder="Grand Hotel" />
-                        <span asp-validation-for="Location" class="text-danger"></span>
-                    </div>
-                    <div class="col-12 col-md-6">
-                        <label class="form-label fw-bold">Accommodation Codes</label>
-                        <input asp-for="AccommodationCodes" value="@string.Join(", ", Model.AccommodationCodes)" class="form-control tag-select" autocomplete="off" data-placeholder="Add codes..."/>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Accommodation Details</label>
-                    <textarea asp-for="AccommodationDetails" class="form-control" rows="3"></textarea>
-                    <div class="form-text">Descriptive text explaining on how to book accommodation.</div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Booking Links</label>
-                    <input asp-for="BookingLinks" value="@string.Join(", ", Model.BookingLinks)" class="form-control tag-select" autocomplete="off" placeholder="Add booking links..."/>
-                    <div class="form-text">Supports phone numbers, emails, and web links</div>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -143,13 +140,13 @@
             {
                 <div class="row mb-2 schedule-row">
                     <div class="col-md-2">
-                        <input asp-for="ScheduleSteps[i].Day" class="form-control" placeholder="Day" />
+                        <input asp-for="ScheduleSteps[i].Day" class="form-control" placeholder="Day"/>
                     </div>
                     <div class="col-md-3">
-                        <input asp-for="ScheduleSteps[i].TimeStamp" type="time" class="form-control" />
+                        <input asp-for="ScheduleSteps[i].TimeStamp" type="time" class="form-control"/>
                     </div>
                     <div class="col-md-5">
-                        <input asp-for="ScheduleSteps[i].Label" class="form-control" placeholder="Label" />
+                        <input asp-for="ScheduleSteps[i].Label" class="form-control" placeholder="Label"/>
                     </div>
                     <div class="col-md-2">
                         <button type="button" class="btn btn-danger remove-row">Remove</button>
@@ -168,7 +165,7 @@
             {
                 <div class="mb-3 faq-row border p-2">
                     <div class="mb-2">
-                        <input asp-for="FaqItems[i].Question" class="form-control" placeholder="Question" />
+                        <input asp-for="FaqItems[i].Question" class="form-control" placeholder="Question"/>
                     </div>
                     <div class="mb-2">
                         <textarea asp-for="FaqItems[i].Answer" class="form-control" placeholder="Answer"></textarea>

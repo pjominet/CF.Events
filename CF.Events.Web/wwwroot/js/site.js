@@ -241,6 +241,51 @@
     // Hide on page load/complete
     window.addEventListener('load', hideLoadingOverlay);
 
+    function initTabPersistence() {
+        const tabElements = document.querySelectorAll('button[data-bs-toggle="tab"]');
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeTabId = urlParams.get('tab');
+
+        // Function to update the URL with the active tab ID
+        const updateUrlWithTab = (tabId) => {
+            const url = new URL(window.location);
+            url.searchParams.set('tab', tabId);
+            window.history.replaceState({}, '', url);
+        };
+
+        // If there is a tab ID in the URL, try to activate it
+        if (activeTabId) {
+            const tabToActivate = document.getElementById(activeTabId + '-tab');
+            if (tabToActivate) {
+                // Remove 'active' class from all tabs and panes
+                tabElements.forEach(tab => {
+                    tab.classList.remove('active');
+                    tab.setAttribute('aria-selected', 'false');
+                });
+                document.querySelectorAll('.tab-pane').forEach(pane => {
+                    pane.classList.remove('show', 'active');
+                });
+
+                // Activate the target tab and pane
+                tabToActivate.classList.add('active');
+                tabToActivate.setAttribute('aria-selected', 'true');
+                const targetPaneId = tabToActivate.getAttribute('data-bs-target');
+                const targetPane = document.querySelector(targetPaneId);
+                if (targetPane) {
+                    targetPane.classList.add('show', 'active');
+                }
+            }
+        }
+
+        // Listen for tab changes and update the URL
+        tabElements.forEach(tab => {
+            tab.addEventListener('shown.bs.tab', (event) => {
+                const targetId = event.target.id.replace('-tab', '');
+                updateUrlWithTab(targetId);
+            });
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
         initTooltips();
         initPopovers();
@@ -248,6 +293,7 @@
         initConfirms();
         initMultiSelects();
         initTagSelects();
+        initTabPersistence();
         setTimeout(hideLoadingOverlay, 100);
     });
 })();
