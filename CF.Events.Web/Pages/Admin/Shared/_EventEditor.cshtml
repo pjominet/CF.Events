@@ -45,15 +45,8 @@
 
         <div class="mb-3">
             <label class="form-label fw-bold">Description</label>
-            <textarea asp-for="Description" class="form-control rte-editor" rows="5"></textarea>
+            <textarea asp-for="Description" class="form-control rte-editor" rows="3" placeholder="Begin writing or select other block type..."></textarea>
             <span asp-validation-for="Description" class="text-danger"></span>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label fw-bold">Invitation Image</label>
-            <input asp-for="InvitationImage" type="file" accept="image/*" class="form-control" />
-            <span asp-validation-for="InvitationImage" class="text-danger"></span>
-            <div class="form-text">Portrait images work best. Larger images are cropped to portrait for the invite card.</div>
         </div>
 
         <div class="row mb-3">
@@ -76,15 +69,15 @@
             <label class="form-label fw-bold">Donation Type</label>
             <div class="d-flex gap-3 mt-2">
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="Event.DonationType" id="donationTypeNone" value="none" @(Model.DonationType is EditEventModel.DonationType.None ? "checked" : "")>
+                    <input class="form-check-input" type="radio" asp-for="DonationType" id="donationTypeNone" value="@EditEventModel.DonationType.None">
                     <label class="form-check-label" for="donationTypeNone">None</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="Event.DonationType" id="donationTypeIban" value="iban" @(Model.DonationType is EditEventModel.DonationType.Iban ? "checked" : "")>
+                    <input class="form-check-input" type="radio" asp-for="DonationType" id="donationTypeIban" value="@EditEventModel.DonationType.Iban">
                     <label class="form-check-label" for="donationTypeIban">IBAN</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="Event.DonationType" id="donationTypeLink" value="link" @(Model.DonationType is EditEventModel.DonationType.Link ? "checked" : "")>
+                    <input class="form-check-input" type="radio" asp-for="DonationType" id="donationTypeLink" value="@EditEventModel.DonationType.Link">
                     <label class="form-check-label" for="donationTypeLink">Link</label>
                 </div>
             </div>
@@ -113,7 +106,7 @@
             </div>
             <div class="col-12 col-md-6">
                 <label class="form-label fw-bold">Accommodation Codes</label>
-                <input asp-for="AccommodationCodes" value="@string.Join(", ", Model.AccommodationCodes)" name="Event.AccommodationCodes" class="form-control tom-select" autocomplete="off" data-placeholder="Add codes..."/>
+                <input asp-for="AccommodationCodes" value="@string.Join(", ", Model.AccommodationCodes)" class="form-control tag-select" autocomplete="off" data-placeholder="Add codes..."/>
             </div>
         </div>
 
@@ -125,7 +118,7 @@
 
         <div class="mb-3">
             <label class="form-label fw-bold">Booking Links</label>
-            <input asp-for="BookingLinks" value="@string.Join(", ", Model.BookingLinks)" name="Event.BookingLinks" class="form-control tom-select" autocomplete="off" placeholder="Add booking links..."/>
+            <input asp-for="BookingLinks" value="@string.Join(", ", Model.BookingLinks)" class="form-control tag-select" autocomplete="off" placeholder="Add booking links..."/>
             <div class="form-text">Supports phone numbers, emails, and web links</div>
         </div>
     </div>
@@ -134,7 +127,7 @@
     <div class="tab-pane fade" id="travel" role="tabpanel" aria-labelledby="travel-tab">
         <div class="mb-3">
             <label class="form-label fw-bold">Travel Instructions</label>
-            <textarea asp-for="TravelInstructions" class="form-control rte-editor" rows="5"></textarea>
+            <textarea asp-for="TravelInstructions" class="form-control rte-editor" rows="3" placeholder="Begin writing or select other block type..."></textarea>
             <span asp-validation-for="TravelInstructions" class="text-danger"></span>
         </div>
     </div>

@@ -17,7 +17,8 @@ public class Event
     [StringLength(100)]
     public string? Location { get; set; }
 
-    public string? Description { get; set; }
+    [Required]
+    public string Description { get; set; }
     public string? TravelInstructions { get; set; }
 
     public List<string> AccommodationCodes { get; set; } = [];
@@ -30,12 +31,6 @@ public class Event
 
     [StringLength(1000)]
     public string? DonationLink { get; set; }
-
-    [StringLength(255)]
-    public string? InvitationFileName { get; set; }
-
-    [StringLength(255)]
-    public string? OriginalInvitationFileName { get; set; }
 
     [StringLength(255)]
     public string? SaveDateTemplateId { get; set; }

@@ -12,7 +12,6 @@ namespace CF.Events.Web.Pages.Events;
 public class InvitationModel(EventsDbContext db) : PageModel
 {
     public Event? EventData { get; private set; }
-    public string? ImageUrl { get; private set; }
     public string BackUrl { get; private set; } = "/";
     public bool NotFoundOrForbidden { get; private set; }
 
@@ -36,9 +35,6 @@ public class InvitationModel(EventsDbContext db) : PageModel
 
         // Admins reach this page by previewing from the events list, regular users from their invitation list.
         BackUrl = isAdmin && !isInvited ? "/admin/events" : "/invites";
-
-        if (!string.IsNullOrEmpty(EventData.InvitationFileName))
-            ImageUrl = $"/events/{EventData.Id}/asset";
 
         return Page();
     }

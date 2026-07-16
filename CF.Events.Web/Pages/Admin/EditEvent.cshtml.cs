@@ -17,8 +17,7 @@ namespace CF.Events.Web.Pages.Admin;
 public class EditEventModel(
     EventsDbContext db,
     IFileService fileService,
-    IToastNotification toastNotification,
-    IWebHostEnvironment env) : PageModel
+    IToastNotification toastNotification) : PageModel
 {
     [BindProperty]
     public EventModel Event { get; set; } = new();
@@ -56,8 +55,17 @@ public class EditEventModel(
                 DonationIban = @event.DonationIban,
                 DonationLink = @event.DonationLink,
                 BookingLinks = @event.BookingLinks.Select(bl => bl.Link).ToList(),
-                FaqItems = @event.EventFaq.Select(f => new FaqInputModel { Question = f.Question, Answer = f.Answer }).ToList(),
-                ScheduleSteps = @event.EventSchedule.Select(s => new ScheduleInputModel { Day = s.Day, TimeStamp = s.TimeStamp, Label = s.Label }).ToList()
+                FaqItems = @event.EventFaq.Select(f => new FaqInputModel
+                {
+                    Question = f.Question,
+                    Answer = f.Answer
+                }).ToList(),
+                ScheduleSteps = @event.EventSchedule.Select(s => new ScheduleInputModel
+                {
+                    Day = s.Day,
+                    TimeStamp = s.TimeStamp,
+                    Label = s.Label
+                }).ToList()
             };
         }
         else
@@ -76,10 +84,6 @@ public class EditEventModel(
 
     public async Task<IActionResult> OnPostAsync()
     {
-        if (!ModelState.IsValid) return Page();
-
-        // Handle Image
-        var (originalName, technicalName) = PrepareInvitationImage(Event.InvitationImage);
         if (!ModelState.IsValid) return Page();
 
         Event? @event;
@@ -146,15 +150,6 @@ public class EditEventModel(
             @event.EventSchedule.Add(new EventScheduleStep { Day = step.Day, TimeStamp = step.TimeStamp, Label = step.Label });
         }
 
-        if (technicalName is not null)
-        {
-            if (!isNew && !string.IsNullOrEmpty(@event.InvitationFileName))
-                fileService.DeleteInvitationImage(@event.Id, @event.InvitationFileName);
-
-            @event.InvitationFileName = technicalName;
-            @event.OriginalInvitationFileName = originalName;
-        }
-
         await db.SaveChangesAsync();
 
         if (isNew && !string.IsNullOrEmpty(Event.UploadSessionId))
@@ -178,33 +173,8 @@ public class EditEventModel(
             await db.SaveChangesAsync();
         }
 
-        if (technicalName is not null)
-            await SaveInvitationImageAsync(@event.Id, Event.InvitationImage!, technicalName);
-
         toastNotification.AddSuccessToastMessage($"Event {(isNew ? "created" : "updated")} successfully!");
         return RedirectToPage("/Admin/Events");
-    }
-
-    private (string? OriginalName, string? TechnicalName) PrepareInvitationImage(IFormFile? file)
-    {
-        if (file is null || file.Length == 0)
-            return (null, null);
-
-        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-        string[] allowed = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
-        if (allowed.Contains(ext))
-            return (Path.GetFileName(file.FileName), Guid.NewGuid().ToString("N") + ext);
-
-        ModelState.AddModelError("Input.InvitationImage", "Unsupported image type.");
-        return (null, null);
-    }
-
-    private async Task SaveInvitationImageAsync(int eventId, IFormFile file, string technicalName)
-    {
-        var dir = Path.Combine(env.ContentRootPath, "Resources", "Invitations", eventId.ToString());
-        Directory.CreateDirectory(dir);
-        await using var stream = System.IO.File.Create(Path.Combine(dir, technicalName));
-        await file.CopyToAsync(stream);
     }
 
     private static DonationType GetDonationType(Event @event)
@@ -219,11 +189,12 @@ public class EditEventModel(
         public int Id { get; set; }
         public string? UploadSessionId { get; set; }
         [Required, StringLength(100)]
-        public string Name { get; set; } = string.Empty;
+        public string Name { get; set; } = null!;
         public DateTime StartDate { get; init; }
         public DateTime EndDate { get; init; }
         public string? Location { get; set; }
-        public string? Description { get; set; }
+        [Required]
+        public string Description { get; set; } = null!;
         public string? TravelInstructions { get; set; }
         [ModelBinder(BinderType = typeof(FlatListModelBinder))]
         public List<string> AccommodationCodes { get; set; } = [];
@@ -235,7 +206,6 @@ public class EditEventModel(
         public string? DonationLink { get; set; }
         [ModelBinder(BinderType = typeof(FlatListModelBinder))]
         public List<string> BookingLinks { get; set; } = [];
-        public IFormFile? InvitationImage { get; set; }
         public List<FaqInputModel> FaqItems { get; set; } = [];
         public List<ScheduleInputModel> ScheduleSteps { get; set; } = [];
     }

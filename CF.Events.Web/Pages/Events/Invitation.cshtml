@@ -17,26 +17,19 @@
     else
     {
         <div class="card shadow-lg invite-card">
-            @if (Model.ImageUrl is not null)
-            {
-                <img class="card-img-top invite-image" src="@Model.ImageUrl" alt="@Model.EventData!.Name invitation"/>
-            }
             <div class="card-body bg-card-custom p-0">
-                @if (Model.ImageUrl is null)
-                {
-                    <div class="invite-fallback">
-                        <h1>@Model.EventData!.Name</h1>
-                        <p>@Model.EventData.StartDate.ToLongDateString()</p>
-                        @if (!string.IsNullOrEmpty(Model.EventData.Location))
-                        {
-                            <p>@Model.EventData.Location</p>
-                        }
-                        @if (!string.IsNullOrEmpty(Model.EventData.Description))
-                        {
-                            <p>@Model.EventData.Description</p>
-                        }
-                    </div>
-                }
+                <div class="invite-fallback">
+                    <h1>@Model.EventData!.Name</h1>
+                    <p>@Model.EventData.StartDate.ToLongDateString()</p>
+                    @if (!string.IsNullOrEmpty(Model.EventData.Location))
+                    {
+                        <p>@Model.EventData.Location</p>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.EventData.Description))
+                    {
+                        <p>@Model.EventData.Description</p>
+                    }
+                </div>
             </div>
             <div class="card-footer bg-card-custom border-0 pb-3">
                 <div class="d-flex justify-content-center gap-3">

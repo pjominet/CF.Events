@@ -6,8 +6,8 @@ document.addEventListener('DOMContentLoaded', function() {
             radio.addEventListener('change', function() {
                 const ibanWrapper = document.getElementById('donationIbanWrapper');
                 const linkWrapper = document.getElementById('donationLinkWrapper');
-                if (ibanWrapper) ibanWrapper.style.display = this.value === 'iban' ? 'block' : 'none';
-                if (linkWrapper) linkWrapper.style.display = this.value === 'link' ? 'block' : 'none';
+                if (ibanWrapper) ibanWrapper.style.display = (this.value.toLowerCase() === 'iban') ? 'block' : 'none';
+                if (linkWrapper) linkWrapper.style.display = (this.value.toLowerCase() === 'link') ? 'block' : 'none';
             });
         });
     }
@@ -24,15 +24,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function reindexRows(container) {
-        const isSchedule = container.id === 'schedule-container';
         container.querySelectorAll('.row, .faq-row').forEach((row, index) => {
             row.querySelectorAll('input, textarea').forEach(input => {
                 const name = input.getAttribute('name');
                 if (name) {
+                    // Update the index in the name attribute, e.g., Event.ScheduleSteps[0].Day -> Event.ScheduleSteps[1].Day
                     input.setAttribute('name', name.replace(/\[\d+\]/, '[' + index + ']'));
                 }
                 const id = input.getAttribute('id');
                 if (id) {
+                    // Update the index in the id attribute, e.g., Event_ScheduleSteps_0__Day -> Event_ScheduleSteps_1__Day
                     input.setAttribute('id', id.replace(/_\d+__/, '_' + index + '__'));
                 }
             });
@@ -48,8 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const addScheduleBtn = document.getElementById('add-schedule');
     if (addScheduleBtn) {
         addScheduleBtn.addEventListener('click', function() {
-            const container = document.getElementById('schedule-container');
-            const index = container.querySelectorAll('.schedule-row').length;
+            const index = scheduleContainer.querySelectorAll('.schedule-row').length;
             const html = `
                 <div class="row mb-2 schedule-row">
                     <div class="col-md-2">
@@ -65,15 +65,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button type="button" class="btn btn-danger remove-row">Remove</button>
                     </div>
                 </div>`;
-            container.insertAdjacentHTML('beforeend', html);
+            scheduleContainer.insertAdjacentHTML('beforeend', html);
         });
     }
 
     const addFaqBtn = document.getElementById('add-faq');
     if (addFaqBtn) {
         addFaqBtn.addEventListener('click', function() {
-            const container = document.getElementById('faq-container');
-            const index = container.querySelectorAll('.faq-row').length;
+            const index = faqContainer.querySelectorAll('.faq-row').length;
             const html = `
                 <div class="mb-3 faq-row border p-2">
                     <div class="mb-2">
@@ -84,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <button type="button" class="btn btn-danger btn-sm remove-row">Remove</button>
                 </div>`;
-            container.insertAdjacentHTML('beforeend', html);
+            faqContainer.insertAdjacentHTML('beforeend', html);
         });
     }
 
