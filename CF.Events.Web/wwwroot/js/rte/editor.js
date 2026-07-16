@@ -69,7 +69,6 @@ function initRichTextEditors() {
                     }
                 },
                 imageSize: ImageSizeTune,
-                linkButton: LinkButton,
                 quote: {
                     class: Quote,
                     inlineToolbar: true,
