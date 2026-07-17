@@ -33,7 +33,7 @@ public class EditorJsTagHelper(HtmlRenderer htmlRenderer, IHtmlParser parser) : 
             var renderer = new EjsHtmlRenderer(htmlRenderer);
             var html = await renderer.ParseAsync(Input);
             html = await ApplyImageSrcAsync(html, Input);
-            html = await ApplyImageTunesAsync(html, Input);
+            /*html = await ApplyImageTunesAsync(html, Input);*/
 
             output.Content.SetHtmlContent(html);
         }
@@ -68,19 +68,14 @@ public class EditorJsTagHelper(HtmlRenderer htmlRenderer, IHtmlParser parser) : 
                 var block = imageBlocks[i];
                 var img = images[i];
 
-                // If src is already present, we might not want to override it,
-                // but the issue is that it's MISSING or empty.
+                // If src is already present, we do not want to override it
                 if (!string.IsNullOrEmpty(img.GetAttribute("src"))) continue;
 
                 var data = block.GetProperty("data");
                 if (data.TryGetProperty("file", out var file) && file.TryGetProperty("url", out var url))
-                {
                     img.SetAttribute("src", url.GetString());
-                }
                 else if (data.TryGetProperty("url", out var directUrl))
-                {
                     img.SetAttribute("src", directUrl.GetString());
-                }
             }
 
             return document.Body?.InnerHtml ?? document.Source.Text;
@@ -125,7 +120,7 @@ public class EditorJsTagHelper(HtmlRenderer htmlRenderer, IHtmlParser parser) : 
 
                 if (tunes.TryGetProperty("width", out var width) && width.ValueKind is not JsonValueKind.Null)
                 {
-                    styles.Add($"width: {width.GetString()};");
+                    styles.Add($"width: {width.GetInt32()}%;");
                 }
 
                 if (tunes.TryGetProperty("ratio", out var ratio) && ratio.ValueKind is not JsonValueKind.Null)
@@ -136,7 +131,7 @@ public class EditorJsTagHelper(HtmlRenderer htmlRenderer, IHtmlParser parser) : 
 
                 if (tunes.TryGetProperty("borderRadius", out var borderRadius) && borderRadius.ValueKind is not JsonValueKind.Null)
                 {
-                    styles.Add($"border-radius: {borderRadius.GetString()};");
+                    styles.Add($"border-radius: {borderRadius.GetInt32()};");
                 }
 
                 if (tunes.TryGetProperty("alignment", out var alignment) && alignment.ValueKind is not JsonValueKind.Null)

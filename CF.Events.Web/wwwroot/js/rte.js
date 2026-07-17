@@ -64,19 +64,18 @@ function initRichTextEditors() {
                         cols: 3,
                     },
                 },
-
                 image: {
                     class: ImageTool,
-                    tunes: ['imageTunePlus'],
+                    /*tunes: ['imageTunePlus'],*/
                     config: {
                         endpoints: {
                             byFile: `/file/upload-image/${folderName}`,
                         }
                     }
                 },
-                imageTunePlus: {
+                /*imageTunePlus: {
                     class: ImageTunePlus,
-                },
+                },*/
                 quote: {
                     class: Quote,
                     inlineToolbar: true,
