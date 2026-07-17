@@ -215,6 +215,11 @@
                             </td>
                             <td class="text-end">
                                 <div class="d-flex justify-content-end align-items-center gap-2">
+                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                            title="RSVP on behalf" data-bs-toggle="tooltip"
+                                            data-admin-rsvp-behalf-user-id="@invitee.UserId" data-admin-rsvp-behalf-event-id="@Model.EventData.Id">
+                                        <i class="bi bi-person-check"></i>
+                                    </button>
                                     @if (invitee.Status is AttendanceStatus.Attending)
                                     {
                                         <button type="button" class="btn btn-sm btn-outline-success"
@@ -268,7 +273,9 @@
 <div id="_rsvpResponsesContainer"></div>
 
 <partial name="Shared/_InviteValidityModal" model="@Model.EventData"/>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial"/>
+    <script src="/js/rsvp.js" type="text/javascript" asp-append-version="true"></script>
     <script src="/js/invitees.js" type="text/javascript" asp-append-version="true"></script>
 }

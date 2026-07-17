@@ -120,7 +120,7 @@ h1:focus {
 }
 
 .ts-dropdown {
-    z-index: 1050;
+    z-index: 2000;
 }
 
 #invitesGrid {

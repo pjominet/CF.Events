@@ -3,6 +3,7 @@ using CF.Events.Web.Models;
 using CF.Events.Web.Models.Requests;
 using CF.Events.Web.Infrastructure.ModelBinders;
 using CF.Events.Web.Services;
+using CF.Events.Web.Pages.Events;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -233,6 +234,99 @@ public class EventInviteesModel(
         await db.SaveChangesAsync();
 
         toastNotification.AddSuccessToastMessage("Accommodation code updated");
+        return RedirectToPage(new { id });
+    }
+
+    public async Task<IActionResult> OnGetAdminRsvpFormAsync(int id, string userId)
+    {
+        var user = await db.Users.Include(u => u.GuestGroup).FirstAsync(u => u.Id == userId);
+        var participants = user.GuestGroup?.Participants ?? (user.DisplayName != null ? [user.DisplayName] : []);
+
+        var rsvp = await db.Rsvps
+            .Include(r => r.ParticipantsDiets)
+            .Include(r => r.ParticipantsAttendance)
+            .FirstOrDefaultAsync(r => r.EventId == id && r.UserId == userId);
+
+        var eventData = await db.Events.FirstAsync(e => e.Id == id);
+
+        var model = new RsvpModel.InputModel
+        {
+            Participants = participants,
+            Attending = rsvp?.Attending ?? true,
+            ParticipantsAttendance = rsvp?.ParticipantsAttendance ?? [],
+            ParticipantsDiets = rsvp?.ParticipantsDiets ?? [],
+            Comments = rsvp?.Comments
+        };
+
+        return Partial("Shared/_AdminRsvpForm", (eventData, userId, model));
+    }
+
+    public async Task<IActionResult> OnPostAdminRsvpAsync(int id, string userId, RsvpModel.InputModel newRsvp)
+    {
+        var @event = await db.Events.FindAsync(id);
+        if (@event is null)
+        {
+            toastNotification.AddErrorToastMessage("Event not found");
+            return RedirectToPage(new { id });
+        }
+
+        var rsvp = await db.Rsvps
+            .Include(r => r.ParticipantsDiets)
+            .Include(r => r.ParticipantsAttendance)
+            .FirstOrDefaultAsync(r => r.EventId == id && r.UserId == userId);
+
+        if (rsvp is null)
+        {
+            rsvp = new Rsvp { EventId = id, UserId = userId };
+            db.Rsvps.Add(rsvp);
+        }
+
+        rsvp.Attending = newRsvp.Attending;
+        rsvp.SubmittedAt = DateTime.UtcNow;
+
+        if (newRsvp.Attending)
+        {
+            // Handle attendance update
+            var attendanceToDelete = await db.ParticipantsAttendance.Where(pa => pa.EventId == id && pa.UserId == userId).ToListAsync();
+            db.ParticipantsAttendance.RemoveRange(attendanceToDelete);
+
+            rsvp.ParticipantsAttendance = newRsvp.ParticipantsAttendance.Select(pa => new ParticipantAttendance
+            {
+                EventId = id,
+                UserId = userId,
+                ParticipantName = pa.ParticipantName,
+                AttendingDays = pa.AttendingDays
+            }).ToList();
+
+            // Handle dietary options update
+            var dietsToDelete = await db.ParticipantsDiets.Where(pd => pd.EventId == id && pd.UserId == userId).ToListAsync();
+            db.ParticipantsDiets.RemoveRange(dietsToDelete);
+
+            rsvp.ParticipantsDiets = newRsvp.ParticipantsDiets.Select(o => new ParticipantDiet
+            {
+                EventId = id,
+                UserId = userId,
+                ParticipantName = o.ParticipantName,
+                Restrictions = o.Restrictions,
+                OtherDetails = o.OtherDetails
+            }).ToList();
+
+            rsvp.Comments = newRsvp.Comments;
+        }
+        else
+        {
+            var attendanceToDelete = await db.ParticipantsAttendance.Where(pa => pa.EventId == id && pa.UserId == userId).ToListAsync();
+            db.ParticipantsAttendance.RemoveRange(attendanceToDelete);
+            rsvp.ParticipantsAttendance = [];
+
+            var dietsToDelete = await db.ParticipantsDiets.Where(pd => pd.EventId == id && pd.UserId == userId).ToListAsync();
+            db.ParticipantsDiets.RemoveRange(dietsToDelete);
+            rsvp.ParticipantsDiets = [];
+        }
+
+        await db.SaveChangesAsync();
+
+        toastNotification.AddSuccessToastMessage($"RSVP updated for guest");
         return RedirectToPage(new { id });
     }
 

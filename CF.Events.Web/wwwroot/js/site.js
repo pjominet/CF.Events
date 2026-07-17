@@ -1,15 +1,15 @@
 ﻿(function () {
     "use strict";
 
-    function initTooltips() {
-        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+    function initTooltips(container = document) {
+        container.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
             // eslint-disable-next-line no-undef
             new bootstrap.Tooltip(el);
         });
     }
 
-    function initPopovers() {
-        document.querySelectorAll('[data-bs-toggle="popover"]').forEach(function (el) {
+    function initPopovers(container = document) {
+        container.querySelectorAll('[data-bs-toggle="popover"]').forEach(function (el) {
             // eslint-disable-next-line no-undef
             new bootstrap.Popover(el);
         });
@@ -103,16 +103,20 @@
         });
     }
 
-    function initMultiSelects() {
-        document.querySelectorAll("select.tom-select").forEach(function (select) {
+    function initMultiSelects(container = document) {
+        container.querySelectorAll("select.tom-select").forEach(function (select) {
             if (select.tomselect) return;
+
+            // Determine the dropdown parent.
+            const modal = select.closest('.modal');
+            const dropdownParent = modal ? null : 'body';
 
             let settings = {
                 placeholder: select.getAttribute("data-placeholder") || "Select...",
                 hidePlaceholder: true,
                 allowEmptyOption: false,
                 maxOptions: 20,
-                dropdownParent: "body"
+                dropdownParent: dropdownParent
             }
 
             if (!!select.hasAttribute("multiple")) {
@@ -146,9 +150,12 @@
             }
         });
 
-        document.querySelectorAll("input.tom-select").forEach(function (el) {
+        container.querySelectorAll("input.tom-select, input.tag-select").forEach(function (el) {
             if (el.tomselect) return;
             if (el.disabled) return;
+
+            const modal = el.closest('.modal');
+            const dropdownParent = modal ? null : 'body';
 
             new TomSelect(el, {
                 create: true,
@@ -158,36 +165,35 @@
                 plugins: ['restore_on_backspace'],
                 delimiter: ',',
                 placeholder: el.getAttribute("data-placeholder") || "Add tag...",
+                dropdownParent: dropdownParent
             });
         });
     }
 
-    function initTagSelects() {
-        document.querySelectorAll("input.tag-select").forEach(function (el) {
-            if (el.tomselect) return;
-            if (el.disabled) return;
-
-            new TomSelect(el, {
-                create: true,
-                persist: false,
-                hidePlaceholder: true,
-                allowEmptyOption: false,
-                plugins: ['restore_on_backspace'],
-                delimiter: ',',
-                placeholder: el.getAttribute("data-placeholder") || "Add tag...",
-            });
-        });
+    function initTagSelects(container = document) {
+        initMultiSelects(container);
     }
 
-    // Copy-to-clipboard handler
-    window.copyToClipboardAndShowFeedback = function (elementId, button, duration = 750) {
-        const source = document.getElementById(elementId);
-        if (!source) {
-            console.error(`Element with ID '${elementId}' not found`);
-            return;
+    window.copyToClipboardAndShowFeedback = function (elementOrId, buttonOrDuration, duration = 750) {
+        let textToCopy = '';
+        let button = null;
+        let finalDuration = duration;
+
+        if (typeof elementOrId === 'string') {
+            const source = document.getElementById(elementOrId);
+            if (!source) {
+                console.error(`Element with ID '${elementOrId}' not found`);
+                return;
+            }
+            textToCopy = source.value || source.textContent || '';
+            button = buttonOrDuration;
+            finalDuration = duration;
+        } else {
+            textToCopy = elementOrId.textContent;
+            button = elementOrId;
+            finalDuration = typeof buttonOrDuration === 'number' ? buttonOrDuration : 750;
         }
 
-        const textToCopy = source.value || source.textContent || '';
         if (!textToCopy.trim()) {
             console.error('No text to copy');
             return;
@@ -204,22 +210,7 @@
 
         setTimeout(() => {
             button.textContent = originalText;
-        }, duration);
-    }
-
-    window.copyToClipboardAndShowFeedback = function (element, duration = 750) {
-        const originalText = element.textContent;
-        element.textContent = 'Copied!';
-
-        navigator.clipboard.writeText(originalText)
-            .catch(err => {
-                console.error('Failed to copy:', err);
-                element.textContent = originalText;
-            });
-
-        setTimeout(() => {
-            element.textContent = originalText;
-        }, duration);
+        }, finalDuration);
     }
 
     // Show loading overlay
@@ -285,6 +276,14 @@
             });
         });
     }
+
+    // Exported helpers for dynamic content
+    window.siteHelpers = {
+        initMultiSelects: initMultiSelects,
+        initTagSelects: initTagSelects,
+        initTooltips: initTooltips,
+        initPopovers: initPopovers
+    };
 
     document.addEventListener("DOMContentLoaded", function () {
         initTooltips();
