@@ -57,28 +57,25 @@ public class UserController(
             var parts = line.Split(delimiter);
 
             var name = parts.Length > 0 ? parts[0].Trim() : null;
-            // Skip if email is invalid
             if (string.IsNullOrWhiteSpace(name))
             {
-                importErrors.Add($"Error importing {name}: Name is required.");
+                importErrors.Add($"Error importing row {currentRow}: Name is required.");
                 continue;
             }
 
-            var email = parts.Length > 1 ? parts[1].Trim() : null;
-
-            // Skip if email is invalid
-            if (string.IsNullOrWhiteSpace(email) || !email.IsEmail())
+            var email = GetValidEmail(parts.Length > 1 ? parts[1].Trim() : null, name);
+            if (email is null)
             {
-                importErrors.Add($"Error importing {email}: Email is invalid.");
+                importErrors.Add($"Error importing row {currentRow}: Email is invalid: {email}");
                 continue;
             }
 
             var phone = parts.Length > 2 ? parts[2].Trim() : null;
-            var guestGroupLabel = parts.Length > 3 ? parts[3].Trim() : null;
 
-            if (selectedRoles.Contains(Roles.Guest) && string.IsNullOrWhiteSpace(guestGroupLabel) && string.IsNullOrWhiteSpace(name))
+            var guestGroupLabel = parts.Length > 3 ? parts[3].Trim() : null;
+            if (selectedRoles.Contains(Roles.Guest) && string.IsNullOrWhiteSpace(guestGroupLabel))
             {
-                importErrors.Add($"Error importing {email}: Guest group or user name is required for guest role.");
+                importErrors.Add($"Error importing row {currentRow}: Guest group is required for guest role.");
                 continue;
             }
 
@@ -121,5 +118,16 @@ public class UserController(
 
         TempData[ViewDataKeys.ImportErrors] = importErrors;
         return RedirectToPage("/admin/users");
+    }
+
+    private static string? GetValidEmail(string? extractedValue, string fallbackName)
+    {
+        if (string.IsNullOrWhiteSpace(extractedValue))
+            return null;
+
+        if (extractedValue.StartsWith('!'))
+            return $"{fallbackName.ToLower()}@{Email.NonSendableEmail}";
+
+        return extractedValue.IsEmail() ? extractedValue : null;
     }
 }

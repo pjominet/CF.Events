@@ -198,7 +198,7 @@ public class EventInviteesModel(
             return RedirectToPage(new { id });
         }
 
-        await inviteService.SendImmediateEmails(requests);
+        await inviteService.SendBatchedEmails(requests);
 
         toastNotification.AddSuccessToastMessage($"Successfully sent {requests.Count} Save the Date emails");
 

@@ -17,8 +17,12 @@ public static class Constants
     public static class ViewDataKeys
     {
         public const string ShowAddModal = "ShowAddModal";
-        public const string ShowEventModal = "ShowEventModal";
         public const string ImportErrors = "ImportErrors";
         public const string GuestGroupLabel = "GuestGroupLabel";
+    }
+
+    public static class Email
+    {
+        public const string NonSendableEmail = "no-send.tech";
     }
 }
