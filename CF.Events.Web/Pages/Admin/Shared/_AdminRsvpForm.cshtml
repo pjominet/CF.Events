@@ -23,7 +23,7 @@
                     </div>
 
                     <div id="admin-attending-fields" class="@(Model.NewRsvp.Attending ? "" : "d-none")">
-                        <partial name="Shared/_RsvpParticipants" model="Model.NewRsvp.Participants" />
+                        <partial name="Shared/_RsvpParticipants" model="(Model.NewRsvp.Participants, Model.EventData.MaxParticipantsPerRsvp)" />
 
                         <h6 class="serif border-bottom pb-1 mb-3">Attendance Schedule</h6>
                         <partial name="Shared/_RsvpAttendanceSchedule" model="(Model.EventData.EventDuration, Model.NewRsvp.Participants, Model.NewRsvp.ParticipantsAttendance)" />

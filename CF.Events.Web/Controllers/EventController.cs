@@ -135,14 +135,15 @@ public class EventController(
 
         if (rsvp is null) return NotFound();
 
+        var guestGroup = await db.GuestGroups.FirstOrDefaultAsync(gg => gg.GuestUserId == userId);
+
         var model = new RsvpResponses
         {
+            GuestGroup = guestGroup?.Label ?? "Guest Group",
             ParticipantsAttendance = rsvp.ParticipantsAttendance,
             ParticipantsDiets = rsvp.ParticipantsDiets,
             Comments = rsvp.Comments
         };
-
-        ViewData[ViewDataKeys.GuestGroupLabel] = await db.GuestGroups.FirstOrDefaultAsync(gg => gg.GuestUserId == userId);
 
         return PartialView("~/Pages/Admin/Shared/_RsvpResponsesModal.cshtml", model);
     }

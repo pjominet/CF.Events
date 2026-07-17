@@ -110,7 +110,7 @@
                     <!-- STEP 2: Participants -->
                     <div class="form-step d-none" id="step-2">
                         <h3 class="h5 serif text-center mb-4">Who is joining us?</h3>
-                        <partial name="Shared/_RsvpParticipants" model="Model.NewRsvp.Participants" />
+                        <partial name="Shared/_RsvpParticipants" model="(Model.NewRsvp.Participants, Model.EventData.MaxParticipantsPerRsvp)" />
                     </div>
 
                     <!-- STEP 3: Attendance Schedule & Accommodation -->

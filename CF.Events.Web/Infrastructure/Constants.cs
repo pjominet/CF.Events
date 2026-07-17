@@ -18,7 +18,6 @@ public static class Constants
     {
         public const string ShowAddModal = "ShowAddModal";
         public const string ImportErrors = "ImportErrors";
-        public const string GuestGroupLabel = "GuestGroupLabel";
     }
 
     public static class Email

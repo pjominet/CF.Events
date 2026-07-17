@@ -98,6 +98,17 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
     {
         var userId = User.GetId();
 
+        var maxParticipants = await db.Events
+            .Where(e => e.Id == eventId)
+            .Select(e => e.MaxParticipantsPerRsvp)
+            .FirstAsync();
+
+        if (NewRsvp.Attending && NewRsvp.Participants.Count > maxParticipants)
+        {
+            toastNotification.AddErrorToastMessage($"Maximum {maxParticipants} participants allowed per RSVP.");
+            return Page();
+        }
+
         var user = await db.Users
             .Include(u => u.GuestGroup)
             .FirstAsync(u => u.Id == userId);

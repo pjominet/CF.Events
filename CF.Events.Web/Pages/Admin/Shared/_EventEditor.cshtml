@@ -50,6 +50,11 @@
                     <input asp-for="InvitationEmailTemplateId" class="form-control"/>
                     <div class="form-text">If set, the event will be eligible for 'Invite' emails using this template.</div>
                 </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Max Participants per RSVP</label>
+                    <input asp-for="MaxParticipantsPerRsvp" type="number" class="form-control" min="1"/>
+                    <div class="form-text">The maximum number of people that can be added to a single RSVP.</div>
+                </div>
             </div>
             <div class="col-md-6">
                 <div class="mb-3">

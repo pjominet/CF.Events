@@ -209,7 +209,14 @@
 
     if (addParticipantBtn) {
         addParticipantBtn.addEventListener("click", () => {
-            const index = participantContainer.querySelectorAll(".participant-row").length;
+            const maxParticipants = parseInt(participantContainer.getAttribute("data-max-participants")) || 4;
+            const currentParticipants = participantContainer.querySelectorAll(".participant-row").length;
+
+            if (currentParticipants >= maxParticipants) {
+                return;
+            }
+
+            const index = currentParticipants;
             const row = document.createElement("div");
             row.className = "row g-2 mb-2 participant-row";
             row.innerHTML = `
@@ -221,8 +228,16 @@
                 </div>
             `;
             participantContainer.appendChild(row);
+
+            if (participantContainer.querySelectorAll(".participant-row").length >= maxParticipants) {
+                addParticipantBtn.classList.add("d-none");
+            }
+
             row.querySelector(".remove-participant").addEventListener("click", () => {
                 row.remove();
+                if (participantContainer.querySelectorAll(".participant-row").length < maxParticipants) {
+                    addParticipantBtn.classList.remove("d-none");
+                }
                 if (window.rsvpShared && window.rsvpShared.updateParticipantSelections) {
                     window.rsvpShared.updateParticipantSelections(document);
                 }
@@ -232,7 +247,11 @@
 
     participantContainer?.addEventListener("click", (e) => {
         if (e.target.closest(".remove-participant")) {
+            const maxParticipants = parseInt(participantContainer.getAttribute("data-max-participants")) || 4;
             e.target.closest(".participant-row").remove();
+            if (participantContainer.querySelectorAll(".participant-row").length < maxParticipants) {
+                addParticipantBtn?.classList.remove("d-none");
+            }
             if (window.rsvpShared && window.rsvpShared.updateParticipantSelections) {
                 window.rsvpShared.updateParticipantSelections(document);
             }

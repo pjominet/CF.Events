@@ -51,6 +51,7 @@ public class EditEventModel(
                 AccommodationDetails = @event.AccommodationDetails,
                 SaveDateEmailTemplateId = @event.SaveDateTemplateId,
                 InvitationEmailTemplateId = @event.InvitationTemplateId,
+                MaxParticipantsPerRsvp = @event.MaxParticipantsPerRsvp,
                 DonationType = GetDonationType(@event),
                 DonationIban = @event.DonationIban,
                 DonationLink = @event.DonationLink,
@@ -119,6 +120,7 @@ public class EditEventModel(
         @event.AccommodationDetails = Event.AccommodationDetails;
         @event.SaveDateTemplateId = Event.SaveDateEmailTemplateId;
         @event.InvitationTemplateId = Event.InvitationEmailTemplateId;
+        @event.MaxParticipantsPerRsvp = Event.MaxParticipantsPerRsvp;
 
         @event.DonationIban = Event.DonationType is DonationType.Iban ? Event.DonationIban : null;
         @event.DonationLink = Event.DonationType is DonationType.Link ? Event.DonationLink : null;
@@ -200,6 +202,7 @@ public class EditEventModel(
         public string? AccommodationDetails { get; set; }
         public string? SaveDateEmailTemplateId { get; set; }
         public string? InvitationEmailTemplateId { get; set; }
+        public int MaxParticipantsPerRsvp { get; set; } = 4;
         public DonationType DonationType { get; set; }
         public string? DonationIban { get; set; }
         public string? DonationLink { get; set; }

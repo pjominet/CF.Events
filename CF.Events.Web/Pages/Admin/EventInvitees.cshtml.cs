@@ -270,6 +270,12 @@ public class EventInviteesModel(
             return RedirectToPage(new { id });
         }
 
+        if (newRsvp.Attending && newRsvp.Participants.Count > @event.MaxParticipantsPerRsvp)
+        {
+            toastNotification.AddErrorToastMessage($"Maximum {@event.MaxParticipantsPerRsvp} participants allowed per RSVP.");
+            return RedirectToPage(new { id });
+        }
+
         var rsvp = await db.Rsvps
             .Include(r => r.ParticipantsDiets)
             .Include(r => r.ParticipantsAttendance)

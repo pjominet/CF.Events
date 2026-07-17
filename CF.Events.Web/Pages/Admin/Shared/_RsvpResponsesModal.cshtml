@@ -1,13 +1,10 @@
 @model RsvpResponses
-@{
-    var displayName = ViewData[ViewDataKeys.GuestGroupLabel] as string ?? "User";
-}
 
 <div class="modal fade" id="adminRsvpModal" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title serif">RSVP Details for @displayName</h5>
+                <h5 class="modal-title serif">RSVP Details for @Model.GuestGroup</h5>
             </div>
             <div class="modal-body">
                 <div class="mb-4">

@@ -36,6 +36,7 @@ public class Event
     public string? SaveDateTemplateId { get; set; }
 
     public int InviteValidity { get; set; } = 30;
+    public int MaxParticipantsPerRsvp { get; set; } = 4;
 
     [StringLength(255)]
     public string? InvitationTemplateId { get; set; }
