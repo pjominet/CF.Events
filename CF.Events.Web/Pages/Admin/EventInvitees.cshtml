@@ -44,7 +44,7 @@
                     @Html.AntiForgeryToken()
                     <div class="col-12 mb-3">
                         <select name="UserIds" asp-items="Model.AvailableUsers" class="form-select tom-select" required multiple placeholder="Select users to invite..."></select>
-                        <input type="hidden" name="InviteCodeId" value="0" />
+                        <input type="hidden" name="InviteCodeId" value="0"/>
                     </div>
                     <div class="col-9 row">
                         <div class="col-5 flex-column gap-2">
@@ -120,14 +120,23 @@
                     <i class="bi bi-x-lg me-1"></i>Remove selected
                 </button>
             </div>
-            <form id="bulkActionForm" method="post"
-                  data-resend-url="@Url.Action("BulkResendInvite", "Event", new { eventId = Model.EventData.Id })"
-                  data-remove-url="@Url.Page("", "BulkRemove", new { id = Model.EventData.Id })"
-                  data-save-the-date-url="@Url.Page("", "BulkSaveTheDate", new { id = Model.EventData.Id })">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="userIds" id="bulkActionUserIds"/>
-                <input type="hidden" name="actionType" id="bulkActionType"/>
-            </form>
+            <div class="d-flex align-items-center gap-2">
+                <form id="bulkAccommodationForm" method="post" asp-page-handler="BulkUpdateAccommodationCodes" asp-route-id="@Model.EventData.Id">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="updates" id="bulkAccommodationUpdates"/>
+                    <button type="submit" id="saveAccommodationBtn" class="btn btn-success btn-sm d-none">
+                        <i class="bi bi-save me-1"></i>Update Accommodation Codes
+                    </button>
+                </form>
+                <form id="bulkActionForm" method="post"
+                      data-resend-url="@Url.Action("BulkResendInvite", "Event", new { eventId = Model.EventData.Id })"
+                      data-remove-url="@Url.Page("", "BulkRemove", new { id = Model.EventData.Id })"
+                      data-save-date-url="@Url.Page("", "BulkSaveTheDate", new { id = Model.EventData.Id })">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="userIds" id="bulkActionUserIds"/>
+                    <input type="hidden" name="actionType" id="bulkActionType"/>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -159,13 +168,11 @@
                             <td class="fw-bold">@invitee.DisplayName</td>
                             <td>@invitee.Email</td>
                             <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    <form method="post" asp-page-handler="UpdateAccommodationCode" asp-route-id="@Model.EventData.Id" class="d-flex align-items-center w-100">
-                                        <input type="hidden" name="userId" value="@invitee.UserId" />
-                                        <select name="accommodationCode" class="form-select form-select-sm w-auto" onchange="this.form.submit()"
-                                                asp-items="@Model.GetAccommodationCodes(invitee.AssignedAccommodationCode)">
-                                        </select>
-                                    </form>
+                                <div class="d-flex align-items-center w-100 gap-2">
+                                    <select name="updates[@invitee.UserId]" class="form-select form-select-sm accommodation-select"
+                                            data-original-value="@invitee.AssignedAccommodationCode"
+                                            asp-items="@Model.GetAccommodationCodes(invitee.AssignedAccommodationCode)">
+                                    </select>
                                 </div>
                             </td>
                             <td class="text-center">

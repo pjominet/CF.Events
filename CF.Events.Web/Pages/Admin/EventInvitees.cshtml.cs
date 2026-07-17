@@ -1,6 +1,7 @@
 ﻿using CF.Events.Web.Data;
 using CF.Events.Web.Models;
 using CF.Events.Web.Models.Requests;
+using CF.Events.Web.Infrastructure.ModelBinders;
 using CF.Events.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -235,15 +236,15 @@ public class EventInviteesModel(
         return RedirectToPage(new { id });
     }
 
-    public async Task<IActionResult> OnPostBulkUpdateAccommodationCodesAsync(int id, Dictionary<string, string?> updates)
+    public async Task<IActionResult> OnPostBulkUpdateAccommodationCodesAsync(int id, [ModelBinder(typeof(JsonModelBinder))] Dictionary<string, string?> updates)
     {
-        if (updates == null || updates.Count == 0)
+        if (updates.Count <= 0)
         {
             toastNotification.AddWarningToastMessage("No updates to save");
             return RedirectToPage(new { id });
         }
 
-        var userIds = updates.Keys.ToList();
+        var userIds = updates.Keys;
         var userEvents = await db.EventUsers
             .Where(r => r.EventId == id && userIds.Contains(r.UserId))
             .ToListAsync();
@@ -251,9 +252,7 @@ public class EventInviteesModel(
         foreach (var userEvent in userEvents)
         {
             if (updates.TryGetValue(userEvent.UserId, out var code))
-            {
                 userEvent.AssignedAccommodationCode = string.IsNullOrWhiteSpace(code) ? null : code;
-            }
         }
 
         await db.SaveChangesAsync();
@@ -267,7 +266,7 @@ public class EventInviteesModel(
         var list = EventData.AccommodationCodes
             .Select(ac => new SelectListItem(ac, ac, ac == currentCode))
             .ToList();
-        list.Insert(0, new SelectListItem("None", "", string.IsNullOrEmpty(currentCode)));
+        list.Insert(0, new SelectListItem("none", "", string.IsNullOrEmpty(currentCode)));
         return list;
     }
 

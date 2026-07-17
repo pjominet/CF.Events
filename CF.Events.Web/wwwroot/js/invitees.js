@@ -106,7 +106,7 @@
             form.action = form.dataset.resendUrl;
         } else if (actionType === 'remove') {
             form.action = form.dataset.removeUrl;
-        } else if (actionType === 'save-the-date') {
+        } else if (actionType === 'save-date') {
             form.action = form.dataset.saveTheDateUrl;
         }
 
@@ -183,5 +183,64 @@
             const modalEventIdInput = setInviteValidityModal.querySelector('#modalEventId');
             modalEventIdInput.value = eventId;
         });
+    }
+
+    // Bulk Accommodation Code Updates tracking
+    const accommodationSelects = document.querySelectorAll('.accommodation-select');
+    const saveAccommodationBtn = document.getElementById('saveAccommodationBtn');
+
+    if (accommodationSelects.length > 0 && saveAccommodationBtn) {
+        const bulkAccommodationForm = document.getElementById('bulkAccommodationForm');
+        const updatesInput = document.getElementById('bulkAccommodationUpdates');
+
+        accommodationSelects.forEach(select => {
+            select.addEventListener('change', function () {
+                const originalValue = this.dataset.originalValue || '';
+                const currentValue = this.value;
+
+                if (currentValue !== originalValue) {
+                    this.classList.add('border-info');
+                } else {
+                    this.classList.remove('border-info');
+                }
+
+                updateUpdatesInput();
+                updateSaveButtonVisibility();
+            });
+        });
+
+        if (bulkAccommodationForm) {
+            bulkAccommodationForm.addEventListener('submit', function () {
+                showLoadingOverlay();
+            });
+        }
+
+        function updateUpdatesInput() {
+            if (!updatesInput) return;
+
+            const updates = {};
+            accommodationSelects.forEach(select => {
+                const originalValue = select.dataset.originalValue || '';
+                if (select.value !== originalValue) {
+                    const userId = select.name.match(/\[(.*?)\]/)[1];
+                    updates[userId] = select.value;
+                }
+            });
+
+            updatesInput.value = JSON.stringify(updates);
+        }
+
+        function updateSaveButtonVisibility() {
+            const anyModified = Array.from(accommodationSelects).some(select => {
+                const originalValue = select.dataset.originalValue || '';
+                return select.value !== originalValue;
+            });
+
+            if (anyModified) {
+                saveAccommodationBtn.classList.remove('d-none');
+            } else {
+                saveAccommodationBtn.classList.add('d-none');
+            }
+        }
     }
 })();
