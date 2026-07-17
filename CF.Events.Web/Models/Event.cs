@@ -18,7 +18,7 @@ public class Event
     public string? Location { get; set; }
 
     [Required]
-    public string Description { get; set; }
+    public string Description { get; set; } = null!;
     public string? TravelInstructions { get; set; }
 
     public List<string> AccommodationCodes { get; set; } = [];
