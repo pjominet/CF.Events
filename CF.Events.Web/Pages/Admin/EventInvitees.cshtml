@@ -159,7 +159,14 @@
                             <td class="fw-bold">@invitee.DisplayName</td>
                             <td>@invitee.Email</td>
                             <td>
-                                <div class="badge bg-info p-1">@invitee.AssignedAccommodationCode</div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <form method="post" asp-page-handler="UpdateAccommodationCode" asp-route-id="@Model.EventData.Id" class="d-flex align-items-center w-100">
+                                        <input type="hidden" name="userId" value="@invitee.UserId" />
+                                        <select name="accommodationCode" class="form-select form-select-sm w-auto" onchange="this.form.submit()"
+                                                asp-items="@Model.GetAccommodationCodes(invitee.AssignedAccommodationCode)">
+                                        </select>
+                                    </form>
+                                </div>
                             </td>
                             <td class="text-center">
                                 @if (invitee.SaveTheDateSent)

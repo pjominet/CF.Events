@@ -219,6 +219,58 @@ public class EventInviteesModel(
         return RedirectToPage(new { id });
     }
 
+    public async Task<IActionResult> OnPostUpdateAccommodationCodeAsync(int id, string userId, string? accommodationCode)
+    {
+        var userEvent = await db.EventUsers.FirstOrDefaultAsync(r => r.EventId == id && r.UserId == userId);
+        if (userEvent is null)
+        {
+            toastNotification.AddWarningToastMessage("Invitee not found");
+            return RedirectToPage(new { id });
+        }
+
+        userEvent.AssignedAccommodationCode = string.IsNullOrWhiteSpace(accommodationCode) ? null : accommodationCode;
+        await db.SaveChangesAsync();
+
+        toastNotification.AddSuccessToastMessage("Accommodation code updated");
+        return RedirectToPage(new { id });
+    }
+
+    public async Task<IActionResult> OnPostBulkUpdateAccommodationCodesAsync(int id, Dictionary<string, string?> updates)
+    {
+        if (updates == null || updates.Count == 0)
+        {
+            toastNotification.AddWarningToastMessage("No updates to save");
+            return RedirectToPage(new { id });
+        }
+
+        var userIds = updates.Keys.ToList();
+        var userEvents = await db.EventUsers
+            .Where(r => r.EventId == id && userIds.Contains(r.UserId))
+            .ToListAsync();
+
+        foreach (var userEvent in userEvents)
+        {
+            if (updates.TryGetValue(userEvent.UserId, out var code))
+            {
+                userEvent.AssignedAccommodationCode = string.IsNullOrWhiteSpace(code) ? null : code;
+            }
+        }
+
+        await db.SaveChangesAsync();
+
+        toastNotification.AddSuccessToastMessage("Accommodation codes updated successfully");
+        return RedirectToPage(new { id });
+    }
+
+    public List<SelectListItem> GetAccommodationCodes(string? currentCode)
+    {
+        var list = EventData.AccommodationCodes
+            .Select(ac => new SelectListItem(ac, ac, ac == currentCode))
+            .ToList();
+        list.Insert(0, new SelectListItem("None", "", string.IsNullOrEmpty(currentCode)));
+        return list;
+    }
+
     public record InviteeRow(string UserId, string DisplayName, string Email, string? AssignedAccommodationCode, AttendanceStatus Status, bool InvitationEmailSent, bool SaveTheDateSent, DateTime? ScheduledFor);
 }
 
