@@ -8,18 +8,19 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="AngleSharp" Version="1.5.2" />
         <PackageReference Include="ClosedXML" Version="0.105.0" />
-        <PackageReference Include="Mailjet.Api" Version="4.0.0" />
-        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.8" />
-        <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.8" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.7">
+        <PackageReference Include="EditorJsonToHtmlConverter" Version="1.0.0.26" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.10" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.10" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.8" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.9" />
+        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.10" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.10" />
         <PackageReference Include="NToastNotify" Version="8.0.0" />
-        <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
+        <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
         <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
         <PackageReference Include="Smtp2Go.ApiClient" Version="0.0.5" />
     </ItemGroup>

@@ -1,4 +1,5 @@
-﻿using CF.Events.Web.Data;
+﻿using AngleSharp.Html.Parser;
+using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure.Exceptions;
 using CF.Events.Web.Infrastructure.Factories;
 using CF.Events.Web.Infrastructure.Providers;
@@ -6,6 +7,7 @@ using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Models;
 using CF.Events.Web.Services;
 using CF.Events.Web.Services.BackgroundWorkers;
+using EditorJsonToHtmlConverter;
 using Microsoft.AspNetCore.DataProtection;
 using Smtp2Go.Api;
 using Microsoft.AspNetCore.Identity;
@@ -76,9 +78,12 @@ public static class ServiceCollectionExtensions
 
     public static void AddAppServices(this IServiceCollection services, IWebHostEnvironment environment)
     {
+        services.AddScopedEditorJsonProcessorServices();
+        services.AddScoped<IHtmlParser, HtmlParser>();
         services.AddHostedService<InvitationEmailWorker>();
         services.AddScoped<IInvitationService, InvitationService>();
         services.AddScoped<IExportService, ExportService>();
+        services.AddScoped<IFileService, FileService>();
 
         if (environment.IsDevelopment())
         {

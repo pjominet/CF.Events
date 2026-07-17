@@ -1,0 +1,196 @@
+@model EditEventModel.EventModel
+
+<input type="hidden" asp-for="Id" data-upload-id="@Model.UploadSessionId"/>
+
+<ul class="nav nav-tabs mb-4" id="eventEditorTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab" aria-controls="basic" aria-selected="true">Basic Info</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="travel-accommodation-tab" data-bs-toggle="tab" data-bs-target="#travel-accommodation" type="button" role="tab" aria-controls="travel-accommodation" aria-selected="false">Travel & Accommodation</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="donation-tab" data-bs-toggle="tab" data-bs-target="#donation" type="button" role="tab" aria-controls="donation" aria-selected="false">Donations</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="schedule-tab" data-bs-toggle="tab" data-bs-target="#schedule" type="button" role="tab" aria-controls="schedule" aria-selected="false">Schedule</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="faq-tab" data-bs-toggle="tab" data-bs-target="#faq" type="button" role="tab" aria-controls="faq" aria-selected="false">FAQ</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="technical-tab" data-bs-toggle="tab" data-bs-target="#technical" type="button" role="tab" aria-controls="technical" aria-selected="false">Technical</button>
+    </li>
+</ul>
+
+<div class="tab-content" id="eventEditorTabsContent">
+    <!-- Basic Info Tab -->
+    <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="basic-tab">
+        <div class="row">
+            <div class="col-12 col-md-4">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Event Name</label>
+                    <input asp-for="Name" class="form-control" placeholder="Wedding"/>
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-bold">Start Date</label>
+                        <input asp-for="StartDate" type="date" class="form-control"/>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-bold">End Date</label>
+                        <input asp-for="EndDate" type="date" class="form-control"/>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Location</label>
+                    <input asp-for="Location" class="form-control" placeholder="Grand Hotel"/>
+                    <span asp-validation-for="Location" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Description</label>
+                    <textarea asp-for="Description" class="form-control rte-editor visually-hidden" placeholder="Begin writing or select other block type..."></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Travel & Accommodation Tab -->
+    <div class="tab-pane fade" id="travel-accommodation" role="tabpanel" aria-labelledby="travel-accommodation-tab">
+        <div class="row">
+            <div class="col-12 col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Travel Instructions</label>
+                    <textarea asp-for="TravelInstructions" class="form-control rte-editor visually-hidden" placeholder="Begin writing or select other block type..."></textarea>
+                    <span asp-validation-for="TravelInstructions" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-12 col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Accommodation Details</label>
+                    <textarea asp-for="AccommodationDetails" class="form-control" rows="3"></textarea>
+                    <div class="form-text">Descriptive text explaining on how to book accommodation.</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Booking Links</label>
+                    <input asp-for="BookingLinks" value="@string.Join(", ", Model.BookingLinks)" class="form-control tag-select" autocomplete="off" placeholder="Add booking links..."/>
+                    <div class="form-text">Supports phone numbers, emails, and web links</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Accommodation/Booking Codes</label>
+                    <input asp-for="AccommodationCodes" value="@string.Join(", ", Model.AccommodationCodes)" class="form-control tag-select" autocomplete="off" data-placeholder="Add codes..."/>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Donations Tab -->
+    <div class="tab-pane fade" id="donation" role="tabpanel" aria-labelledby="donation-tab">
+        <div class="mb-3">
+            <label class="form-label fw-bold">Donation Type</label>
+            <div class="d-flex gap-3 mt-2">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" asp-for="DonationType" id="donationTypeNone" value="@EditEventModel.DonationType.None">
+                    <label class="form-check-label" for="donationTypeNone">None</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" asp-for="DonationType" id="donationTypeIban" value="@EditEventModel.DonationType.Iban">
+                    <label class="form-check-label" for="donationTypeIban">IBAN</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" asp-for="DonationType" id="donationTypeLink" value="@EditEventModel.DonationType.Link">
+                    <label class="form-check-label" for="donationTypeLink">Link</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="donationIbanWrapper" style="display: @(Model.DonationType is EditEventModel.DonationType.Iban ? "block" : "none")" class="mb-3 w-50 me-auto">
+            <label class="form-label fw-bold">Donation IBAN</label>
+            <input asp-for="DonationIban" class="form-control"/>
+            <div class="form-text">If set, the event will be eligible for donations.</div>
+        </div>
+
+        <div id="donationLinkWrapper" style="display: @(Model.DonationType is EditEventModel.DonationType.Link ? "block" : "none")" class="mb-3 w-50 me-auto">
+            <label class="form-label fw-bold">Donation Link</label>
+            <input asp-for="DonationLink" class="form-control"/>
+            <div class="form-text">If set, the event will be eligible for donations via an external service.</div>
+        </div>
+    </div>
+
+    <!-- Schedule Tab -->
+    <div class="tab-pane fade" id="schedule" role="tabpanel" aria-labelledby="schedule-tab">
+        <h3 class="h5">Event Schedule</h3>
+        <div id="schedule-container">
+            @for (var i = 0; i < Model.ScheduleSteps.Count; i++)
+            {
+                <div class="row mb-2 schedule-row">
+                    <div class="col-md-2">
+                        <input asp-for="ScheduleSteps[i].Day" class="form-control" placeholder="Day"/>
+                    </div>
+                    <div class="col-md-3">
+                        <input asp-for="ScheduleSteps[i].TimeStamp" type="time" class="form-control"/>
+                    </div>
+                    <div class="col-md-5">
+                        <input asp-for="ScheduleSteps[i].Label" class="form-control" placeholder="Label"/>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-danger remove-row w-100">Remove</button>
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="d-flex justify-content-center">
+            <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-schedule">Add Step</button>
+        </div>
+    </div>
+
+    <!-- FAQ Tab -->
+    <div class="tab-pane fade" id="faq" role="tabpanel" aria-labelledby="faq-tab">
+        <h3 class="h5">Event FAQ</h3>
+        <div id="faq-container">
+            @for (var i = 0; i < Model.FaqItems.Count; i++)
+            {
+                <div class="mb-3 faq-row border p-2">
+                    <div class="mb-2">
+                        <input asp-for="FaqItems[i].Question" class="form-control" placeholder="Question"/>
+                    </div>
+                    <div class="mb-2">
+                        <textarea asp-for="FaqItems[i].Answer" class="form-control" placeholder="Answer"></textarea>
+                    </div>
+                    <button type="button" class="btn btn-danger btn-sm remove-row">Remove</button>
+                </div>
+            }
+        </div>
+        <div class="d-flex justify-content-center">
+            <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-faq">Add FAQ</button>
+        </div>
+    </div>
+
+    <!-- Technical Tab -->
+    <div class="tab-pane fade" id="technical" role="tabpanel" aria-labelledby="technical-tab">
+        <div class="row">
+            <div class="col-12 col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Save the Date Email Template ID</label>
+                    <input asp-for="SaveDateEmailTemplateId" class="form-control"/>
+                    <div class="form-text">If set, the event will be eligible for 'Save the Date' emails using this template.</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Invitation Email Template ID</label>
+                    <input asp-for="InvitationEmailTemplateId" class="form-control"/>
+                    <div class="form-text">If set, the event will be eligible for 'Invite' emails using this template.</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Max Participants per RSVP</label>
+                    <input asp-for="MaxParticipantsPerRsvp" type="number" class="form-control" min="1"/>
+                    <div class="form-text">The maximum number of people that can be added to a single RSVP.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

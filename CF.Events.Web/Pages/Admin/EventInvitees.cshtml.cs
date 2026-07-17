@@ -1,7 +1,9 @@
 ﻿using CF.Events.Web.Data;
 using CF.Events.Web.Models;
 using CF.Events.Web.Models.Requests;
+using CF.Events.Web.Infrastructure.ModelBinders;
 using CF.Events.Web.Services;
+using CF.Events.Web.Pages.Events;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -198,7 +200,7 @@ public class EventInviteesModel(
             return RedirectToPage(new { id });
         }
 
-        await inviteService.SendImmediateEmails(requests);
+        await inviteService.SendBatchedEmails(requests);
 
         toastNotification.AddSuccessToastMessage($"Successfully sent {requests.Count} Save the Date emails");
 
@@ -217,6 +219,155 @@ public class EventInviteesModel(
         else toastNotification.AddSuccessToastMessage($"Invitation validity set to {inviteValidity} days");
 
         return RedirectToPage(new { id });
+    }
+
+    public async Task<IActionResult> OnPostUpdateAccommodationCodeAsync(int id, string userId, string? accommodationCode)
+    {
+        var userEvent = await db.EventUsers.FirstOrDefaultAsync(r => r.EventId == id && r.UserId == userId);
+        if (userEvent is null)
+        {
+            toastNotification.AddWarningToastMessage("Invitee not found");
+            return RedirectToPage(new { id });
+        }
+
+        userEvent.AssignedAccommodationCode = string.IsNullOrWhiteSpace(accommodationCode) ? null : accommodationCode;
+        await db.SaveChangesAsync();
+
+        toastNotification.AddSuccessToastMessage("Accommodation code updated");
+        return RedirectToPage(new { id });
+    }
+
+    public async Task<IActionResult> OnGetAdminRsvpFormAsync(int id, string userId)
+    {
+        var user = await db.Users.Include(u => u.GuestGroup).FirstAsync(u => u.Id == userId);
+        var participants = user.GuestGroup?.Participants ?? (user.DisplayName != null ? [user.DisplayName] : []);
+
+        var rsvp = await db.Rsvps
+            .Include(r => r.ParticipantsDiets)
+            .Include(r => r.ParticipantsAttendance)
+            .FirstOrDefaultAsync(r => r.EventId == id && r.UserId == userId);
+
+        var eventData = await db.Events.FirstAsync(e => e.Id == id);
+
+        var model = new RsvpModel.InputModel
+        {
+            Participants = participants,
+            Attending = rsvp?.Attending ?? true,
+            ParticipantsAttendance = rsvp?.ParticipantsAttendance ?? [],
+            ParticipantsDiets = rsvp?.ParticipantsDiets ?? [],
+            Comments = rsvp?.Comments
+        };
+
+        return Partial("Shared/_AdminRsvpForm", (eventData, userId, model));
+    }
+
+    public async Task<IActionResult> OnPostAdminRsvpAsync(int id, string userId, RsvpModel.InputModel newRsvp)
+    {
+        var @event = await db.Events.FindAsync(id);
+        if (@event is null)
+        {
+            toastNotification.AddErrorToastMessage("Event not found");
+            return RedirectToPage(new { id });
+        }
+
+        if (newRsvp.Attending && newRsvp.Participants.Count > @event.MaxParticipantsPerRsvp)
+        {
+            toastNotification.AddErrorToastMessage($"Maximum {@event.MaxParticipantsPerRsvp} participants allowed per RSVP.");
+            return RedirectToPage(new { id });
+        }
+
+        var rsvp = await db.Rsvps
+            .Include(r => r.ParticipantsDiets)
+            .Include(r => r.ParticipantsAttendance)
+            .FirstOrDefaultAsync(r => r.EventId == id && r.UserId == userId);
+
+        if (rsvp is null)
+        {
+            rsvp = new Rsvp { EventId = id, UserId = userId };
+            db.Rsvps.Add(rsvp);
+        }
+
+        rsvp.Attending = newRsvp.Attending;
+        rsvp.SubmittedAt = DateTime.UtcNow;
+
+        if (newRsvp.Attending)
+        {
+            // Handle attendance update
+            var attendanceToDelete = await db.ParticipantsAttendance.Where(pa => pa.EventId == id && pa.UserId == userId).ToListAsync();
+            db.ParticipantsAttendance.RemoveRange(attendanceToDelete);
+
+            rsvp.ParticipantsAttendance = newRsvp.ParticipantsAttendance.Select(pa => new ParticipantAttendance
+            {
+                EventId = id,
+                UserId = userId,
+                ParticipantName = pa.ParticipantName,
+                AttendingDays = pa.AttendingDays
+            }).ToList();
+
+            // Handle dietary options update
+            var dietsToDelete = await db.ParticipantsDiets.Where(pd => pd.EventId == id && pd.UserId == userId).ToListAsync();
+            db.ParticipantsDiets.RemoveRange(dietsToDelete);
+
+            rsvp.ParticipantsDiets = newRsvp.ParticipantsDiets.Select(o => new ParticipantDiet
+            {
+                EventId = id,
+                UserId = userId,
+                ParticipantName = o.ParticipantName,
+                Restrictions = o.Restrictions,
+                OtherDetails = o.OtherDetails
+            }).ToList();
+
+            rsvp.Comments = newRsvp.Comments;
+        }
+        else
+        {
+            var attendanceToDelete = await db.ParticipantsAttendance.Where(pa => pa.EventId == id && pa.UserId == userId).ToListAsync();
+            db.ParticipantsAttendance.RemoveRange(attendanceToDelete);
+            rsvp.ParticipantsAttendance = [];
+
+            var dietsToDelete = await db.ParticipantsDiets.Where(pd => pd.EventId == id && pd.UserId == userId).ToListAsync();
+            db.ParticipantsDiets.RemoveRange(dietsToDelete);
+            rsvp.ParticipantsDiets = [];
+        }
+
+        await db.SaveChangesAsync();
+
+        toastNotification.AddSuccessToastMessage($"RSVP updated for guest");
+        return RedirectToPage(new { id });
+    }
+
+    public async Task<IActionResult> OnPostBulkUpdateAccommodationCodesAsync(int id, [ModelBinder(typeof(JsonModelBinder))] Dictionary<string, string?> updates)
+    {
+        if (updates.Count <= 0)
+        {
+            toastNotification.AddWarningToastMessage("No updates to save");
+            return RedirectToPage(new { id });
+        }
+
+        var userIds = updates.Keys;
+        var userEvents = await db.EventUsers
+            .Where(r => r.EventId == id && userIds.Contains(r.UserId))
+            .ToListAsync();
+
+        foreach (var userEvent in userEvents)
+        {
+            if (updates.TryGetValue(userEvent.UserId, out var code))
+                userEvent.AssignedAccommodationCode = string.IsNullOrWhiteSpace(code) ? null : code;
+        }
+
+        await db.SaveChangesAsync();
+
+        toastNotification.AddSuccessToastMessage("Accommodation codes updated successfully");
+        return RedirectToPage(new { id });
+    }
+
+    public List<SelectListItem> GetAccommodationCodes(string? currentCode)
+    {
+        var list = EventData.AccommodationCodes
+            .Select(ac => new SelectListItem(ac, ac, ac == currentCode))
+            .ToList();
+        list.Insert(0, new SelectListItem("none", "", string.IsNullOrEmpty(currentCode)));
+        return list;
     }
 
     public record InviteeRow(string UserId, string DisplayName, string Email, string? AssignedAccommodationCode, AttendanceStatus Status, bool InvitationEmailSent, bool SaveTheDateSent, DateTime? ScheduledFor);

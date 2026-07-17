@@ -6,6 +6,7 @@ using CF.Events.Web.Models;
 using CF.Events.Web.Models.Requests;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web.Services;
 
@@ -13,7 +14,7 @@ public interface IInvitationService
 {
     AppSettings AppSettings { get; }
     Task<int> ProcessPendingEmails(CancellationToken ctx = default);
-    Task SendImmediateEmails<T>(List<T> requests, CancellationToken ctx = default) where T : class, IEmailRequest;
+    Task SendBatchedEmails<T>(List<T> requests, CancellationToken ctx = default) where T : class, IEmailRequest;
     Task SendEmail<T>(T request, CancellationToken ctx = default) where T : class, IEmailRequest;
     Task<int> InviteUsersAsync(int eventId, UsersInviteRequest inviteRequest, CancellationToken ctx = default);
     Task ResendInvitesAsync(int eventId, List<string> userIds, CancellationToken ctx = default);
@@ -83,13 +84,16 @@ public class InvitationService(
 
         logger.LogInformation("Processing {Count} pending {Type} emails", pending.Count, typeof(T).Name);
 
-        await SendImmediateEmails(pending, ctx);
+        await SendBatchedEmails(pending, ctx);
 
         return pending.Count;
     }
 
-    public async Task SendImmediateEmails<T>(List<T> requests, CancellationToken ctx = default) where T : class, IEmailRequest
+    public async Task SendBatchedEmails<T>(List<T> requests, CancellationToken ctx = default) where T : class, IEmailRequest
     {
+        // filter out requests with non-sendable email addresses
+        requests = requests.Where(r => IsSendableEmail(r.UserEmail)).ToList();
+
         if (requests.Count == 0) return;
 
         var batchSize = _appSettings.EmailBatchSize ?? int.MaxValue;
@@ -221,7 +225,7 @@ public class InvitationService(
         }
         await db.SaveChangesAsync(ctx);
 
-        await SendImmediateEmails(newInvitations, ctx);
+        await SendBatchedEmails(newInvitations, ctx);
 
         return count;
     }
@@ -267,7 +271,7 @@ public class InvitationService(
         await db.SaveChangesAsync(ctx);
 
         if (requests.Count > 0)
-            await SendImmediateEmails(requests, ctx);
+            await SendBatchedEmails(requests, ctx);
     }
 
     private async Task PrepareInvitationAsync(IEmailRequest request, CancellationToken ctx = default)
@@ -283,4 +287,6 @@ public class InvitationService(
         var baseUrl = _appSettings.BaseUrl.TrimEnd('/');
         request.CallBackUrl = $"{baseUrl}/events/invite-callback?code={code}&eventId={request.EventId}";
     }
+
+    private static bool IsSendableEmail(string email) => !email.EndsWith($"@{Email.NonSendableEmail}");
 }

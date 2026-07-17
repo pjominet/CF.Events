@@ -106,7 +106,7 @@
             form.action = form.dataset.resendUrl;
         } else if (actionType === 'remove') {
             form.action = form.dataset.removeUrl;
-        } else if (actionType === 'save-the-date') {
+        } else if (actionType === 'save-date') {
             form.action = form.dataset.saveTheDateUrl;
         }
 
@@ -118,34 +118,140 @@
     const adminRsvpContainer = document.getElementById('_rsvpResponsesContainer');
     if (adminRsvpContainer) {
         document.addEventListener('click', async function (e) {
-            const btn = e.target.closest('button[data-admin-rsvp-user-id]');
-            if (!btn) return;
+            // View RSVP Details
+            const viewBtn = e.target.closest('button[data-admin-rsvp-user-id]');
+            if (viewBtn) {
+                const userId = viewBtn.dataset.adminRsvpUserId;
+                const eventId = viewBtn.dataset.adminRsvpEventId;
+                if (!userId || !eventId) return;
 
-            const userId = btn.dataset.adminRsvpUserId;
-            const eventId = btn.dataset.adminRsvpEventId;
-            if (!userId || !eventId) return;
+                try {
+                    viewBtn.disabled = true;
+                    const response = await fetch(`/events/${eventId}/rsvp-responses/${userId}`, {
+                        headers: {'X-Requested-With': 'XMLHttpRequest'}
+                    });
 
-            try {
-                btn.disabled = true;
-                const response = await fetch(`/events/${eventId}/rsvp-responses/${userId}`, {
-                    headers: {'X-Requested-With': 'XMLHttpRequest'}
-                });
+                    if (response.ok) {
+                        adminRsvpContainer.innerHTML = await response.text();
 
-                if (response.ok) {
-                    adminRsvpContainer.innerHTML = await response.text();
-
-                    const modalEl = document.getElementById('adminRsvpModal');
-                    if (modalEl) {
-                        const modal = new bootstrap.Modal(modalEl);
-                        modal.show();
+                        const modalEl = document.getElementById('adminRsvpModal');
+                        if (modalEl) {
+                            const modal = new bootstrap.Modal(modalEl);
+                            modal.show();
+                        }
                     }
+                } catch (error) {
+                    console.error('Error fetching admin RSVP details:', error);
+                } finally {
+                    viewBtn.disabled = false;
                 }
-            } catch (error) {
-                console.error('Error fetching admin RSVP details:', error);
-            } finally {
-                btn.disabled = false;
+                return;
+            }
+
+            // RSVP on behalf
+            const behalfBtn = e.target.closest('button[data-admin-rsvp-behalf-user-id]');
+            if (behalfBtn) {
+                const userId = behalfBtn.dataset.adminRsvpBehalfUserId;
+                const eventId = behalfBtn.dataset.adminRsvpBehalfEventId;
+                if (!userId || !eventId) return;
+
+                try {
+                    behalfBtn.disabled = true;
+                    const response = await fetch(`${window.location.pathname}?handler=AdminRsvpForm&id=${eventId}&userId=${userId}`, {
+                        headers: {'X-Requested-With': 'XMLHttpRequest'}
+                    });
+
+                    if (response.ok) {
+                        adminRsvpContainer.innerHTML = await response.text();
+                        const modalEl = document.getElementById('adminRsvpModal');
+                        if (modalEl) {
+                            initAdminRsvpModal(modalEl);
+                            const modal = new bootstrap.Modal(modalEl);
+                            modal.show();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching admin RSVP form:', error);
+                } finally {
+                    behalfBtn.disabled = false;
+                }
             }
         });
+    }
+
+    function initAdminRsvpModal(modalEl) {
+        const form = modalEl.querySelector('#adminRsvpForm');
+        const attendingFields = modalEl.querySelector('#admin-attending-fields');
+        const participantContainer = modalEl.querySelector('#participant-container');
+        const addBtn = modalEl.querySelector('#add-participant');
+
+        // Toggle attending fields
+        modalEl.querySelectorAll('input[name="NewRsvp.Attending"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                attendingFields.classList.toggle('d-none', e.target.value === 'false');
+            });
+        });
+
+        // Add participant
+        if (addBtn) {
+            addBtn.addEventListener('click', () => {
+                const index = participantContainer.querySelectorAll('.participant-row').length;
+                const row = document.createElement('div');
+                row.className = 'row g-2 mb-2 participant-row';
+                row.innerHTML = `
+                    <div class="col">
+                        <input name="NewRsvp.Participants[${index}]" class="form-control participant-input" placeholder="Participant Name" required />
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-outline-danger remove-participant"><i class="bi bi-x-lg"></i></button>
+                    </div>
+                `;
+                participantContainer.appendChild(row);
+                // Participants changed, update other lists
+                if (window.rsvpShared) {
+                    window.rsvpShared.updateParticipantSelections(modalEl);
+                }
+            });
+        }
+
+        if (participantContainer) {
+            participantContainer.addEventListener('click', (e) => {
+                if (e.target.closest('.remove-participant')) {
+                    e.target.closest('.participant-row').remove();
+                    if (window.rsvpShared) {
+                        window.rsvpShared.updateParticipantSelections(modalEl);
+                    }
+                }
+            });
+
+            participantContainer.addEventListener('input', (e) => {
+                if (e.target.classList.contains('participant-input')) {
+                    if (window.rsvpShared) {
+                        window.rsvpShared.updateParticipantSelections(modalEl);
+                    }
+                }
+            });
+        }
+
+        // Initialize shared rsvp logic
+        if (window.rsvpShared) {
+            if (window.siteHelpers && window.siteHelpers.initMultiSelects) {
+                window.siteHelpers.initMultiSelects(modalEl);
+            }
+            window.rsvpShared.initDayCheckboxes(modalEl);
+            window.rsvpShared.initDietarySwitches(modalEl);
+
+            // Populate participant options if they already exist (e.g. editing)
+            window.rsvpShared.updateParticipantSelections(modalEl);
+
+            form?.addEventListener('submit', function (e) {
+                // Ensure participants are up to date for dietary/attendance?
+                // Actually we need to make sure the hidden inputs for attendance are generated.
+                if (window.rsvpShared.prepareAttendanceInputs) {
+                    window.rsvpShared.prepareAttendanceInputs(this, this.querySelector('#participant-attendance'));
+                }
+            });
+        }
     }
 
     // Export Excel with loading spinner
@@ -183,5 +289,64 @@
             const modalEventIdInput = setInviteValidityModal.querySelector('#modalEventId');
             modalEventIdInput.value = eventId;
         });
+    }
+
+    // Bulk Accommodation Code Updates tracking
+    const accommodationSelects = document.querySelectorAll('.accommodation-select');
+    const saveAccommodationBtn = document.getElementById('saveAccommodationBtn');
+
+    if (accommodationSelects.length > 0 && saveAccommodationBtn) {
+        const bulkAccommodationForm = document.getElementById('bulkAccommodationForm');
+        const updatesInput = document.getElementById('bulkAccommodationUpdates');
+
+        accommodationSelects.forEach(select => {
+            select.addEventListener('change', function () {
+                const originalValue = this.dataset.originalValue || '';
+                const currentValue = this.value;
+
+                if (currentValue !== originalValue) {
+                    this.classList.add('border-info');
+                } else {
+                    this.classList.remove('border-info');
+                }
+
+                updateUpdatesInput();
+                updateSaveButtonVisibility();
+            });
+        });
+
+        if (bulkAccommodationForm) {
+            bulkAccommodationForm.addEventListener('submit', function () {
+                showLoadingOverlay();
+            });
+        }
+
+        function updateUpdatesInput() {
+            if (!updatesInput) return;
+
+            const updates = {};
+            accommodationSelects.forEach(select => {
+                const originalValue = select.dataset.originalValue || '';
+                if (select.value !== originalValue) {
+                    const userId = select.name.match(/\[(.*?)\]/)[1];
+                    updates[userId] = select.value;
+                }
+            });
+
+            updatesInput.value = JSON.stringify(updates);
+        }
+
+        function updateSaveButtonVisibility() {
+            const anyModified = Array.from(accommodationSelects).some(select => {
+                const originalValue = select.dataset.originalValue || '';
+                return select.value !== originalValue;
+            });
+
+            if (anyModified) {
+                saveAccommodationBtn.classList.remove('d-none');
+            } else {
+                saveAccommodationBtn.classList.add('d-none');
+            }
+        }
     }
 })();

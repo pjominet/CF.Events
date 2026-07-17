@@ -15,6 +15,9 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
     public DbSet<ParticipantDiet> ParticipantsDiets => Set<ParticipantDiet>();
     public DbSet<ParticipantAttendance> ParticipantsAttendance => Set<ParticipantAttendance>();
     public DbSet<GuestGroup> GuestGroups => Set<GuestGroup>();
+    public DbSet<EventFaqItem> EventFaq => Set<EventFaqItem>();
+    public DbSet<EventScheduleStep> EventSchedule => Set<EventScheduleStep>();
+    public DbSet<EventImage> EventImages => Set<EventImage>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -63,6 +66,24 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
             e.Property(r => r.AccommodationCodes).HasMaxLength(1000);
         });
 
+        builder.Entity<EventFaqItem>(e =>
+        {
+            e.HasOne(r => r.Event)
+                .WithMany(r => r.EventFaq)
+                .HasForeignKey(r => r.EventId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+        });
+
+        builder.Entity<EventScheduleStep>(e =>
+        {
+            e.HasOne(r => r.Event)
+                .WithMany(r => r.EventSchedule)
+                .HasForeignKey(r => r.EventId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+        });
+
         builder.Entity<EventUser>(e =>
         {
             e.HasKey(r => new { r.EventId, r.UserId });
@@ -89,6 +110,17 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
+        });
+
+        builder.Entity<EventImage>(e =>
+        {
+            e.HasOne(r => r.Event)
+                .WithMany(r => r.EventImages)
+                .HasForeignKey(r => r.EventId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
+
+            e.HasIndex(r => new { r.EventId, r.FileName }).IsUnique();
         });
 
         builder.Entity<GuestGroup>(e =>

@@ -1,0 +1,37 @@
+﻿@model (List<string> Participants, List<ParticipantDiet> ParticipantsDiets)
+
+<div id="dietary-participants-container">
+    @for (var i = 0; i < Model.Participants.Count; i++)
+    {
+        var p = Model.Participants[i];
+        var opt = Model.ParticipantsDiets.FirstOrDefault(d => d.ParticipantName == p);
+        var hasOptions = opt?.Restrictions.Any() == true || !string.IsNullOrWhiteSpace(opt?.OtherDetails);
+        <div class="mb-3 p-3 border rounded bg-white dietary-participant-row">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong class="participant-name-label">@p</strong>
+                <input type="hidden" name="NewRsvp.ParticipantsDiets[@i].ParticipantName" value="@p" />
+                <div class="form-check form-switch">
+                    <input class="form-check-input has-dietary-switch" type="checkbox" id="hasDietary_@i" @(hasOptions ? "checked" : "")>
+                    <label class="form-check-label" for="hasDietary_@i">Dietary Needs</label>
+                </div>
+            </div>
+            <div class="dietary-options-wrapper @(hasOptions ? "" : "d-none")">
+                <select name="NewRsvp.ParticipantsDiets[@i].Restrictions" class="form-select tom-select dietary-options-select" multiple placeholder="Select options...">
+                    @foreach (var option in Enum.GetValues<DietaryRestrictions>())
+                    {
+                        if (option is DietaryRestrictions.None) continue;
+                        <option value="@option" selected="@(opt?.Restrictions.Contains(option) == true ? "selected" : null)">@option</option>
+                    }
+                </select>
+                <textarea name="NewRsvp.ParticipantsDiets[@i].OtherDetails" class="form-control mt-2" maxlength="500" placeholder="Other dietary details or allergies..." rows="2">@opt?.OtherDetails</textarea>
+            </div>
+        </div>
+    }
+</div>
+<div id="dietary-options-template" class="d-none">
+    @foreach (var option in Enum.GetValues<DietaryRestrictions>())
+    {
+        if (option is DietaryRestrictions.None) continue;
+        <option value="@option">@option</option>
+    }
+</div>

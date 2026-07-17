@@ -1,0 +1,30 @@
+@page "{id:int?}"
+@model EditEventModel
+@{
+    ViewData["Title"] = Model.Event.Id == 0 ? "Create Event" : $"Edit Event: {Model.Event.Name}";
+}
+
+<div class="container-fluid px-md-4 mb-3">
+    <h1 class="mt-4">@ViewData["Title"]</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a asp-page="/Admin/Dashboard">Dashboard</a></li>
+        <li class="breadcrumb-item"><a asp-page="/Admin/Events">Events</a></li>
+        <li class="breadcrumb-item active">@(Model.Event.Id == 0 ? "Create" : Model.Event.Name)</li>
+    </ol>
+
+    <form method="post" enctype="multipart/form-data" id="eventForm">
+        <partial name="Shared/_EventEditor" for="Event"/>
+        <div class="event-form-actions">
+            <a asp-page="/Admin/Events" class="btn btn-secondary">Back</a>
+            <button type="submit" class="btn btn-primary" id="saveButton">
+                <i class="fas fa-save me-1"></i> Save Event
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <partial name="_RteScripts" />
+    <script src="~/js/event-editor.js" asp-append-version="true"></script>
+}

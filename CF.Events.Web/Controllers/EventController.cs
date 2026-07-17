@@ -46,25 +46,23 @@ public class EventController(
         }
     }
 
-    [HttpGet("{eventId:int}/asset")]
-    public async Task<IActionResult> GetInvitationAsset([FromRoute] int eventId)
+    [HttpGet("{folderName}/image/{fileName}")]
+    public async Task<IActionResult> GetEventImage([FromRoute] string folderName, [FromRoute] string fileName)
     {
         var userId = User.GetId();
-        var isInvited = await db.EventUsers.AnyAsync(r => r.EventId == eventId && r.UserId == userId);
+        bool isInvited;
+
+        if (int.TryParse(folderName, out var eventId))
+            isInvited = await db.EventUsers.AnyAsync(r => r.EventId == eventId && r.UserId == userId);
+        else isInvited = false;
+
         if (!isInvited && !User.IsAdmin())
             return Forbid();
 
-        var ev = await db.Events.FindAsync(eventId);
-        if (ev is null || string.IsNullOrEmpty(ev.InvitationFileName))
-            return NotFound();
+        var eventsRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources", "Events"));
+        var requested = Path.GetFullPath(Path.Combine(eventsRoot, folderName, fileName));
 
-        // The full path is built dynamically from the event ID (folder) and the
-        // stored technical file name.
-        var invitationsRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources", "Invitations"));
-        var requested = Path.GetFullPath(Path.Combine(invitationsRoot, eventId.ToString(), ev.InvitationFileName));
-
-        // Prevent path traversal outside the invitations folder.
-        if (!requested.StartsWith(invitationsRoot + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+        if (!requested.StartsWith(eventsRoot + Path.DirectorySeparatorChar, StringComparison.Ordinal))
             return Forbid();
 
         if (!System.IO.File.Exists(requested))
@@ -137,14 +135,15 @@ public class EventController(
 
         if (rsvp is null) return NotFound();
 
+        var guestGroup = await db.GuestGroups.FirstOrDefaultAsync(gg => gg.GuestUserId == userId);
+
         var model = new RsvpResponses
         {
+            GuestGroup = guestGroup?.Label ?? "Guest Group",
             ParticipantsAttendance = rsvp.ParticipantsAttendance,
             ParticipantsDiets = rsvp.ParticipantsDiets,
             Comments = rsvp.Comments
         };
-
-        ViewData[ViewDataKeys.GuestGroupLabel] = await db.GuestGroups.FirstOrDefaultAsync(gg => gg.GuestUserId == userId);
 
         return PartialView("~/Pages/Admin/Shared/_RsvpResponsesModal.cshtml", model);
     }

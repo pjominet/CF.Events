@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     /* Colors */
     --primary-color: #3e523e;
     --secondary-color: #d68d8d;
@@ -120,7 +120,7 @@ h1:focus {
 }
 
 .ts-dropdown {
-    z-index: 1050;
+    z-index: 2000;
 }
 
 #invitesGrid {
@@ -230,6 +230,12 @@ h1:focus {
     }
 }
 
+.event-form-actions {
+    padding: 5px;
+    display: flex;
+    justify-content: space-between;
+}
+
 /* loading spinner */
 .loader {
     --color-1: var(--bg-page);
@@ -328,4 +334,9 @@ h1:focus {
 .loading-overlay.active {
     opacity: 1;
     visibility: visible;
+}
+
+/* rte-editor customisation */
+.codex-editor__redactor {
+    padding-bottom: 0 !important;
 }

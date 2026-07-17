@@ -4,6 +4,7 @@ using CF.Events.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,14 +12,16 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CF.Events.Web.Data.Migrations
 {
     [DbContext(typeof(EventsDbContext))]
-    partial class EventsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260716091351_ChangedEventDataImageHandling")]
+    partial class ChangedEventDataImageHandling
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("app")
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -182,9 +185,6 @@ namespace CF.Events.Web.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<int>("MaxParticipantsPerRsvp")
-                        .HasColumnType("int");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -231,33 +231,6 @@ namespace CF.Events.Web.Data.Migrations
                     b.HasIndex("EventId");
 
                     b.ToTable("EventFaq", "app");
-                });
-
-            modelBuilder.Entity("CF.Events.Web.Models.EventImage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("EventId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EventId", "FileName")
-                        .IsUnique();
-
-                    b.ToTable("EventImages", "app");
                 });
 
             modelBuilder.Entity("CF.Events.Web.Models.EventScheduleStep", b =>
@@ -632,17 +605,6 @@ namespace CF.Events.Web.Data.Migrations
                     b.Navigation("Event");
                 });
 
-            modelBuilder.Entity("CF.Events.Web.Models.EventImage", b =>
-                {
-                    b.HasOne("CF.Events.Web.Models.Event", "Event")
-                        .WithMany("EventImages")
-                        .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Event");
-                });
-
             modelBuilder.Entity("CF.Events.Web.Models.EventScheduleStep", b =>
                 {
                     b.HasOne("CF.Events.Web.Models.Event", "Event")
@@ -793,8 +755,6 @@ namespace CF.Events.Web.Data.Migrations
                     b.Navigation("BookingLinks");
 
                     b.Navigation("EventFaq");
-
-                    b.Navigation("EventImages");
 
                     b.Navigation("EventSchedule");
 
