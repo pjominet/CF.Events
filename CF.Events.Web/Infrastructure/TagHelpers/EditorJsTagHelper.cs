@@ -32,6 +32,7 @@ public class EditorJsTagHelper(HtmlRenderer htmlRenderer, IHtmlParser parser) : 
 
             var renderer = new EjsHtmlRenderer(htmlRenderer);
             var html = await renderer.ParseAsync(Input);
+            html = await ApplyImageSrcAsync(html, Input);
             html = await ApplyImageTunesAsync(html, Input);
 
             output.Content.SetHtmlContent(html);
@@ -40,6 +41,53 @@ public class EditorJsTagHelper(HtmlRenderer htmlRenderer, IHtmlParser parser) : 
         {
             // If conversion fails, return original string
             output.Content.SetHtmlContent(Input);
+        }
+    }
+
+    private async Task<string> ApplyImageSrcAsync(string html, string json)
+    {
+        try
+        {
+            using var jsonDoc = JsonDocument.Parse(json);
+            if (!jsonDoc.RootElement.TryGetProperty("blocks", out var blocks) || blocks.ValueKind is not JsonValueKind.Array)
+                return html;
+
+            var imageBlocks = blocks.EnumerateArray()
+                .Where(b => b.GetProperty("type").GetString() == "image")
+                .ToList();
+
+            if (imageBlocks.Count == 0) return html;
+
+            using var document = await parser.ParseDocumentAsync(html);
+            var images = document.QuerySelectorAll("img").ToList();
+
+            if (images.Count == 0) return html;
+
+            for (var i = 0; i < Math.Min(imageBlocks.Count, images.Count); i++)
+            {
+                var block = imageBlocks[i];
+                var img = images[i];
+
+                // If src is already present, we might not want to override it,
+                // but the issue is that it's MISSING or empty.
+                if (!string.IsNullOrEmpty(img.GetAttribute("src"))) continue;
+
+                var data = block.GetProperty("data");
+                if (data.TryGetProperty("file", out var file) && file.TryGetProperty("url", out var url))
+                {
+                    img.SetAttribute("src", url.GetString());
+                }
+                else if (data.TryGetProperty("url", out var directUrl))
+                {
+                    img.SetAttribute("src", directUrl.GetString());
+                }
+            }
+
+            return document.Body?.InnerHtml ?? document.Source.Text;
+        }
+        catch
+        {
+            return html;
         }
     }
 
