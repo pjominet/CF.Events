@@ -169,6 +169,9 @@ public class EditEventModel(
             await db.SaveChangesAsync();
         }
 
+        var currentEventImages = @event.ExtractEventImageFileNames();
+        await fileService.SyncEventImagesAsync(@event.Id, currentEventImages);
+
         toastNotification.AddSuccessToastMessage($"Event {(isNew ? "created" : "updated")} successfully!");
         return Page();
     }

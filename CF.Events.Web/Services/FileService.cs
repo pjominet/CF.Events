@@ -1,41 +1,20 @@
+using CF.Events.Web.Data;
+using CF.Events.Web.Models;
+using Microsoft.EntityFrameworkCore;
+
 namespace CF.Events.Web.Services;
 
 public interface IFileService
 {
-    void DeleteInvitationImage(int eventId, string? fileName = null);
     Task<string> SaveImageAsync(string folderName, IFormFile file);
     Task MoveEventImagesAsync(string fromFolder, int toEventId);
+    Task RegisterImageAsync(int eventId, string fileName);
+    Task SyncEventImagesAsync(int eventId, IEnumerable<string> currentFileNames);
+    Task DeleteEventImagesAsync(int eventId);
 }
 
-public class FileService(IWebHostEnvironment env) : IFileService
+public class FileService(IWebHostEnvironment env, EventsDbContext db, ILogger<FileService> logger) : IFileService
 {
-    public void DeleteInvitationImage(int eventId, string? fileName = null)
-    {
-        try
-        {
-            var invitationsRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources", "Invitations"));
-            var dir = Path.GetFullPath(Path.Combine(invitationsRoot, eventId.ToString()));
-            if (!dir.StartsWith(invitationsRoot + Path.DirectorySeparatorChar, StringComparison.Ordinal))
-                return;
-
-            if (string.IsNullOrEmpty(fileName))
-            {
-                if (Directory.Exists(dir))
-                    Directory.Delete(dir, recursive: true);
-            }
-            else
-            {
-                var filePath = Path.Combine(dir, fileName);
-                if (File.Exists(filePath))
-                    File.Delete(filePath);
-            }
-        }
-        catch
-        {
-            // Best-effort cleanup; ignore filesystem errors during deletion.
-        }
-    }
-
     public async Task<string> SaveImageAsync(string folderName, IFormFile file)
     {
         var eventsRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources", "Events"));
@@ -68,12 +47,79 @@ public class FileService(IWebHostEnvironment env) : IFileService
 
         foreach (var file in Directory.GetFiles(sourceDir))
         {
-            var destFile = Path.Combine(targetDir, Path.GetFileName(file));
+            var fileName = Path.GetFileName(file);
+            var destFile = Path.Combine(targetDir, fileName);
             if (File.Exists(destFile)) File.Delete(destFile);
             File.Move(file, destFile);
+
+            await RegisterImageAsync(toEventId, fileName);
         }
 
         Directory.Delete(sourceDir, true);
         await Task.CompletedTask;
+    }
+
+    public async Task RegisterImageAsync(int eventId, string fileName)
+    {
+        var exists = await db.EventImages.AnyAsync(i => i.EventId == eventId && i.FileName == fileName);
+        if (!exists)
+        {
+            db.EventImages.Add(new EventImage { EventId = eventId, FileName = fileName });
+            await db.SaveChangesAsync();
+        }
+    }
+
+    public async Task SyncEventImagesAsync(int eventId, IEnumerable<string> currentFileNames)
+    {
+        var registeredImages = await db.EventImages
+            .Where(i => i.EventId == eventId)
+            .ToListAsync();
+
+        var toRemove = registeredImages
+            .Where(i => !currentFileNames.Contains(i.FileName, StringComparer.OrdinalIgnoreCase))
+            .ToList();
+
+        if (toRemove.Count > 0)
+        {
+            var eventsRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources", "Events"));
+            var dir = Path.Combine(eventsRoot, eventId.ToString());
+
+            foreach (var img in toRemove)
+            {
+                try
+                {
+                    var filePath = Path.Combine(dir, img.FileName);
+                    if (File.Exists(filePath)) File.Delete(filePath);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Error deleting physical file {FileName} for event {EventId}", img.FileName, eventId);
+                }
+            }
+
+            db.EventImages.RemoveRange(toRemove);
+            await db.SaveChangesAsync();
+        }
+    }
+
+    public async Task DeleteEventImagesAsync(int eventId)
+    {
+        var images = await db.EventImages.Where(i => i.EventId == eventId).ToListAsync();
+        if (images.Count > 0)
+        {
+            db.EventImages.RemoveRange(images);
+            await db.SaveChangesAsync();
+        }
+
+        try
+        {
+            var eventsRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources", "Events"));
+            var dir = Path.Combine(eventsRoot, eventId.ToString());
+            if (Directory.Exists(dir)) Directory.Delete(dir, true);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error deleting image directory for event {EventId}", eventId);
+        }
     }
 }

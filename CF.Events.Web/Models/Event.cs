@@ -49,6 +49,7 @@ public class Event
     public List<BookingLink> BookingLinks { get; set; } = [];
     public List<EventFaqItem> EventFaq { get; set; } = [];
     public List<EventScheduleStep> EventSchedule { get; set; } = [];
+    public List<EventImage> EventImages { get; set; } = [];
 
     // helper
     [NotMapped]
@@ -61,6 +62,4 @@ public class Event
             return Math.Max(1, duration + 1);
         }
     }
-
-    public string GetDonationReference() => $"{Name}{StartDate.Month}{StartDate.Year}";
 }

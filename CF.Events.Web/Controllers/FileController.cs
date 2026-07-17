@@ -18,6 +18,12 @@ public class FileController(IFileService fileService, ILogger<FileController> lo
 
             var url = await fileService.SaveImageAsync(folderName, image);
 
+            if (int.TryParse(folderName, out var eventId))
+            {
+                var fileName = Path.GetFileName(url);
+                await fileService.RegisterImageAsync(eventId, fileName);
+            }
+
             return Json(new
             {
                 success = 1,

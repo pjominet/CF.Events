@@ -1,9 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using CF.Events.Web.Data;
-using CF.Events.Web.Infrastructure.Extensions;
-using CF.Events.Web.Infrastructure.ModelBinders;
+﻿using CF.Events.Web.Data;
 using CF.Events.Web.Models;
 using CF.Events.Web.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -56,7 +51,7 @@ public class EventsModel(
         db.Events.Remove(@event);
         await db.SaveChangesAsync();
 
-        fileService.DeleteInvitationImage(@event.Id);
+        await fileService.DeleteEventImagesAsync(@event.Id);
 
         toastNotification.AddSuccessToastMessage("Event deleted successfully");
         return RedirectToPage();
@@ -69,9 +64,8 @@ public class EventsModel(
             .OrderByDescending(e => e.StartDate)
             .ToListAsync();
 
-        var eventUsers = await db.EventUsers.ToListAsync();
-        InviteeCounts = eventUsers
+        InviteeCounts = await db.EventUsers
             .GroupBy(r => r.EventId)
-            .ToDictionary(g => g.Key, g => g.Count());
+            .ToDictionaryAsync(g => g.Key, g => g.Count());
     }
 }
