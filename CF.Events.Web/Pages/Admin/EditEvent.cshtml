@@ -13,12 +13,12 @@
     </ol>
 
     <form method="post" enctype="multipart/form-data" id="eventForm">
-        <partial name="Shared/_EventEditor" for="Event" />
-        <div class="floating-actions">
+        <partial name="Shared/_EventEditor" for="Event"/>
+        <div class="event-form-actions">
+            <a asp-page="/Admin/Events" class="btn btn-secondary">Back</a>
             <button type="submit" class="btn btn-primary" id="saveButton">
                 <i class="fas fa-save me-1"></i> Save Event
             </button>
-            <a asp-page="/Admin/Events" class="btn btn-secondary">Cancel</a>
         </div>
     </form>
 </div>

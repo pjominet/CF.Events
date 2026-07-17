@@ -9,16 +9,11 @@ function initRichTextEditors() {
         textarea.style.display = 'none';
 
         // Create a container for EditorJS
-        const container = document.createElement('div');
-        container.className = 'rte-container border rounded p-2 bg-light';
-        container.style.minHeight = '200px';
+        const rteContainer = document.createElement('div');
+        rteContainer.className = 'rte-container border rounded p-2 bg-white';
+        rteContainer.style.minHeight = '300px';
 
-        // Add loader
-        const loader = document.createElement('div');
-        loader.className = 'loader';
-        container.appendChild(loader);
-
-        textarea.parentNode.insertBefore(container, textarea.nextSibling);
+        textarea.parentNode.insertBefore(rteContainer, textarea.nextSibling);
 
         let initialData = {};
         if (textarea.value) {
@@ -36,7 +31,7 @@ function initRichTextEditors() {
         const folderName = (objectId === '0' || objectId === 0) && uploadSessionId ? uploadSessionId : objectId;
 
         const editor = new EditorJS({
-            holder: container,
+            holder: rteContainer,
             placeholder: textarea.placeholder || 'Let\'s write an awesome story!',
             data: initialData,
             tools: {
@@ -90,13 +85,6 @@ function initRichTextEditors() {
                 },
                 delimiter: Delimiter,
                 underline: Underline
-            },
-            onReady: () => {
-                // Remove loader when editor is ready
-                const loader = container.querySelector('.loader');
-                if (loader) {
-                    loader.remove();
-                }
             },
             onChange: (api, event) => {
                 editor.save().then((outputData) => {
