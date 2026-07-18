@@ -35,6 +35,8 @@ public class Event
     [StringLength(255)]
     public string? SaveDateTemplateId { get; set; }
 
+    public bool EmailWithLink { get; set; } = false;
+
     public int InviteValidity { get; set; } = 30;
     public int MaxParticipantsPerRsvp { get; set; } = 4;
 

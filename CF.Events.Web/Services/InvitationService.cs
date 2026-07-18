@@ -18,6 +18,7 @@ public interface IInvitationService
     Task SendEmail<T>(T request, CancellationToken ctx = default) where T : class, IEmailRequest;
     Task<int> InviteUsersAsync(int eventId, UsersInviteRequest inviteRequest, CancellationToken ctx = default);
     Task ResendInvitesAsync(int eventId, List<string> userIds, CancellationToken ctx = default);
+    string BuildSaveDateCallbackUrl(int eventId, string userId);
 }
 
 public class InvitationService(
@@ -54,7 +55,8 @@ public class InvitationService(
                 EventStartDate = ue.Event.StartDate.ToString("dd MMMM yyyy"),
                 UserName = ue.User.DisplayName!,
                 UserEmail = ue.User.Email!,
-                TemplateId = ue.Event.SaveDateTemplateId ?? string.Empty
+                TemplateId = ue.Event.SaveDateTemplateId ?? string.Empty,
+                SendWithLink = ue.Event.EmailWithLink
             }, ctx);
 
         return sentInvitations + sentSaveTheDates;
@@ -143,7 +145,9 @@ public class InvitationService(
                     logger.LogWarning("No save the date template ID found for event {EventId}", std.EventId);
                     return;
                 case SaveDateEmailRequest std:
-                    await mailService.SendSaveTheDateAsync(std, ctx);
+                    if (request.SendWithLink)
+                        await mailService.SendSaveTheDateWithLinkAsync(std, ctx);
+                    else await mailService.SendSaveTheDateAsync(std, ctx);
                     await db.EventUsers
                         .Where(ue => ue.EventId == std.EventId && ue.UserId == std.UserId)
                         .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.SaveTheDateEmailSent, true), ctx);
@@ -287,6 +291,12 @@ public class InvitationService(
 
         var baseUrl = _appSettings.BaseUrl.TrimEnd('/');
         request.CallBackUrl = $"{baseUrl}/events/invite-callback?code={code}&eventId={request.EventId}";
+    }
+
+    public string BuildSaveDateCallbackUrl(int eventId, string userId)
+    {
+        var baseUrl = _appSettings.BaseUrl.TrimEnd('/');
+        return $"{baseUrl}/events/{eventId}/{userId}/save-the-date";
     }
 
     private static bool IsSendableEmail(string email) => !email.EndsWith($"@{Email.NonSendableEmail}");

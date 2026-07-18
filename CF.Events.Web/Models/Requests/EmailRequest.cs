@@ -2,6 +2,7 @@ namespace CF.Events.Web.Models.Requests;
 public interface IEmailRequest
 {
     public string TemplateId { get; }
+    public bool SendWithLink { get; set; }
     public int EventId { get; }
     public string EventName { get; }
     public string UserId { get; }
@@ -15,6 +16,7 @@ public interface IEmailRequest
 public class InvitationEmailRequest : IEmailRequest
 {
     public required string TemplateId { get; init; }
+    public bool SendWithLink { get; set; }
     public int EventId { get; init; }
     public required string EventName { get; init; }
     public required string UserId { get; init; }
@@ -28,6 +30,7 @@ public class InvitationEmailRequest : IEmailRequest
 public class SaveDateEmailRequest : IEmailRequest
 {
     public required string TemplateId { get; init; }
+    public bool SendWithLink { get; set; }
     public int EventId { get; init; }
     public required string EventName { get; init; }
     public required string EventStartDate { get; init; }

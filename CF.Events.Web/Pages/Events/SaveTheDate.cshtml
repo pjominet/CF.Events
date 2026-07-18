@@ -1,0 +1,24 @@
+﻿@page "/events/{eventId:int}/{userId}/save-the-date"
+@model CF.Events.Web.Pages.Events.SaveTheDate
+
+@{
+    Layout ="_NoNavLayout";
+}
+
+<section class="invite-page">
+    @if (Model.NotFoundOrForbidden)
+    {
+        <div class="alert alert-danger">
+            <h1>Oops</h1>
+            <p>Seems you are not authorized to see this.</p>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-lg invite-card">
+            <div class="card-body bg-card-custom p-0">
+                <img src="@Model.ImageUrl" alt="Save the date - Wedding Patrick & Éadaoin" class="img-fluid invite-image">
+            </div>
+        </div>
+    }
+</section>

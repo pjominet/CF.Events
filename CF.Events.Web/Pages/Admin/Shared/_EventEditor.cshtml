@@ -175,12 +175,18 @@
         <div class="row">
             <div class="col-12 col-md-6">
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Save the Date Email Template ID</label>
+                    <label class="form-label fw-bold"><i>Save the Date</i> Email Template ID</label>
                     <input asp-for="SaveDateEmailTemplateId" class="form-control"/>
                     <div class="form-text">If set, the event will be eligible for 'Save the Date' emails using this template.</div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Invitation Email Template ID</label>
+                    <div class="form-check mt-2">
+                        <input asp-for="SendWithLink" class="form-check-input" type="checkbox" role="switch">
+                        <label class="form-check-label">Send <i>Save the Date</i> email with link instead of embedded image</label>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold"><i>Invitation Email</i> Template ID</label>
                     <input asp-for="InvitationEmailTemplateId" class="form-control"/>
                     <div class="form-text">If set, the event will be eligible for 'Invite' emails using this template.</div>
                 </div>
