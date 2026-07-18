@@ -145,18 +145,23 @@ public class EventInviteesModel(
             return RedirectToPage(new { id });
         }
 
-        var templateImageRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources", "TemplateImages"));
-        await inviteService.SendEmail(new SaveDateEmailRequest
+        var assetRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources", "Assets"));
+        var request = new SaveDateEmailRequest
         {
             TemplateId = @event.SaveDateTemplateId,
+            SendWithLink = @event.EmailWithLink,
             EventId = @event.Id,
             EventName = @event.Name,
             EventStartDate = @event.StartDate.ToString("dd MMMM yyyy"),
             UserId = userId,
             UserName = user.DisplayName!,
             UserEmail = user.Email!,
-            InlineAttachments = [InlineAttachment.BuildInlineImage(Path.Combine(templateImageRoot, "std_wedding.png"))]
-        });
+            InlineAttachments = [InlineAttachment.BuildInlineImage(Path.Combine(assetRoot, "std_wedding.png"))]
+        };
+        if (request.SendWithLink)
+            request.CallBackUrl = inviteService.BuildSaveDateCallbackUrl(request.EventId, request.UserId);
+        else request.InlineAttachments = [InlineAttachment.BuildInlineImage(Path.Combine(assetRoot, "std_wedding.png"))];
+        await inviteService.SendEmail(request);
 
         toastNotification.AddSuccessToastMessage($"Save the Date email sent to {user.DisplayName}");
 
@@ -190,6 +195,7 @@ public class EventInviteesModel(
             .Select(eu => new SaveDateEmailRequest
             {
                 TemplateId = eu.Event.SaveDateTemplateId!,
+                SendWithLink = eu.Event.EmailWithLink,
                 EventId = eu.EventId,
                 EventName = eu.Event.Name,
                 EventStartDate = eu.Event.StartDate.ToString("dd MMMM yyyy"),
@@ -205,10 +211,12 @@ public class EventInviteesModel(
             return RedirectToPage(new { id });
         }
 
-        var templateImageRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources", "TemplateImages"));
+        var assetRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources", "Assets"));
         foreach (var request in requests)
         {
-            request.InlineAttachments = [InlineAttachment.BuildInlineImage(Path.Combine(templateImageRoot, "std_wedding.png"))];
+            if (request.SendWithLink)
+                request.CallBackUrl = inviteService.BuildSaveDateCallbackUrl(request.EventId, request.UserId);
+            else request.InlineAttachments = [InlineAttachment.BuildInlineImage(Path.Combine(assetRoot, "std_wedding.png"))];
         }
 
         await inviteService.SendBatchedEmails(requests);

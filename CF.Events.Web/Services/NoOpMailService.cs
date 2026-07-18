@@ -10,7 +10,7 @@ public class NoOpMailService(ILogger<NoOpMailService> logger) : IMailService
             """
             Fake invitation sent:
                 Event: {EventName}
-                Display Name: {DisplayName}
+                User Name: {UserName}
                 Email: {Email}
                 Callback URL: {CallBackUrl}
                 Inlines: {InlineCount}
@@ -26,9 +26,24 @@ public class NoOpMailService(ILogger<NoOpMailService> logger) : IMailService
             Fake Save the Date sent:
                 Template ID: {TemplateId}
                 Event: {EventName}
-                Display Name: {DisplayName}
+                User Name: {UserName}
                 Email: {Email},
                 Inline Attachment Count: {InlineCount}
+            """,
+            request.TemplateId, request.EventName, request.UserName, request.UserEmail, request.InlineAttachments.Count());
+        return Task.CompletedTask;
+    }
+
+    public Task SendSaveTheDateWithLinkAsync(SaveDateEmailRequest request, CancellationToken ctx = default)
+    {
+        logger.LogDebug(
+            """
+            Fake Save the Date sent:
+                Template ID: {TemplateId}
+                Event: {EventName}
+                User Name: {UserName}
+                Email: {Email},
+                Callback URL: {CallBackUrl}
             """,
             request.TemplateId, request.EventName, request.UserName, request.UserEmail, request.InlineAttachments.Count());
         return Task.CompletedTask;

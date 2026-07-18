@@ -253,6 +253,6 @@ _Pvt_Extensions
 #App Files
 **/Resources/Invitations/*
 **/Resources/Events/*
-**/Resources/TemplateImages/*
-!**/Resources/TemplateImages/.gitkeep
+**/Resources/Assets/*
+!**/Resources/Assets/.gitkeep
 

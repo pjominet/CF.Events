@@ -23,6 +23,32 @@ public class EventController(
     ILogger<EventController> logger,
     IWebHostEnvironment env) : Controller
 {
+    [HttpGet("{eventId:int}/{userId}/asset")]
+    public async Task<IActionResult> GetEventAsset([FromRoute] int eventId, [FromRoute] string userId, [FromQuery] string type)
+    {
+        var isInvited = await db.EventUsers.AnyAsync(r => r.EventId == eventId && r.UserId == userId);
+        if (!isInvited && !User.IsAdmin())
+            return Forbid();
+
+        var resourceRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources"));
+        var filePath = type == "std" ? "Assets/std_wedding.png" : null;
+        if (filePath is null)
+            return NotFound();
+
+        var requested = Path.GetFullPath(Path.Combine(resourceRoot, filePath));
+        if (!requested.StartsWith(resourceRoot + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+            return Forbid();
+
+        if (!System.IO.File.Exists(requested))
+            return NotFound();
+
+        var provider = new FileExtensionContentTypeProvider();
+        if (!provider.TryGetContentType(requested, out var contentType))
+            contentType = "application/octet-stream";
+
+        return PhysicalFile(requested, contentType);
+    }
+
     [HttpGet("{eventId:int}/export-invitees")]
     [Authorize(Roles = Roles.Admin)]
     public async Task<IActionResult> ExportInvitees([FromRoute] int eventId)
