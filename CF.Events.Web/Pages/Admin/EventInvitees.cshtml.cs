@@ -155,12 +155,11 @@ public class EventInviteesModel(
             EventStartDate = @event.StartDate.ToString("dd MMMM yyyy"),
             UserId = userId,
             UserName = user.DisplayName!,
-            UserEmail = user.Email!,
-            InlineAttachments = [InlineAttachment.BuildInlineImage(Path.Combine(assetRoot, "std_wedding.png"))]
+            UserEmail = user.Email!
         };
         if (request.SendWithLink)
             request.CallBackUrl = inviteService.BuildSaveDateCallbackUrl(request.EventId, request.UserId);
-        else request.InlineAttachments = [InlineAttachment.BuildInlineImage(Path.Combine(assetRoot, "std_wedding.png"))];
+        else request.InlineAttachments = [InlineAttachment.BuildInlineImage(Path.Combine(assetRoot, "save-the-date.png"))];
         await inviteService.SendEmail(request);
 
         toastNotification.AddSuccessToastMessage($"Save the Date email sent to {user.DisplayName}");
@@ -216,7 +215,7 @@ public class EventInviteesModel(
         {
             if (request.SendWithLink)
                 request.CallBackUrl = inviteService.BuildSaveDateCallbackUrl(request.EventId, request.UserId);
-            else request.InlineAttachments = [InlineAttachment.BuildInlineImage(Path.Combine(assetRoot, "std_wedding.png"))];
+            else request.InlineAttachments = [InlineAttachment.BuildInlineImage(Path.Combine(assetRoot, "save-the-date.png"))];
         }
 
         await inviteService.SendBatchedEmails(requests);
