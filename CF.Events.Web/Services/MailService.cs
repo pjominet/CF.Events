@@ -22,7 +22,7 @@ public class MailService(IEmailProvider emailProvider) : IMailService
         var variables = new Dictionary<string, string>
         {
             { "sender_sig", "Patrick & Éadaoin" },
-            { "event_name", request.EventName }
+            { "event_date", request.EventStartDate }
         };
 
         await emailProvider.SendTemplatedEmailAsync(request.TemplateId, request.UserEmail, variables, request.InlineAttachments, ctx);

@@ -17,6 +17,7 @@ namespace CF.Events.Web.Pages.Admin;
 [Authorize(Roles = Roles.Admin)]
 public class EventInviteesModel(
     EventsDbContext db,
+    IWebHostEnvironment env,
     IInvitationService inviteService,
     IToastNotification toastNotification) : PageModel
 {
@@ -144,14 +145,17 @@ public class EventInviteesModel(
             return RedirectToPage(new { id });
         }
 
+        var templateImageRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources", "TemplateImages"));
         await inviteService.SendEmail(new SaveDateEmailRequest
         {
             TemplateId = @event.SaveDateTemplateId,
             EventId = @event.Id,
             EventName = @event.Name,
+            EventStartDate = @event.StartDate.ToString("dd MMMM yyyy"),
             UserId = userId,
             UserName = user.DisplayName!,
-            UserEmail = user.Email!
+            UserEmail = user.Email!,
+            InlineAttachments = [InlineAttachment.BuildInlineImage(Path.Combine(templateImageRoot, "std_wedding.png"))]
         });
 
         toastNotification.AddSuccessToastMessage($"Save the Date email sent to {user.DisplayName}");
@@ -188,6 +192,7 @@ public class EventInviteesModel(
                 TemplateId = eu.Event.SaveDateTemplateId!,
                 EventId = eu.EventId,
                 EventName = eu.Event.Name,
+                EventStartDate = eu.Event.StartDate.ToString("dd MMMM yyyy"),
                 UserName = eu.User.DisplayName!,
                 UserId = eu.UserId,
                 UserEmail = eu.User.Email!
@@ -198,6 +203,12 @@ public class EventInviteesModel(
         {
             toastNotification.AddWarningToastMessage("No users found or eligible for Save the Date");
             return RedirectToPage(new { id });
+        }
+
+        var templateImageRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources", "TemplateImages"));
+        foreach (var request in requests)
+        {
+            request.InlineAttachments = [InlineAttachment.BuildInlineImage(Path.Combine(templateImageRoot, "std_wedding.png"))];
         }
 
         await inviteService.SendBatchedEmails(requests);

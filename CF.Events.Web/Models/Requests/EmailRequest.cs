@@ -30,6 +30,7 @@ public class SaveDateEmailRequest : IEmailRequest
     public required string TemplateId { get; init; }
     public int EventId { get; init; }
     public required string EventName { get; init; }
+    public required string EventStartDate { get; init; }
     public required string UserId { get; init; }
     public required string UserName { get; init; }
     public required string UserEmail { get; init; }
