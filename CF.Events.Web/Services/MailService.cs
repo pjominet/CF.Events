@@ -38,6 +38,6 @@ public class MailService(IEmailProvider emailProvider) : IMailService
             { "event_date", request.EventStartDate }
         };
 
-        await emailProvider.SendTemplatedEmailAsync(request.TemplateId, request.UserEmail, variables, request.InlineAttachments, ctx);
+        await emailProvider.SendTemplatedEmailAsync(request.TemplateId, request.UserEmail, variables, [], ctx);
     }
 }
