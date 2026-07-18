@@ -114,8 +114,7 @@ public class UserController(
 
         if (importErrors.Count == 0)
             toastNotification.AddSuccessToastMessage("Users imported successfully");
-        else toastNotification.AddWarningToastMessage("Import had issues");
-
+        else toastNotification.AddWarningToastMessage($"Import had issues:{Environment.NewLine}{string.Join(Environment.NewLine, importErrors)}");
         TempData[ViewDataKeys.ImportErrors] = importErrors;
         return RedirectToPage("/admin/users");
     }

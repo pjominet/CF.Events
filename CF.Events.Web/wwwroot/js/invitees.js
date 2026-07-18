@@ -88,7 +88,7 @@
             if (!confirmed) return;
         }
 
-        if (actionType === 'save-the-date') {
+        if (actionType === 'save-date') {
             const confirmed = await window.customConfirm(`Send Save the Date email to ${selectedUserIds.length} selected invitees?`, {
                 confirmClass: 'btn-primary'
             });
@@ -107,7 +107,7 @@
         } else if (actionType === 'remove') {
             form.action = form.dataset.removeUrl;
         } else if (actionType === 'save-date') {
-            form.action = form.dataset.saveTheDateUrl;
+            form.action = form.dataset.saveDateUrl;
         }
 
         showLoadingOverlay();
