@@ -51,6 +51,7 @@ public class InvitationService(
                 EventId = ue.EventId,
                 UserId = ue.UserId,
                 EventName = ue.Event.Name,
+                EventStartDate = ue.Event.StartDate.ToString("dd MMMM yyyy"),
                 UserName = ue.User.DisplayName!,
                 UserEmail = ue.User.Email!,
                 TemplateId = ue.Event.SaveDateTemplateId ?? string.Empty

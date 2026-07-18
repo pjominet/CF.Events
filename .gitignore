@@ -251,6 +251,8 @@ _Pvt_Extensions
 **/logs/
 
 #App Files
-**/Resources/Invitations/
-**/Resources/Events/
+**/Resources/Invitations/*
+**/Resources/Events/*
+**/Resources/TemplateImages/*
+!**/Resources/TemplateImages/.gitkeep
 
