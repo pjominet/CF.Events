@@ -25,7 +25,7 @@
             position: relative;
             width: 500px;
             height: 650px;
-            cursor: pointer;			
+            cursor: pointer;
 			border-radius: 7px;
 			transition: transform 0.8s cubic-bezier(0.48, -0.66, 0.265, 1.25)
         }
@@ -39,7 +39,7 @@
             top: 0;
             left: 0;
             transform-style: preserve-3d;
-            transform-origin: left center;		
+            transform-origin: left center;
 			border-radius: 2px 7px 7px 2px;
 			box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
         }
@@ -48,18 +48,41 @@
         .cover {
 			border-left: solid #c5b358  2px;
             background: linear-gradient(145deg, #dc143c 0%, #b22222 100%);
+            z-index: 3;
+			transition: transform 0.8s cubic-bezier(0.28, 0, 0.25, 1.35);
+            transform-style: preserve-3d;
+        }
+
+        .cover-front,
+        .cover-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            backface-visibility: hidden;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
-            color: white;
-            padding: 60px;            
-            z-index: 3;
-			transition: transform 0.8s cubic-bezier(0.28, 0, 0.25, 1.35)
+            padding: 60px;
         }
 
-        .cover h1 {
+        .cover-front {
+            color: white;
+            z-index: 2;
+            transform: rotateY(0deg);
+        }
+
+        .cover-back {
+            background: linear-gradient(145deg, #dc143c 0%, #b22222 100%);
+            color: #c5b358;
+            transform: rotateY(180deg);
+            z-index: 1;
+        }
+
+        .cover-front h1 {
             font-size: 18px;
             font-weight: 300;
             letter-spacing: 3px;
@@ -87,7 +110,6 @@
 			color: #c5b358;
             z-index: 2;
             opacity: 1;
-			transition: opacity 0.1s ease-out 0.2s;
         }
 
         /* === RIGHT PAGE (Content) === */
@@ -133,38 +155,115 @@
         }
 
         /* === OPEN ANIMATIONS === */
-        .book-container.open .cover {		
+        .book-container.open .cover {
             transform: rotateY(-180deg);
         }
-		
-		.book-container.open .left-page {			
-            opacity: 0;
-        }
-		
+
 		.book-container.open .right-page {
-			
+
 		}
-		
+
 		.book-container.open {
 			transform: translateX(50%)
 		}
+
+        /* === MOBILE VERSION === */
+        @media (max-width: 600px) {
+            body {
+                perspective: 2000px;
+                background: #f5f5f5;
+                padding: 0;
+                overflow: hidden;
+            }
+
+            .book-container {
+                width: 100vw;
+                height: 100vh;
+                margin: 0;
+                border-radius: 0;
+                transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+                transform-style: preserve-3d;
+            }
+
+            .cover,
+            .right-page {
+                width: 100%;
+                height: 100%;
+                border-radius: 0;
+                left: 0;
+                top: 0;
+                transform-origin: center center;
+                backface-visibility: hidden;
+                box-shadow: none;
+            }
+
+            .cover-front,
+            .cover-back {
+                padding: 3rem 1.5rem;
+            }
+
+            .cover-back {
+                background: linear-gradient(145deg, #dc143c 0%, #b22222 100%);
+            }
+
+            .right-page {
+                transform: rotateY(180deg);
+                z-index: 2;
+                border-left: none;
+            }
+
+            .cover {
+                z-index: 3;
+                border-left: none;
+                transform: rotateY(0deg);
+            }
+
+            .left-page {
+                transition: none;
+            }
+
+            /* Mobile Open State */
+            .book-container.open {
+                transform: rotateY(180deg);
+            }
+
+            .book-container.open .right-page {
+                z-index: 4;
+            }
+
+            /* Reset desktop-only open animations for mobile */
+            .book-container.open .cover {
+                transform: rotateY(0deg);
+            }
+
+            .content-area {
+                border-radius: 0;
+                box-shadow: none;
+                padding: 3rem 1.5rem;
+            }
+        }
 
     </style>
 </head>
 <body>
     <div class="book-container" id="bookContainer">
-        <!-- Cover (front) -->
+        <!-- Cover -->
         <div class="cover">
-			<div class="left-page">
-				<h1>YOU HAVE BEEN INVITED TO</h1>
-				<h2>Patrick & Éadaoin's<br>Wedding</h2>
-				<div class="cover-location">
-					<p>IRELAND</p>
-					<p>GALWAY CITY</p>
-				</div>
-			</div>            
+            <div class="cover-front">
+                <div class="left-page">
+                    <h1>YOU HAVE BEEN INVITED TO</h1>
+                    <h2>Patrick & Éadaoin's<br>Wedding</h2>
+                    <div class="cover-location">
+                        <p>IRELAND</p>
+                        <p>GALWAY CITY</p>
+                    </div>
+                </div>
+            </div>
+            <div class="cover-back">
+                <!-- Back of the cover, empty or simple design -->
+            </div>
         </div>
-        
+
 
         <!-- Right Page (content) -->
         <div class="right-page">
