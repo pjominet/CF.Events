@@ -5,6 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wedding Invitation - Patrick & Éadaoin</title>
     <style>
+        :root {
+            /* Colors */
+            --primary-color: #dc143c;
+            --accent-color: #c5b358;
+            --bg-gradient: linear-gradient(145deg, #dc143c 0%, #b22222 100%);
+            --text-light: #f5f5f5;
+            --text-dark: #333;
+            --text-highlight: #8b4513;
+            --shadow-dark: rgba(0, 0, 0, 0.5);
+            --shadow-light: rgba(0, 0, 0, 0.2);
+
+            /* Sizes */
+            --book-width: 500px;
+            --book-height: 650px;
+            --border-radius-main: 7px;
+            --border-radius-small: 2px;
+
+            /* Animation */
+            --anim-duration: 0.8s;
+            --anim-timing-book: cubic-bezier(0.48, -0.66, 0.265, 1.25);
+            --anim-timing-cover: cubic-bezier(0.28, 0, 0.25, 1.35);
+            --anim-timing-mobile: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -16,47 +40,45 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
             font-family: 'Georgia', serif;
-            perspective: 1200px;
         }
 
         .book-container {
             position: relative;
-            width: 500px;
-            height: 650px;
+            width: var(--book-width);
+            height: var(--book-height);
             cursor: pointer;
-			border-radius: 7px;
+			border-radius: var(--border-radius-main);
         }
 
         .book-container.closing {
-            animation: bookClose 0.8s cubic-bezier(0.48, -0.66, 0.265, 1.25) forwards;
+            animation: bookClose var(--anim-duration) var(--anim-timing-book) forwards;
         }
 
         /* All pages stacked absolutely, pivoting from the spine */
         .cover,
         .right-page {
             position: absolute;
-            width: 500px;
+            width: var(--book-width);
             height: 100%;
             top: 0;
             left: 0;
             transform-style: preserve-3d;
             transform-origin: left center;
-			border-radius: 2px 7px 7px 2px;
-			box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+			border-radius: var(--border-radius-small) var(--border-radius-main) var(--border-radius-main) var(--border-radius-small);
+			box-shadow: 0 10px 40px var(--shadow-dark);
+            background: var(--bg-gradient);
         }
 
-        /* === COVER === */
         .cover {
-			border-left: solid #c5b358  2px;
-            background: linear-gradient(145deg, #dc143c 0%, #b22222 100%);
+            -webkit-backface-visibility: visible;
+            backface-visibility: visible;
+			border-left: solid var(--accent-color) 2px;
             z-index: 3;
-            transform-style: preserve-3d;
         }
 
         .book-container.closing .cover {
-            animation: coverClose 0.8s cubic-bezier(0.28, 0, 0.25, 1.35) forwards;
+            animation: coverClose var(--anim-duration) var(--anim-timing-cover) forwards;
         }
 
         .cover-front,
@@ -66,6 +88,7 @@
             height: 100%;
             top: 0;
             left: 0;
+            -webkit-backface-visibility: hidden;
             backface-visibility: hidden;
             display: flex;
             flex-direction: column;
@@ -73,21 +96,23 @@
             align-items: center;
             text-align: center;
             padding: 60px;
+            background: inherit;
         }
 
         .cover-front {
-            color: white;
+            color: var(--text-light);
             z-index: 2;
+            -webkit-transform: rotateY(0deg);
             transform: rotateY(0deg);
-            border-radius: 2px 7px 7px 2px;
+            border-radius: var(--border-radius-small) var(--border-radius-main) var(--border-radius-main) var(--border-radius-small);
         }
 
         .cover-back {
-            background: linear-gradient(145deg, #dc143c 0%, #b22222 100%);
-            color: #c5b358;
+            color: var(--accent-color);
+            -webkit-transform: rotateY(180deg);
             transform: rotateY(180deg);
             z-index: 1;
-            border-radius: 7px 2px 2px 7px;
+            border-radius: var(--border-radius-main) var(--border-radius-small) var(--border-radius-small) var(--border-radius-main);
         }
 
         .cover-front h1 {
@@ -113,53 +138,47 @@
             opacity: 0.8;
         }
 
-        /* === LEFT PAGE (Back) === */
         .left-page {
-			color: #c5b358;
+			color: var(--accent-color);
             z-index: 2;
-            opacity: 1;
         }
 
-        /* === RIGHT PAGE (Content) === */
         .right-page {
-			border-left: solid #c5b358  1px;
-            background: linear-gradient(145deg, #dc143c 0%, #b22222 100%);
+			border-left: solid var(--accent-color) 1px;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 1rem;
             z-index: 1;
-            opacity: 1;
         }
 
-        /* === CONTENT AREA === */
         .content-area {
             width: 100%;
             height: 100%;
             background-color: #fff;
             padding: 2rem .8rem;
-            border-radius: 2px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            border-radius: var(--border-radius-small);
+            box-shadow: 0 5px 20px var(--shadow-light);
             overflow-y: auto;
             text-align: center;
         }
 
         .content-area h3 {
             font-size: 32px;
-            color: #8b4513;
+            color: var(--text-highlight);
             margin-bottom: 30px;
             font-weight: normal;
         }
 
         .content-area p {
             font-size: 14px;
-            color: #333;
+            color: var(--text-dark);
             margin-bottom: 20px;
             line-height: 1.6;
         }
 
         .content-area strong {
-            color: #8b4513;
+            color: var(--text-highlight);
         }
 
         /* === KEYFRAMES === */
@@ -193,24 +212,15 @@
             to { transform: rotateY(0deg); }
         }
 
-        /* === OPEN ANIMATIONS === */
         .book-container.open {
-            animation: bookOpen 0.8s cubic-bezier(0.48, -0.66, 0.265, 1.25) forwards;
+            animation: bookOpen var(--anim-duration) var(--anim-timing-book) forwards;
         }
 
         .book-container.open .cover {
-            animation: coverOpen 0.8s cubic-bezier(0.28, 0, 0.25, 1.35) forwards;
+            animation: coverOpen var(--anim-duration) var(--anim-timing-cover) forwards;
         }
 
-        /* === MOBILE VERSION === */
         @media (max-width: 600px) {
-            body {
-                perspective: 2000px;
-                background: #f5f5f5;
-                padding: 0;
-                overflow: hidden;
-            }
-
             .book-container {
                 width: 100vw;
                 height: 100vh;
@@ -220,7 +230,7 @@
             }
 
             .book-container.closing {
-                animation: mobileUnflip 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+                animation: mobileUnflip var(--anim-duration) var(--anim-timing-mobile) forwards;
             }
 
             .cover,
@@ -242,10 +252,6 @@
                 border-radius: 0;
             }
 
-            .cover-back {
-                background: linear-gradient(145deg, #dc143c 0%, #b22222 100%);
-            }
-
             .right-page {
                 transform: rotateY(180deg);
                 z-index: 2;
@@ -255,28 +261,17 @@
             .cover {
                 z-index: 3;
                 border-left: none;
-                transform: rotateY(0deg);
             }
 
-            .left-page {
-                transition: none;
-            }
-
-            /* Mobile Open State */
             .book-container.open {
-                animation: mobileFlip 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+                animation: mobileFlip var(--anim-duration) var(--anim-timing-mobile) forwards;
             }
 
             .book-container.open .right-page {
                 z-index: 4;
             }
 
-            /* Reset desktop-only open animations for mobile */
-            .book-container.open .cover {
-                animation: none;
-                transform: rotateY(0deg);
-            }
-
+            .book-container.open .cover,
             .book-container.closing .cover {
                 animation: none;
             }
@@ -308,7 +303,6 @@
                 <!-- Back of the cover, empty or simple design -->
             </div>
         </div>
-
 
         <!-- Right Page (content) -->
         <div class="right-page">
