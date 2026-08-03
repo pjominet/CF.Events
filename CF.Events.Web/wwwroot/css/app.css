@@ -161,56 +161,6 @@ h1:focus {
     font-weight: 500;
 }
 
-/* Invitation Page Styles */
-.invite-page {
-    margin: 0;
-    padding: 20px;
-    background-color: var(--bg-page);
-    font-family: var(--font-serif);
-    color: var(--primary-color);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-}
-
-.invite-card {
-    position: relative;
-    background-color: var(--bg-card);
-    max-width: 500px;
-    border: none;
-    overflow: hidden;
-}
-
-.invite-image {
-    width: 100%;
-    /* Always portrait; larger images are cropped to fit. */
-    aspect-ratio: 1 / 1.414;
-    object-fit: cover;
-    object-position: center;
-    display: block;
-}
-
-.invite-fallback {
-    aspect-ratio: 1 / 1.414;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 30px;
-    min-width: 450px;
-}
-
-.invite-fallback h1 {
-    font-family: var(--font-cursive);
-}
-
-.invite-error {
-    text-align: center;
-    max-width: 450px;
-}
-
 @media (max-width: 500px) {
     .invite-page {
         padding: 0;
