@@ -27,7 +27,10 @@
             height: 650px;
             cursor: pointer;
 			border-radius: 7px;
-			transition: transform 0.8s cubic-bezier(0.48, -0.66, 0.265, 1.25)
+        }
+
+        .book-container.closing {
+            animation: bookClose 0.8s cubic-bezier(0.48, -0.66, 0.265, 1.25) forwards;
         }
 
         /* All pages stacked absolutely, pivoting from the spine */
@@ -49,8 +52,11 @@
 			border-left: solid #c5b358  2px;
             background: linear-gradient(145deg, #dc143c 0%, #b22222 100%);
             z-index: 3;
-			transition: transform 0.8s cubic-bezier(0.28, 0, 0.25, 1.35);
             transform-style: preserve-3d;
+        }
+
+        .book-container.closing .cover {
+            animation: coverClose 0.8s cubic-bezier(0.28, 0, 0.25, 1.35) forwards;
         }
 
         .cover-front,
@@ -156,18 +162,45 @@
             color: #8b4513;
         }
 
-        /* === OPEN ANIMATIONS === */
-        .book-container.open .cover {
-            transform: rotateY(-180deg);
+        /* === KEYFRAMES === */
+        @keyframes bookOpen {
+            from { transform: translateX(0); }
+            to { transform: translateX(50%); }
         }
 
-		.book-container.open .right-page {
+        @keyframes bookClose {
+            from { transform: translateX(50%); }
+            to { transform: translateX(0); }
+        }
 
-		}
+        @keyframes coverOpen {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(-180deg); }
+        }
 
-		.book-container.open {
-			transform: translateX(50%)
-		}
+        @keyframes coverClose {
+            from { transform: rotateY(-180deg); }
+            to { transform: rotateY(0deg); }
+        }
+
+        @keyframes mobileFlip {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(180deg); }
+        }
+
+        @keyframes mobileUnflip {
+            from { transform: rotateY(180deg); }
+            to { transform: rotateY(0deg); }
+        }
+
+        /* === OPEN ANIMATIONS === */
+        .book-container.open {
+            animation: bookOpen 0.8s cubic-bezier(0.48, -0.66, 0.265, 1.25) forwards;
+        }
+
+        .book-container.open .cover {
+            animation: coverOpen 0.8s cubic-bezier(0.28, 0, 0.25, 1.35) forwards;
+        }
 
         /* === MOBILE VERSION === */
         @media (max-width: 600px) {
@@ -183,8 +216,11 @@
                 height: 100vh;
                 margin: 0;
                 border-radius: 0;
-                transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
                 transform-style: preserve-3d;
+            }
+
+            .book-container.closing {
+                animation: mobileUnflip 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
             }
 
             .cover,
@@ -197,6 +233,7 @@
                 transform-origin: center center;
                 backface-visibility: hidden;
                 box-shadow: none;
+                animation: none;
             }
 
             .cover-front,
@@ -227,7 +264,7 @@
 
             /* Mobile Open State */
             .book-container.open {
-                transform: rotateY(180deg);
+                animation: mobileFlip 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
             }
 
             .book-container.open .right-page {
@@ -236,7 +273,12 @@
 
             /* Reset desktop-only open animations for mobile */
             .book-container.open .cover {
+                animation: none;
                 transform: rotateY(0deg);
+            }
+
+            .book-container.closing .cover {
+                animation: none;
             }
 
             .content-area {
@@ -283,7 +325,13 @@
     <script>
         const bookContainer = document.getElementById('bookContainer');
         bookContainer.addEventListener('click', () => {
-            bookContainer.classList.toggle('open');
+            if (bookContainer.classList.contains('open')) {
+                bookContainer.classList.remove('open');
+                bookContainer.classList.add('closing');
+            } else {
+                bookContainer.classList.remove('closing');
+                bookContainer.classList.add('open');
+            }
         });
     </script>
 </body>
