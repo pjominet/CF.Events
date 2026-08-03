@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wedding Invitation - Patrick & Éadaoin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+            font-family: 'Georgia', serif;
+            perspective: 1200px;
+        }
+
+        .book-container {
+            position: relative;
+            width: 500px;
+            height: 650px;
+            cursor: pointer;			
+			border-radius: 7px;
+			transition: transform 0.8s cubic-bezier(0.48, -0.66, 0.265, 1.25)
+        }
+
+        /* All pages stacked absolutely, pivoting from the spine */
+        .cover,
+        .right-page {
+            position: absolute;
+            width: 500px;
+            height: 100%;
+            top: 0;
+            left: 0;
+            transform-style: preserve-3d;
+            transform-origin: left center;		
+			border-radius: 2px 7px 7px 2px;
+			box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        /* === COVER === */
+        .cover {
+			border-left: solid #c5b358  2px;
+            background: linear-gradient(145deg, #dc143c 0%, #b22222 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+            padding: 60px;            
+            z-index: 3;
+			transition: transform 0.8s cubic-bezier(0.28, 0, 0.25, 1.35)
+        }
+
+        .cover h1 {
+            font-size: 18px;
+            font-weight: 300;
+            letter-spacing: 3px;
+            margin-bottom: 40px;
+            opacity: 0.95;
+        }
+
+        .cover h2 {
+            font-size: 48px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+            line-height: 1.2;
+        }
+
+        .cover-location {
+            margin-top: 60px;
+            font-size: 14px;
+            letter-spacing: 2px;
+            opacity: 0.8;
+        }
+
+        /* === LEFT PAGE (Back) === */
+        .left-page {
+			color: #c5b358;
+            z-index: 2;
+            opacity: 1;
+			transition: opacity 0.1s ease-out 0.2s;
+        }
+
+        /* === RIGHT PAGE (Content) === */
+        .right-page {
+			border-left: solid #c5b358  1px;
+            background: linear-gradient(145deg, #dc143c 0%, #b22222 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            z-index: 1;
+            opacity: 1;
+        }
+
+        /* === CONTENT AREA === */
+        .content-area {
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            padding: 2rem .8rem;
+            border-radius: 2px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+            text-align: center;
+        }
+
+        .content-area h3 {
+            font-size: 32px;
+            color: #8b4513;
+            margin-bottom: 30px;
+            font-weight: normal;
+        }
+
+        .content-area p {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .content-area strong {
+            color: #8b4513;
+        }
+
+        /* === OPEN ANIMATIONS === */
+        .book-container.open .cover {		
+            transform: rotateY(-180deg);
+        }
+		
+		.book-container.open .left-page {			
+            opacity: 0;
+        }
+		
+		.book-container.open .right-page {
+			
+		}
+		
+		.book-container.open {
+			transform: translateX(50%)
+		}
+
+    </style>
+</head>
+<body>
+    <div class="book-container" id="bookContainer">
+        <!-- Cover (front) -->
+        <div class="cover">
+			<div class="left-page">
+				<h1>YOU HAVE BEEN INVITED TO</h1>
+				<h2>Patrick & Éadaoin's<br>Wedding</h2>
+				<div class="cover-location">
+					<p>IRELAND</p>
+					<p>GALWAY CITY</p>
+				</div>
+			</div>            
+        </div>
+        
+
+        <!-- Right Page (content) -->
+        <div class="right-page">
+            <div class="content-area">
+                <h3>Details</h3>
+                <p><strong>Date:</strong><br>[Date Here]</p>
+                <p><strong>Time:</strong><br>[Time Here]</p>
+                <p><strong>Location:</strong><br>Galway City,<br>Ireland</p>
+                <p>Join us for a<br>celebration of<br>love</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const bookContainer = document.getElementById('bookContainer');
+        bookContainer.addEventListener('click', () => {
+            bookContainer.classList.toggle('open');
+        });
+    </script>
+</body>
+</html>
