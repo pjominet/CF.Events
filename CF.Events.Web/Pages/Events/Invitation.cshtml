@@ -22,51 +22,60 @@
     }
     else
     {
-        <div class="book-container-wrapper">
-            <div class="book-container" id="bookContainer">
-                <!-- Cover -->
-                <div class="cover">
-                    <div class="cover-front">
-                        <div class="cover-content">
-                            <h1>YOU HAVE BEEN INVITED TO</h1>
-                            <h2>@Model.EventData!.Name</h2>
-                            <div class="cover-location">
-                                <p>IRELAND</p>
-                                <p>GALWAY CITY</p>
-                            </div>
+        <div class="book-container" id="bookContainer">
+            <!-- Cover -->
+            <div class="cover">
+                <div class="cover-front">
+                    <div class="cover-content">
+                        <h1>YOU HAVE BEEN INVITED TO</h1>
+                        <h2>@Model.EventData!.Name</h2>
+                        <div class="cover-location">
+                            <p>IRELAND</p>
+                            <p>GALWAY CITY</p>
                         </div>
-                    </div>
-                    <div class="cover-back">
-                        <!-- Back of the cover, empty or simple design -->
-                    </div>
-                </div>
-
-                <div class="right-page">
-                    <div class="page-content">
-                        <h3>Details</h3>
-                        <p><strong>Date:</strong><br>@Model.EventData.StartDate.ToLongDateString()</p>
-                        @if (!string.IsNullOrEmpty(Model.EventData.Location))
-                        {
-                            <p><strong>Location:</strong><br>@Model.EventData.Location</p>
-                        }
-                        @if (!string.IsNullOrEmpty(Model.EventData.Description))
-                        {
-                            <jsonrenderer input="@Model.EventData.Description" />
-                        }
-                        <div class="d-flex justify-content-center gap-3">
-                            @if (User.IsAdmin())
-                            {
-                                <a href="@Model.BackUrl" class="btn btn-outline-secondary">Back</a>
-                            }
-                            <a href="/events/@Model.EventData!.Id/rsvp" class="btn btn-primary">RSVP</a>
+                        <div class="d-flex justify-content-center align-items-center mt-3">
+                            <button id="cover-button" class="glass-button">
+                                <span id="cover-button-text">Click to open</span>&nbsp;<i class="bi bi-stars"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
-
-                <button id="toggleBookBtn" class="toggle-book-btn" title="Toggle Invitation">
-                    <i class="bi bi-folder2-open icon-flipped"></i>
-                </button>
+                <div class="cover-back">
+                    <!-- Back of the cover, empty or simple design -->
+                </div>
             </div>
+
+            <div class="right-page">
+                <div class="page-content">
+                    <h3>Details</h3>
+                    <p><strong>Date:</strong><br>@Model.EventData.StartDate.ToLongDateString()</p>
+                    @if (!string.IsNullOrEmpty(Model.EventData.Location))
+                    {
+                        <p><strong>Location:</strong><br>@Model.EventData.Location</p>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.EventData.Description))
+                    {
+                        <div class="rsvp-description">
+                            <jsonrenderer input="@Model.EventData.Description"/>
+                        </div>
+                    }
+                    <div class="d-flex justify-content-center gap-3">
+                        @if (User.IsAdmin())
+                        {
+                            <a href="@Model.BackUrl" class="btn btn-outline-secondary">Back</a>
+                        }
+                        else
+                        {
+                            <button id="cancel-invite-btn" class="btn btn-secondary">Cancel</button>
+                        }
+                        <a href="/events/@Model.EventData!.Id/rsvp" class="btn btn-primary">RSVP</a>
+                    </div>
+                </div>
+            </div>
+
+            <button id="toggleBookBtn" class="toggle-book-btn" title="Toggle Invitation">
+                <i class="bi bi-folder2-open icon-flipped"></i>
+            </button>
         </div>
     }
 </div>
@@ -75,36 +84,56 @@
 {
     <script>
         const bookContainer = document.getElementById('bookContainer');
-        const toggleBtn = document.getElementById('toggleBookBtn');
-        const icon = toggleBtn.querySelector('i');
+        const openBtn = document.getElementById('cover-button');
+        const openText = document.getElementById('cover-button-text');
+        const closeBtn = document.getElementById('cancel-invite-btn');
 
-        const toggleBook = () => {
-            if (bookContainer.classList.contains('open')) {
-                bookContainer.classList.remove('open');
-                bookContainer.classList.add('closing');
-                icon.classList.replace('bi-folder2', 'bi-folder2-open');
-            } else {
+        const openBook = () => {
+             if (!bookContainer.classList.contains('open')) {
                 bookContainer.classList.remove('closing');
                 bookContainer.classList.add('open');
-                icon.classList.replace('bi-folder2-open', 'bi-folder2');
             }
         };
 
-        toggleBtn.addEventListener('click', (e) => {
+        const closeBook = () => {
+            if (bookContainer.classList.contains('open')) {
+                bookContainer.classList.remove('open');
+                bookContainer.classList.add('closing');
+            }
+        }
+
+        openBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (autoOpenTimeout) {
+            /*if (autoOpenTimeout) {
                 clearTimeout(autoOpenTimeout);
                 autoOpenTimeout = null;
-            }
-            toggleBook();
+            }*/
+            openBook();
         });
 
-        // Auto-open after 30 seconds
-        let autoOpenTimeout = setTimeout(() => {
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeBook();
+        });
+
+        const mobileQuery = window.matchMedia('(max-width: 768px)');
+        function handleMobileChange(e) {
+            if (e.matches) {
+                openText.innerText = 'Tap to open'
+            } else {
+                openText.innerText = 'Click to open'
+            }
+        }
+
+        handleMobileChange(mobileQuery);
+        mobileQuery.addEventListener('change', handleMobileChange);
+
+        // Auto-open after 7 seconds
+        /*let autoOpenTimeout = setTimeout(() => {
             if (!bookContainer.classList.contains('open')) {
                 toggleBook();
             }
             autoOpenTimeout = null;
-        }, 100000);
+        }, 7000);*/
     </script>
 }

@@ -39,13 +39,6 @@
     max-width: 450px;
 }
 
-.book-container-wrapper {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
 .book-container {
     position: relative;
     width: var(--book-width);
@@ -55,39 +48,33 @@
     transform-style: preserve-3d;
 }
 
-.toggle-book-btn {
-    position: absolute;
-    right: -50px;
-    top: 50%;
-    transform: translateY(-50%) translateZ(100px);
-    background: rgba(255, 255, 255, 0.25);
+.glass-button {
+    padding: .55rem 1rem;
+    border: none;
+    background: rgba(255, 255, 255, 0.12);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    border-radius: 50px;
+    color: var(--text-light);
     cursor: pointer;
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
     transition: all 0.3s ease;
-    color: var(--primary-color);
-    z-index: 100;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
 }
 
-.toggle-book-btn:hover {
-    background: rgba(255, 255, 255, 0.35);
-    transform: translateY(-50%) translateZ(100px) scale(1.1);
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.25);
+.glass-button:hover {
+    background: rgba(255, 255, 255, 0.22);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 38px 0 rgba(31, 38, 135, 0.12);
 }
 
-.icon-flipped {
-    transform: rotate(270deg);
-    -moz-transform: rotate(270deg);
-    -webkit-transform: rotate(270deg);
-    -ms-transform: rotate(270deg);
+.glass-button:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 18px 0 rgba(31, 38, 135, 0.10);
+}
+
+.glass-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .book-container.closing {
@@ -265,26 +252,6 @@
         gap: 10px;
         width: 100%;
         height: 100%;
-    }
-
-    .toggle-book-btn {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 100;
-        width: 50px;
-        height: 50px;
-        background: rgba(255, 255, 255, 0.25);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.25);
-        top: auto;
-        transform: none;
-    }
-
-    .toggle-book-btn:hover {
-        transform: scale(1.1);
     }
 
     .book-container {
