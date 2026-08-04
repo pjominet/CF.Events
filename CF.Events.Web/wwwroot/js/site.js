@@ -162,7 +162,7 @@
     }
 
     function initSidebar() {
-        const sidebar = document.getElementById('glassSidebar');
+        const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebarOverlay');
         const toggleBtn = document.getElementById('sidebarToggle');
         const closeBtn = document.getElementById('sidebarClose');

@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="~/css/invitation.css" asp-append-version="true"/>
 }
 
-<div class="invite-page">
+<section class="invite-page">
     @if (Model.NotFoundOrForbidden)
     {
         <div class="invite-error">
@@ -62,25 +62,14 @@
                         </div>
                     }
                     <div class="d-flex justify-content-center gap-3">
-                        @if (User.IsAdmin())
-                        {
-                            <a href="@Model.BackUrl" class="btn btn-outline-secondary">Back</a>
-                        }
-                        else
-                        {
-                            <button id="cancel-invite-btn" class="btn btn-secondary">Cancel</button>
-                        }
+                        <a href="@Model.BackUrl" class="btn btn-secondary" id="returnButton">@(User.IsAdmin() ? "Back" : "Cancel")</a>
                         <a href="/events/@Model.EventData!.Id/rsvp" class="btn btn-primary">RSVP</a>
                     </div>
                 </div>
             </div>
-
-            <button id="toggleBookBtn" class="toggle-book-btn" title="Toggle Invitation">
-                <i class="bi bi-folder2-open icon-flipped"></i>
-            </button>
         </div>
     }
-</div>
+</section>
 
 @section Scripts
 {

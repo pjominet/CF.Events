@@ -1,6 +1,5 @@
 :root {
     /* Colors */
-    --primary-color: #dc143c;
     --accent-color: #c5b358;
     --bg-gradient: linear-gradient(145deg, #dc143c 0%, #b22222 100%);
     --text-light: #f5f5f5;
@@ -23,11 +22,7 @@
 }
 
 .invite-page {
-    margin: 0;
-    padding: 0;
-    background-color: var(--bg-page);
     font-family: var(--font-serif);
-    color: var(--primary-color);
     display: flex;
     justify-content: center;
     align-items: center;

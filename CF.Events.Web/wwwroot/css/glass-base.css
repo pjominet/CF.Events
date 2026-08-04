@@ -198,6 +198,7 @@ body.glass-theme::after {
     border-radius: 10px !important;
     padding: 0.5rem;
     border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    transform: none !important;
 }
 
 .glass-navbar .dropdown-menu .dropdown-item {
@@ -236,4 +237,37 @@ body.glass-theme::after {
 .glass-title {
     font-family: var(--font-serif);
     color: #fff;
+}
+
+.glass-button {
+    padding: .55rem 1rem;
+    border: none;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 50px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+}
+
+a.glass-button {
+    text-decoration: none;
+}
+
+.glass-button:hover {
+    background: rgba(255, 255, 255, 0.22);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 38px 0 rgba(31, 38, 135, 0.12);
+}
+
+.glass-button:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 18px 0 rgba(31, 38, 135, 0.10);
+}
+
+.glass-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
