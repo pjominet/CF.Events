@@ -69,6 +69,35 @@
     --bs-btn-disabled-border-color: var(--info-disabled);
 }
 
+.glass-button {
+    padding: .55rem 1rem;
+    border: none;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 50px;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+}
+
+.glass-button:hover {
+    background: rgba(255, 255, 255, 0.22);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 38px 0 rgba(31, 38, 135, 0.12);
+}
+
+.glass-button:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 18px 0 rgba(31, 38, 135, 0.10);
+}
+
+.glass-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 body {
     margin: 0;
     padding: 0;
