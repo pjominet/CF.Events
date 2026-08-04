@@ -208,33 +208,69 @@
 
 /* === KEYFRAMES === */
 @keyframes bookOpen {
-    from { transform: translateX(0); }
-    to { transform: translateX(calc(var(--book-width) / 2)); }
+    from {
+        transform: translateX(0);
+        -webkit-transform: translateX(0);
+    }
+    to {
+        transform: translateX(50%);
+        -webkit-transform: translateX(50%);
+    }
 }
 
 @keyframes bookClose {
-    from { transform: translateX(calc(var(--book-width) / 2)); }
-    to { transform: translateX(0); }
+    from {
+        transform: translateX(50%);
+        -webkit-transform: translateX(50%);
+    }
+    to {
+        transform: translateX(0);
+        -webkit-transform: translateX(0);
+    }
 }
 
 @keyframes coverOpen {
-    from { transform: rotateY(0deg); }
-    to { transform: rotateY(-180deg); }
+    from {
+        transform: rotateY(0deg);
+        -webkit-transform: rotateY(0deg);
+    }
+    to {
+        transform: rotateY(-180deg);
+        -webkit-transform: rotateY(-180deg);
+    }
 }
 
 @keyframes coverClose {
-    from { transform: rotateY(-180deg); }
-    to { transform: rotateY(0deg); }
+    from {
+        transform: rotateY(-180deg);
+        -webkit-transform: rotateY(-180deg);
+    }
+    to {
+        transform: rotateY(0deg);
+        -webkit-transform: rotateY(0deg);
+    }
 }
 
 @keyframes mobileFlip {
-    from { transform: rotateY(0deg); }
-    to { transform: rotateY(180deg); }
+    from {
+        transform: rotateY(0deg);
+        -webkit-transform: rotateY(0deg);
+    }
+    to {
+        transform: rotateY(180deg);
+        -webkit-transform: rotateY(180deg);
+    }
 }
 
 @keyframes mobileUnflip {
-    from { transform: rotateY(180deg); }
-    to { transform: rotateY(0deg); }
+    from {
+        transform: rotateY(180deg);
+        -webkit-transform: rotateY(180deg);
+    }
+    to {
+        transform: rotateY(0deg);
+        -webkit-transform: rotateY(0deg);
+    }
 }
 
 .book-container.open {
@@ -284,7 +320,13 @@
         border-radius: 0;
     }
 
+    .cover-back {
+        -webkit-transform: rotateY(0);
+        transform: rotateY(0);
+    }
+
     .right-page {
+        -webkit-transform: rotateY(180deg);
         transform: rotateY(180deg);
         z-index: 2;
         border-left: none;
