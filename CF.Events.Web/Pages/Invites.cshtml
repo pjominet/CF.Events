@@ -1,27 +1,92 @@
 ﻿@page "/invites"
 @model CF.Events.Web.Pages.InvitesModel
 @{
+    Layout = "_GlassLayout";
     ViewData["Title"] = "My Invitations";
 }
 
-<div class="container py-4">
-    <div class="row mb-4">
-        <div class="col">
-            <h1 class="serif fs-1">My Invitations</h1>
+@section Styles {
+    <link rel="stylesheet" href="/css/invites.css" asp-append-version="true"/>
+}
+
+@switch (Model.MyInvites.Count)
+{
+    case 0:
+        <div class="text-center py-5 glass-card">
+            <i class="bi bi-envelope-open glass-text-muted display-1 mb-3"></i>
+            <h3 class="glass-title">No invitations found</h3>
+            <p class="glass-text-muted">You haven't been invited to any events yet.</p>
+        </div>
+        break;
+    case 1:
+    {
+        var invite = Model.MyInvites.First();
+        <div class="single-invite-container">
+            <div class="single-invite-card">
+                <div class="single-invite-header d-flex justify-content-between align-items-center">
+                    <div class="single-invite-info">
+                        <div class="single-invite-details">
+                            <i class="bi bi-calendar-event me-2"></i>@invite.Event.StartDate.ToShortDateString()
+                            @if (invite.Event.EndDate != invite.Event.StartDate)
+                            {
+                                @:- @invite.Event.EndDate.ToShortDateString()
+                            }
+                            <br/>
+                            <i class="bi bi-geo-alt me-2"></i>@invite.Event.Location
+                        </div>
+                    </div>
+                    <div class="single-invite-status">
+                        @if (invite.HasRsvped)
+                        {
+                            if (invite.Attending)
+                            {
+                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Attending</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary"><i class="bi bi-x-circle me-1"></i>Not Attending</span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Pending</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="single-invite-divider"></div>
+
+                <div class="single-invite-actions">
+                    <a href="/events/@invite.Event.Id/invitation" class="glass-button btn-view-invitation text-decoration-none d-flex align-items-center justify-content-center">
+                        <i class="bi bi-envelope-open me-2"></i>View Invitation
+                    </a>
+
+                    <a href="/events/@invite.Event.Id/rsvp" class="glass-button btn-rsvp text-decoration-none d-flex align-items-center justify-content-center">
+                        <i class="bi bi-pencil-square me-2"></i>RSVP Now
+                    </a>
+
+                    <button type="button" class="glass-button btn-donation d-flex align-items-center justify-content-center">
+                        <i class="bi bi-gift me-2"></i>Wedding List
+                    </button>
+
+                    <button type="button" class="glass-button btn-accom d-flex align-items-center justify-content-center" data-event-id="@invite.Event.Id">
+                        <i class="bi bi-house me-2"></i>Accommodation Info
+                    </button>
+
+                    <button type="button" class="glass-button btn-travel d-flex align-items-center justify-content-center" data-event-id="@invite.Event.Id">
+                        <i class="bi bi-airplane me-2"></i>Travel Instructions
+                    </button>
+                </div>
+            </div>
+        </div>
+        break;
+    }
+    default:
+    {
+        <div class="invites-header">
+            <h1 class="serif">My Invitations</h1>
             <p class="text-muted">Here are all the events you have been invited to.</p>
         </div>
-    </div>
-
-    @if (Model.MyInvites.Count == 0)
-    {
-        <div class="text-center py-5 bg-light rounded-3">
-            <i class="bi bi-envelope-open text-muted display-1 mb-3"></i>
-            <h3>No invitations found</h3>
-            <p class="text-muted">You haven't been invited to any events yet.</p>
-        </div>
-    }
-    else
-    {
         <div class="container-fluid p-0">
             <div id="invitesGrid"
                  class="row g-4 pb-4"
@@ -33,10 +98,10 @@
                     <div class="col-12 col-md-6 col-xl-4">
                         @if (invite.HasRsvped)
                         {
-                            <div class="card shadow-lg border-0 border-start border-3 @(invite.Attending ? "border-success" : "border-secondary")">
-                                <div class="card-body">
+                            <div class="glass-card shadow-lg border-0 border-start border-3 @(invite.Attending ? "border-success" : "border-secondary") h-100">
+                                <div class="card-body p-4">
                                     <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h5 class="card-title mb-0">@invite.Event.Name</h5>
+                                        <h5 class="card-title mb-0 glass-title">@invite.Event.Name</h5>
                                         @if (invite.Attending)
                                         {
                                             <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Attending</span>
@@ -55,31 +120,31 @@
                                                     <strong>@pa.ParticipantName</strong>:
                                                     @foreach (var day in pa.AttendingDays.OrderBy(d => d))
                                                     {
-                                                        <span class="badge rounded-pill bg-light text-dark border px-2 py-1 ms-1">Day @day</span>
+                                                        <span class="badge rounded-pill bg-white bg-opacity-25 text-dark border-0 px-2 py-1 ms-1">Day @day</span>
                                                     }
                                                 </div>
                                             }
                                         </div>
                                     }
-                                    <p class="card-text small text-muted mb-3">
+                                    <p class="card-text small glass-text-muted mb-3">
                                         <i class="bi bi-calendar-event me-2"></i>@invite.Event.StartDate.ToShortDateString()
                                         @if (invite.Event.EndDate != invite.Event.StartDate)
                                         {
-                                            <text> - @invite.Event.EndDate.ToShortDateString()</text>
+                                            @:- @invite.Event.EndDate.ToShortDateString()
                                         }
                                         <br/>
                                         <i class="bi bi-geo-alt me-2"></i>@invite.Event.Location
                                     </p>
                                     <hr class="text-muted opacity-25"/>
                                     <div class="d-flex gap-2">
-                                        <button type="button" class="btn btn-outline-primary flex-fill"
+                                        <button type="button" class="glass-button flex-fill"
                                                 data-event-id="@invite.Event.Id">
                                             <i class="bi bi-eye me-1"></i>View Details
                                         </button>
                                         <form method="post" action="/events/@invite.Event.Id/rsvp?handler=Cancel" class="flex-fill"
                                               data-confirm="Are you sure you want to cancel your RSVP?">
                                             @Html.AntiForgeryToken()
-                                            <button type="submit" class="btn btn-outline-danger w-100">
+                                            <button type="submit" class="glass-button w-100 text-danger border-danger border-opacity-25">
                                                 <i class="bi bi-x-lg me-1"></i>Cancel
                                             </button>
                                         </form>
@@ -89,27 +154,27 @@
                         }
                         else
                         {
-                            <div class="card shadow-lg border-0">
-                                <div class="card-body">
+                            <div class="glass-card shadow-lg border-0 h-100">
+                                <div class="card-body p-4">
                                     <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h5 class="card-title mb-0">@invite.Event.Name</h5>
+                                        <h5 class="card-title mb-0 glass-title">@invite.Event.Name</h5>
                                         <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Pending</span>
                                     </div>
-                                    <p class="card-text small text-muted mb-3">
+                                    <p class="card-text small glass-text-muted mb-3">
                                         <i class="bi bi-calendar-event me-2"></i>@invite.Event.StartDate.ToShortDateString()
                                         @if (invite.Event.EndDate != invite.Event.StartDate)
                                         {
-                                            <text> - @invite.Event.EndDate.ToShortDateString()</text>
+                                            @:- @invite.Event.EndDate.ToShortDateString()
                                         }
                                         <br/>
                                         <i class="bi bi-geo-alt me-2"></i>@invite.Event.Location
                                     </p>
                                     <hr class="text-muted opacity-25"/>
-                                    <p class="small text-muted mb-3">
+                                    <p class="small glass-text-muted mb-3">
                                         <i class="bi bi-info-circle me-1"></i>You have been invited to this event. Please review and respond.
                                     </p>
                                     <div class="d-grid">
-                                        <a href="/events/@invite.Event.Id/invitation" class="btn btn-primary">
+                                        <a href="/events/@invite.Event.Id/invitation" class="glass-button text-center">
                                             <i class="bi bi-envelope-open me-2"></i>View Invitation & RSVP
                                         </a>
                                     </div>
@@ -127,8 +192,9 @@
                 </div>
             </div>
         </div>
+        break;
     }
-</div>
+}
 
 <div id="_rsvpDetailContainer"></div>
 
