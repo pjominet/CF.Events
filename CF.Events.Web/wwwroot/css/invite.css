@@ -45,7 +45,6 @@
     height: var(--book-height);
     cursor: default;
     border-radius: var(--border-radius-main);
-    transform-style: preserve-3d;
 }
 
 .glass-button {
@@ -127,7 +126,7 @@
 
 .cover-front {
     color: var(--text-light);
-    z-index: 2;
+    z-index: 3;
     -webkit-transform: rotateY(0deg);
     transform: rotateY(0deg);
     border-radius: var(--border-radius-small) var(--border-radius-main) var(--border-radius-main) var(--border-radius-small);
