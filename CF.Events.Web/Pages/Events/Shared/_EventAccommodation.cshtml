@@ -1,0 +1,71 @@
+﻿@model AccommodationDetails
+
+<div class="modal fade" id="eventAccommodationModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title serif">Accommodation Details</h5>
+            </div>
+            <div class="modal-body">
+                @if (Model is { IsAttending: false, HasRsvped: true })
+                {
+                    <div class="alert alert-warning mb-3">
+                        <i class="bi bi-info-circle me-2"></i>You have indicated that you will not be attending this event.
+                    </div>
+                }
+
+                @if (Model.IsAttending)
+                {
+                    <h6 class="serif"><i class="bi bi-house me-1"></i>Accommodation Info</h6>
+                    if (!string.IsNullOrEmpty(Model.Details))
+                    {
+                        <p class="mb-3">@Html.Raw(Model.Details)</p>
+                    }
+
+                    if (Model.BookingLinks.Any())
+                    {
+                        <ol class="list-unstyled">
+                            @foreach (var (type, link) in Model.BookingLinks)
+                            {
+                                <li>
+                                    @switch (type)
+                                    {
+                                        case LinkType.Email:
+                                            <a href="mailto:@link" class="btn btn-sm btn-primary mb-1 px-2 py-1">
+                                                <i class="bi bi-envelope me-2"></i>@link
+                                            </a>
+                                            break;
+                                        case LinkType.Phone:
+                                            <a href="tel:@link.Replace(" ", string.Empty)" class="btn btn-sm btn-primary mb-1 px-2 py-1">
+                                                <i class="bi bi-telephone me-2"></i>@link
+                                            </a>
+                                            break;
+                                        case LinkType.Web:
+                                            <a href="@link" target="_blank" rel="noopener" class="btn btn-sm btn-primary mb-1 px-2 py-1">
+                                                <i class="bi bi-box-arrow-up-right me-2"></i>@link
+                                            </a>
+                                            break;
+                                        default:
+                                            throw new ArgumentOutOfRangeException();
+                                    }
+                                </li>
+                            }
+                        </ol>
+                    }
+
+                    if (!string.IsNullOrEmpty(Model.Code))
+                    {
+                        <div class="alert alert-info py-2 mt-3 mb-0">
+                            <small><i class="bi bi-info-circle me-1"></i>Code: <strong>@Model.Code</strong></small>
+                        </div>
+                    }
+                    <hr/>
+                }
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -34,24 +34,19 @@
     font-weight: 600;
 }
 
-.btn-rsvp {
+.btn-66 {
     grid-column: 1 / 5;
     padding: 1rem;
 }
 
-.btn-donation {
+.btn-33 {
     grid-column: 5 / 7;
     padding: 1rem;
 }
 
-.btn-accom {
-    grid-column: 1 / 4;
-    padding: 0.8rem;
-}
-
-.btn-travel {
+.btn-50 {
     grid-column: 4 / 7;
-    padding: 0.8rem;
+    padding: 1rem;
 }
 
 /* Responsive adjustments */
@@ -70,7 +65,7 @@
         grid-template-rows: repeat(5, auto);
     }
 
-    .btn-view-invitation, .btn-rsvp, .btn-donation, .btn-accom, .btn-travel {
+    .btn-view-invitation, .btn-66, .btn-33, .btn-50 {
         grid-column: 1 / 2;
     }
 

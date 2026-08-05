@@ -67,8 +67,8 @@
     });
 
     // RSVP Details Modal handling
-    const rsvpContainer = document.getElementById('_rsvpDetailContainer');
-    if (rsvpContainer) {
+    const eventContainer = document.getElementById('_eventDetailContainer');
+    if (eventContainer) {
         document.addEventListener('click', async function(e) {
             const btn = e.target.closest('button[data-event-id]');
             if (!btn) return;
@@ -76,23 +76,29 @@
             const eventId = btn.dataset.eventId;
             if (!eventId) return;
 
+            const action = btn.dataset.action;
+            if (!action) return;
+
+            const target = btn.dataset.target;
+            if (!target) return;
+
             try {
                 btn.disabled = true;
-                const response = await fetch(`/events/${eventId}/rsvp-detail`, {
+                const response = await fetch(`/events/${eventId}/${action}`, {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
 
                 if (response.ok) {
-                    rsvpContainer.innerHTML = await response.text();
+                    eventContainer.innerHTML = await response.text();
 
-                    const modalEl = document.getElementById('eventInfoModal');
-                    if (modalEl) {
-                        const modal = new bootstrap.Modal(modalEl);
+                    const modal = document.getElementById(target);
+                    if (modal) {
+                        const modal = new bootstrap.Modal(modal);
                         modal.show();
                     }
                 }
             } catch (error) {
-                console.error('Error fetching RSVP details:', error);
+                console.error('Error fetching event details:', error);
             } finally {
                 btn.disabled = false;
             }

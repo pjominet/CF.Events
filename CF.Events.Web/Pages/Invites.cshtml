@@ -58,17 +58,32 @@
                     <a href="/events/@invite.Event.Id/invitation" class="btn-glass btn-glass-dark btn-view-invitation text-decoration-none d-flex align-items-center justify-content-center">
                         <i class="bi bi-envelope-open me-2"></i>View Invitation
                     </a>
-                    <a href="/events/@invite.Event.Id/rsvp" class="btn-glass btn-glass-dark btn-rsvp text-decoration-none d-flex align-items-center justify-content-center">
-                        <i class="bi bi-pencil-square me-2"></i>RSVP Now
-                    </a>
-                    <button type="button" class="btn-glass btn-glass-dark btn-donation d-flex align-items-center justify-content-center" data-event-id="@invite.Event.Id">
+                    @if (invite.Attending)
+                    {
+                        <button type="button" class="btn-glass btn-glass-dark btn-66 d-flex align-items-center justify-content-center" data-event-id="@invite.Event.Id">
+                            <i class="bi bi-people me-2"></i>Attendance
+                        </button>
+                    }
+                    else
+                    {
+                        <a href="/events/@invite.Event.Id/rsvp" class="btn-glass btn-glass-dark btn-66 text-decoration-none d-flex align-items-center justify-content-center">
+                            <i class="bi bi-pencil-square me-2"></i>RSVP Now
+                        </a>
+                    }
+                    <button type="button" class="btn-glass btn-glass-dark btn-33 d-flex align-items-center justify-content-center" data-event-id="@invite.Event.Id" data-action="donations" data-target="eventDonationModal">
                         <i class="bi bi-gift me-2"></i>Wedding Gifts
                     </button>
-                    <button type="button" class="btn-glass btn-glass-dark btn-accom d-flex align-items-center justify-content-center" data-event-id="@invite.Event.Id">
+                    <button type="button" class="btn-glass btn-glass-dark btn-50 d-flex align-items-center justify-content-center" data-event-id="@invite.Event.Id" data-actions="accommodation" data-target="eventAccommodationModal">
                         <i class="bi bi-house me-2"></i>Accommodation Info
                     </button>
-                    <button type="button" class="btn-glass btn-glass-dark btn-travel d-flex align-items-center justify-content-center" data-event-id="@invite.Event.Id">
+                    <button type="button" class="btn-glass btn-glass-dark btn-50 d-flex align-items-center justify-content-center" data-event-id="@invite.Event.Id" data-action="travel" data-target="eventTravelModal">
                         <i class="bi bi-airplane me-2"></i>Travel Instructions
+                    </button>
+                    <button type="button" class="btn-glass btn-glass-dark btn-33 d-flex align-items-center justify-content-center" data-event-id="@invite.Event.Id" data-action="faq" data-target="eventFaqModal">
+                        <i class="bi bi-question-circle me-2"></i>FAQ
+                    </button>
+                    <button type="button" class="btn-glass btn-glass-dark btn-66 d-flex align-items-center justify-content-center" data-event-id="@invite.Event.Id" data-action="schedule" data-target="eventScheduleModal">
+                        <i class="bi bi-list-check me-2"></i>Event Schedule
                     </button>
                 </div>
             </div>
@@ -190,7 +205,7 @@
     }
 }
 
-<div id="_rsvpDetailContainer"></div>
+<div id="_eventDetailContainer"></div>
 
 @section Scripts {
     <script src="/js/invites.js" type="text/javascript" asp-append-version="true"></script>

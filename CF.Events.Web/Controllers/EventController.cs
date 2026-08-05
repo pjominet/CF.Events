@@ -101,9 +101,9 @@ public class EventController(
         return PhysicalFile(requested, contentType);
     }
 
-    [HttpGet("{eventId:int}/rsvp-detail")]
+    [HttpGet("{eventId:int}/accommodation")]
     [Authorize]
-    public async Task<IActionResult> GetRsvpDetail([FromRoute] int eventId)
+    public async Task<IActionResult> GetEventAccommodationDetail([FromRoute] int eventId)
     {
         var userId = User.GetId();
 
@@ -113,12 +113,37 @@ public class EventController(
             {
                 HasRsvped = eu.Rsvp != null && eu.Rsvp.SubmittedAt <= DateTime.UtcNow,
                 IsAttending = eu.Rsvp != null && eu.Rsvp.Attending,
-                EventName = eu.Event.Name,
                 eu.Event.AccommodationDetails,
                 AccommodationCode = eu.AssignedAccommodationCode,
-                ParticipantAttendance = eu.Rsvp != null ? eu.Rsvp.ParticipantsAttendance : new List<ParticipantAttendance>(),
-                DietaryOptions = eu.Rsvp != null ? eu.Rsvp.ParticipantsDiets : new List<ParticipantDiet>(),
-                BookingLinks = eu.Event.BookingLinks.Select(bl => new { bl.Type, bl.Link }).ToList(),
+                BookingLinks = eu.Event.BookingLinks.Select(bl => new { bl.Type, bl.Link }).ToList()
+            })
+            .FirstOrDefaultAsync();
+
+        if (eventUser is null) return NotFound();
+
+        var model = new AccommodationDetails
+        {
+            HasRsvped = eventUser.HasRsvped,
+            IsAttending = eventUser.IsAttending,
+            Details = eventUser.AccommodationDetails,
+            Code = eventUser.AccommodationCode,
+            BookingLinks = eventUser.BookingLinks.ToDictionary(bl => bl.Type, bl => bl.Link)
+        };
+
+        return PartialView("~/Pages/Events/Shared/_EventAccommodation.cshtml", model);
+    }
+
+    [HttpGet("{eventId:int}/donations")]
+    [Authorize]
+    public async Task<IActionResult> GetEventDonationDetail([FromRoute] int eventId)
+    {
+        var userId = User.GetId();
+
+        var eventUser = await db.EventUsers
+            .Where(eu => eu.EventId == eventId && eu.UserId == userId)
+            .Select(eu => new
+            {
+                EventName = eu.Event.Name,
                 eu.Event.DonationIban,
                 eu.Event.DonationLink,
                 EventStartDate = eu.Event.StartDate
@@ -127,22 +152,71 @@ public class EventController(
 
         if (eventUser is null) return NotFound();
 
-        var model = new RsvpDetail
+        var model = new DonationDetails
         {
-            HasRsvped = eventUser.HasRsvped,
-            IsAttending = eventUser.IsAttending,
-            EventName = eventUser.EventName,
-            ParticipantsAttendance = eventUser.ParticipantAttendance,
-            AccommodationDetails = eventUser.AccommodationDetails,
-            AccommodationCode = eventUser.AccommodationCode,
-            ParticipantsDiets = eventUser.DietaryOptions,
-            BookingLinks = eventUser.BookingLinks.ToDictionary(bl => bl.Type, bl => bl.Link),
-            DonationIban = eventUser.DonationIban,
-            DonationLink = eventUser.DonationLink,
-            DonationReference = new Event { Name = eventUser.EventName, StartDate = eventUser.EventStartDate }.GetDonationReference()
+            Iban = eventUser.DonationIban,
+            Link = eventUser.DonationLink,
+            Reference = new Event { Name = eventUser.EventName, StartDate = eventUser.EventStartDate }.GetDonationReference()
         };
 
-        return PartialView("~/Pages/Shared/_RsvpDetailsModal.cshtml", model);
+        return PartialView("~/Pages/Events/Shared/_EventDonations.cshtml", model);
+    }
+
+    [HttpGet("{eventId:int}/faq")]
+    [Authorize]
+    public async Task<IActionResult> GetEventFaq([FromRoute] int eventId)
+    {
+        var userId = User.GetId();
+
+        var eventUser = await db.EventUsers
+            .Where(eu => eu.EventId == eventId && eu.UserId == userId)
+            .Select(eu => new
+            {
+                eu.Event.EventFaq
+            })
+            .FirstOrDefaultAsync();
+
+        if (eventUser is null) return NotFound();
+
+        return PartialView("~/Pages/Events/Shared/_EventFaq.cshtml", eventUser.EventFaq);
+    }
+
+    [HttpGet("{eventId:int}/schedule")]
+    [Authorize]
+    public async Task<IActionResult> GetEventSchedule([FromRoute] int eventId)
+    {
+        var userId = User.GetId();
+
+        var eventUser = await db.EventUsers
+            .Where(eu => eu.EventId == eventId && eu.UserId == userId)
+            .Select(eu => new
+            {
+                eu.Event.EventSchedule
+            })
+            .FirstOrDefaultAsync();
+
+        if (eventUser is null) return NotFound();
+
+        return PartialView("~/Pages/Events/Shared/_EventSchedule.cshtml", eventUser.EventSchedule);
+    }
+
+    [HttpGet("{eventId:int}/travel")]
+    [Authorize]
+    public async Task<IActionResult> GetEventTravelInstructions([FromRoute] int eventId)
+    {
+        var userId = User.GetId();
+
+        var eventUser = await db.EventUsers
+            .Where(eu => eu.EventId == eventId && eu.UserId == userId)
+            .Select(eu => new
+            {
+                eu.Event.TravelInstructions
+            })
+            .FirstOrDefaultAsync();
+
+        if (eventUser is null) return NotFound();
+
+        return PartialView("~/Pages/Events/Shared/_EventTravel.cshtml", eventUser.TravelInstructions);
     }
 
     [HttpGet("{eventId:int}/rsvp-responses/{userId}")]

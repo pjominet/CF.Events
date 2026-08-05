@@ -1,0 +1,27 @@
+﻿@model List<EventScheduleStep>
+
+<div class="modal fade" id="eventScheduleModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title serif">Event Schedule</h5>
+            </div>
+            <div class="modal-body">
+                @foreach (var day in Model.GroupBy(s => s.Day))
+                {
+                    <label>Day @day</label>
+                    <ul>
+                        @foreach (var step in day)
+                        {
+                            <li>@step.TimeStamp - @step.Label</li>
+                        }
+                    </ul>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+

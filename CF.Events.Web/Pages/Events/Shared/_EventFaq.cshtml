@@ -1,0 +1,26 @@
+﻿@model List<EventFaqItem>
+
+<div class="modal fade" id="eventFaqModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title serif">FAQ</h5>
+            </div>
+            <div class="modal-body">
+                @foreach (var item in Model)
+                {
+                    <article class="card mb-3">
+                        @item.Question
+                        <hr/>
+                        @item.Answer
+                    </article>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
