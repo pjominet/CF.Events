@@ -270,7 +270,7 @@ hr.glass-divider {
 }
 
 .btn-glass-light {
-    color: rgba(255, 255, 255, 0.75);
+    color: var(--primary-color);
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
@@ -278,21 +278,19 @@ hr.glass-divider {
 
 .btn-glass-light:hover {
     background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    box-shadow: 2px 12px 28px rgba(0, 0, 0, 0.25);
 }
 
 .btn-glass-dark {
     color: var(--primary-color);
-    background: rgba(var(--glass-color-dark), 0.15);
-    border: 1px solid rgba(var(--glass-color-dark), 0.1);
+    background: rgba(var(--glass-color-dark), 0.35);
+    border: 1px solid rgba(var(--glass-color-dark), 0.4);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .btn-glass-dark:hover {
-    background: rgba(var(--glass-color-dark), 0.2);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    background: rgba(var(--glass-color-dark), 0.55);
+    box-shadow: 2px 12px 28px rgba(0, 0, 0, 0.25);
 }
 
 .btn-glass-primary {
@@ -304,8 +302,7 @@ hr.glass-divider {
 
 .btn-glass-primary:hover {
     background: rgba(var(--glass-color-primary), 0.95);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    box-shadow: 2px 12px 28px rgba(0, 0, 0, 0.25);
 }
 
 .btn-glass-secondary {
@@ -317,13 +314,11 @@ hr.glass-divider {
 
 .btn-glass-secondary:hover {
     background: rgba(var(--glass-color-secondary), 0.95);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    box-shadow: 2px 12px 28px rgba(0, 0, 0, 0.25);
 }
 
 .btn-glass:active {
-    transform: translateY(0);
-    box-shadow: 0 4px 18px 0 rgba(31, 38, 135, 0.10);
+    box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.1);
 }
 
 .btn-glass:disabled {
