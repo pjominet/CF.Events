@@ -21,11 +21,11 @@
     case 1:
     {
         var invite = Model.MyInvites.First();
-        <div class="single-invite-container">
-            <div class="single-invite-card">
-                <div class="single-invite-header d-flex justify-content-between align-items-center">
-                    <div class="single-invite-info">
-                        <div class="single-invite-details">
+        <div class="d-flex justify-content-center align-items-center mt-5">
+            <div class="glass-card-lg">
+                <div class="invite-header d-flex justify-content-between align-items-center">
+                    <div class="invite-info">
+                        <div class="invite-details">
                             <i class="bi bi-calendar-event me-2"></i>@invite.Event.StartDate.ToShortDateString()
                             @if (invite.Event.EndDate != invite.Event.StartDate)
                             {
@@ -35,7 +35,7 @@
                             <i class="bi bi-geo-alt me-2"></i>@invite.Event.Location
                         </div>
                     </div>
-                    <div class="single-invite-status">
+                    <div class="invite-badge-wrapper">
                         @if (invite.HasRsvped)
                         {
                             if (invite.Attending)
@@ -54,26 +54,22 @@
                     </div>
                 </div>
 
-                <div class="single-invite-divider"></div>
+                <hr class="glass-divider">
 
-                <div class="single-invite-actions">
-                    <a href="/events/@invite.Event.Id/invitation" class="glass-button btn-view-invitation text-decoration-none d-flex align-items-center justify-content-center">
+                <div class="invite-action-grid">
+                    <a href="/events/@invite.Event.Id/invitation" class="btn-glass btn-glass-light btn-view-invitation text-decoration-none d-flex align-items-center justify-content-center">
                         <i class="bi bi-envelope-open me-2"></i>View Invitation
                     </a>
-
-                    <a href="/events/@invite.Event.Id/rsvp" class="glass-button btn-rsvp text-decoration-none d-flex align-items-center justify-content-center">
+                    <a href="/events/@invite.Event.Id/rsvp" class="btn-glass btn-glass-light btn-rsvp text-decoration-none d-flex align-items-center justify-content-center">
                         <i class="bi bi-pencil-square me-2"></i>RSVP Now
                     </a>
-
-                    <button type="button" class="glass-button btn-donation d-flex align-items-center justify-content-center">
-                        <i class="bi bi-gift me-2"></i>Wedding List
+                    <button type="button" class="btn-glass btn-glass-light btn-donation d-flex align-items-center justify-content-center" data-event-id="@invite.Event.Id">
+                        <i class="bi bi-gift me-2"></i>Wedding Gifts
                     </button>
-
-                    <button type="button" class="glass-button btn-accom d-flex align-items-center justify-content-center" data-event-id="@invite.Event.Id">
+                    <button type="button" class="btn-glass btn-glass-light btn-accom d-flex align-items-center justify-content-center" data-event-id="@invite.Event.Id">
                         <i class="bi bi-house me-2"></i>Accommodation Info
                     </button>
-
-                    <button type="button" class="glass-button btn-travel d-flex align-items-center justify-content-center" data-event-id="@invite.Event.Id">
+                    <button type="button" class="btn-glass btn-glass-light btn-travel d-flex align-items-center justify-content-center" data-event-id="@invite.Event.Id">
                         <i class="bi bi-airplane me-2"></i>Travel Instructions
                     </button>
                 </div>
@@ -98,7 +94,7 @@
                     <div class="col-12 col-md-6 col-xl-4">
                         @if (invite.HasRsvped)
                         {
-                            <div class="glass-card shadow-lg border-0 border-start border-3 @(invite.Attending ? "border-success" : "border-secondary") h-100">
+                            <div class="card shadow-lg border-0 border-start border-3 @(invite.Attending ? "border-success" : "border-secondary") h-100">
                                 <div class="card-body p-4">
                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                         <h5 class="card-title mb-0 glass-title">@invite.Event.Name</h5>
@@ -137,14 +133,14 @@
                                     </p>
                                     <hr class="text-muted opacity-25"/>
                                     <div class="d-flex gap-2">
-                                        <button type="button" class="glass-button flex-fill"
+                                        <button type="button" class="btn-glass btn-glass-light flex-fill"
                                                 data-event-id="@invite.Event.Id">
                                             <i class="bi bi-eye me-1"></i>View Details
                                         </button>
                                         <form method="post" action="/events/@invite.Event.Id/rsvp?handler=Cancel" class="flex-fill"
                                               data-confirm="Are you sure you want to cancel your RSVP?">
                                             @Html.AntiForgeryToken()
-                                            <button type="submit" class="glass-button w-100 text-danger border-danger border-opacity-25">
+                                            <button type="submit" class="btn-glass btn-glass-light w-100 text-danger border-danger border-opacity-25">
                                                 <i class="bi bi-x-lg me-1"></i>Cancel
                                             </button>
                                         </form>
@@ -154,7 +150,7 @@
                         }
                         else
                         {
-                            <div class="glass-card shadow-lg border-0 h-100">
+                            <div class="glass-card glass-card-hover shadow-lg border-0 h-100">
                                 <div class="card-body p-4">
                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                         <h5 class="card-title mb-0 glass-title">@invite.Event.Name</h5>
@@ -174,7 +170,7 @@
                                         <i class="bi bi-info-circle me-1"></i>You have been invited to this event. Please review and respond.
                                     </p>
                                     <div class="d-grid">
-                                        <a href="/events/@invite.Event.Id/invitation" class="glass-button text-center">
+                                        <a href="/events/@invite.Event.Id/invitation" class="btn-glass btn-glass-light text-center">
                                             <i class="bi bi-envelope-open me-2"></i>View Invitation & RSVP
                                         </a>
                                     </div>
