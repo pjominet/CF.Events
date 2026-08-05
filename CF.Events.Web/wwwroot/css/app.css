@@ -6,7 +6,7 @@
     --info-color: #31708f;
 
     --bg-page: #fcfaf9;
-    --bg-card: #e8e3df;
+    --bg-card: #dbe2f0;
 
     /* Fonts */
     --font-serif: "Domine", serif;
@@ -135,6 +135,7 @@ h1:focus {
     flex: 1;
     text-align: center;
     transition: all 0.3s ease;
+    font-size: .93rem;
 }
 
 .step-indicator.active {

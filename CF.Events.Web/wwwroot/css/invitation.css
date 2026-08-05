@@ -10,7 +10,7 @@
 
     /* Sizes */
     --book-width: 500px;
-    --book-height: 650px;
+    --book-height: 700px;
     --border-radius-main: 7px;
     --border-radius-small: 2px;
 
@@ -110,7 +110,7 @@
     font-size: 18px;
     font-weight: 300;
     letter-spacing: 3px;
-    margin-bottom: 40px;
+    margin-bottom: 1.5rem;
     opacity: 0.95;
 }
 
@@ -118,7 +118,7 @@
     font-size: 48px;
     font-weight: 300;
     letter-spacing: 2px;
-    margin-bottom: 30px;
+    margin-bottom: 1.5rem;
     line-height: 1.2;
 }
 
@@ -157,7 +157,7 @@
 .page-content h3 {
     font-size: 32px;
     color: var(--text-highlight);
-    margin-bottom: 30px;
+    margin-bottom: 1.5rem;
     font-weight: normal;
 }
 
@@ -321,4 +321,15 @@
         box-shadow: none;
         padding: 3rem 1.5rem;
     }
+}
+
+.rsvp-description {
+    height: calc(var(--book-height) / 2);
+    overflow-y: scroll;
+    margin-bottom: 1rem;
+}
+
+.rsvp-description img {
+    max-width: 200px;
+    margin-bottom: 1rem;
 }

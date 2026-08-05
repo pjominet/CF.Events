@@ -49,8 +49,17 @@
 
             <div class="right-page">
                 <div class="page-content">
-                    <h3>Details</h3>
-                    <p><strong>Date:</strong><br>@Model.EventData.StartDate.ToLongDateString()</p>
+                    <h3>RSVP</h3>
+                    <p>
+                        <strong>Date:</strong>
+                        <br/>
+                        @Model.EventData.StartDate.ToLongDateString()
+                        @if (Model.EventData.EndDate != Model.EventData.StartDate)
+                        {
+                            <br/>
+                            @Model.EventData.EndDate.ToLongDateString()
+                        }
+                    </p>
                     @if (!string.IsNullOrEmpty(Model.EventData.Location))
                     {
                         <p><strong>Location:</strong><br>@Model.EventData.Location</p>

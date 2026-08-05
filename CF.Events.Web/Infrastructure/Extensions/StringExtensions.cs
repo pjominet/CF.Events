@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -43,6 +44,21 @@ public static partial class StringExtensions
             {
                 return [];
             }
+        }
+
+        public string IntoWords()
+        {
+            if (string.IsNullOrEmpty(@string))
+                return @string;
+
+            var result = new StringBuilder();
+            foreach (var c in @string)
+            {
+                if (char.IsUpper(c) && result.Length > 0) result.Append(' ');
+                result.Append(c);
+            }
+
+            return result.ToString();
         }
     }
 

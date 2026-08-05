@@ -17,13 +17,13 @@
 
                 @if (Model.IsAttending)
                 {
-                    @if (Model.ParticipantsDiets.Any(o => o.Restrictions.Any() || !string.IsNullOrWhiteSpace(o.OtherDetails)))
+                    if (Model.ParticipantsDiets.Any(o => o.Restrictions.Any() || !string.IsNullOrWhiteSpace(o.OtherDetails)))
                     {
                         <h6 class="serif"><i class="bi bi-fork-knife me-1"></i>Dietary Requirements</h6>
-                        @foreach (var participant in Model.ParticipantsDiets.Where(o => o.Restrictions.Any() || !string.IsNullOrWhiteSpace(o.OtherDetails)))
+                        foreach (var participant in Model.ParticipantsDiets.Where(o => o.Restrictions.Any() || !string.IsNullOrWhiteSpace(o.OtherDetails)))
                         {
                             <p class="mb-1"><strong>@participant.ParticipantName:</strong></p>
-                            @if (participant.Restrictions.Any())
+                            if (participant.Restrictions.Any())
                             {
                                 <ul>
                                     @foreach (var option in participant.Restrictions)
@@ -32,7 +32,7 @@
                                     }
                                 </ul>
                             }
-                            @if (!string.IsNullOrWhiteSpace(participant.OtherDetails))
+                            if (!string.IsNullOrWhiteSpace(participant.OtherDetails))
                             {
                                 <p class="small text-muted ms-3">@participant.OtherDetails</p>
                             }
@@ -41,7 +41,7 @@
                     }
 
                     <h6 class="serif"><i class="bi bi-calendar-check me-1"></i>Attendance</h6>
-                    @foreach (var pa in Model.ParticipantsAttendance.OrderBy(pa => pa.ParticipantName))
+                    foreach (var pa in Model.ParticipantsAttendance.OrderBy(pa => pa.ParticipantName))
                     {
                         <p class="mb-1"><strong>@pa.ParticipantName</strong>: Days @string.Join(", ", pa.AttendingDays.OrderBy(d => d))</p>
                     }

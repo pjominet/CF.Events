@@ -1,13 +1,13 @@
 ﻿@page "/events/{eventId:int}/rsvp"
-@using CF.Events.Web.Infrastructure.Extensions
 @model CF.Events.Web.Pages.Events.RsvpModel
 @{
+    Layout = "_GlassLayout";
     ViewData["Title"] = "RSVP";
 }
 
 <div class="container-fluid d-flex justify-content-center pt-4 mb-auto">
-    <div class="card border-0 p-4 mx-auto bg-card-custom rounded shadow-sm" style="max-width: 800px; width: 100%;">
-        <h2 class="serif text-center mb-4">RSVP for <strong class="fs-1">@Model.EventData.Name</strong></h2>
+    <div class="card bg-glass border-glass p-4 mx-auto rounded-5" style="max-width: 800px; width: 100%;">
+        @*<h2 class="serif text-center text-white mb-4">RSVP for <strong class="fs-1">@Model.EventData.Name</strong></h2>*@
 
         @if (Model.HasResponded)
         {
@@ -27,7 +27,7 @@
                     <hr class="my-4"/>
                     <div class="row g-4">
                         <div class="col-md-6">
-                            <h3 class="h5 serif"><i class="bi bi-calendar-check me-2"></i>Attendance</h3>
+                            <h3 class="text-center mb-4 cursive fs-1"><i class="bi bi-calendar-check me-2"></i>Attendance</h3>
                             <ul class="list-unstyled">
                                 @foreach (var pa in Model.NewRsvp.ParticipantsAttendance.OrderBy(pa => pa.ParticipantName))
                                 {
@@ -36,7 +36,7 @@
                             </ul>
                         </div>
                         <div class="col-md-6">
-                            <h3 class="h5 serif"><i class="bi bi-egg-fried me-2"></i>Dietary Requirements</h3>
+                            <h3 class="text-center mb-4 cursive fs-1"><i class="bi bi-egg-fried me-2"></i>Dietary Requirements</h3>
                             @if (Model.NewRsvp.ParticipantsDiets.Any(o => o.Restrictions.Any() || !string.IsNullOrWhiteSpace(o.OtherDetails)))
                             {
                                 foreach (var opt in Model.NewRsvp.ParticipantsDiets.Where(o => o.Restrictions.Any() || !string.IsNullOrWhiteSpace(o.OtherDetails)))
@@ -68,7 +68,7 @@
 
             <div class="text-center mt-3 d-flex justify-content-center gap-2">
                 <a href="/invites" class="btn btn-secondary">
-                    <i class="bi bi-arrow-left me-1"></i>Back to Invites
+                    <i class="bi bi-arrow-left me-1"></i>Back to Invite
                 </a>
                 <form method="post" asp-page-handler="Cancel"
                       data-confirm="Are you sure you want to cancel your RSVP?">
@@ -84,17 +84,17 @@
             <div class="stepper-progress mb-4 d-flex justify-content-between d-none">
                 <div class="step-indicator active px-2 pb-2" data-step="1">1. Participants</div>
                 <div class="step-indicator px-2 pb-2" data-step="2">2. Attendance</div>
-                <div class="step-indicator px-2 pb-2" data-step="3">3. Dietary Options</div>
+                <div class="step-indicator px-2 pb-2" data-step="3">3. Dietary Requirements</div>
                 <div class="step-indicator px-2 pb-2" data-step="4">4. Finalize</div>
             </div>
 
             <form method="post" id="rsvpForm">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-                <div class="step-content-wrapper rounded p-4 bg-light shadow-sm">
+                <div class="step-content-wrapper rounded-5 p-4 bg-card-custom shadow-sm">
                     <!-- STEP 1: Attendance -->
                     <div class="form-step" id="step-1">
-                        <p class="text-center mb-4 lead cursive fs-1">Will you be joining us?</p>
+                        <h3 class="text-center mb-4 cursive fs-1">Will you be joining us?</h3>
                         <section class="d-flex justify-content-center gap-4 my-2">
                             <div class="form-check custom-radio">
                                 <input class="form-check-input" type="radio" asp-for="NewRsvp.Attending" value="true" id="accept"/>
@@ -109,68 +109,18 @@
 
                     <!-- STEP 2: Participants -->
                     <div class="form-step d-none" id="step-2">
-                        <h3 class="h5 serif text-center mb-4">Who is joining us?</h3>
+                        <h3 class="h5 serif">Who is joining us?</h3>
                         <partial name="Shared/_RsvpParticipants" model="(Model.NewRsvp.Participants, Model.EventData.MaxParticipantsPerRsvp)" />
                     </div>
 
                     <!-- STEP 3: Attendance Schedule & Accommodation -->
                     <div class="form-step d-none" id="step-3">
-                        <h3 class="h5 serif">Attendance Schedule</h3>
+                        <h3 class="h5 serif">Attendance</h3>
                         <section class="row mb-3">
                             <div class="col-12 mt-0">
                                 <partial name="Shared/_RsvpAttendanceSchedule" model="(Model.EventData.EventDuration, Model.NewRsvp.Participants, Model.NewRsvp.ParticipantsAttendance)" />
                             </div>
                         </section>
-
-                        @if (Model.HasAccommodationInfo())
-                        {
-                            <h3 class="h5 serif">Accommodation Info</h3>
-                            <section>
-                                <p class="mb-3">
-                                    @Html.Raw(Model.EventData.AccommodationDetails)
-                                </p>
-
-                                @if (Model.EventData.BookingLinks.Any())
-                                {
-                                    <ol class="list-unstyled">
-                                        @foreach (var bl in Model.EventData.BookingLinks.OrderBy(bl => bl.Link.Length))
-                                        {
-                                            <li>
-                                                @switch (bl.Type)
-                                                {
-                                                    case LinkType.Email:
-                                                        <a href="mailto:@bl.Link" class="btn btn-sm btn-primary mb-1 px-2 py-1">
-                                                            <i class="bi bi-envelope me-2"></i>@bl.Link
-                                                        </a>
-                                                        break;
-                                                    case LinkType.Phone:
-                                                        <a href="tel:@bl.Link.Replace(" ", string.Empty)" class="btn btn-sm btn-primary mb-1 px-2 py-1">
-                                                            <i class="bi bi-telephone me-2"></i>@bl.Link
-                                                        </a>
-                                                        break;
-                                                    case LinkType.Web:
-                                                        <a href="@bl.Link" target="_blank" rel="noopener" class="btn btn-sm btn-primary mb-1 px-2 py-1">
-                                                            <i class="bi bi-box-arrow-up-right me-2"></i>@bl.Link
-                                                        </a>
-                                                        break;
-                                                    default:
-                                                        throw new ArgumentOutOfRangeException();
-                                                }
-                                            </li>
-                                        }
-                                    </ol>
-                                }
-                                @if (!string.IsNullOrEmpty(Model.AssignedAccommodationCode))
-                                {
-                                    <div class="alert alert-success py-2 mt-3 mb-0" id="accommodationCodeAlert">
-                                        <small><i class="bi bi-exclamation-circle me-1"></i>Use Accommodation Code: <strong>@Model.AssignedAccommodationCode</strong></small>
-                                    </div>
-                                }
-                                <p class="text-muted mb-0 mt-2 fst-italic">
-                                    <i class="bi bi-info-circle text-info me-2"></i>This information can still be viewed after finalising the RSVP.
-                                </p>
-                            </section>
-                        }
                     </div>
 
                     <!-- STEP 4: Dietary Options -->
@@ -190,33 +140,6 @@
                             <h3 class="h5 serif">Comments</h3>
                             <textarea asp-for="NewRsvp.Comments" class="form-control" maxlength="500" placeholder="Add a comment... (optional)" rows="3"></textarea>
                         </section>
-                        @if (!string.IsNullOrWhiteSpace(Model.EventData.DonationIban))
-                        {
-                            <section class="mt-3">
-                                <h3 class="h5 serif">Do you wish to help fund our event?</h3>
-                                <button class="btn btn-outline-primary w-100" type="button" id="ibanInfo"
-                                        onclick="copyToClipboardAndShowFeedback(this)">
-                                    @Model.EventData.DonationIban.FormatAsIban()<i class="bi bi-copy ms-2"></i>
-                                </button>
-                                <div class="form-text text-muted mt-2 mb-0">
-                                    <p>
-                                        <i class="bi bi-exclamation-diamond text-danger me-2"></i>Add the reference <strong>@Model.EventData.GetDonationReference()</strong> to your transaction.
-                                    </p>
-                                    <p class="fst-italic">
-                                        <i class="bi bi-info-circle text-info me-2"></i>Any money donated will be used to cover the cost of the event.
-                                    </p>
-                                </div>
-                            </section>
-                        }
-                        @if (!string.IsNullOrWhiteSpace(Model.EventData.DonationLink))
-                        {
-                            <section class="mt-3">
-                                <h3 class="h5 serif">Want to contribute?</h3>
-                                <a class="btn btn-outline-primary w-100" href="@Model.EventData.DonationLink" target="_blank" rel="noopener">
-                                    @Model.EventData.DonationLink<i class="bi bi-box-arrow-in-up-right ms-2"></i>
-                                </a>
-                            </section>
-                        }
                     </div>
                 </div>
 
