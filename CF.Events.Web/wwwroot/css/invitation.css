@@ -93,7 +93,6 @@
     justify-content: center;
     align-items: center;
     text-align: center;
-    padding: 60px;
     background: inherit;
 }
 
@@ -113,24 +112,36 @@
     border-radius: var(--border-radius-main) var(--border-radius-small) var(--border-radius-small) var(--border-radius-main);
 }
 
+.cover-back::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: cover;
+    background: url("/img/bg_floral_lines_transparent.png") no-repeat fixed center;
+    border-radius: var(--border-radius-main);
+}
+
 .cover-front h1 {
     font-size: 18px;
-    font-weight: 300;
+    font-weight: 200;
     letter-spacing: 3px;
     margin-bottom: 1.5rem;
-    opacity: 0.95;
+    opacity: 0.85;
 }
 
 .cover h2 {
     font-size: 48px;
     font-weight: 300;
     letter-spacing: 2px;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
+    margin-top: 2rem;
     line-height: 1.2;
 }
 
 .cover-location {
-    margin-top: 60px;
     font-size: 14px;
     letter-spacing: 2px;
     opacity: 0.8;
@@ -157,7 +168,6 @@
     padding: 2rem .8rem;
     border-radius: var(--border-radius-small);
     box-shadow: 0 5px 20px var(--shadow-light);
-    overflow-y: auto;
     text-align: center;
 }
 

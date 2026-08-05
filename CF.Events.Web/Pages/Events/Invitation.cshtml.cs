@@ -12,6 +12,7 @@ namespace CF.Events.Web.Pages.Events;
 public class InvitationModel(EventsDbContext db) : PageModel
 {
     public Event? EventData { get; private set; }
+    public GuestGroup? GuestGroup { get; private set; }
     public string BackUrl { get; private set; } = "/";
     public bool NotFoundOrForbidden { get; private set; }
 
@@ -26,12 +27,14 @@ public class InvitationModel(EventsDbContext db) : PageModel
             return Page();
         }
 
-        EventData = await db.Events.FindAsync(eventId);
+        EventData = await db.Events.FirstOrDefaultAsync(e => e.Id == eventId);
         if (EventData is null)
         {
             NotFoundOrForbidden = true;
             return Page();
         }
+
+        GuestGroup = await db.GuestGroups.FirstOrDefaultAsync(g => g.GuestUserId == userId);
 
         // Admins reach this page by previewing from the events list, regular users from their invitation list.
         BackUrl = isAdmin && !isInvited ? "/admin/events" : "/invites";

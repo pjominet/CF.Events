@@ -2,7 +2,7 @@
 @model CF.Events.Web.Pages.InvitesModel
 @{
     Layout = "_GlassLayout";
-    ViewData["Title"] = "My Invitations";
+    ViewData["Title"] = "My Invitation";
 }
 
 @section Styles {
@@ -56,7 +56,7 @@
 
                 <div class="invite-action-grid">
                     <a href="/events/@invite.Event.Id/invitation" class="btn-glass btn-glass-dark btn-100 d-flex align-items-center justify-content-center">
-                        <i class="bi bi-envelope-open me-2"></i>View Invitation
+                        <strong><i class="bi bi-envelope-open me-2"></i>View Invitation</strong>
                     </a>
                     @if (invite.Attending)
                     {

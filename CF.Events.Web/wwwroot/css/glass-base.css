@@ -39,10 +39,6 @@ body.glass-theme:before {
 @media (max-width: 768px) {
     body.glass-theme:before {
         background: url("/img/bg_floral_edges_vertical.png");
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
-        background-repeat: no-repeat;
     }
 }
 

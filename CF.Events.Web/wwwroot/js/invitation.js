@@ -67,5 +67,5 @@
             openBook();
         }
         autoOpenTimeout = null;
-    }, 15000);
+    }, 5000);
 })();

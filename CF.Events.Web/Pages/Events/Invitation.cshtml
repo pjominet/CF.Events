@@ -27,13 +27,17 @@
             <div class="cover">
                 <div class="cover-front">
                     <div class="cover-content">
-                        <h1>YOU HAVE BEEN INVITED TO</h1>
-                        <h2>@Model.EventData!.Name</h2>
+                        <h1>
+                            Patrick & Éadaoin invite
+                            <strong class="d-block my-3 fs-2 opacity-100">@Model.GuestGroup!.Label</strong>
+                            to celebrate their
+                        </h1>
+                        <h2>WEDDING</h2>
                         <div class="cover-location">
-                            <p>IRELAND</p>
                             <p>GALWAY CITY</p>
+                            <p>IRELAND</p>
                         </div>
-                        <div class="d-flex justify-content-center align-items-center mt-3">
+                        <div class="d-flex justify-content-center align-items-center h-100 mt-auto">
                             <button id="cover-button" class="btn-glass btn-glass-light text-white">
                                 <i class="bi bi-stars"></i>
                                 <span id="cover-button-text" class="mx-2">Click to open</span>
@@ -53,7 +57,7 @@
                     <p>
                         <strong>Date:</strong>
                         <br/>
-                        @Model.EventData.StartDate.ToLongDateString()
+                        @Model.EventData!.StartDate.ToLongDateString()
                         @if (Model.EventData.EndDate != Model.EventData.StartDate)
                         {
                             <br/>
