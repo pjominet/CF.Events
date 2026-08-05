@@ -3,41 +3,48 @@
     --bg-glass: rgba(255, 255, 255, 0.25);
     --border-glass: rgba(255, 255, 255, 0.35);
 
-    --color-gradient-start: #667eea;
-    --color-gradient-end: #764ba2;
-    --color-gradient-highlight1: #ff00964d;
-    --color-gradient-highlight2: #00ffff33;
+    --color-gradient-start: #3e523e;
+    --color-gradient-middle: #424a25;
+    --color-gradient-end: #fffdd0;
+
+    --primary-glass-color: 62, 82, 62;
+    --secondary-glass--color: 214, 141, 141;
 
     --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
 }
 
 body.glass-theme {
-    background: linear-gradient(135deg, var(--color-gradient-start) 0%, var(--color-gradient-end) 100%) fixed;
+    /*linear-gradient(145deg, var(--color-gradient-start) 0%, var(--color-gradient-end) 100%) fixed;*/
+    /*background: radial-gradient(circle,rgba(62, 82, 62, 1) 0%, rgba(236, 246, 226, 1) 100%) fixed;*/
+    background: radial-gradient(circle, rgba(119, 136, 116, 1) 10%, rgba(236, 246, 226, 1) 100%);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
 }
 
-body.glass-theme::before,
-body.glass-theme::after {
+body.glass-theme:before {
     content: "";
-    position: fixed;
-    border-radius: 50%;
-    z-index: -1;
-    filter: blur(80px);
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url("/img/bg_floral_edges.png");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
 }
 
-body.glass-theme::before {
-    width: 400px;
-    height: 400px;
-    background: var(--color-gradient-highlight1);
-    top: -100px;
-    right: -100px;
-}
-
-body.glass-theme::after {
-    width: 500px;
-    height: 500px;
-    background: var(--color-gradient-highlight2);
-    bottom: -150px;
-    left: -150px;
+@media (max-width: 768px) {
+    body.glass-theme:before {
+        background: url("/img/bg_floral_edges_vertical.png");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        background-repeat: no-repeat;
+    }
 }
 
 /* Glassmorphism base classes */
@@ -53,6 +60,7 @@ body.glass-theme::after {
     width: 100%;
     position: relative;
     overflow: hidden;
+
 }
 
 .glass-card-lg {
@@ -190,6 +198,7 @@ hr.glass-divider {
     .glass-navbar .navbar-nav {
         display: none !important;
     }
+
     .glass-navbar .navbar-toggler {
         display: block !important;
     }
@@ -260,31 +269,32 @@ hr.glass-divider {
     border-radius: 50px;
     cursor: pointer;
     transition: all 0.3s ease;
+    text-decoration: none;
 }
 
 .btn-glass-light {
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(var(--secondary-glass--color), 0.15);
+    border: 1px solid rgba(var(--secondary-glass--color), 0.2);
     color: #fff;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
 
 .btn-glass-light:hover {
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(var(--secondary-glass--color), 0.25);
     color: #fff;
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
 .btn-glass-dark {
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(var(--primary-glass-color), 0.2);
+    border: 1px solid rgba(var(--primary-glass-color), 0.1);
     color: #fff;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .btn-glass-dark:hover {
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(var(--primary-glass-color), 0.3);
     color: #fff;
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);

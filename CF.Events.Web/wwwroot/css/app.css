@@ -69,6 +69,11 @@
     --bs-btn-disabled-border-color: var(--info-disabled);
 }
 
+.btn-animated:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
 body {
     margin: 0;
     padding: 0;
