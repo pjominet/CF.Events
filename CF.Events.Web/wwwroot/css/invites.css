@@ -5,10 +5,16 @@
     justify-content: space-between;
 }
 
+.invite-details {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
 .invite-badge .badge {
     border-radius: 15px;
     padding: .5rem 1rem;
     opacity: .9;
+    font-size: .9rem;
 }
 
 .invite-action-grid {

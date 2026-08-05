@@ -24,7 +24,7 @@
         <section class="d-flex justify-content-center align-items-center mt-5">
             <div class="glass-card glass-card-lg">
                 <div class="invite-header">
-                    <div class="text-light">
+                    <div class="invite-details text-dark-glass">
                         <i class="bi bi-calendar-event me-2"></i>@invite.Event.StartDate.ToShortDateString()
                         @if (invite.Event.EndDate != invite.Event.StartDate)
                         {
@@ -131,14 +131,14 @@
                                     </p>
                                     <hr class="text-muted opacity-25"/>
                                     <div class="d-flex gap-2">
-                                        <button type="button" class="btn-glass btn-glass-light flex-fill"
+                                        <button type="button" class="btn-glass btn-glass-primary flex-fill"
                                                 data-event-id="@invite.Event.Id">
                                             <i class="bi bi-eye me-1"></i>View Details
                                         </button>
                                         <form method="post" action="/events/@invite.Event.Id/rsvp?handler=Cancel" class="flex-fill"
                                               data-confirm="Are you sure you want to cancel your RSVP?">
                                             @Html.AntiForgeryToken()
-                                            <button type="submit" class="btn-glass btn-glass-light w-100 text-danger border-danger border-opacity-25">
+                                            <button type="submit" class="btn-glass btn-glass-primary w-100 text-danger border-danger border-opacity-25">
                                                 <i class="bi bi-x-lg me-1"></i>Cancel
                                             </button>
                                         </form>
@@ -168,7 +168,7 @@
                                         <i class="bi bi-info-circle me-1"></i>You have been invited to this event. Please review and respond.
                                     </p>
                                     <div class="d-grid">
-                                        <a href="/events/@invite.Event.Id/invitation" class="btn-glass btn-glass-light text-center">
+                                        <a href="/events/@invite.Event.Id/invitation" class="btn-glass btn-glass-primary text-center">
                                             <i class="bi bi-envelope-open me-2"></i>View Invitation & RSVP
                                         </a>
                                     </div>

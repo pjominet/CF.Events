@@ -3,9 +3,9 @@
 
 <nav class="navbar navbar-expand-lg glass-navbar shadow-sm">
     <div class="container">
-        <a class="navbar-brand fs-3" href="/">
+        <a class="navbar-brand fs-3 d-flex align-items-center gap-2" href="/">
             <img src="~/img/wedding_logo_transparent.png" alt="Logo" width="40" height="40" class="d-inline-block align-text-top">
-            <span class="brand-name text-white">@Model</span>
+            <span class="brand-name serif text-dark-glass mt-1">@Model</span>
         </a>
         <button class="navbar-toggler border-0" type="button" aria-label="Toggle navigation" id="sidebarToggle">
             <span class="navbar-toggler-icon"></span>
@@ -86,7 +86,7 @@
                     <li class="nav-item">
                         <form asp-action="Logout" asp-controller="Account" method="get">
                             @Html.AntiForgeryToken()
-                            <button type="submit" class="nav-link p-0 text-danger border-0 bg-transparent"><i class="bi bi-box-arrow-right me-2"></i>Logout</button>
+                            <button type="submit" class="nav-link p-0 border-0 bg-transparent"><i class="bi bi-box-arrow-right me-2"></i>Logout</button>
                         </form>
                     </li>
                 </ul>
