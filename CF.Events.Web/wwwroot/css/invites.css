@@ -17,36 +17,32 @@
     font-size: .9rem;
 }
 
+/* Asymmetric grid layout */
 .invite-action-grid {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    grid-template-rows: auto auto auto;
+    grid-template-columns: repeat(8, 1fr);
     gap: 1.5rem;
 }
 
-/* Asymmetric grid layout */
-.btn-view-invitation {
-    grid-column: 1 / 7;
-    padding: 1.2rem;
-    font-size: 1.2rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-weight: 600;
+.invite-action-grid a,
+.invite-action-grid button {
+    padding: 1rem;
+}
+
+.btn-100 {
+    grid-column: 1 / -1;
 }
 
 .btn-66 {
-    grid-column: 1 / 5;
-    padding: 1rem;
-}
-
-.btn-33 {
-    grid-column: 5 / 7;
-    padding: 1rem;
+    grid-column: span 5;
 }
 
 .btn-50 {
-    grid-column: 4 / 7;
-    padding: 1rem;
+    grid-column: span 4;
+}
+
+.btn-33 {
+    grid-column: span 3;
 }
 
 /* Responsive adjustments */

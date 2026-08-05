@@ -258,6 +258,8 @@ hr.glass-divider {
 }
 
 .btn-glass {
+    text-align: center;
+    display: inline-block;
     padding: .55rem 1rem;
     border: none;
     backdrop-filter: blur(12px);
@@ -332,4 +334,40 @@ hr.glass-divider {
 
 .border-glass {
     border: 1px solid var(--border-glass);
+}
+
+.modal-glass {
+    background: rgba(232, 235, 250, 0.85);
+    border: 1px solid var(--border-glass);
+    border-radius: 20px;
+    color: var(--primary-color);
+}
+
+.modal-glass .modal-header {
+    border-bottom: none;
+    text-shadow: 2px 2px 4px #868686;
+}
+
+.modal-glass .modal-body {
+   padding-top: 0;
+}
+
+.modal-glass .accordion-item {
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+.modal-glass .accordion-button {
+    background-color: transparent;
+    box-shadow: none;
+}
+
+.modal-glass .accordion-button:not(.collapsed) {
+    background-color: transparent;
+    box-shadow: none;
+}
+
+.modal-glass .accordion-collapse {
+    background-color: transparent;
 }

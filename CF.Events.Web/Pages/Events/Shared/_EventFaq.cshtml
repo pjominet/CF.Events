@@ -1,23 +1,29 @@
 ﻿@model List<EventFaqItem>
 
 <div class="modal fade" id="eventFaqModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
-        <div class="modal-content">
+    <div class="modal-dialog modal-dialog-centered modal-fullscreen-md-down">
+        <div class="modal-content modal-glass">
             <div class="modal-header">
                 <h5 class="modal-title serif">FAQ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                @foreach (var item in Model)
-                {
-                    <article class="card mb-3">
-                        @item.Question
-                        <hr/>
-                        @item.Answer
-                    </article>
-                }
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <div class="accordion" id="faqAccordion">
+                    @for (var i = 0; i < Model.Count; i++)
+                    {
+                        var item = Model[i];
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-@i">
+                                    <strong>@item.Question</strong>
+                                </button>
+                            </h2>
+                            <div id="faq-@i" class="accordion-collapse collapse show">
+                                <div class="accordion-body">@item.Answer</div>
+                            </div>
+                        </div>
+                    }
+                </div>
             </div>
         </div>
     </div>
