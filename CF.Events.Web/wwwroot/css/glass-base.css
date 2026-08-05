@@ -1,6 +1,18 @@
 /* Multi-gradient background similar to https://codepen.io/ecemgo/pen/WNappPz */
+:root {
+    --bg-glass: rgba(255, 255, 255, 0.25);
+    --border-glass: rgba(255, 255, 255, 0.35);
+
+    --color-gradient-start: #667eea;
+    --color-gradient-end: #764ba2;
+    --color-gradient-highlight1: #ff00964d;
+    --color-gradient-highlight2: #00ffff33;
+
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+}
+
 body.glass-theme {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) fixed;
+    background: linear-gradient(135deg, var(--color-gradient-start) 0%, var(--color-gradient-end) 100%) fixed;
 }
 
 body.glass-theme::before,
@@ -15,7 +27,7 @@ body.glass-theme::after {
 body.glass-theme::before {
     width: 400px;
     height: 400px;
-    background: rgba(255, 0, 150, 0.3);
+    background: var(--color-gradient-highlight1);
     top: -100px;
     right: -100px;
 }
@@ -23,19 +35,19 @@ body.glass-theme::before {
 body.glass-theme::after {
     width: 500px;
     height: 500px;
-    background: rgba(0, 255, 255, 0.2);
+    background: var(--color-gradient-highlight2);
     bottom: -150px;
     left: -150px;
 }
 
 /* Glassmorphism base classes */
 .glass-card {
-    background: rgba(255, 255, 255, 0.25);
+    background: var(--bg-glass);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid var(--border-glass);
     border-radius: 20px;
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    box-shadow: var(--glass-shadow);
     padding: 3rem;
     max-width: 350px;
     width: 100%;
@@ -58,15 +70,15 @@ body.glass-theme::after {
 }
 
 .glass-navbar {
-    background: rgba(255, 255, 255, 0.15);
+    background: var(--bg-glass);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--border-glass);
     border-radius: 50px;
     position: sticky;
     top: 20px;
     z-index: 1000;
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+    box-shadow: var(--glass-shadow);
     transition: margin 0.3s ease, border-radius 0.3s ease;
     max-width: 1400px;
     margin-left: auto;
@@ -289,9 +301,9 @@ hr.glass-divider {
 }
 
 .bg-glass {
-    background: rgba(255, 255, 255, 0.45);
+    background: var(--bg-glass);
 }
 
 .border-glass {
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--border-glass);
 }

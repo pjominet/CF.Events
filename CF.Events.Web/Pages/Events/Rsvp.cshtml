@@ -6,9 +6,7 @@
 }
 
 <div class="container-fluid d-flex justify-content-center pt-4 mb-auto">
-    <div class="card bg-glass border-glass p-4 mx-auto rounded-5" style="max-width: 800px; width: 100%;">
-        @*<h2 class="serif text-center text-white mb-4">RSVP for <strong class="fs-1">@Model.EventData.Name</strong></h2>*@
-
+    <div class="glass-card p-4 mx-auto" style="max-width: 800px; width: 100%;">
         @if (Model.HasResponded)
         {
             <!-- Already Responded View -->
@@ -166,9 +164,6 @@
 </div>
 
 @section Scripts {
-    <style>
-        .admin-only { display: none !important; }
-    </style>
     <partial name="_ValidationScriptsPartial"/>
     <script src="/js/rsvp.js" type="text/javascript" asp-append-version="true"></script>
 }
