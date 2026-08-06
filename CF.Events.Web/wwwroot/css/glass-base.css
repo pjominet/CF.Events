@@ -333,7 +333,7 @@ hr.glass-divider {
 }
 
 .modal-glass {
-    background: rgba(232, 235, 250, 0.85);
+    background: rgba(var(--glass-color-dark), 0.9);
     border: 1px solid var(--border-glass);
     border-radius: 20px;
     color: var(--primary-color);

@@ -100,7 +100,7 @@ h1:focus {
 }
 
 .bg-card-custom {
-    background-color: var(--bg-card);
+    background-color: rgba(var(--glass-color-dark), 0.85);
 }
 
 /* RSVP Form Styles */
@@ -154,7 +154,7 @@ h1:focus {
     min-height: 250px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
 }
 
 #rsvpForm .custom-radio .form-check-input {
