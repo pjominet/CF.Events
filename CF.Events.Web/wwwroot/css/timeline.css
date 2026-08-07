@@ -70,16 +70,8 @@
     border-radius: 50px;
     margin-bottom: 0.75rem;
     display: inline-block;
-    background-color: var(--primary-color) !important;
-    font-family: var(--bs-body-font-family);
+    background-color: var(--secondary-color) !important;
 }
-
-/* Fading bullets based on nth-child */
-.timeline-item:nth-child(1) .timeline-marker { opacity: 1.0; }
-.timeline-item:nth-child(2) .timeline-marker { opacity: 0.9; }
-.timeline-item:nth-child(3) .timeline-marker { opacity: 0.8; }
-.timeline-item:nth-child(4) .timeline-marker { opacity: 0.7; }
-.timeline-item:nth-child(n+5) .timeline-marker { opacity: 0.6; }
 
 /* Custom Nav Tabs for Glass Theme - Matching RSVP Stepper */
 .schedule-tabs {
@@ -121,7 +113,7 @@
 }
 
 .schedule {
-    height: 55vh;
+    height: 66vh;
     display: flex;
     flex-direction: column;
     padding: 1.5rem !important;

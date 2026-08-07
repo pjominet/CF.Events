@@ -5,6 +5,11 @@
     Layout ="_NoNavLayout";
 }
 
+@section Styles
+{
+    <link rel="stylesheet" href="~/css/invitation.css" asp-append-version="true"/>
+}
+
 <section class="invite-page">
     @if (Model.NotFoundOrForbidden)
     {
@@ -16,7 +21,7 @@
     else
     {
         <div class="card shadow-lg invite-card">
-            <div class="card-body bg-card-custom p-0">
+            <div class="card-body bg-card-custom p-0 rounded-4">
                 <img src="@Model.ImageUrl" alt="Save the date - Wedding Patrick & Éadaoin" class="img-fluid invite-image">
             </div>
         </div>

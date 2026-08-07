@@ -31,7 +31,7 @@ public class EventController(
             return Forbid();
 
         var resourceRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources"));
-        var filePath = type == "std" ? "Assets/std_wedding.png" : null;
+        var filePath = type == "sd" ? "Assets/save-the-date.png" : null;
         if (filePath is null)
             return NotFound();
 

@@ -20,10 +20,10 @@
 
     cover.addEventListener('click', (e) => {
         e.stopPropagation();
-        /*if (autoOpenTimeout) {
+        if (autoOpenTimeout) {
             clearTimeout(autoOpenTimeout);
             autoOpenTimeout = null;
-        }*/
+        }
         openBook();
     });
 
@@ -63,10 +63,10 @@
     mobileQuery.addEventListener('change', handleMobileChange);
 
     // Auto-open after 15 seconds
-    /*let autoOpenTimeout = setTimeout(() => {
+    let autoOpenTimeout = setTimeout(() => {
         if (!bookContainer.classList.contains('open')) {
             openBook();
         }
         autoOpenTimeout = null;
-    }, 5000);*/
+    }, 5000);
 })();

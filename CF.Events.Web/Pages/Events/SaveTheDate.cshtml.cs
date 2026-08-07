@@ -18,7 +18,7 @@ public class SaveTheDate(EventsDbContext db) : PageModel
         if (!isInvited && !isAdmin)
             NotFoundOrForbidden = true;
 
-        ImageUrl = $"/events/{eventId}/{userId}/asset?type=std";
+        ImageUrl = $"/events/{eventId}/{userId}/asset?type=sd";
 
         return Page();
     }
