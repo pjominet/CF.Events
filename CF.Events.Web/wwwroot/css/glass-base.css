@@ -2,6 +2,7 @@
 :root {
     --bg-glass: rgba(255, 255, 255, 0.25);
     --border-glass: rgba(255, 255, 255, 0.35);
+    --border-radius-glass: 20px;
 
     --color-gradient-start: #778874;
     --color-gradient-end: #ECF6E2;
@@ -53,7 +54,7 @@ body.glass-theme:before {
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
     border: 1px solid var(--border-glass);
-    border-radius: 20px;
+    border-radius: var(--border-radius-glass);
     box-shadow: var(--glass-shadow);
     padding: 3rem;
     max-width: 350px;
