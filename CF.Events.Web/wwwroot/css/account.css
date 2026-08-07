@@ -1,0 +1,14 @@
+﻿#accountTabs .nav-item {
+    background-color: rgba(255, 255, 255, 0.4);
+    border-radius: var(--bs-border-radius) var(--bs-border-radius) 0 0;
+}
+
+#accountTabs  .nav-link.active {
+    border-color: #fff;
+}
+
+#accountTabsContent {
+    background-color: #fff;
+    padding: 1rem;
+    border-radius: 0 var(--bs-border-radius) var(--bs-border-radius) var(--bs-border-radius);
+}
