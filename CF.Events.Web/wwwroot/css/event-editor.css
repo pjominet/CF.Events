@@ -3,6 +3,10 @@
     border-radius: var(--bs-nav-tabs-border-radius) var(--bs-nav-tabs-border-radius) 0 0;
 }
 
+#eventEditorTabs  .nav-link.active {
+    border-color: #fff;
+}
+
 #eventEditorTabsContent {
     background-color: #fff;
     padding: 1rem;

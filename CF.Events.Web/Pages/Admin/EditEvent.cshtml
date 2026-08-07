@@ -30,18 +30,6 @@
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
     <partial name="_RteScripts" />
-    
-    <script>
-        $(document).ready(function () {
-            // Ensure jQuery validation doesn't ignore our hidden RTE textareas
-            if ($.validator) {
-                $.validator.setDefaults({
-                    ignore: ":hidden:not(.rte-editor)"
-                });
-            }
-        });
-    </script>
 }
 
