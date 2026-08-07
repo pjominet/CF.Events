@@ -54,23 +54,29 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
             {
                 Participants = user.GuestGroup?.Participants ?? (user.DisplayName is not null ? [user.DisplayName] : []),
                 Attending = rsvp.Attending,
-                ParticipantsAttendance = rsvp.ParticipantsAttendance.Select(pa => new ParticipantAttendance
-                {
-                    Id = pa.Id,
-                    EventId = pa.EventId,
-                    UserId = pa.UserId,
-                    ParticipantName = pa.ParticipantName,
-                    AttendingDays = pa.AttendingDays
-                }).ToList(),
-                ParticipantsDiets = rsvp.ParticipantsDiets.Select(o => new ParticipantDiet
-                {
-                    Id = o.Id,
-                    EventId = o.EventId,
-                    UserId = o.UserId,
-                    ParticipantName = o.ParticipantName,
-                    Restrictions = o.Restrictions,
-                    OtherDetails = o.OtherDetails
-                }).ToList(),
+                ParticipantsAttendance =
+                [
+                    .. rsvp.ParticipantsAttendance.Select(pa => new ParticipantAttendance
+                    {
+                        Id = pa.Id,
+                        EventId = pa.EventId,
+                        UserId = pa.UserId,
+                        ParticipantName = pa.ParticipantName,
+                        AttendingDays = pa.AttendingDays
+                    })
+                ],
+                ParticipantsDiets =
+                [
+                    .. rsvp.ParticipantsDiets.Select(o => new ParticipantDiet
+                    {
+                        Id = o.Id,
+                        EventId = o.EventId,
+                        UserId = o.UserId,
+                        ParticipantName = o.ParticipantName,
+                        Restrictions = o.Restrictions,
+                        OtherDetails = o.OtherDetails
+                    })
+                ],
                 Comments = rsvp.Comments
             };
         }
@@ -135,24 +141,30 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
         {
             // Handle attendance update
             db.ParticipantsAttendance.RemoveRange(rsvp.ParticipantsAttendance);
-            rsvp.ParticipantsAttendance = NewRsvp.ParticipantsAttendance.Select(pa => new ParticipantAttendance
-            {
-                EventId = eventId,
-                UserId = userId,
-                ParticipantName = pa.ParticipantName,
-                AttendingDays = pa.AttendingDays
-            }).ToList();
+            rsvp.ParticipantsAttendance =
+            [
+                .. NewRsvp.ParticipantsAttendance.Select(pa => new ParticipantAttendance
+                {
+                    EventId = eventId,
+                    UserId = userId,
+                    ParticipantName = pa.ParticipantName,
+                    AttendingDays = pa.AttendingDays
+                })
+            ];
 
             // Handle dietary options update
             db.ParticipantsDiets.RemoveRange(rsvp.ParticipantsDiets);
-            rsvp.ParticipantsDiets = NewRsvp.ParticipantsDiets.Select(o => new ParticipantDiet
-            {
-                EventId = eventId,
-                UserId = userId,
-                ParticipantName = o.ParticipantName,
-                Restrictions = o.Restrictions,
-                OtherDetails = o.OtherDetails
-            }).ToList();
+            rsvp.ParticipantsDiets =
+            [
+                .. NewRsvp.ParticipantsDiets.Select(o => new ParticipantDiet
+                {
+                    EventId = eventId,
+                    UserId = userId,
+                    ParticipantName = o.ParticipantName,
+                    Restrictions = o.Restrictions,
+                    OtherDetails = o.OtherDetails
+                })
+            ];
 
             rsvp.Comments = NewRsvp.Comments;
         }

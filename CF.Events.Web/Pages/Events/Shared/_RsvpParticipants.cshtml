@@ -1,6 +1,5 @@
 ﻿@model (List<string> Participants, int MaxParticipants)
 
-<h6 class="serif border-bottom pb-1 mb-3 admin-only">Participants</h6>
 <div id="participant-container" data-max-participants="@Model.MaxParticipants">
     @for (var i = 0; i < Model.Participants.Count; i++)
     {
