@@ -27,18 +27,14 @@
             <div class="cover">
                 <div class="cover-front">
                     <div class="cover-content">
-                        <h1>
-                            <span class="cursive">Patrick and Éadaoin invite</span>
-                            <strong class="d-block my-2 fs-1 opacity-100 serif">@Model.GuestGroup!.Label</strong>
-                            <span class="cursive">to celebrate their</span>
-                        </h1>
-                        <h2 class="serif">
-                            <strong>@Model.EventData!.Name</strong>
-                        </h2>
-
-                        <hr class="invite-divider"/>
-
-                        <div class="d-flex flex-column justify-content-center align-items-center mt-auto">
+                        <div class="my-auto">
+                            <h1>
+                                <span class="cursive">Patrick and Éadaoin invite</span>
+                                <strong class="d-block my-2 fs-1 opacity-100 serif">@Model.GuestGroup!.Label</strong>
+                                <span class="cursive">to celebrate their</span>
+                            </h1>
+                            <h2 class="serif"><strong>@Model.EventData!.Name</strong></h2>
+                            <hr class="invite-divider"/>
                             <div class="cover-location">
                                 <p class="cursive">
                                     Salt Hill
@@ -46,6 +42,8 @@
                                     Ireland
                                 </p>
                             </div>
+                        </div>
+                        <div class="mt-auto">
                             <button id="cover-button" class="btn-glass btn-glass-light text-white">
                                 <i class="bi bi-stars"></i>
                                 <span id="cover-button-text" class="mx-2">Click to open</span>

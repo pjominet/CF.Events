@@ -88,7 +88,7 @@ hr.invite-divider {
     background-position: center;
     background-size: contain;
     opacity: 1;
-    margin: 2em 0;
+    margin: 3rem 0;
 }
 
 .cover-front,
@@ -114,7 +114,6 @@ hr.invite-divider {
     -webkit-transform: rotateY(0deg);
     transform: rotateY(0deg);
     border-radius: var(--border-radius-small) var(--border-radius-main) var(--border-radius-main) var(--border-radius-small);
-    padding-bottom: 5em;
 }
 
 .cover-back {
@@ -141,7 +140,7 @@ hr.invite-divider {
     font-size: 18px;
     font-weight: 200;
     letter-spacing: 3px;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.5rem;
     opacity: 0.85;
 }
 
@@ -149,8 +148,8 @@ hr.invite-divider {
     font-size: 48px;
     font-weight: 300;
     letter-spacing: 2px;
-    margin-bottom: 2rem;
-    margin-top: 2rem;
+    margin-bottom: 1rem;
+    margin-top: 1rem;
 }
 
 .cover-location {
@@ -161,6 +160,10 @@ hr.invite-divider {
 .cover-content {
     color: var(--accent-color);
     z-index: 2;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 4rem 0 2rem 0;
 }
 
 .right-page {
@@ -310,7 +313,7 @@ hr.invite-divider {
 
     .cover-front,
     .cover-back {
-        padding: 3rem 1.5rem;
+        padding: 2rem 1.5rem;
         border-radius: 0;
     }
 
