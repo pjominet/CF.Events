@@ -1,0 +1,147 @@
+﻿:root {
+    --timeline-padding: 56px;
+}
+
+.timeline {
+    position: relative;
+    padding: 1.5rem 2rem 1.5rem 0;
+}
+
+/* The vertical line */
+.timeline::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 1.5rem;
+    width: 2px;
+    background: rgba(var(--glass-color-primary), 0.1);
+}
+
+.timeline-item {
+    position: relative;
+    padding-left: 3.5rem;
+    padding-bottom: 2.5rem;
+}
+
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+/* The bullets/markers */
+.timeline-marker {
+    position: absolute;
+    left: 1.15rem;
+    top: -0.2rem;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    z-index: 2;
+    box-shadow: 0 0 0 2px rgba(var(--glass-color-primary), 0.1);
+}
+
+/* The content box */
+.timeline-content {
+    background: #e8e2da;
+    padding: 1.25rem;
+    border-radius: 0 5px 5px 5px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+/* Arrow for the box */
+.timeline-content::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -9px;
+    width: 0;
+    height: 0;
+    border-top: 0 solid transparent;
+    border-bottom: 15px solid transparent;
+    border-right: 10px solid #e8e2da;
+    filter: drop-shadow(-4px 4px 5px rgba(0, 0, 0, 0.1));
+}
+
+.timeline-item .badge {
+    font-weight: 600;
+    padding: 0.5em 1em;
+    border-radius: 50px;
+    margin-bottom: 0.75rem;
+    display: inline-block;
+    background-color: var(--primary-color) !important;
+    font-family: var(--bs-body-font-family);
+}
+
+/* Fading bullets based on nth-child */
+.timeline-item:nth-child(1) .timeline-marker { opacity: 1.0; }
+.timeline-item:nth-child(2) .timeline-marker { opacity: 0.9; }
+.timeline-item:nth-child(3) .timeline-marker { opacity: 0.8; }
+.timeline-item:nth-child(4) .timeline-marker { opacity: 0.7; }
+.timeline-item:nth-child(n+5) .timeline-marker { opacity: 0.6; }
+
+/* Custom Nav Tabs for Glass Theme - Matching RSVP Stepper */
+.schedule-tabs {
+    border-bottom: none !important;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 5px;
+}
+
+.schedule-tabs .nav-item {
+    flex: 1;
+}
+
+.schedule-tabs .nav-link {
+    color: #212529 !important;
+    opacity: 0.5;
+    border: none !important;
+    border-bottom: 3px solid #dee2e6 !important;
+    padding: 0.5rem 0.2rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    width: 100%;
+    text-align: center;
+    border-radius: 0 !important;
+    background: transparent !important;
+    font-size: .93rem;
+}
+
+.schedule-tabs .nav-link:hover {
+    opacity: 0.7;
+    border-bottom-color: #dee2e6 !important;
+}
+
+.schedule-tabs .nav-link.active {
+    opacity: 1 !important;
+    border-bottom-color: var(--bs-primary) !important;
+    color: var(--bs-primary) !important;
+}
+
+.schedule {
+    height: 55vh;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem !important;
+}
+
+.schedule .tab-content {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.schedule .tab-pane {
+    min-height: 100%;
+}
+
+.schedule .timeline {
+    height: 100%;
+}
+
+@media (max-width: 768px) {
+    .schedule {
+        height: 100vh;
+    }
+}
