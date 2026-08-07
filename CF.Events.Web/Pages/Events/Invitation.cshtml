@@ -22,6 +22,14 @@
     }
     else
     {
+        if (User.IsAdmin())
+        {
+            <div class="position-fixed top-0 start-0 m-3" style="z-index: 1050;">
+                <a href="@Model.BackUrl" class="btn btn-dark opacity-75 shadow-sm rounded-pill px-4">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Admin
+                </a>
+            </div>
+        }
         <div class="book-container" id="bookContainer">
             <!-- Cover -->
             <div class="cover">
@@ -30,7 +38,7 @@
                         <div class="my-auto">
                             <h1>
                                 <span class="cursive">Patrick and Éadaoin invite</span>
-                                <strong class="d-block my-2 fs-1 opacity-100 serif">@Model.GuestGroup!.Label</strong>
+                                <strong class="d-block my-2 fs-1 opacity-100 serif">@(Model.GuestGroup?.Label ?? "Guest Name")</strong>
                                 <span class="cursive">to celebrate their</span>
                             </h1>
                             <h2 class="serif"><strong>@Model.EventData!.Name</strong></h2>

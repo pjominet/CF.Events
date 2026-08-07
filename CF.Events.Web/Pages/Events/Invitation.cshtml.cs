@@ -35,6 +35,14 @@ public class InvitationModel(EventsDbContext db) : PageModel
         }
 
         GuestGroup = await db.GuestGroups.FirstOrDefaultAsync(g => g.GuestUserId == userId);
+        if (GuestGroup is null && isAdmin)
+        {
+            GuestGroup = new GuestGroup
+            {
+                Label = "Guest Name (Preview)",
+                GuestUserId = userId
+            };
+        }
 
         // Admins reach this page by previewing from the events list, regular users from their invitation list.
         BackUrl = isAdmin && !isInvited ? "/admin/events" : "/invites";

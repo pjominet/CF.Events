@@ -1,4 +1,5 @@
 ﻿@page "/events/{eventId:int}/{userId}/save-the-date"
+@using CF.Events.Web.Infrastructure.Extensions
 @model CF.Events.Web.Pages.Events.SaveTheDate
 
 @{
@@ -20,6 +21,14 @@
     }
     else
     {
+        if (User.IsAdmin())
+        {
+            <div class="position-fixed top-0 start-0 m-3" style="z-index: 1050;">
+                <a href="@Model.BackUrl" class="btn btn-dark opacity-75 shadow-sm rounded-pill px-4">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Admin
+                </a>
+            </div>
+        }
         <div class="invite-card">
             <div class="invite-content">
                 <img src="@Model.ImageUrl" alt="Save the date - Wedding Patrick & Éadaoin" class="img-fluid invite-image">
