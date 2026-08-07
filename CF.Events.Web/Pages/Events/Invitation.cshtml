@@ -59,9 +59,9 @@
 
             <div class="right-page">
                 <div class="page-content">
-                    <h3>RSVP</h3>
+                    <h3 class="serif">RSVP</h3>
                     <p>
-                        <strong>Date:</strong>
+                        <strong class="serif fs-5">Date:</strong>
                         <br/>
                         @Model.EventData.StartDate.ToLongDateString()
                         @if (Model.EventData.EndDate != Model.EventData.StartDate)
@@ -72,7 +72,7 @@
                     </p>
                     @if (!string.IsNullOrEmpty(Model.EventData.Location))
                     {
-                        <p><strong>Location:</strong><br>@Model.EventData.Location</p>
+                        <p><strong class="serif fs-5">Location:</strong><br>@Model.EventData.Location</p>
                     }
                     @if (!string.IsNullOrEmpty(Model.EventData.Description))
                     {

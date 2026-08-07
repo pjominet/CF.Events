@@ -203,7 +203,7 @@ hr.invite-divider {
     font-size: 32px;
     color: var(--text-highlight);
     margin-bottom: 1.5rem;
-    font-weight: normal;
+    font-weight: 800;
 }
 
 .page-content p {
@@ -384,7 +384,7 @@ hr.invite-divider {
 }
 
 .rsvp-description {
-    height: calc(var(--book-height) / 2);
+    height: calc(var(--book-height) / 2.15);
     overflow-y: scroll;
     margin-bottom: 1rem;
 }
