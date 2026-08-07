@@ -1,5 +1,6 @@
 (function () {
     const bookContainer = document.getElementById('bookContainer');
+    const cover = bookContainer.querySelector('.cover');
     const openBtn = document.getElementById('cover-button');
     const openText = document.getElementById('cover-button-text');
 
@@ -17,12 +18,12 @@
         }
     };
 
-    openBtn.addEventListener('click', (e) => {
+    cover.addEventListener('click', (e) => {
         e.stopPropagation();
-        /*if (autoOpenTimeout) {
+        if (autoOpenTimeout) {
             clearTimeout(autoOpenTimeout);
             autoOpenTimeout = null;
-        }*/
+        }
         openBook();
     });
 
@@ -62,10 +63,10 @@
     mobileQuery.addEventListener('change', handleMobileChange);
 
     // Auto-open after 15 seconds
-    /*let autoOpenTimeout = setTimeout(() => {
+    let autoOpenTimeout = setTimeout(() => {
         if (!bookContainer.classList.contains('open')) {
             openBook();
         }
         autoOpenTimeout = null;
-    }, 5000);*/
+    }, 5000);
 })();

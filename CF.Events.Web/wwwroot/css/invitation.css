@@ -29,7 +29,6 @@
 }
 
 .invite-page {
-    font-family: var(--font-serif);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -73,6 +72,7 @@
     backface-visibility: visible;
     border-left: solid var(--accent-color) 2px;
     z-index: 3;
+    cursor: pointer;
 }
 
 .book-container.closing .cover {
@@ -363,4 +363,10 @@ hr.invite-divider {
 .rsvp-description img {
     max-width: 200px;
     margin-bottom: 1rem;
+}
+
+.cover-btn {
+    box-shadow: 0 0 12px 4px rgba(255, 255, 255, 0.15);
+    border: none !important;
+    pointer-events: none;
 }

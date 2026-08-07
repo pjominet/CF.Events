@@ -12,9 +12,6 @@
     --glass-color-dark: 231, 220, 205;
 
     --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-
-    --glass-font-serif: "Cormorant Upright", serif;
-    --glass-font-cursive: "Italianno", cursive;
 }
 
 body.glass-theme {
@@ -23,39 +20,6 @@ body.glass-theme {
     background-position: center;
     background-attachment: fixed;
     background-repeat: no-repeat;
-}
-
-.glass-theme .cursive {
-    font-size: 1.5em;
-    font-family: var(--glass-font-cursive);
-}
-
-.glass-theme .serif {
-    font-family: var(--glass-font-serif);
-}
-
-.f-a {
-    font-family: "Agbalumo", cursive !important;
-}
-
-.f-i {
-    font-family: "Italianno", cursive !important;
-}
-
-.f-c {
-    font-family: "Charmonman", cursive !important;
-}
-
-.f-u {
-    font-family: "Cormorant Upright", serif !important;
-}
-
-.f-e {
-    font-family: "Elsie", serif !important;
-}
-
-.f-v {
-    font-family: "Varela Round", serif !important;
 }
 
 body.glass-theme:before {

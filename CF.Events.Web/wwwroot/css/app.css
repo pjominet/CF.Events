@@ -11,8 +11,8 @@
     --bg-card: #dbe2f0;
 
     /* Fonts */
-    --font-serif: "Domine", serif;
-    --font-cursive: "Rouge Script", cursive;
+    --font-serif: "Cormorant Upright", serif;
+    --font-cursive: "Italianno", cursive;
     --font-brand: "Passion One", sans-serif;
     --font-sans: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
@@ -92,6 +92,7 @@ h1:focus {
 }
 
 .cursive {
+    font-size: 1.5em;
     font-family: var(--font-cursive);
 }
 
