@@ -79,6 +79,18 @@
     animation: coverClose var(--anim-duration) var(--anim-timing-cover) forwards;
 }
 
+hr.invite-divider {
+    display:block;
+    border: none;
+    height:10px;
+    background-image: url('/img/divider.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 1;
+    margin: 2em 0;
+}
+
 .cover-front,
 .cover-back {
     position: absolute;
@@ -102,6 +114,7 @@
     -webkit-transform: rotateY(0deg);
     transform: rotateY(0deg);
     border-radius: var(--border-radius-small) var(--border-radius-main) var(--border-radius-main) var(--border-radius-small);
+    padding-bottom: 5em;
 }
 
 .cover-back {
@@ -138,11 +151,9 @@
     letter-spacing: 2px;
     margin-bottom: 2rem;
     margin-top: 2rem;
-    line-height: 1.2;
 }
 
 .cover-location {
-    font-size: 14px;
     letter-spacing: 2px;
     opacity: 0.8;
 }
