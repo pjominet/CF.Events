@@ -56,8 +56,58 @@
     };
 
     const roleGuestCheckbox = document.getElementById('roleGuest');
+    const roleUserCheckbox = document.getElementById('roleUser');
     const guestGroupContainer = document.getElementById('guestGroupContainer');
     const guestGroupInput = document.getElementById('guestGroupInput');
+    const maxPeopleInput = document.getElementById('maxPeopleInput');
+
+    const addUserModal = document.getElementById('addUserModal');
+    if (addUserModal) {
+        addUserModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const userId = button.getAttribute('data-user-id');
+            const form = document.getElementById('addUserForm');
+            const title = document.getElementById('addUserModalTitle');
+            const submitBtn = document.getElementById('addUserSubmitBtn');
+
+            if (userId) {
+                // Edit mode
+                title.textContent = 'Edit User';
+                submitBtn.textContent = 'Save Changes';
+                form.action = '?handler=Edit';
+
+                document.getElementById('userEditId').value = userId;
+                document.getElementById('userDisplayName').value = button.getAttribute('data-user-displayname');
+                document.getElementById('userEmail').value = button.getAttribute('data-user-email');
+                document.getElementById('userPhone').value = button.getAttribute('data-user-phone') === 'n/a' ? '' : button.getAttribute('data-user-phone');
+
+                const guestGroup = button.getAttribute('data-user-guestgroup');
+                guestGroupInput.value = guestGroup === 'n/a' ? '' : guestGroup;
+
+                const maxPeople = button.getAttribute('data-user-maxpeople');
+                maxPeopleInput.value = maxPeople || 4;
+
+                const roles = button.getAttribute('data-user-roles').split(',');
+                roleUserCheckbox.checked = roles.includes('User');
+                roleGuestCheckbox.checked = roles.includes('Guest');
+            } else {
+                // Add mode
+                title.textContent = 'Invite New User';
+                submitBtn.textContent = 'Add';
+                form.action = '?handler=Add';
+
+                document.getElementById('userEditId').value = '';
+                document.getElementById('userDisplayName').value = '';
+                document.getElementById('userEmail').value = '';
+                document.getElementById('userPhone').value = '';
+                guestGroupInput.value = '';
+                maxPeopleInput.value = 4;
+                roleUserCheckbox.checked = false;
+                roleGuestCheckbox.checked = true;
+            }
+            toggleGuestGroup();
+        });
+    }
 
     if (roleGuestCheckbox && guestGroupContainer && guestGroupInput) {
         const toggleGuestGroup = () => {
@@ -67,7 +117,6 @@
             } else {
                 guestGroupContainer.classList.add('d-none');
                 guestGroupInput.required = false;
-                guestGroupInput.value = '';
             }
         };
 

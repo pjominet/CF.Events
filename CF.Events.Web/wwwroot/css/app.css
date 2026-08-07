@@ -7,7 +7,7 @@
     --light-color: #dbe2f0;
     --dark-color: #2c3e50;
 
-    --bg-page: #fcfaf9;
+    --bg-page: #e0e8e0;
     --bg-card: #dbe2f0;
 
     /* Fonts */
@@ -102,12 +102,6 @@ h1:focus {
 
 .bg-card-custom {
     background-color: rgba(var(--glass-color-dark), 0.85);
-}
-
-.event-form-actions {
-    padding: 5px;
-    display: flex;
-    justify-content: space-between;
 }
 
 /* loading spinner */

@@ -15,7 +15,7 @@
                         <li class="breadcrumb-item active">Users</li>
                     </ol>
                 </nav>
-                <h1 class="serif fs-1">@ViewData["Title"]</h1>
+                <h1 class="fs-1">@ViewData["Title"]</h1>
             </section>
             <section class="d-flex gap-2">
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
@@ -57,6 +57,7 @@
                         <th>Email</th>
                         <th>Phone</th>
                         <th>Guest Group</th>
+                        <th>Max People</th>
                         <th>Roles</th>
                         <th>Is Active</th>
                         <th>Actions</th>
@@ -73,6 +74,7 @@
                             <td>@user.Email</td>
                             <td>@user.Phone</td>
                             <td>@user.GuestGroup</td>
+                            <td>@user.MaxPeople</td>
                             <td>
                                 <div class="d-flex justify-content-start align-items-center gap-1">
                                     @foreach (var role in user.Roles)
@@ -102,6 +104,18 @@
                             </td>
                             <td>
                                 <div class="d-flex justify-content-start align-items-center gap-2">
+                                    <button class="btn btn-sm btn-outline-primary" type="button"
+                                            data-bs-toggle="modal" data-bs-target="#addUserModal"
+                                            data-user-id="@user.Id"
+                                            data-user-displayname="@user.DisplayName"
+                                            data-user-email="@user.Email"
+                                            data-user-phone="@user.Phone"
+                                            data-user-guestgroup="@user.GuestGroup"
+                                            data-user-maxpeople="@user.MaxPeople"
+                                            data-user-roles="@string.Join(",", user.Roles)"
+                                            data-bs-toggle="tooltip" data-bs-title="Edit User">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
                                     @if (User.IsAdmin() && User.GetId() != user.Id && !user.Roles.Contains(Roles.Guest))
                                     {
                                         if (!user.Roles.Contains(Roles.Admin))

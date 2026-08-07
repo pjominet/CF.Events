@@ -6,7 +6,11 @@ function initRichTextEditors() {
         if (textarea.dataset.rteInitialized) return;
 
         // Hide the original textarea
-        textarea.style.display = 'none';
+        textarea.classList.add('visually-hidden');
+        textarea.style.height = '1px';
+        textarea.style.width = '1px';
+        textarea.style.opacity = '0';
+        textarea.style.position = 'absolute';
 
         // Create a container for EditorJS
         const rteContainer = document.createElement('div');
@@ -87,6 +91,7 @@ function initRichTextEditors() {
                 underline: Underline
             },
             onChange: (api, event) => {
+                syncTextarea(editor, textarea);
                 editor.save().then((outputData) => {
                     textarea.value = JSON.stringify(outputData);
                     // Trigger change event on textarea so other scripts know it changed
@@ -98,6 +103,12 @@ function initRichTextEditors() {
         });
 
         textarea.dataset.rteInitialized = 'true';
+        textarea.form?.addEventListener('submit', async (e) => {
+            if (textarea.dataset.rteSyncing) return;
+            textarea.dataset.rteSyncing = 'true';
+            await syncTextarea(editor, textarea);
+            delete textarea.dataset.rteSyncing;
+        });
     });
 }
 
@@ -109,9 +120,21 @@ document.addEventListener('DOMContentLoaded', () => {
     tabs.forEach(tab => {
         tab.addEventListener('shown.bs.tab', () => {
             initRichTextEditors();
+            window.dispatchEvent(new Event('resize'));
         });
     });
 
     // Also check for visible editors on load (in case tab was set by persistence)
     setTimeout(initRichTextEditors, 100);
 });
+
+async function syncTextarea(editor, textarea) {
+    try {
+        const outputData = await editor.save();
+        textarea.value = JSON.stringify(outputData);
+        textarea.dispatchEvent(new Event('change', { bubbles: true }));
+    } catch (error) {
+        console.error('Saving failed: ', error);
+    }
+}
+

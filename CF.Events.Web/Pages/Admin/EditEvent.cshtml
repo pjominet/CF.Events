@@ -4,8 +4,14 @@
     ViewData["Title"] = Model.Event.Id == 0 ? "Create Event" : $"Edit Event: {Model.Event.Name}";
 }
 
+@section Styles
+{
+    <link rel="stylesheet" href="~/css/event-editor.css" asp-append-version="true"/>
+}
+
 <div class="container-fluid px-md-4 mb-3">
     <h1 class="mt-4">@ViewData["Title"]</h1>
+    <div asp-validation-summary="All" class="text-danger"></div>
     <ol class="breadcrumb mb-4">
         <li class="breadcrumb-item"><a asp-page="/Admin/Dashboard">Dashboard</a></li>
         <li class="breadcrumb-item"><a asp-page="/Admin/Events">Events</a></li>
@@ -26,5 +32,16 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <partial name="_RteScripts" />
-    <script src="~/js/event-editor.js" asp-append-version="true"></script>
+    
+    <script>
+        $(document).ready(function () {
+            // Ensure jQuery validation doesn't ignore our hidden RTE textareas
+            if ($.validator) {
+                $.validator.setDefaults({
+                    ignore: ":hidden:not(.rte-editor)"
+                });
+            }
+        });
+    </script>
 }
+
