@@ -304,3 +304,14 @@ h1:focus {
     font-size: 1.2rem;
     line-height: 1.6;
 }
+
+.lead {
+    font-size: 2.4rem;
+}
+
+
+@media (max-width: 576px) {
+    .lead {
+        font-size: 2rem;
+    }
+}

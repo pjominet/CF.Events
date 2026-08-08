@@ -73,6 +73,12 @@ body.glass-theme:before {
 }
 
 @media (max-width: 768px) {
+    .glass-card {
+        padding: 1rem;
+        max-width: 100%;
+
+    }
+
     .glass-card-lg {
         padding: 1.5rem;
     }

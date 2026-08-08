@@ -38,6 +38,12 @@
     font-size: .93rem;
 }
 
+@media (max-width: 576px) {
+    .step-indicator:not(.active) {
+        display: none;
+    }
+}
+
 .step-indicator.active {
     opacity: 1;
     border-bottom: 3px solid var(--bs-primary);
@@ -54,7 +60,14 @@
 #rsvpForm .custom-radio .form-check-input {
     width: 1.25em;
     height: 1.25em;
-    margin-top: 0.125em;
+    margin-top: 0.15rem;
+    margin-right: 0.15rem;
+    float: none;
+}
+
+#rsvpForm .custom-radio .form-check-label {
+    cursor: pointer;
+    margin-bottom: 0;
 }
 
 #rsvpForm .btn-66 {
