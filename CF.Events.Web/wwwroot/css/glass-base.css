@@ -334,6 +334,10 @@ hr.glass-divider {
     border: 1px solid var(--border-glass);
 }
 
+.rounded-glass {
+    border-radius: var(--border-radius-glass);
+}
+
 .modal-glass {
     background: rgba(var(--glass-color-dark), 0.9);
     border: 1px solid var(--border-glass);

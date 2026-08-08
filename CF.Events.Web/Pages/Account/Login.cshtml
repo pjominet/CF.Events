@@ -2,12 +2,13 @@
 @model CF.Events.Web.Pages.Account.LoginModel
 @{
     ViewData["Title"] = "Log in";
+    Layout = "_GlassLayout";
 }
 
 <div class="container-fluid d-flex align-items-center justify-content-center p-3">
-    <div class="card border-0 p-4 mx-auto rounded shadow-sm" style="max-width: 500px; width: 100%;">
+    <div class="card bg-glass border-glass p-4 mx-auto rounded-glass shadow-sm" style="max-width: 500px; width: 100%;">
         <section class="text-center">
-            <h1>@ViewData["Title"]</h1>
+            <h1 class="serif">@ViewData["Title"]</h1>
         </section>
         <hr/>
         <section class="card-body">
@@ -35,7 +36,7 @@
             </form>
         </section>
         <section class="d-flex gap-3 justify-content-center">
-            <p><a asp-page="./ForgotPassword">Forgot your password?</a></p>
+            <p><a class="text-dark-glass" asp-page="./ForgotPassword">Forgot your password?</a></p>
             @*<p><a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Register as a new user</a></p>*@
         </section>
     </div>
