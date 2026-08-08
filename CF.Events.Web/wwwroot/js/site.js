@@ -161,6 +161,38 @@
         });
     }
 
+    function initSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const toggleBtn = document.getElementById('sidebarToggle');
+        const closeBtn = document.getElementById('sidebarClose');
+
+        if (!sidebar || !toggleBtn) return;
+
+        const openSidebar = () => {
+            sidebar.classList.add('active');
+            overlay?.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        };
+
+        const closeSidebar = () => {
+            sidebar.classList.remove('active');
+            overlay?.classList.remove('active');
+            document.body.style.overflow = '';
+        };
+
+        toggleBtn.addEventListener('click', openSidebar);
+        closeBtn?.addEventListener('click', closeSidebar);
+        overlay?.addEventListener('click', closeSidebar);
+
+        // Close on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && sidebar.classList.contains('active')) {
+                closeSidebar();
+            }
+        });
+    }
+
     window.copyToClipboardAndShowFeedback = function (elementOrId, buttonOrDuration, duration = 750) {
         let textToCopy = '';
         let button = null;
@@ -278,6 +310,7 @@
         initMultiSelects();
         initTagSelects();
         initTabPersistence();
+        initSidebar();
         setTimeout(hideLoadingOverlay, 100);
     });
 })();

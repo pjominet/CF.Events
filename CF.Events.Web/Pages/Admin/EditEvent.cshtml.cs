@@ -57,17 +57,23 @@ public class EditEventModel(
                 DonationIban = @event.DonationIban,
                 DonationLink = @event.DonationLink,
                 BookingLinks = @event.BookingLinks.Select(bl => bl.Link).ToList(),
-                FaqItems = @event.EventFaq.Select(f => new FaqInputModel
-                {
-                    Question = f.Question,
-                    Answer = f.Answer
-                }).ToList(),
-                ScheduleSteps = @event.EventSchedule.Select(s => new ScheduleInputModel
-                {
-                    Day = s.Day,
-                    TimeStamp = s.TimeStamp,
-                    Label = s.Label
-                }).ToList()
+                FaqItems =
+                [
+                    .. @event.EventFaq.Select(f => new FaqInputModel
+                    {
+                        Question = f.Question,
+                        Answer = f.Answer
+                    })
+                ],
+                ScheduleSteps =
+                [
+                    .. @event.EventSchedule.Select(s => new ScheduleInputModel
+                    {
+                        Day = s.Day,
+                        TimeStamp = s.TimeStamp,
+                        Label = s.Label
+                    })
+                ]
             };
         }
         else
@@ -193,8 +199,8 @@ public class EditEventModel(
         public string? UploadSessionId { get; set; }
         [Required, StringLength(100)]
         public string Name { get; set; } = null!;
-        public DateTime StartDate { get; init; }
-        public DateTime EndDate { get; init; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
         public string? Location { get; set; }
         [Required]
         public string Description { get; set; } = null!;

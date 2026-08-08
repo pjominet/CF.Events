@@ -1,0 +1,50 @@
+﻿@using CF.Events.Web.Infrastructure.Extensions
+@model DonationDetails
+
+<div class="modal fade" id="eventDonationsModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-fullscreen-md-down">
+        <div class="modal-content modal-glass">
+            <div class="modal-header">
+                <h5 class="modal-title serif h3">Wedding Gifts</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (!string.IsNullOrEmpty(Model.Iban))
+                {
+                    <h3 class="h6"><i class="bi bi-heart me-1"></i>Feeling generous?</h3>
+                    <button class="btn btn-outline-primary w-100" type="button"
+                            onclick="copyToClipboardAndShowFeedback(this)">
+                        @Model.Iban.FormatAsIban()<i class="bi bi-copy ms-2"></i>
+                    </button>
+                    <div class="form-text text-muted mt-2 mb-0">
+                        <p>
+                            <i class="bi bi-exclamation-diamond text-danger me-2"></i>Add the reference <strong>@($"{Model.Reference}")</strong> to your transaction.
+                        </p>
+                        <p class="fst-italic">
+                            <i class="bi bi-info-circle text-info me-2"></i>Any money donated will be used to cover the cost of the event.
+                        </p>
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(Model.Link))
+                {
+                    <section class="mt-3">
+                        <h3 class="h6">Have a look at our gift list</h3>
+                        <div class="mt-3 w-100">
+                            <a class="btn btn-primary w-100" href="@Model.Link" target="_blank" rel="noopener">
+                                @Model.Link<i class="bi bi-box-arrow-in-up-right ms-2"></i>
+                            </a>
+                        </div>
+                    </section>
+                }
+
+                @if (string.IsNullOrEmpty(Model.Iban) && string.IsNullOrEmpty(Model.Link))
+                {
+                    <div class="alert alert-info mb-3">
+                        <i class="bi bi-info-circle me-2"></i>This event does not have any gifts or donations setup.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

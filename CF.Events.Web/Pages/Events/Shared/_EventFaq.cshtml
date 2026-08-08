@@ -1,0 +1,32 @@
+﻿@model List<EventFaqItem>
+
+<div class="modal fade" id="eventFaqModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-fullscreen-md-down">
+        <div class="modal-content modal-glass">
+            <div class="modal-header">
+                <h5 class="modal-title serif h3">FAQ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="accordion" id="faqAccordion">
+                    @for (var i = 0; i < Model.Count; i++)
+                    {
+                        var item = Model[i];
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button @(i == 0 ? string.Empty : "collapsed")" type="button" data-bs-toggle="collapse" data-bs-target="#faq-@i">
+                                    <strong class="text-emp">@item.Question</strong>
+                                </button>
+                            </h2>
+                            <div id="faq-@i" class="accordion-collapse collapse @(i == 0 ? "show": string.Empty)">
+                                <div class="accordion-body text-emp">@item.Answer</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+

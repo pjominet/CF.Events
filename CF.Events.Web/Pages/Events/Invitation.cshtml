@@ -1,11 +1,17 @@
 ﻿@page "/events/{eventId:int}/invitation"
+@using CF.Events.Web.Infrastructure.Extensions
 @model CF.Events.Web.Pages.Events.InvitationModel
 @{
     Layout = "_NoNavLayout";
     ViewData["Title"] = Model.EventData?.Name ?? "Invitation";
 }
 
-<div class="invite-page">
+@section Styles
+{
+    <link rel="stylesheet" href="~/css/invitation.css" asp-append-version="true"/>
+}
+
+<section class="invite-page">
     @if (Model.NotFoundOrForbidden)
     {
         <div class="invite-error">
@@ -16,27 +22,84 @@
     }
     else
     {
-        <div class="card shadow-lg invite-card">
-            <div class="card-body bg-card-custom p-0">
-                <div class="invite-fallback">
-                    <h1>@Model.EventData!.Name</h1>
-                    <p>@Model.EventData.StartDate.ToLongDateString()</p>
+        if (User.IsAdmin())
+        {
+            <div class="position-fixed top-0 start-0 m-3" style="z-index: 1050;">
+                <a href="@Model.BackUrl" class="btn btn-dark opacity-75 shadow-sm rounded-pill px-4">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Admin
+                </a>
+            </div>
+        }
+
+        <div class="book-container" id="bookContainer">
+            <!-- Cover -->
+            <div class="cover">
+                <div class="cover-front">
+                    <div class="cover-content">
+                        <div class="my-auto">
+                            <h1>
+                                <span class="cursive">Patrick and Éadaoin invite</span>
+                                <strong class="d-block my-2 fs-1 opacity-100 serif">@(Model.GuestGroup?.Label ?? "Guest Name")</strong>
+                                <span class="cursive">to celebrate their</span>
+                            </h1>
+                            <h2 class="serif"><strong>@Model.EventData!.Name</strong></h2>
+                            <hr class="invite-divider"/>
+                            <div class="cover-location">
+                                <p class="cursive">
+                                    Salt Hill
+                                    <br/>
+                                    Ireland
+                                </p>
+                            </div>
+                        </div>
+                        <div>
+                            <button id="cover-button" class="btn-glass btn-glass-light text-white">
+                                <i class="bi bi-stars"></i>
+                                <span id="cover-button-text" class="mx-2">Click to open</span>
+                                <i class="bi bi-stars"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="cover-back">
+                    <!-- Back of the cover, empty or simple design -->
+                </div>
+            </div>
+
+            <div class="right-page">
+                <div class="page-content">
+                    <h3 class="serif">RSVP</h3>
+                    <p>
+                        <strong class="serif fs-5">Date:</strong>
+                        <br/>
+                        @Model.EventData.StartDate.ToLongDateString()
+                        @if (Model.EventData.EndDate != Model.EventData.StartDate)
+                        {
+                            <br/>
+                            @Model.EventData.EndDate.ToLongDateString()
+                        }
+                    </p>
                     @if (!string.IsNullOrEmpty(Model.EventData.Location))
                     {
-                        <p>@Model.EventData.Location</p>
+                        <p><strong class="serif fs-5">Location:</strong><br>@Model.EventData.Location</p>
                     }
                     @if (!string.IsNullOrEmpty(Model.EventData.Description))
                     {
-                        <jsonrenderer input="@Model.EventData.Description" />
+                        <div class="rsvp-description">
+                            <jsonrenderer input="@Model.EventData.Description"/>
+                        </div>
                     }
-                </div>
-            </div>
-            <div class="card-footer bg-card-custom border-0 pb-3">
-                <div class="d-flex justify-content-center gap-3">
-                    <a href="@Model.BackUrl" class="btn btn-outline-secondary">Back</a>
-                    <a href="/events/@Model.EventData!.Id/rsvp" class="btn btn-primary">RSVP</a>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="@Model.BackUrl" class="btn btn-secondary btn-animated rounded-5 px-4" id="returnButton">@(User.IsAdmin() || Model.HasRsvped ? "Back" : "Cancel")</a>
+                        <a href="/events/@Model.EventData!.Id/rsvp" class="btn btn-primary btn-animated rounded-5 px-4">@(Model.HasRsvped ? "Review" : string.Empty) RSVP</a>
+                    </div>
                 </div>
             </div>
         </div>
     }
-</div>
+</section>
+
+@section Scripts
+{
+    <script src="~/js/invitation.js" type="text/javascript" asp-append-version="true"></script>
+}

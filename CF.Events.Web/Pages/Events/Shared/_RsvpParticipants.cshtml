@@ -1,6 +1,5 @@
 ﻿@model (List<string> Participants, int MaxParticipants)
 
-<h6 class="serif border-bottom pb-1 mb-3 admin-only">Participants</h6>
 <div id="participant-container" data-max-participants="@Model.MaxParticipants">
     @for (var i = 0; i < Model.Participants.Count; i++)
     {
@@ -9,7 +8,7 @@
                 <input name="NewRsvp.Participants[@i]" value="@Model.Participants[i]" class="form-control participant-input" placeholder="Participant Name" required />
             </div>
             <div class="col-auto">
-                <button type="button" class="btn btn-outline-danger remove-participant"><i class="bi bi-x-lg"></i></button>
+                <button type="button" class="btn btn-link text-danger remove-participant"><i class="bi bi-x-lg"></i></button>
             </div>
         </div>
     }

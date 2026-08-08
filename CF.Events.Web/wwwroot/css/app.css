@@ -1,16 +1,18 @@
 ﻿:root {
     /* Colors */
-    --primary-color: #3e523e;
+    --primary-color: #273427;
     --secondary-color: #d68d8d;
     --danger-color: #d9534f;
     --info-color: #31708f;
+    --light-color: #dbe2f0;
+    --dark-color: #2c3e50;
 
-    --bg-page: #fcfaf9;
-    --bg-card: #e8e3df;
+    --bg-page: #e0e8e0;
+    --bg-card: #dbe2f0;
 
     /* Fonts */
-    --font-serif: "Domine", serif;
-    --font-cursive: "Rouge Script", cursive;
+    --font-serif: "Cormorant Upright", serif;
+    --font-cursive: "Italianno", cursive;
     --font-brand: "Passion One", sans-serif;
     --font-sans: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
@@ -69,6 +71,10 @@
     --bs-btn-disabled-border-color: var(--info-disabled);
 }
 
+.btn-animated:hover {
+    box-shadow: 2px 10px 18px rgba(0, 0, 0, 0.45);
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -86,6 +92,7 @@ h1:focus {
 }
 
 .cursive {
+    font-size: 1.5em;
     font-family: var(--font-cursive);
 }
 
@@ -94,146 +101,7 @@ h1:focus {
 }
 
 .bg-card-custom {
-    background-color: var(--bg-card);
-}
-
-/* RSVP Form Styles */
-#rsvpForm textarea {
-    resize: vertical;
-}
-
-#rsvpForm input[type="radio"],
-#rsvpForm input[type="checkbox"],
-.form-check-input {
-    accent-color: var(--primary-color);
-    cursor: pointer;
-}
-
-.form-check-input:checked {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-}
-
-.form-check-input:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
-}
-
-.ts-dropdown {
-    z-index: 2000;
-}
-
-#invitesGrid {
-    min-height: 60vh;
-    position: relative;
-}
-
-.step-indicator {
-    opacity: 0.5;
-    font-weight: bold;
-    border-bottom: 3px solid #dee2e6;
-    flex: 1;
-    text-align: center;
-    transition: all 0.3s ease;
-}
-
-.step-indicator.active {
-    opacity: 1;
-    border-bottom: 3px solid var(--bs-primary);
-    color: var(--bs-primary);
-}
-
-.step-content-wrapper {
-    min-height: 250px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-#rsvpForm .custom-radio .form-check-input {
-    width: 1.25em;
-    height: 1.25em;
-    margin-top: 0.125em;
-}
-
-#rsvpForm .btn-rsvp {
-    padding: 0.6rem 1rem;
-    font-weight: 500;
-}
-
-/* Invitation Page Styles */
-.invite-page {
-    margin: 0;
-    padding: 20px;
-    background-color: var(--bg-page);
-    font-family: var(--font-serif);
-    color: var(--primary-color);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-}
-
-.invite-card {
-    position: relative;
-    background-color: var(--bg-card);
-    max-width: 500px;
-    border: none;
-    overflow: hidden;
-}
-
-.invite-image {
-    width: 100%;
-    /* Always portrait; larger images are cropped to fit. */
-    aspect-ratio: 1 / 1.414;
-    object-fit: cover;
-    object-position: center;
-    display: block;
-}
-
-.invite-fallback {
-    aspect-ratio: 1 / 1.414;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 30px;
-    min-width: 450px;
-}
-
-.invite-fallback h1 {
-    font-family: var(--font-cursive);
-}
-
-.invite-error {
-    text-align: center;
-    max-width: 450px;
-}
-
-@media (max-width: 500px) {
-    .invite-page {
-        padding: 0;
-        background-color: var(--bg-card);
-    }
-    .invite-card {
-        width: 100vw;
-        min-height: 100vh;
-        border-radius: 0;
-        box-shadow: none;
-        display: flex;
-        flex-direction: column;
-    }
-    .invite-image, .invite-fallback {
-        flex: 1 1 auto;
-        aspect-ratio: auto;
-    }
-}
-
-.event-form-actions {
-    padding: 5px;
-    display: flex;
-    justify-content: space-between;
+    background-color: rgba(var(--glass-color-light), 0.75);
 }
 
 /* loading spinner */
@@ -339,4 +207,111 @@ h1:focus {
 /* rte-editor customisation */
 .codex-editor__redactor {
     padding-bottom: 0 !important;
+}
+
+/* Sidebar Drawer Styles */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 280px;
+    height: 100vh;
+    background: #fff;
+    z-index: 2000;
+    transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 10px 0 32px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar.active {
+    left: 0;
+}
+
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s ease;
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.sidebar .nav-link {
+    color: #333 !important;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+.sidebar .nav-link:hover {
+    color: var(--primary-color) !important;
+    padding-left: 5px !important;
+}
+
+.sidebar .sidebar-section h6 {
+    letter-spacing: 0.5px;
+    margin-bottom: 1rem;
+}
+
+.sidebar .nav-item i {
+    width: 20px;
+    text-align: center;
+}
+
+.sidebar .dropdown-item {
+    color: #555 !important;
+    font-size: 1rem;
+    padding: 0.25rem 0;
+}
+
+.sidebar .dropdown-item:hover {
+    background: rgba(0, 0, 0, 0.05) !important;
+    color: #000 !important;
+    padding-left: 5px !important;
+}
+
+.sidebar-header {
+    border-bottom: 1px solid #eee;
+}
+
+.sidebar-content {
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+@media (max-width: 991.98px) {
+    .navbar-collapse {
+        display: none !important;
+    }
+}
+
+.navbar-toggler:focus,
+.navbar-toggler:active {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.text-emp {
+    font-size: 1.2rem;
+    line-height: 1.6;
+}
+
+.lead {
+    font-size: 2.4rem;
+}
+
+
+@media (max-width: 576px) {
+    .lead {
+        font-size: 2rem;
+    }
 }

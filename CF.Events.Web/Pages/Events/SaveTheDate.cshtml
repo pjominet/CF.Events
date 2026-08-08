@@ -1,8 +1,14 @@
 ﻿@page "/events/{eventId:int}/{userId}/save-the-date"
+@using CF.Events.Web.Infrastructure.Extensions
 @model CF.Events.Web.Pages.Events.SaveTheDate
 
 @{
     Layout ="_NoNavLayout";
+}
+
+@section Styles
+{
+    <link rel="stylesheet" href="~/css/invitation.css" asp-append-version="true"/>
 }
 
 <section class="invite-page">
@@ -15,8 +21,16 @@
     }
     else
     {
-        <div class="card shadow-lg invite-card">
-            <div class="card-body bg-card-custom p-0">
+        if (User.IsAdmin())
+        {
+            <div class="position-fixed top-0 start-0 m-3" style="z-index: 1050;">
+                <a href="@Model.BackUrl" class="btn btn-dark opacity-75 shadow-sm rounded-pill px-4">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Admin
+                </a>
+            </div>
+        }
+        <div class="invite-card">
+            <div class="invite-content">
                 <img src="@Model.ImageUrl" alt="Save the date - Wedding Patrick & Éadaoin" class="img-fluid invite-image">
             </div>
         </div>

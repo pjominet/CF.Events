@@ -1,0 +1,22 @@
+﻿#eventEditorTabs .nav-item {
+    background-color: rgba(255, 255, 255, 0.4);
+    border-radius: var(--bs-border-radius) var(--bs-border-radius) 0 0;
+}
+
+#eventEditorTabs .nav-link.active {
+    border-color: #fff;
+}
+
+#eventEditorTabsContent {
+    background-color: #fff;
+    padding: 1rem;
+    border-radius: 0 var(--bs-border-radius) 0 0;
+}
+
+.event-form-actions {
+    background-color: #fff;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    border-radius: 0 0 var(--bs-border-radius) var(--bs-border-radius);
+}

@@ -1,0 +1,62 @@
+﻿#accountContainer {
+    width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#accountTabs .nav-item {
+    background-color: rgba(255, 255, 255, 0.4);
+    border-radius: var(--bs-border-radius) var(--bs-border-radius) 0 0;
+}
+
+#accountTabs .nav-link.active {
+    border-color: #fff;
+}
+
+#accountTabsContent {
+    background-color: #fff;
+    padding: 1rem;
+    border-radius: 0 var(--bs-border-radius) var(--bs-border-radius) var(--bs-border-radius);
+}
+
+.glass-theme #accountTabs {
+    border: none !important;
+}
+
+.glass-theme #accountTabs .nav-item {
+    border: none;
+    background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.glass-theme #accountTabsContent {
+    background-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.glass-theme #accountTabs .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.4) !important;
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.glass-theme #accountContainer {
+    background-color: var(--bg-glass) !important;
+    margin-top: 3rem;
+    padding: 1.5rem;
+    width: 35% !important;
+    border-radius: var(--border-radius-glass);
+}
+
+.glass-theme #accountContainer h3 {
+    width: 30%;
+    font-family: var(--font-serif);
+    font-size: 36px;
+}
+
+@media (max-width: 768px) {
+    #accountContainer {
+        width: 100%;
+    }
+
+    .glass-theme #accountContainer {
+        width: 100%;
+    }
+}

@@ -1,0 +1,382 @@
+/* Multi-gradient background similar to https://codepen.io/ecemgo/pen/WNappPz */
+:root {
+    --bg-glass: rgba(255, 255, 255, 0.25);
+    --border-glass: rgba(255, 255, 255, 0.35);
+    --border-radius-glass: 20px;
+
+    --color-gradient-start: #778874;
+    --color-gradient-end: #ECF6E2;
+
+    --glass-color-primary:  59, 78, 59;
+    --glass-color-secondary:  105, 105, 105;
+    --glass-color-light:  247, 242, 225;
+    --glass-color-dark: 231, 220, 205;
+
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+}
+
+body.glass-theme {
+    background: radial-gradient(circle, var(--color-gradient-start) 10%, var(--color-gradient-end) 100%);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+}
+
+body.glass-theme:before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("/img/bg_floral_edges.png");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    z-index: -1;
+}
+
+@media (max-width: 768px) {
+    body.glass-theme:before {
+        background-image: url("/img/bg_floral_edges_vertical.png");
+    }
+}
+
+.text-dark-glass {
+    color: var(--primary-color);
+}
+
+/* Glassmorphism base classes */
+.glass-card {
+    background: var(--bg-glass);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--border-radius-glass);
+    box-shadow: var(--glass-shadow);
+    padding: 3rem;
+    max-width: 350px;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+
+}
+
+.glass-card-lg {
+    max-width: 650px;
+}
+
+.glass-card-lg::before {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .glass-card {
+        padding: 1rem;
+        max-width: 100%;
+
+    }
+
+    .glass-card-lg {
+        padding: 1.5rem;
+    }
+}
+
+.glass-navbar {
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border-glass);
+    border-radius: 50px;
+    position: sticky;
+    top: 20px;
+    z-index: 1000;
+    box-shadow: var(--glass-shadow);
+    transition: margin 0.3s ease, border-radius 0.3s ease;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+}
+
+@media (max-width: 991.98px) {
+    .glass-navbar {
+        margin: 10px 10px 0 10px;
+        border-radius: 25px;
+    }
+}
+
+.glass-navbar .container {
+    padding: 0.5rem 1.5rem;
+}
+
+@media (max-width: 575.98px) {
+    .glass-navbar .container {
+        padding: 0.3rem 1rem;
+    }
+}
+
+hr.glass-divider {
+    color: #fff;
+    opacity: .15;
+    margin: 2rem 0;
+}
+
+/* Sidebar Drawer Styles */
+.glass-sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 280px;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border-right: 1px solid rgba(255, 255, 255, 0.3);
+    z-index: 2000;
+    transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 10px 0 32px rgba(0, 0, 0, 0.1);
+}
+
+.glass-sidebar.active {
+    left: 0;
+}
+
+.glass-sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s ease;
+}
+
+.glass-sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.glass-sidebar .nav-link {
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+.glass-sidebar .nav-item i,
+.glass-sidebar .nav-item .nav-link {
+    color: #fff;
+!important;
+}
+
+.glass-sidebar .nav-link:hover {
+    padding-left: 5px !important;
+}
+
+.glass-sidebar .dropdown-item {
+    font-size: 1rem;
+}
+
+.glass-sidebar .dropdown-item:hover {
+    background: transparent !important;
+    padding-left: 5px !important;
+}
+
+.glass-navbar .nav-link {
+    color: var(--primary-color) !important;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.glass-navbar .nav-link:hover {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.glass-navbar .navbar-nav {
+    display: flex;
+}
+
+@media (max-width: 991.98px) {
+    .glass-navbar .navbar-nav {
+        display: none !important;
+    }
+
+    .glass-navbar .navbar-toggler {
+        display: block !important;
+    }
+}
+
+.glass-navbar .navbar-toggler {
+    display: none;
+}
+
+.glass-navbar .navbar-toggler:focus,
+.glass-navbar .navbar-toggler:active {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.glass-navbar .dropdown-menu {
+    background: rgba(255, 255, 255, 0.7) !important;
+    backdrop-filter: blur(15px) !important;
+    -webkit-backdrop-filter: blur(15px) !important;
+    border-radius: 10px !important;
+    padding: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    transform: none !important;
+}
+
+.glass-navbar .dropdown-menu .dropdown-item {
+    border-radius: 10px;
+    margin-bottom: 2px;
+    color: #333 !important;
+    transition: all 0.2s ease;
+}
+
+.glass-navbar .dropdown-menu .dropdown-item:last-child {
+    margin-bottom: 0;
+}
+
+.glass-navbar .dropdown-menu .dropdown-item:hover {
+    background: rgba(0, 0, 0, 0.05) !important;
+    color: #000 !important;
+}
+
+.glass-navbar .dropdown-menu .dropdown-item.text-danger {
+    color: var(--danger-color) !important;
+}
+
+.glass-navbar .dropdown-menu .dropdown-item.text-danger:hover {
+    background: rgba(217, 83, 79, 0.1) !important;
+    color: #c9302c !important;
+}
+
+.glass-text-muted {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.btn-glass {
+    text-align: center;
+    display: inline-block;
+    padding: .55rem 1rem;
+    border: none;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+
+}
+
+.btn-glass-light {
+    color: var(--primary-color);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.btn-glass-light:hover {
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 2px 12px 28px rgba(0, 0, 0, 0.25);
+}
+
+.btn-glass-dark {
+    color: var(--primary-color);
+    background: rgba(var(--glass-color-dark), 0.35);
+    border: 1px solid rgba(var(--glass-color-dark), 0.4);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn-glass-dark:hover {
+    background: rgba(var(--glass-color-dark), 0.55);
+    box-shadow: 2px 12px 28px rgba(0, 0, 0, 0.25);
+}
+
+.btn-glass-primary {
+    color: var(--light-color);
+    background: rgba(var(--glass-color-primary), 0.85);
+    border: 1px solid rgba(var(--glass-color-primary), 0.9);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.btn-glass-primary:hover {
+    background: rgba(var(--glass-color-primary), 0.95);
+    box-shadow: 2px 12px 28px rgba(0, 0, 0, 0.25);
+}
+
+.btn-glass-secondary {
+    color: var(--light-color);
+    background: rgba(var(--glass-color-secondary), 0.85);
+    border: 1px solid rgba(var(--glass-color-secondary), 0.9);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.btn-glass-secondary:hover {
+    background: rgba(var(--glass-color-secondary), 0.95);
+    box-shadow: 2px 12px 28px rgba(0, 0, 0, 0.25);
+}
+
+.btn-glass:active {
+    box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.1);
+}
+
+.btn-glass:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.bg-glass {
+    background: var(--bg-glass);
+}
+
+.border-glass {
+    border: 1px solid var(--border-glass);
+}
+
+.rounded-glass {
+    border-radius: var(--border-radius-glass);
+}
+
+.modal-glass {
+    background: rgba(var(--glass-color-light), 0.9);
+    border: 1px solid var(--border-glass);
+    border-radius: 20px;
+    color: var(--primary-color);
+    padding: 0 1.5rem 1.5rem 1.5rem;
+}
+
+.modal-glass .modal-header {
+    border-bottom: none;
+    text-shadow: 2px 2px 4px #868686;
+}
+
+.modal-glass .modal-body {
+   padding-top: 0;
+}
+
+.modal-glass .accordion-item {
+    background: rgba(255, 255, 255, 0.65);
+    border: none;
+    box-shadow: none;
+}
+
+.modal-glass .accordion-button {
+    background-color: transparent;
+    box-shadow: none;
+}
+
+.modal-glass .accordion-button:not(.collapsed) {
+    background-color: transparent;
+    box-shadow: none;
+}
+
+.modal-glass .accordion-collapse {
+    background-color: transparent;
+}

@@ -75,7 +75,7 @@
                     const row = document.createElement("div");
                     row.className = "mb-3 p-3 border rounded bg-white dietary-participant-row";
                     row.innerHTML = `
-                        <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex justify-content-between align-items-center">
                             <strong class="participant-name-label">${p}</strong>
                             <input type="hidden" name="NewRsvp.ParticipantsDiets[${pIndex}].ParticipantName" value="${p}" />
                             <div class="form-check form-switch">
@@ -83,8 +83,8 @@
                                 <label class="form-check-label" for="hasDietary_${pIndex}">Dietary Needs</label>
                             </div>
                         </div>
-                        <div class="dietary-options-wrapper ${existing && (existing.options.length > 0 || existing.other) ? "" : "d-none"}">
-                            <select name="NewRsvp.ParticipantsDiets[${pIndex}].Restrictions" class="form-select tom-select dietary-options-select" multiple placeholder="Select options...">
+                        <div class="dietary-options-wrapper mt-2 ${existing && (existing.options.length > 0 || existing.other) ? "" : "d-none"}">
+                            <select name="NewRsvp.ParticipantsDiets[${pIndex}].Restrictions" class="form-select tom-select dietary-options-select" multiple data-placeholder="Select options...">
                                 ${document.getElementById("dietary-options-template").innerHTML}
                             </select>
                             <textarea name="NewRsvp.ParticipantsDiets[${pIndex}].OtherDetails" class="form-control mt-2" maxlength="500" placeholder="Other dietary details or allergies..." rows="2">${existing ? existing.other : ""}</textarea>
@@ -201,9 +201,6 @@
         return;
     }
 
-    // Step 1 = Attendance, Step 2 = Participants, steps 2-5 = stepper steps 1-4
-    let currentStep = 1;
-
     const participantContainer = document.getElementById("participant-container");
     const addParticipantBtn = document.getElementById("add-participant");
 
@@ -224,7 +221,7 @@
                     <input name="NewRsvp.Participants[${index}]" class="form-control participant-input" placeholder="Participant Name" required />
                 </div>
                 <div class="col-auto">
-                    <button type="button" class="btn btn-outline-danger remove-participant"><i class="bi bi-x-lg"></i></button>
+                    <button type="button" class="btn btn-link text-danger remove-participant"><i class="bi bi-x-lg"></i></button>
                 </div>
             `;
             participantContainer.appendChild(row);
@@ -265,6 +262,9 @@
             }
         }
     });
+
+    // Step 1 = Attendance, Step 2 = Participants, steps 2-5 = stepper steps 1-4
+    let currentStep = 1;
 
     function showStep(stepNumber) {
         // Show the correct form-step div

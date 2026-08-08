@@ -1,38 +1,76 @@
 ﻿@page "/account/manage"
+@using CF.Events.Web.Infrastructure.Extensions
 @model CF.Events.Web.Pages.Account.Manage.IndexModel
 @{
     ViewData["Title"] = "My Account";
+    if (!User.IsAdmin())
+    {
+        Layout = "_GlassLayout";
+    }
 }
 
-<h3>Profile</h3>
-<hr />
-<div class="row">
-    <div class="col-md-6">
-        <ul class="nav nav-pills mb-3">
-            <li class="nav-item"><a class="nav-link active" asp-page="./Index">Profile</a></li>
-            <li class="nav-item"><a class="nav-link" asp-page="./ChangePassword">Password</a></li>
+@section Styles {
+    <link rel="stylesheet" href="/css/account.css" asp-append-version="true"/>
+}
+
+<section class="d-flex flex-column align-items-center" id="accountContainer">
+    <h3>My Account</h3>
+    <div class="container">
+        <ul class="nav nav-tabs" id="accountTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(string.IsNullOrEmpty(Model.ActiveTab) || Model.ActiveTab == "profile" ? "active" : "")" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-pane" type="button" role="tab" aria-controls="profile-pane" aria-selected="true">Info</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(Model.ActiveTab == "password" ? "active" : "")" id="password-tab" data-bs-toggle="tab" data-bs-target="#password-pane" type="button" role="tab" aria-controls="password-pane" aria-selected="false">Password</button>
+            </li>
         </ul>
-        <form method="post">
-            <div asp-validation-summary="All" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input value="@Model.Username" class="form-control" disabled />
-                <label class="form-label">Email</label>
+        <div class="tab-content" id="accountTabsContent">
+            <div class="tab-pane fade @(string.IsNullOrEmpty(Model.ActiveTab) || Model.ActiveTab == "profile" ? "show active" : "")" id="profile-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">
+                <form method="post" asp-page-handler="UpdateProfile">
+                    <input type="hidden" name="ActiveTab" value="profile"/>
+                    <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+                    <div class="form-floating mb-3">
+                        <input value="@Model.Username" class="form-control" disabled/>
+                        <label class="form-label">Email</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input asp-for="Profile.DisplayName" class="form-control" placeholder="Display name"/>
+                        <label asp-for="Profile.DisplayName" class="form-label">Display name</label>
+                        <span asp-validation-for="Profile.DisplayName" class="text-danger"></span>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input asp-for="Profile.PhoneNumber" class="form-control" placeholder="Phone number"/>
+                        <label asp-for="Profile.PhoneNumber" class="form-label">Phone number</label>
+                        <span asp-validation-for="Profile.PhoneNumber" class="text-danger"></span>
+                    </div>
+                    <button type="submit" class="w-100 btn btn-lg btn-primary mb-3">Save profile information</button>
+                </form>
             </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.DisplayName" class="form-control" placeholder="Display name" />
-                <label asp-for="Input.DisplayName" class="form-label">Display name</label>
-                <span asp-validation-for="Input.DisplayName" class="text-danger"></span>
+            <div class="tab-pane fade @(Model.ActiveTab == "password" ? "show active" : "")" id="password-pane" role="tabpanel" aria-labelledby="password-tab" tabindex="0">
+                <form method="post" asp-page-handler="ChangePassword">
+                    <input type="hidden" name="ActiveTab" value="password"/>
+                    <div class="form-floating mb-3">
+                        <input asp-for="Password.OldPassword" type="password" class="form-control" autocomplete="current-password" placeholder="Current password"/>
+                        <label asp-for="Password.OldPassword" class="form-label">Current password</label>
+                        <span asp-validation-for="Password.OldPassword" class="text-danger"></span>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input asp-for="Password.NewPassword" type="password" class="form-control" autocomplete="new-password" placeholder="New password"/>
+                        <label asp-for="Password.NewPassword" class="form-label">New password</label>
+                        <span asp-validation-for="Password.NewPassword" class="text-danger"></span>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input asp-for="Password.ConfirmPassword" type="password" class="form-control" autocomplete="new-password" placeholder="Confirm new password"/>
+                        <label asp-for="Password.ConfirmPassword" class="form-label">Confirm new password</label>
+                        <span asp-validation-for="Password.ConfirmPassword" class="text-danger"></span>
+                    </div>
+                    <button type="submit" class="w-100 btn btn-lg btn-primary">Update password</button>
+                </form>
             </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Phone number" />
-                <label asp-for="Input.PhoneNumber" class="form-label">Phone number</label>
-                <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
-        </form>
+        </div>
     </div>
-</div>
+</section>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    <partial name="_ValidationScriptsPartial"/>
 }

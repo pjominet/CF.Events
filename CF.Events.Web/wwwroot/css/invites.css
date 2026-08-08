@@ -1,0 +1,77 @@
+#invitesGrid {
+    min-height: 60vh;
+    position: relative;
+}
+
+.invite-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.invite-details {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.invite-badge .badge {
+    border-radius: 15px;
+    padding: .5rem 1rem;
+    opacity: .9;
+    font-size: .9rem;
+}
+
+/* Asymmetric grid layout */
+.invite-action-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 1.5rem;
+}
+
+.invite-action-grid a,
+.invite-action-grid button {
+    padding: 1rem;
+}
+
+.btn-100 {
+    grid-column: 1 / -1;
+}
+
+.btn-66 {
+    grid-column: span 5;
+}
+
+.btn-50 {
+    grid-column: span 4;
+}
+
+.btn-33 {
+    grid-column: span 3;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .invite-header {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+
+    .invite-badge {
+        margin-top: 1rem;
+    }
+
+    .invite-action-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(5, auto);
+    }
+
+    .btn-view-invitation, .btn-66, .btn-33, .btn-50 {
+        grid-column: 1 / 2;
+    }
+
+    .invite-header .d-flex.align-items-center.gap-3 {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+}

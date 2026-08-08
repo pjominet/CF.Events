@@ -1,0 +1,11 @@
+﻿@using CF.Events.Web.Infrastructure.Extensions
+@model (List<string> Participants, List<ParticipantDiet> ParticipantsDiets)
+
+<div id="dietary-participants-container"></div>
+<div id="dietary-options-template" class="d-none">
+    @foreach (var option in Enum.GetValues<DietaryRestrictions>())
+    {
+        if (option is DietaryRestrictions.None) continue;
+        <option value="@option">@option.ToString().IntoWords()</option>
+    }
+</div>

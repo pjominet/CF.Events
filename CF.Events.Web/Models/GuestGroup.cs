@@ -10,6 +10,7 @@ public class GuestGroup
     [StringLength(450)]
     public required string GuestUserId { get; set; }
     public List<string> Participants { get; set; } = [];
+    public int MaxPeople { get; set; } = 4;
 
     // navigation properties
     public AppUser GuestUser { get; set; } = null!;

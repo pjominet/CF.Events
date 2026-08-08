@@ -45,6 +45,7 @@ public class UsersModel(
             UserName = NewUser.Email,
             Email = NewUser.Email,
             DisplayName = NewUser.DisplayName,
+            PhoneNumber = NewUser.PhoneNumber,
             MustChangePassword = true,
             EmailConfirmed = true
         };
@@ -73,7 +74,8 @@ public class UsersModel(
                 {
                     Label = NewUser.GuestGroup,
                     GuestUserId = user.Id,
-                    Participants = participants.Count == 0 ? [user.DisplayName] : participants
+                    Participants = participants.Count == 0 ? [user.DisplayName] : participants,
+                    MaxPeople = NewUser.MaxPeople
                 };
                 db.GuestGroups.Add(guestGroup);
                 await db.SaveChangesAsync();
@@ -87,6 +89,86 @@ public class UsersModel(
         else
             toastNotification.AddErrorToastMessage($"Failed to add roles for user {NewUser.Email}");
 
+        return RedirectToPage();
+    }
+
+    public async Task<IActionResult> OnPostEditAsync()
+    {
+        if (NewUser.SelectedRoles.Contains(Roles.Guest) && string.IsNullOrWhiteSpace(NewUser.GuestGroup))
+        {
+            ModelState.AddModelError("NewUser.GuestGroup", "Guest Group Label is required for guests.");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            ViewData[ViewDataKeys.ShowAddModal] = true;
+            await LoadAsync();
+            return Page();
+        }
+
+        var user = await userManager.FindByIdAsync(NewUser.Id!);
+        if (user == null)
+        {
+            toastNotification.AddErrorToastMessage("User not found");
+            return RedirectToPage();
+        }
+
+        user.Email = NewUser.Email;
+        user.UserName = NewUser.Email;
+        user.DisplayName = NewUser.DisplayName;
+        user.PhoneNumber = NewUser.PhoneNumber;
+
+        var result = await userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            foreach (var error in result.Errors)
+                ModelState.AddModelError(string.Empty, error.Description);
+            ViewData[ViewDataKeys.ShowAddModal] = true;
+            await LoadAsync();
+            return Page();
+        }
+
+        var currentRoles = await userManager.GetRolesAsync(user);
+        await userManager.RemoveFromRolesAsync(user, currentRoles);
+        if (NewUser.SelectedRoles is { Count: > 0 })
+            await userManager.AddToRolesAsync(user, NewUser.SelectedRoles);
+        else
+            await userManager.AddToRoleAsync(user, Roles.Guest);
+
+        var updatedRoles = await userManager.GetRolesAsync(user);
+        if (updatedRoles.Contains(Roles.Guest))
+        {
+            var participants = (NewUser.GuestGroup ?? "").Split("&", StringSplitOptions.RemoveEmptyEntries).Select(p => p.Trim()).ToList();
+            if (user.GuestGroupId == null)
+            {
+                var guestGroup = new GuestGroup
+                {
+                    Label = NewUser.GuestGroup ?? NewUser.DisplayName,
+                    GuestUserId = user.Id,
+                    Participants = participants.Count == 0 ? [user.DisplayName!] : participants,
+                    MaxPeople = NewUser.MaxPeople
+                };
+                db.GuestGroups.Add(guestGroup);
+                await db.SaveChangesAsync();
+                user.GuestGroupId = guestGroup.Id;
+                await userManager.UpdateAsync(user);
+            }
+            else
+            {
+                var guestGroup = await db.GuestGroups.FindAsync(user.GuestGroupId.Value);
+                if (guestGroup != null)
+                {
+                    guestGroup.Label = NewUser.GuestGroup ?? NewUser.DisplayName;
+                    guestGroup.MaxPeople = NewUser.MaxPeople;
+                    // We don't necessarily want to reset participants here if they were already managed,
+                    // but for simplicity and consistency with Add, we might update them if provided.
+                    // However, the issue only mentioned MaxPeople and phone number.
+                }
+                await db.SaveChangesAsync();
+            }
+        }
+
+        toastNotification.AddSuccessToastMessage($"Updated user {NewUser.Email}");
         return RedirectToPage();
     }
 
@@ -105,6 +187,7 @@ public class UsersModel(
                 u.PhoneNumber ?? "n/a",
                 u.DisplayName ?? "undefined",
                 u.GuestGroup?.Label ?? "n/a",
+                u.GuestGroup?.MaxPeople ?? 4,
                 u.IsActive,
                 roles,
                 u.MustChangePassword));
@@ -221,18 +304,25 @@ public class UsersModel(
         return RedirectToPage();
     }
 
-    public record UserRow(string Id, string Email, string Phone, string DisplayName, string GuestGroup, bool IsActive, IList<string> Roles, bool MustChangePassword);
+    public record UserRow(string Id, string Email, string Phone, string DisplayName, string GuestGroup, int MaxPeople, bool IsActive, IList<string> Roles, bool MustChangePassword);
 
     public sealed class InputModel
     {
+        public string? Id { get; set; }
+
         [Required]
         public string DisplayName { get; set; } = string.Empty;
 
         public string GuestGroup { get; set; } = string.Empty;
 
+        public int MaxPeople { get; set; } = 4;
+
         [Required]
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
+
+        [Phone]
+        public string? PhoneNumber { get; set; }
 
         public List<string> SelectedRoles { get; set; } = [];
     }

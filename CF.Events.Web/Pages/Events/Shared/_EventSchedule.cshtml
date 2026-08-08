@@ -1,0 +1,56 @@
+﻿@model List<EventScheduleStep>
+
+<div class="modal fade" id="eventScheduleModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-fullscreen-md-down">
+        <div class="modal-content modal-glass">
+            <div class="modal-header">
+                <h5 class="modal-title serif h3">Event Schedule</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body schedule">
+                @{
+                    var groupedSchedule = Model.GroupBy(s => s.Day).OrderBy(g => g.Key).ToList();
+                }
+
+                @if (groupedSchedule.Any())
+                {
+                    <ul class="nav nav-tabs schedule-tabs" id="scheduleTabs" role="tablist">
+                        @for (var i = 0; i < groupedSchedule.Count; i++)
+                        {
+                            var day = groupedSchedule[i];
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link @(i == 0 ? "active" : "") fs-5" id="day-tab-@day.Key" data-bs-toggle="tab" data-bs-target="#day-pane-@day.Key" type="button" role="tab" aria-controls="day-pane-@day.Key" aria-selected="@(i == 0 ? "true" : "false")">Day @day.Key</button>
+                            </li>
+                        }
+                    </ul>
+
+                    <div class="tab-content" id="scheduleTabsContent">
+                        @for (var i = 0; i < groupedSchedule.Count; i++)
+                        {
+                            var day = groupedSchedule[i];
+                            <div class="tab-pane fade @(i == 0 ? "show active" : "")" id="day-pane-@day.Key" role="tabpanel" aria-labelledby="day-tab-@day.Key" tabindex="0">
+                                <div class="timeline">
+                                    @foreach (var step in day.OrderBy(s => s.TimeStamp))
+                                    {
+                                        <div class="timeline-item">
+                                            <div class="timeline-marker"></div>
+                                            <div class="timeline-content">
+                                                <span class="badge text-white">@step.TimeStamp</span>
+                                                <div class="mb-0">@step.Label</div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-center text-muted">No schedule available.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+

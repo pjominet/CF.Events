@@ -23,13 +23,13 @@
                     </div>
 
                     <div id="admin-attending-fields" class="@(Model.NewRsvp.Attending ? "" : "d-none")">
-                        <partial name="Shared/_RsvpParticipants" model="(Model.NewRsvp.Participants, Model.EventData.MaxParticipantsPerRsvp)" />
+                        <partial name="~/Pages/Events/Shared/_RsvpParticipants.cshtml" model="(Model.NewRsvp.Participants, Model.EventData.MaxParticipantsPerRsvp)" />
 
-                        <h6 class="serif border-bottom pb-1 mb-3">Attendance Schedule</h6>
-                        <partial name="Shared/_RsvpAttendanceSchedule" model="(Model.EventData.EventDuration, Model.NewRsvp.Participants, Model.NewRsvp.ParticipantsAttendance)" />
+                        <h6 class="border-bottom pb-1 mb-3">Attendance Schedule</h6>
+                        <partial name="~/Pages/Events/Shared/_RsvpAttendanceSchedule.cshtml" model="(Model.EventData.EventDuration, Model.NewRsvp.Participants, Model.NewRsvp.ParticipantsAttendance)" />
 
-                        <h6 class="serif border-bottom pb-1 mb-3 mt-4">Dietary Requirements</h6>
-                        <partial name="Shared/_RsvpDietaryOptions" model="(Model.NewRsvp.Participants, Model.NewRsvp.ParticipantsDiets)" />
+                        <h6 class="border-bottom pb-1 mb-3 mt-4">Dietary Requirements</h6>
+                        <partial name="~/Pages/Events/Shared/_RsvpDietaryOptions.cshtml" model="(Model.NewRsvp.Participants, Model.NewRsvp.ParticipantsDiets)" />
                     </div>
                 </div>
                 <div class="modal-footer">

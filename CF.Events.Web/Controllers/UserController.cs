@@ -73,6 +73,9 @@ public class UserController(
             var phone = parts.Length > 2 ? parts[2].Trim() : null;
 
             var guestGroupLabel = parts.Length > 3 ? parts[3].Trim() : null;
+            var maxPeopleStr = parts.Length > 4 ? parts[4].Trim() : null;
+            int maxPeople = int.TryParse(maxPeopleStr, out var parsed) ? parsed : 4;
+
             if (selectedRoles.Contains(Roles.Guest) && string.IsNullOrWhiteSpace(guestGroupLabel))
             {
                 importErrors.Add($"Error importing row {currentRow}: Guest group is required for guest role.");
@@ -107,7 +110,8 @@ public class UserController(
             {
                 Label = !string.IsNullOrWhiteSpace(guestGroupLabel) ? guestGroupLabel : name,
                 GuestUserId = user.Id,
-                Participants = participants.Count > 0 ? participants : [user.DisplayName!]
+                Participants = participants.Count > 0 ? participants : [user.DisplayName!],
+                MaxPeople = maxPeople
             };
             await db.SaveChangesAsync();
         }

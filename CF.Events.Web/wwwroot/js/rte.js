@@ -6,7 +6,7 @@ function initRichTextEditors() {
         if (textarea.dataset.rteInitialized) return;
 
         // Hide the original textarea
-        textarea.style.display = 'none';
+        textarea.classList.add('visually-hidden');
 
         // Create a container for EditorJS
         const rteContainer = document.createElement('div');
@@ -27,8 +27,8 @@ function initRichTextEditors() {
         // Try to find an event ID from a hidden input or similar
         const objectIdInput = document.querySelector('[data-upload-id]');
         const objectId = objectIdInput ? objectIdInput.value : 0;
-        const uploadSessionId = objectIdInput.getAttribute('data-upload-id');
-        const folderName = (objectId === '0' || objectId === 0) && uploadSessionId ? uploadSessionId : objectId;
+        const uploadSessionId = objectIdInput ? objectIdInput.getAttribute('data-upload-id') : null;
+        const folderName = (objectId === '0' || objectId === 0 || !objectId) && uploadSessionId ? uploadSessionId : (objectId || '0');
 
         const editor = new EditorJS({
             holder: rteContainer,
@@ -115,3 +115,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // Also check for visible editors on load (in case tab was set by persistence)
     setTimeout(initRichTextEditors, 100);
 });
+

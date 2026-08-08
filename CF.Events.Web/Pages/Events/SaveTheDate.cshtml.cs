@@ -10,6 +10,7 @@ public class SaveTheDate(EventsDbContext db) : PageModel
 {
     public bool NotFoundOrForbidden { get; private set; }
     public string? ImageUrl { get; private set; }
+    public string BackUrl { get; private set; } = "/";
 
     public async Task<IActionResult> OnGet(int eventId, string userId)
     {
@@ -18,7 +19,10 @@ public class SaveTheDate(EventsDbContext db) : PageModel
         if (!isInvited && !isAdmin)
             NotFoundOrForbidden = true;
 
-        ImageUrl = $"/events/{eventId}/{userId}/asset?type=std";
+        ImageUrl = $"/events/{eventId}/{userId}/asset?type=sd";
+
+        // Admins reach this page by previewing from the events list, regular users from their invitation list.
+        BackUrl = isAdmin && !isInvited ? "/admin/events" : "/invites";
 
         return Page();
     }
