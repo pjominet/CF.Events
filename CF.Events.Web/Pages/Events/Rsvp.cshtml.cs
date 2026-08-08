@@ -14,6 +14,7 @@ namespace CF.Events.Web.Pages.Events;
 public class RsvpModel(EventsDbContext db, IToastNotification toastNotification) : PageModel
 {
     public required Event EventData { get; set; }
+    public int MaxParticipants { get; set; }
     public bool HasResponded { get; private set; }
     public bool RespondedAttending { get; private set; }
     public string? AssignedAccommodationCode { get; private set; }
@@ -43,6 +44,15 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
         EventData = await db.Events
             .Include(e => e.BookingLinks)
             .FirstAsync(e => e.Id == eventId);
+
+        MaxParticipants = await db.GuestGroups
+            .Where(gg => gg.GuestUserId == userId)
+            .Select(gg => gg.MaxPeople)
+            .FirstOrDefaultAsync();
+
+        if (MaxParticipants == 0 && EventData.MaxParticipantsPerRsvp > 0)
+            MaxParticipants = EventData.MaxParticipantsPerRsvp;
+        else MaxParticipants = 4;
 
         AssignedAccommodationCode = userEvent?.AssignedAccommodationCode;
         HasResponded = rsvp?.SubmittedAt > DateTime.MinValue.AddDays(1);
@@ -104,10 +114,19 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
     {
         var userId = User.GetId();
 
-        var maxParticipants = await db.Events
+        var maxParticipants = await db.GuestGroups
+            .Where(gg => gg.GuestUserId == userId)
+            .Select(gg => gg.MaxPeople)
+            .FirstOrDefaultAsync();
+
+        var eventMaxParticipants = await db.Events
             .Where(e => e.Id == eventId)
             .Select(e => e.MaxParticipantsPerRsvp)
             .FirstAsync();
+
+        if (maxParticipants == 0 && eventMaxParticipants > 0)
+            maxParticipants = eventMaxParticipants;
+        else maxParticipants = 4;
 
         if (NewRsvp.Attending && NewRsvp.Participants.Count > maxParticipants)
         {
