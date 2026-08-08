@@ -339,10 +339,11 @@ hr.glass-divider {
 }
 
 .modal-glass {
-    background: rgba(var(--glass-color-dark), 0.9);
+    background: rgba(var(--glass-color-light), 0.9);
     border: 1px solid var(--border-glass);
     border-radius: 20px;
     color: var(--primary-color);
+    padding: 0 1.5rem 1.5rem 1.5rem;
 }
 
 .modal-glass .modal-header {
@@ -355,7 +356,7 @@ hr.glass-divider {
 }
 
 .modal-glass .accordion-item {
-    background: rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.65);
     border: none;
     box-shadow: none;
 }

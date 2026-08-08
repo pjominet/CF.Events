@@ -101,7 +101,7 @@ h1:focus {
 }
 
 .bg-card-custom {
-    background-color: rgba(var(--glass-color-dark), 0.85);
+    background-color: rgba(var(--glass-color-light), 0.75);
 }
 
 /* loading spinner */
@@ -298,4 +298,9 @@ h1:focus {
 .navbar-toggler:active {
     outline: none !important;
     box-shadow: none !important;
+}
+
+.text-emp {
+    font-size: 1.2rem;
+    line-height: 1.6;
 }

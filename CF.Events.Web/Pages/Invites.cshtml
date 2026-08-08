@@ -57,14 +57,24 @@
                 <hr class="glass-divider">
 
                 <div class="invite-action-grid">
-                    <a href="/events/@invite.Event.Id/invitation" class="btn-glass btn-glass-dark btn-100 d-flex align-items-center justify-content-center">
-                        <strong><i class="bi bi-envelope-open me-2"></i>View Invitation</strong>
-                    </a>
+                    @if (!invite.HasRsvped)
+                    {
+                        <a href="/events/@invite.Event.Id/invitation" class="btn-glass btn-glass-dark btn-100 d-flex align-items-center justify-content-center">
+                            <strong><i class="bi bi-envelope-open me-2"></i>View Invitation</strong>
+                        </a>
+                    }
+                    else
+                    {
+                        <a href="/events/@invite.Event.Id/rsvp" class="btn-glass btn-glass-dark btn-100 d-flex align-items-center justify-content-center" data-event-id="@invite.Event.Id">
+                            <strong><i class="bi bi-people me-2"></i>Review RSVP</strong>
+                        </a>
+                    }
+
                     @if (invite.Attending)
                     {
-                        <button type="button" class="btn-glass btn-glass-dark btn-33 d-flex align-items-center justify-content-center" data-event-id="@invite.Event.Id">
-                            <i class="bi bi-people me-2"></i>Attendance
-                        </button>
+                        <a href="/events/@invite.Event.Id/invitation" class="btn-glass btn-glass-dark btn-33 d-flex align-items-center justify-content-center">
+                            <i class="bi bi-envelope-paper me-2"></i>View Invitation
+                        </a>
                     }
                     else
                     {

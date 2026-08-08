@@ -1,4 +1,9 @@
-﻿#rsvpForm textarea {
+﻿#rsvpContainer {
+    max-width: 800px;
+    width: 100%;
+}
+
+#rsvpForm textarea {
     resize: vertical;
 }
 

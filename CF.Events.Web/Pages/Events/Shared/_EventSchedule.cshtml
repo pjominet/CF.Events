@@ -19,7 +19,7 @@
                         {
                             var day = groupedSchedule[i];
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link @(i == 0 ? "active" : "")" id="day-tab-@day.Key" data-bs-toggle="tab" data-bs-target="#day-pane-@day.Key" type="button" role="tab" aria-controls="day-pane-@day.Key" aria-selected="@(i == 0 ? "true" : "false")">Day @day.Key</button>
+                                <button class="nav-link @(i == 0 ? "active" : "") fs-5" id="day-tab-@day.Key" data-bs-toggle="tab" data-bs-target="#day-pane-@day.Key" type="button" role="tab" aria-controls="day-pane-@day.Key" aria-selected="@(i == 0 ? "true" : "false")">Day @day.Key</button>
                             </li>
                         }
                     </ul>

@@ -17,38 +17,36 @@
 
                 @if (!string.IsNullOrEmpty(Model.Details))
                 {
-                    <p class="mb-3">@Html.Raw(Model.Details)</p>
+                    <p class="text-emp mb-4">@Html.Raw(Model.Details)</p>
                 }
 
                 @if (Model.BookingLinks.Any())
                 {
-                    <ol class="list-unstyled">
+                    <div class="d-flex gap-3">
                         @foreach (var (type, link) in Model.BookingLinks)
                         {
-                            <li>
-                                @switch (type)
-                                {
-                                    case LinkType.Email:
-                                        <a href="mailto:@link" class="btn btn-sm btn-primary mb-1 px-2 py-1">
-                                            <i class="bi bi-envelope me-2"></i>@link
-                                        </a>
-                                        break;
-                                    case LinkType.Phone:
-                                        <a href="tel:@link.Replace(" ", string.Empty)" class="btn btn-sm btn-primary mb-1 px-2 py-1">
-                                            <i class="bi bi-telephone me-2"></i>@link
-                                        </a>
-                                        break;
-                                    case LinkType.Web:
-                                        <a href="@link" target="_blank" rel="noopener" class="btn btn-sm btn-primary mb-1 px-2 py-1">
-                                            <i class="bi bi-box-arrow-up-right me-2"></i>@link
-                                        </a>
-                                        break;
-                                    default:
-                                        throw new ArgumentOutOfRangeException();
-                                }
-                            </li>
+                            switch (type)
+                            {
+                                case LinkType.Email:
+                                    <a href="mailto:@link" class="btn btn-primary mb-1 px-2 py-1">
+                                        <i class="bi bi-envelope me-2"></i>@link
+                                    </a>
+                                    break;
+                                case LinkType.Phone:
+                                    <a href="tel:@link.Replace(" ", string.Empty)" class="btn btn-primary mb-1 px-2 py-1">
+                                        <i class="bi bi-telephone me-2"></i>@link
+                                    </a>
+                                    break;
+                                case LinkType.Web:
+                                    <a href="@link" target="_blank" rel="noopener" class="btn btn-primary mb-1 px-2 py-1">
+                                        <i class="bi bi-box-arrow-up-right me-2"></i>@link
+                                    </a>
+                                    break;
+                                default:
+                                    throw new ArgumentOutOfRangeException();
+                            }
                         }
-                    </ol>
+                    </div>
                 }
 
                 @if (!string.IsNullOrEmpty(Model.Code))

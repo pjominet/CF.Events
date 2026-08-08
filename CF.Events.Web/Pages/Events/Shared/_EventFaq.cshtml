@@ -14,12 +14,12 @@
                         var item = Model[i];
                         <div class="accordion-item">
                             <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-@i">
-                                    <strong>@item.Question</strong>
+                                <button class="accordion-button @(i == 0 ? string.Empty : "collapsed")" type="button" data-bs-toggle="collapse" data-bs-target="#faq-@i">
+                                    <strong class="text-emp">@item.Question</strong>
                                 </button>
                             </h2>
-                            <div id="faq-@i" class="accordion-collapse collapse show">
-                                <div class="accordion-body">@item.Answer</div>
+                            <div id="faq-@i" class="accordion-collapse collapse @(i == 0 ? "show": string.Empty)">
+                                <div class="accordion-body text-emp">@item.Answer</div>
                             </div>
                         </div>
                     }

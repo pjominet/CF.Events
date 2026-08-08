@@ -5,27 +5,29 @@
     ViewData["Title"] = "RSVP";
 }
 
+@section Styles
+{
+    <link rel="stylesheet" href="~/css/rsvp.css" asp-append-version="true"/>
+}
+
 <div class="container-fluid d-flex justify-content-center pt-4 mb-auto">
-    <div class="glass-card p-4 mx-auto" style="max-width: 800px; width: 100%;">
+    <div class="glass-card p-4 mx-auto" id="rsvpContainer">
         @if (Model.HasResponded)
         {
             <!-- Already Responded View -->
-            <div class="step-content-wrapper rounded p-4 bg-light shadow-sm">
+            <div class="step-content-wrapper rounded p-4 bg-card-custom shadow-sm">
                 <div class="text-center">
-                    <p class="lead cursive fs-1 mb-3">
+                    <div class="lead cursive fs-1 mb-0 alert @(Model.RespondedAttending ? "alert-success" : "alert-warning")">
                         @(Model.RespondedAttending ? "You have accepted the invitation!" : "You have declined the invitation.")
-                    </p>
-                    <p class="text-muted fst-italic mb-0">
-                        <i class="bi bi-check-circle text-success me-1"></i>Your RSVP has been recorded.
-                    </p>
+                    </div>
                 </div>
 
                 @if (Model.RespondedAttending)
                 {
-                    <hr class="my-4"/>
+                    <hr class="mt-3 mb-4"/>
                     <div class="row g-4">
                         <div class="col-md-6">
-                            <h3 class="text-center mb-4 cursive fs-1"><i class="bi bi-calendar-check me-2"></i>Attendance</h3>
+                            <h3 class="h4 mb-4 serif"><i class="bi bi-calendar-check me-2"></i>Attendance</h3>
                             <ul class="list-unstyled">
                                 @foreach (var pa in Model.NewRsvp.ParticipantsAttendance.OrderBy(pa => pa.ParticipantName))
                                 {
@@ -34,7 +36,7 @@
                             </ul>
                         </div>
                         <div class="col-md-6">
-                            <h3 class="text-center mb-4 cursive fs-1"><i class="bi bi-egg-fried me-2"></i>Dietary Requirements</h3>
+                            <h3 class="h4 mb-4 serif"><i class="bi bi-fork-knife me-2"></i>Dietary Requirements</h3>
                             @if (Model.NewRsvp.ParticipantsDiets.Any(o => o.Restrictions.Any() || !string.IsNullOrWhiteSpace(o.OtherDetails)))
                             {
                                 foreach (var opt in Model.NewRsvp.ParticipantsDiets.Where(o => o.Restrictions.Any() || !string.IsNullOrWhiteSpace(o.OtherDetails)))
@@ -45,10 +47,11 @@
                                         <div class="d-flex flex-wrap gap-1 mb-1">
                                             @foreach (var option in opt.Restrictions)
                                             {
-                                                <span class="badge bg-info text-dark">@option</span>
+                                                <span class="badge bg-info">@option</span>
                                             }
                                         </div>
                                     }
+
                                     if (!string.IsNullOrWhiteSpace(opt.OtherDetails))
                                     {
                                         <p class="small text-muted mb-2">@opt.OtherDetails</p>
@@ -64,15 +67,11 @@
                 }
             </div>
 
-            <div class="text-center mt-3 d-flex justify-content-center gap-2">
-                <a href="/invites" class="btn btn-secondary">
-                    <i class="bi bi-arrow-left me-1"></i>Back to Invite
-                </a>
-                <form method="post" asp-page-handler="Cancel"
+            <div class="mt-3 d-flex justify-content-between align-items-center gap-2">
+                <a href="/invites" class="btn btn-secondary w-100">Back</a>
+                <form method="post" asp-page-handler="Cancel" class="w-100"
                       data-confirm="Are you sure you want to cancel your RSVP?">
-                    <button type="submit" class="btn btn-outline-danger">
-                        <i class="bi bi-x-circle me-1"></i>Cancel RSVP
-                    </button>
+                    <button type="submit" class="btn btn-danger w-100">Cancel RSVP</button>
                 </form>
             </div>
         }
@@ -89,7 +88,7 @@
             <form method="post" id="rsvpForm">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-                <div class="step-content-wrapper rounded-5 p-4 bg-card-custom shadow-sm">
+                <div class="step-content-wrapper rounded-3 p-4 bg-card-custom shadow-sm">
                     <!-- STEP 1: Attendance -->
                     <div class="form-step my-auto" id="step-1">
                         <h3 class="text-center mb-4 cursive fs-1">Will you be joining us?</h3>
@@ -108,7 +107,7 @@
                     <!-- STEP 2: Participants -->
                     <div class="form-step d-none" id="step-2">
                         <h3 class="h5 serif">Who is joining us?</h3>
-                        <partial name="Shared/_RsvpParticipants" model="(Model.NewRsvp.Participants, Model.EventData.MaxParticipantsPerRsvp)" />
+                        <partial name="Shared/_RsvpParticipants" model="(Model.NewRsvp.Participants, Model.EventData.MaxParticipantsPerRsvp)"/>
                     </div>
 
                     <!-- STEP 3: Attendance Schedule & Accommodation -->
@@ -116,7 +115,7 @@
                         <h3 class="h5 serif">Attendance</h3>
                         <section class="row mb-3">
                             <div class="col-12 mt-0">
-                                <partial name="Shared/_RsvpAttendanceSchedule" model="(Model.EventData.EventDuration, Model.NewRsvp.Participants, Model.NewRsvp.ParticipantsAttendance)" />
+                                <partial name="Shared/_RsvpAttendanceSchedule" model="(Model.EventData.EventDuration, Model.NewRsvp.Participants, Model.NewRsvp.ParticipantsAttendance)"/>
                             </div>
                         </section>
                     </div>
@@ -125,7 +124,7 @@
                     <div class="form-step d-none" id="step-4">
                         <section>
                             <h3 class="h5 serif">Dietary Requirements</h3>
-                            <partial name="Shared/_RsvpDietaryOptions" model="(Model.NewRsvp.Participants, Model.NewRsvp.ParticipantsDiets)" />
+                            <partial name="Shared/_RsvpDietaryOptions" model="(Model.NewRsvp.Participants, Model.NewRsvp.ParticipantsDiets)"/>
                             <p class="text-muted mb-0 mt-2 fst-italic">
                                 <i class="bi bi-info-circle text-info me-2"></i>Leave all empty, if none apply.
                             </p>

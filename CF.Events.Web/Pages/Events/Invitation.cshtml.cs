@@ -12,6 +12,7 @@ namespace CF.Events.Web.Pages.Events;
 public class InvitationModel(EventsDbContext db) : PageModel
 {
     public Event? EventData { get; private set; }
+    public bool HasRsvped { get; private set; }
     public GuestGroup? GuestGroup { get; private set; }
     public string BackUrl { get; private set; } = "/";
     public bool NotFoundOrForbidden { get; private set; }
@@ -43,6 +44,8 @@ public class InvitationModel(EventsDbContext db) : PageModel
                 GuestUserId = userId
             };
         }
+
+        HasRsvped = await db.Rsvps.AnyAsync(r => r.EventId == eventId && r.UserId == userId);
 
         // Admins reach this page by previewing from the events list, regular users from their invitation list.
         BackUrl = isAdmin && !isInvited ? "/admin/events" : "/invites";
