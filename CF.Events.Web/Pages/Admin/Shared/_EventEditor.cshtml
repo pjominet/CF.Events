@@ -91,30 +91,26 @@
     <!-- Donations Tab -->
     <div class="tab-pane fade" id="donation" role="tabpanel" aria-labelledby="donation-tab">
         <div class="mb-3">
-            <label class="form-label fw-bold">Donation Type</label>
+            <label class="form-label fw-bold">Donation Types</label>
             <div class="d-flex gap-3 mt-2">
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" asp-for="DonationType" id="donationTypeNone" value="@EditEventModel.DonationType.None">
-                    <label class="form-check-label" for="donationTypeNone">None</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" asp-for="DonationType" id="donationTypeIban" value="@EditEventModel.DonationType.Iban">
+                    <input class="form-check-input" type="checkbox" name="Event.DonationTypes" id="donationTypeIban" value="@EditEventModel.DonationType.Iban" @(Model.DonationTypes.Contains(EditEventModel.DonationType.Iban) ? "checked" : "")>
                     <label class="form-check-label" for="donationTypeIban">IBAN</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" asp-for="DonationType" id="donationTypeLink" value="@EditEventModel.DonationType.Link">
+                    <input class="form-check-input" type="checkbox" name="Event.DonationTypes" id="donationTypeLink" value="@EditEventModel.DonationType.Link" @(Model.DonationTypes.Contains(EditEventModel.DonationType.Link) ? "checked" : "")>
                     <label class="form-check-label" for="donationTypeLink">Link</label>
                 </div>
             </div>
         </div>
 
-        <div id="donationIbanWrapper" style="display: @(Model.DonationType is EditEventModel.DonationType.Iban ? "block" : "none")" class="mb-3 w-50 me-auto">
+        <div id="donationIbanWrapper" style="display: @(Model.DonationTypes.Contains(EditEventModel.DonationType.Iban) ? "block" : "none")" class="mb-3 w-50 me-auto">
             <label class="form-label fw-bold">Donation IBAN</label>
             <input asp-for="DonationIban" class="form-control"/>
             <div class="form-text">If set, the event will be eligible for donations.</div>
         </div>
 
-        <div id="donationLinkWrapper" style="display: @(Model.DonationType is EditEventModel.DonationType.Link ? "block" : "none")" class="mb-3 w-50 me-auto">
+        <div id="donationLinkWrapper" style="display: @(Model.DonationTypes.Contains(EditEventModel.DonationType.Link) ? "block" : "none")" class="mb-3 w-50 me-auto">
             <label class="form-label fw-bold">Donation Link</label>
             <input asp-for="DonationLink" class="form-control"/>
             <div class="form-text">If set, the event will be eligible for donations via an external service.</div>
@@ -123,50 +119,56 @@
 
     <!-- Schedule Tab -->
     <div class="tab-pane fade" id="schedule" role="tabpanel" aria-labelledby="schedule-tab">
-        <h3 class="h5">Event Schedule</h3>
-        <div id="schedule-container">
+        <label class="form-label fw-bold">Event Schedule</label>
+        <div id="schedule-container" data-max-days="@Model.MaxEventDays()">
             @for (var i = 0; i < Model.ScheduleSteps.Count; i++)
             {
-                <div class="row mb-2 schedule-row">
+                <div class="row gx-2 mb-2 schedule-row">
                     <div class="col-md-2">
-                        <input asp-for="ScheduleSteps[i].Day" class="form-control" placeholder="Day"/>
+                        <input asp-for="ScheduleSteps[i].Day" type="number" class="form-control" placeholder="Day" value="@(Model.ScheduleSteps[i].Day == 0 ? 1 : Model.ScheduleSteps[i].Day)" min="1" max="@Model.MaxEventDays()" step="1"/>
                     </div>
                     <div class="col-md-3">
                         <input asp-for="ScheduleSteps[i].TimeStamp" type="time" class="form-control"/>
                     </div>
-                    <div class="col-md-5">
+                    <div class="col-md-6">
                         <input asp-for="ScheduleSteps[i].Label" class="form-control" placeholder="Label"/>
                     </div>
-                    <div class="col-md-2">
-                        <button type="button" class="btn btn-danger remove-row w-100">Remove</button>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-link text-danger remove-row"><i class="bi bi-x-lg"></i></button>
                     </div>
                 </div>
             }
+            <hr/>
         </div>
         <div class="d-flex justify-content-center">
-            <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-schedule">Add Step</button>
+            <button type="button" class="btn btn-sm btn-success mt-1" id="add-schedule">Add Step</button>
         </div>
     </div>
 
     <!-- FAQ Tab -->
     <div class="tab-pane fade" id="faq" role="tabpanel" aria-labelledby="faq-tab">
-        <h3 class="h5">Event FAQ</h3>
+        <label class="form-label fw-bold">Event FAQ</label>
         <div id="faq-container">
             @for (var i = 0; i < Model.FaqItems.Count; i++)
             {
-                <div class="mb-3 faq-row border p-2">
-                    <div class="mb-2">
-                        <input asp-for="FaqItems[i].Question" class="form-control" placeholder="Question"/>
+                <div class="row gx-2 mb-3 faq-row">
+                    <div class="col-11">
+                        <div class="mb-2">
+                            <input asp-for="FaqItems[i].Question" class="form-control" placeholder="Question"/>
+                        </div>
+                        <div class="mb-2">
+                            <textarea asp-for="FaqItems[i].Answer" class="form-control" placeholder="Answer" rows="1"></textarea>
+                        </div>
                     </div>
-                    <div class="mb-2">
-                        <textarea asp-for="FaqItems[i].Answer" class="form-control" placeholder="Answer"></textarea>
+                    <div class="col-1">
+                        <button type="button" class="btn btn-link text-danger remove-row"><i class="bi bi-x-lg"></i></button>
                     </div>
-                    <button type="button" class="btn btn-danger btn-sm remove-row">Remove</button>
                 </div>
             }
+            <hr/>
         </div>
         <div class="d-flex justify-content-center">
-            <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-faq">Add FAQ</button>
+            <button type="button" class="btn btn-sm btn-success mt-1" id="add-faq">Add Item</button>
         </div>
     </div>
 
