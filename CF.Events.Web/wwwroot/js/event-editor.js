@@ -102,6 +102,7 @@
     const endDateInput = document.getElementById('Event_EndDate');
     const scheduleWarning = document.getElementById('schedule-warning');
     let originalMaxDays = 0;
+    let eventDurationChanged = false;
 
     if (startDateInput && endDateInput) {
         const calculateDays = () => {
@@ -121,26 +122,30 @@
             if (diffDays > 0) {
                 if (scheduleContainer) {
                     scheduleContainer.setAttribute('data-max-days', diffDays);
-                    let itemsRemoved = false;
+                    let stepRemoved = false;
                     scheduleContainer.querySelectorAll('.schedule-row').forEach(row => {
                         const dayInput = row.querySelector('input[name$=".Day"]');
                         if (dayInput) {
                             const currentDay = parseInt(dayInput.value);
                             if (currentDay > diffDays) {
                                 row.remove();
-                                itemsRemoved = true;
+                                stepRemoved = true;
                             } else {
                                 dayInput.setAttribute('max', diffDays);
                             }
                         }
                     });
 
-                    if (itemsRemoved) {
+                    if (stepRemoved) {
+                        eventDurationChanged = true;
                         reindexRows(scheduleContainer);
+                    }
+
+                    if (eventDurationChanged && diffDays < originalMaxDays) {
                         if (scheduleWarning) {
                             scheduleWarning.classList.remove('d-none');
                         }
-                    } else if (diffDays >= originalMaxDays) {
+                    } else {
                         if (scheduleWarning) {
                             scheduleWarning.classList.add('d-none');
                         }
