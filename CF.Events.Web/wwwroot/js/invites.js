@@ -1,4 +1,6 @@
 ﻿(function() {
+    "use strict";
+
     const grid = document.getElementById('invitesGrid');
     if (!!grid) {
         const pageSize = parseInt(grid.dataset.pageSize);

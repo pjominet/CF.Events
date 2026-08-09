@@ -53,10 +53,10 @@ public class EditEventModel(
                 InvitationEmailTemplateId = @event.InvitationTemplateId,
                 MaxParticipantsPerRsvp = @event.MaxParticipantsPerRsvp,
                 SendWithLink = @event.EmailWithLink,
-                DonationType = GetDonationType(@event),
+                DonationTypes = GetDonationTypes(@event),
                 DonationIban = @event.DonationIban,
                 DonationLink = @event.DonationLink,
-                BookingLinks = @event.BookingLinks.Select(bl => bl.Link).ToList(),
+                BookingLinks = [.. @event.BookingLinks.Select(bl => bl.Link)],
                 FaqItems =
                 [
                     .. @event.EventFaq.Select(f => new FaqInputModel
@@ -67,7 +67,7 @@ public class EditEventModel(
                 ],
                 ScheduleSteps =
                 [
-                    .. @event.EventSchedule.Select(s => new ScheduleInputModel
+                    .. @event.EventSchedule.OrderBy(es => es.Day).Select(s => new ScheduleInputModel
                     {
                         Day = s.Day,
                         TimeStamp = s.TimeStamp,
@@ -82,7 +82,7 @@ public class EditEventModel(
             {
                 StartDate = DateTime.Today.AddDays(1),
                 EndDate = DateTime.Today.AddDays(1),
-                DonationType = DonationType.None,
+                DonationTypes = [],
                 UploadSessionId = Guid.NewGuid().ToString()
             };
         }
@@ -92,6 +92,11 @@ public class EditEventModel(
 
     public async Task<IActionResult> OnPostAsync()
     {
+        if (Event.EndDate < Event.StartDate)
+        {
+            ModelState.AddModelError("Event.EndDate", "End Date cannot be earlier than Start Date");
+        }
+
         if (!ModelState.IsValid) return Page();
 
         Event? @event;
@@ -130,8 +135,8 @@ public class EditEventModel(
         @event.EmailWithLink = Event.SendWithLink;
         @event.MaxParticipantsPerRsvp = Event.MaxParticipantsPerRsvp;
 
-        @event.DonationIban = Event.DonationType is DonationType.Iban ? Event.DonationIban : null;
-        @event.DonationLink = Event.DonationType is DonationType.Link ? Event.DonationLink : null;
+        @event.DonationIban = Event.DonationTypes.Contains(DonationType.Iban) ? Event.DonationIban : null;
+        @event.DonationLink = Event.DonationTypes.Contains(DonationType.Link) ? Event.DonationLink : null;
 
         // Booking Links
         @event.BookingLinks.Clear();
@@ -155,7 +160,7 @@ public class EditEventModel(
 
         // Schedule
         @event.EventSchedule.Clear();
-        foreach (var step in Event.ScheduleSteps.Where(s => !string.IsNullOrWhiteSpace(s.Label)))
+        foreach (var step in Event.ScheduleSteps.Where(s => !string.IsNullOrWhiteSpace(s.Label) && s.Day <= Event.MaxEventDays()))
         {
             @event.EventSchedule.Add(new EventScheduleStep { Day = step.Day, TimeStamp = step.TimeStamp, Label = step.Label });
         }
@@ -186,11 +191,12 @@ public class EditEventModel(
         return Page();
     }
 
-    private static DonationType GetDonationType(Event @event)
+    private static List<DonationType> GetDonationTypes(Event @event)
     {
-        return !string.IsNullOrEmpty(@event.DonationIban)
-            ? DonationType.Iban : !string.IsNullOrEmpty(@event.DonationLink)
-                ? DonationType.Link : DonationType.None;
+        var types = new List<DonationType>();
+        if (!string.IsNullOrEmpty(@event.DonationIban)) types.Add(DonationType.Iban);
+        if (!string.IsNullOrEmpty(@event.DonationLink)) types.Add(DonationType.Link);
+        return types;
     }
 
     public class EventModel
@@ -212,13 +218,15 @@ public class EditEventModel(
         public bool SendWithLink { get; set; } = false;
         public string? InvitationEmailTemplateId { get; set; }
         public int MaxParticipantsPerRsvp { get; set; } = 4;
-        public DonationType DonationType { get; set; }
+        public List<DonationType> DonationTypes { get; set; } = [];
         public string? DonationIban { get; set; }
         public string? DonationLink { get; set; }
         [ModelBinder(BinderType = typeof(FlatListModelBinder))]
         public List<string> BookingLinks { get; set; } = [];
         public List<FaqInputModel> FaqItems { get; set; } = [];
         public List<ScheduleInputModel> ScheduleSteps { get; set; } = [];
+
+        public int MaxEventDays() => (EndDate - StartDate).Days + 1;
     }
 
     public class FaqInputModel
@@ -236,7 +244,6 @@ public class EditEventModel(
 
     public enum DonationType
     {
-        None,
         Iban,
         Link
     }

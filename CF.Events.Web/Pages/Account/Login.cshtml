@@ -1,12 +1,13 @@
 ﻿@page
+@attribute [AllowAnonymous]
 @model CF.Events.Web.Pages.Account.LoginModel
 @{
     ViewData["Title"] = "Log in";
     Layout = "_GlassLayout";
 }
 
-<div class="container-fluid d-flex align-items-center justify-content-center p-3">
-    <div class="card bg-glass border-glass p-4 mx-auto rounded-glass shadow-sm" style="max-width: 500px; width: 100%;">
+<div class="d-flex align-items-center justify-content-center mt-5">
+    <div class="card card-500 bg-glass border-glass p-4 mx-auto rounded-glass shadow-sm">
         <section class="text-center">
             <h1 class="serif">@ViewData["Title"]</h1>
         </section>

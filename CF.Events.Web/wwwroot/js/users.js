@@ -1,4 +1,6 @@
 (function () {
+    "use strict";
+
     const selectAllCheckbox = document.getElementById('selectAllUsers');
     const userCheckboxes = document.querySelectorAll('.user-checkbox:not(:disabled)');
     const bulkActionButtons = document.querySelectorAll('.bulk-action-btn');

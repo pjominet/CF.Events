@@ -1,6 +1,18 @@
 ﻿(function () {
     "use strict";
 
+    window.autoRedirect = function (seconds) {
+        const countdownElement = document.querySelector('span.countdown');
+        const interval = setInterval(function () {
+            seconds--;
+            countdownElement.textContent = seconds;
+            if (seconds <= 0) {
+                clearInterval(interval);
+                window.location.href = '/Account/Login';
+            }
+        }, 1000);
+    }
+
     function initTooltips(container = document) {
         container.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
             // eslint-disable-next-line no-undef

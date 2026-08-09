@@ -1,3 +1,5 @@
+"use strict";
+
 function initRichTextEditors() {
     const textareas = document.querySelectorAll('textarea.rte-editor');
 
