@@ -92,6 +92,11 @@ public class EditEventModel(
 
     public async Task<IActionResult> OnPostAsync()
     {
+        if (Event.EndDate < Event.StartDate)
+        {
+            ModelState.AddModelError("Event.EndDate", "End Date cannot be earlier than Start Date");
+        }
+
         if (!ModelState.IsValid) return Page();
 
         Event? @event;
@@ -155,7 +160,7 @@ public class EditEventModel(
 
         // Schedule
         @event.EventSchedule.Clear();
-        foreach (var step in Event.ScheduleSteps.Where(s => !string.IsNullOrWhiteSpace(s.Label)))
+        foreach (var step in Event.ScheduleSteps.Where(s => !string.IsNullOrWhiteSpace(s.Label) && s.Day <= Event.MaxEventDays()))
         {
             @event.EventSchedule.Add(new EventScheduleStep { Day = step.Day, TimeStamp = step.TimeStamp, Label = step.Label });
         }

@@ -100,20 +100,51 @@
     // Start/End date validation
     const startDateInput = document.getElementById('Event_StartDate');
     const endDateInput = document.getElementById('Event_EndDate');
+    const scheduleWarning = document.getElementById('schedule-warning');
+    let originalMaxDays = 0;
 
     if (startDateInput && endDateInput) {
-        const updateMaxDays = () => {
+        const calculateDays = () => {
             if (startDateInput.value && endDateInput.value) {
                 const start = new Date(startDateInput.value);
                 const end = new Date(endDateInput.value);
                 const diffTime = Math.abs(end - start);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            }
+            return 0;
+        };
 
+        originalMaxDays = calculateDays();
+
+        const updateMaxDays = () => {
+            const diffDays = calculateDays();
+            if (diffDays > 0) {
                 if (scheduleContainer) {
                     scheduleContainer.setAttribute('data-max-days', diffDays);
-                    scheduleContainer.querySelectorAll('.schedule-row input[name$=".Day"]').forEach(input => {
-                        input.setAttribute('max', diffDays);
+                    let itemsRemoved = false;
+                    scheduleContainer.querySelectorAll('.schedule-row').forEach(row => {
+                        const dayInput = row.querySelector('input[name$=".Day"]');
+                        if (dayInput) {
+                            const currentDay = parseInt(dayInput.value);
+                            if (currentDay > diffDays) {
+                                row.remove();
+                                itemsRemoved = true;
+                            } else {
+                                dayInput.setAttribute('max', diffDays);
+                            }
+                        }
                     });
+
+                    if (itemsRemoved) {
+                        reindexRows(scheduleContainer);
+                        if (scheduleWarning) {
+                            scheduleWarning.classList.remove('d-none');
+                        }
+                    } else if (diffDays >= originalMaxDays) {
+                        if (scheduleWarning) {
+                            scheduleWarning.classList.add('d-none');
+                        }
+                    }
                 }
             }
         };
@@ -126,7 +157,9 @@
             updateMaxDays();
         };
         startDateInput.addEventListener('change', updateMinEndDate);
+        startDateInput.addEventListener('input', updateMinEndDate);
         endDateInput.addEventListener('change', updateMaxDays);
+        endDateInput.addEventListener('input', updateMinEndDate);
         updateMinEndDate();
     }
 })();
