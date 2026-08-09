@@ -1,4 +1,6 @@
 ﻿(function () {
+    "use strict";
+
     const steps = document.querySelectorAll(".form-step");
     const indicators = document.querySelectorAll(".step-indicator");
     const stepperProgress = document.querySelector(".stepper-progress");

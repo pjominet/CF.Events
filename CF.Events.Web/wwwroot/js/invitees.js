@@ -1,4 +1,6 @@
 ﻿(function () {
+    "use strict";
+
     const scheduleRadios = document.querySelectorAll('input[name="SendEmailsOnInvite"]');
     const scheduleOption = document.getElementById('scheduleRadio');
     const scheduleInput = document.querySelector('input[name="ScheduledFor"]');

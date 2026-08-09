@@ -1,11 +1,17 @@
 ﻿@page
-@attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+@attribute [AllowAnonymous]
 @{
     ViewData["Title"] = "Locked out";
 }
 
-<div class="container py-5 text-center">
-    <h1 class="serif fs-1 text-danger">Locked out</h1>
-    <p class="text-muted">This account has been locked out. Please try again later.</p>
+<div class="container py-5 text-center bg-light-subtle rounded-3 shadow-sm">
+    <h1 class="h2 fw-bold text-danger mb-3">You have been locked out!</h1>
+    <p class="text-muted px-1">This account has been locked out. Please try again later or contact an admin.</p>
     <a href="/Account/Login" class="btn btn-primary mt-3">Back to login</a>
+    <p class="text-muted small mb-0 mt-2">Redirecting in <span class="countdown">5</span> seconds...</p>
 </div>
+
+@section Scripts
+{
+    <script>window.autoRedirect(5);</script>
+}

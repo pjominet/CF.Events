@@ -1,4 +1,6 @@
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
+    "use strict";
+
     // Donation type toggle
     const donationRadios = document.querySelectorAll('input[name="Event.DonationType"]');
     if (donationRadios.length > 0) {
@@ -62,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <input name="Event.ScheduleSteps[${index}].Label" class="form-control" placeholder="Label" />
                     </div>
                     <div class="col-md-2">
-                        <button type="button" class="btn btn-danger remove-row">Remove</button>
+                        <button type="button" class="btn btn-danger w-100 remove-row">Remove</button>
                     </div>
                 </div>`;
             scheduleContainer.insertAdjacentHTML('beforeend', html);
@@ -101,4 +103,4 @@ document.addEventListener('DOMContentLoaded', function() {
         startDateInput.addEventListener('change', updateMinEndDate);
         updateMinEndDate();
     }
-});
+})();

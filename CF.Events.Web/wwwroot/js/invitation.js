@@ -1,7 +1,8 @@
 (function () {
+    "use strict";
+
     const bookContainer = document.getElementById('bookContainer');
     const cover = bookContainer.querySelector('.cover');
-    const openBtn = document.getElementById('cover-button');
     const openText = document.getElementById('cover-button-text');
 
     const openBook = () => {

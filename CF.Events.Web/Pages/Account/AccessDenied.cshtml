@@ -1,18 +1,17 @@
 ﻿@page "/access-denied"
-@attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+@attribute [AllowAnonymous]
 @{
     ViewData["Title"] = "Access denied";
 }
 
-<div class="d-flex align-items-center justify-content-center mt-5">
-    <div class="card card-500 border-0 p-4 mx-auto rounded shadow-sm">
-        <section class="text-center">
-            <h1>@ViewData["Title"]</h1>
-        </section>
-        <hr/>
-        <section class="card-body">
-            <p class="text-muted">You do not have permission to access this resource.</p>
-            <a href="/" class="btn btn-primary mt-3">Back to home</a>
-        </section>
-    </div>
+<div class="container py-5 text-center bg-light-subtle rounded-3 shadow-sm">
+    <h1 class="h2 fw-bold text-danger mb-3">@ViewData["Title"]!</h1>
+    <p class="text-muted px-1">You do not have permission to access this resource.</p>
+    <a href="/Account/Login" class="btn btn-primary mt-3">Back to login</a>
+    <p class="text-muted small mb-0 mt-2">Redirecting in <span class="countdown">5</span> seconds...</p>
 </div>
+
+@section Scripts
+{
+    <script>window.autoRedirect(5);</script>
+}
