@@ -315,3 +315,8 @@ h1:focus {
         font-size: 2rem;
     }
 }
+
+.card-500 {
+    max-width: 500px;
+    width: 100%;
+}

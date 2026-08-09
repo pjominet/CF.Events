@@ -7,9 +7,13 @@
             <img src="~/img/wedding_logo_transparent_shadowed.png" alt="Logo" width="40" height="40" class="d-inline-block align-text-top">
             <span class="brand-name">@Model</span>
         </a>
-        <button class="navbar-toggler border-0" type="button" aria-label="Toggle navigation" id="sidebarToggle">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        @if (User.IsAuthenticated() && !User.InitPassword())
+        {
+            <button class="navbar-toggler border-0" type="button" aria-label="Toggle navigation" id="sidebarToggle">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        }
+
         <div class="collapse navbar-collapse" id="navbarNav">
             @if (User.IsAuthenticated() && !User.InitPassword())
             {
