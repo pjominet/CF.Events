@@ -39,6 +39,7 @@ public class InvitationService(
                 EventId = ue.EventId,
                 UserId = ue.UserId,
                 EventName = ue.Event.Name,
+                EventDate = ue.Event.StartDate.ToLongDateString(),
                 UserName = ue.User.DisplayName!,
                 UserEmail = ue.User.Email!,
                 TemplateId = ue.Event.InvitationTemplateId ?? string.Empty,
@@ -52,7 +53,7 @@ public class InvitationService(
                 EventId = ue.EventId,
                 UserId = ue.UserId,
                 EventName = ue.Event.Name,
-                EventStartDate = ue.Event.StartDate.ToString("dd MMMM yyyy"),
+                EventStartDate = ue.Event.StartDate.ToLongDateString(),
                 UserName = ue.User.DisplayName!,
                 UserEmail = ue.User.Email!,
                 TemplateId = ue.Event.SaveDateTemplateId ?? string.Empty,
@@ -95,7 +96,7 @@ public class InvitationService(
     public async Task SendBatchedEmails<T>(List<T> requests, CancellationToken ctx = default) where T : class, IEmailRequest
     {
         // filter out requests with non-sendable email addresses
-        requests = requests.Where(r => IsSendableEmail(r.UserEmail)).ToList();
+        requests = [.. requests.Where(r => IsSendableEmail(r.UserEmail))];
 
         if (requests.Count == 0) return;
 
@@ -116,7 +117,7 @@ public class InvitationService(
                     .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.ScheduledFor, DateTime.UtcNow), ctx);
             }
 
-            toSendImmediately = requests.Take(batchSize).ToList();
+            toSendImmediately = [.. requests.Take(batchSize)];
         }
 
         foreach (var request in toSendImmediately)
@@ -218,6 +219,7 @@ public class InvitationService(
                 EventId = ue.EventId,
                 UserId = ue.UserId,
                 EventName = ue.Event.Name,
+                EventDate = ue.Event.StartDate.ToLongDateString(),
                 UserName = ue.User.DisplayName!,
                 UserEmail = ue.User.Email!,
                 CallbackValidity = ue.Event.InviteValidity
@@ -248,7 +250,7 @@ public class InvitationService(
 
         var eventData = await db.Events
             .Where(e => e.Id == eventId)
-            .Select(e => new { e.Id, e.Name, e.InvitationTemplateId, e.InviteValidity })
+            .Select(e => new { e.Id, e.Name, e.StartDate, e.InvitationTemplateId, e.InviteValidity })
             .FirstOrDefaultAsync(ctx);
 
         if (eventData is null)
@@ -263,6 +265,7 @@ public class InvitationService(
                 TemplateId = eventData.InvitationTemplateId ?? string.Empty,
                 EventId = eventData.Id,
                 EventName = eventData.Name,
+                EventDate = eventData.StartDate.ToLongDateString(),
                 UserName = user.DisplayName!,
                 UserEmail = user.Email!,
                 UserId = user.UserId,

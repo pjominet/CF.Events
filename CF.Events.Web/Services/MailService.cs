@@ -9,9 +9,12 @@ public class MailService(IEmailProvider emailProvider) : IMailService
         var variables = new Dictionary<string, string>
         {
             { "sender_sig", "Patrick & Éadaoin" },
-            { "invitation_callback", request.CallBackUrl },
+            { "app_name", "P&E Wedding" },
+            { "invite_url", request.CallBackUrl },
             { "user_name", request.UserName },
-            { "event_name", request.EventName }
+            { "event_name", request.EventName },
+            { "event_date", request.EventDate },
+            { "reply-email", "info@jominet.tech" }
         };
 
         await emailProvider.SendTemplatedEmailAsync(request.TemplateId, request.UserEmail, variables, request.InlineAttachments, ctx);
@@ -22,6 +25,7 @@ public class MailService(IEmailProvider emailProvider) : IMailService
         var variables = new Dictionary<string, string>
         {
             { "sender_sig", "Patrick & Éadaoin" },
+            { "app_name", "P&E Wedding" },
             { "event_date", request.EventStartDate }
         };
 
@@ -33,9 +37,11 @@ public class MailService(IEmailProvider emailProvider) : IMailService
         var variables = new Dictionary<string, string>
         {
             { "sender_sig", "Patrick & Éadaoin" },
+            { "app_name", "P&E Wedding" },
             { "user_name", request.UserName },
             { "invite_url", request.CallBackUrl },
-            { "event_date", request.EventStartDate }
+            { "event_date", request.EventStartDate },
+            { "event_name", request.EventName }
         };
 
         await emailProvider.SendTemplatedEmailAsync(request.TemplateId, request.UserEmail, variables, [], ctx);

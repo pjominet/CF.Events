@@ -9,7 +9,7 @@ public class IdentityEmailSender(IEmailProvider emailProvider) : IEmailSender<Ap
     {
         var variables = new Dictionary<string, string>
         {
-            { "app_name", "P&E WEDDING" },
+            { "app_name", "P&E Wedding" },
             { "confirm_url", confirmationLink },
             { "user_name", user.DisplayName! }
         };
@@ -21,7 +21,7 @@ public class IdentityEmailSender(IEmailProvider emailProvider) : IEmailSender<Ap
     {
         var variables = new Dictionary<string, string>
         {
-            { "app_name", "P&E WEDDING" },
+            { "app_name", "P&E Wedding" },
             { "reset_url", resetLink }
         };
 
