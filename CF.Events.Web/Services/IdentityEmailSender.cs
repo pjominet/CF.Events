@@ -9,10 +9,9 @@ public class IdentityEmailSender(IEmailProvider emailProvider) : IEmailSender<Ap
     {
         var variables = new Dictionary<string, string>
         {
-            { "app_name", "P&E WEDDING" },
+            { "app_name", "P&E Wedding" },
             { "confirm_url", confirmationLink },
-            { "user_name", user.DisplayName! },
-            { "sender_sig", "Patrick & Éadaoin" }
+            { "user_name", user.DisplayName! }
         };
 
         await emailProvider.SendTemplatedEmailAsync("0838936", email, variables, null);
@@ -22,25 +21,15 @@ public class IdentityEmailSender(IEmailProvider emailProvider) : IEmailSender<Ap
     {
         var variables = new Dictionary<string, string>
         {
-            { "app_name", "P&E WEDDING" },
-            { "reset_link", resetLink },
-            { "display_name", user.DisplayName! },
-            { "sender_sig", "Patrick & Éadaoin" }
+            { "app_name", "P&E Wedding" },
+            { "reset_url", resetLink }
         };
 
-        await emailProvider.SendTemplatedEmailAsync("", email, variables, null);
+        await emailProvider.SendTemplatedEmailAsync("0670355", email, variables, null);
     }
 
     public async Task SendPasswordResetCodeAsync(AppUser user, string email, string resetCode)
     {
-        var variables = new Dictionary<string, string>
-        {
-            { "app_name", "P&E WEDDING" },
-            { "reset_code", resetCode },
-            { "display_name", user.DisplayName! },
-            { "sender_sig", "Patrick & Éadaoin" }
-        };
-
-        await emailProvider.SendTemplatedEmailAsync("", email, variables, null);
+        throw new NotImplementedException();
     }
 }

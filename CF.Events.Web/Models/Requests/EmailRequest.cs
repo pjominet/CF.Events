@@ -19,6 +19,7 @@ public class InvitationEmailRequest : IEmailRequest
     public bool SendWithLink { get; set; }
     public int EventId { get; init; }
     public required string EventName { get; init; }
+    public required string EventDate { get; init; }
     public required string UserId { get; init; }
     public required string UserName { get; init; }
     public required string UserEmail { get; init; }

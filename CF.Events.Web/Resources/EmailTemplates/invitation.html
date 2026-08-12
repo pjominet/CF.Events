@@ -1,0 +1,187 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Invitation to {{ event_name }}</title>
+    <style type="text/css">
+        /* Fonts alignment with webapp */
+        body, table, td, p, a, span {
+            font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body, .mail-body {
+            margin: 0;
+            padding: 0;
+            width: 100% !important;
+            min-height: 100vh;
+            background: #778874; /* Fallback for gradient */
+        }
+
+        .mail-wrapper {
+            background: radial-gradient(circle, #778874 10%, #ECF6E2 100%);
+            padding: 40px 0;
+            vertical-align: top;
+        }
+
+        .mail-container {
+            width: 600px;
+            margin: 0 auto;
+        }
+
+        .mail-card {
+            background-color: rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+
+        .mail-logo {
+            color: #273427;
+            font-size: 14px;
+            font-weight: 700;
+            text-align: center;
+            padding-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .mail-title {
+            margin: 0 0 20px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #3b4e3b;
+        }
+
+        .mail-text {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #2e2e2e;
+            margin: 16px 0;
+        }
+
+        .mail-button-container {
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .mail-button {
+            background-color: #3b4e3b;
+            border: 1px solid #3b4e3b;
+            border-radius: 50px;
+            color: #f7f2e1 !important;
+            display: inline-block;
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 50px;
+            text-align: center;
+            text-decoration: none;
+            width: 200px;
+            -webkit-text-size-adjust: none;
+            mso-hide: all;
+        }
+
+        .mail-footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            font-size: 14px;
+            color: #2e2e2e;
+            text-align: center;
+        }
+
+        .mail-footer a {
+            color: #3b4e3b;
+            text-decoration: underline;
+        }
+
+        @media screen and (max-width: 620px) {
+            .mail-container {
+                width: 90% !important;
+            }
+            .mail-card {
+                padding: 20px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+<table class="mail-body" width="100%" cellspacing="0" cellpadding="0" border="0">
+    <tr>
+        <td class="mail-wrapper">
+            <table class="mail-container" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                    <td class="mail-logo">
+                        {{ app_name }}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mail-card">
+                        <table width="100%" cellspacing="0" cellpadding="0" border="0">
+                            <tr>
+                                <td>
+                                    <h1 class="mail-title">
+                                        <!--[if mso]><span style="font-family: sans-serif;"><![endif]-->
+                                        Hi {{ user_name }}!
+                                        <!--[if mso]></span><![endif]-->
+                                    </h1>
+                                    <p class="mail-text">
+                                        <!--[if mso]><span style="font-family: sans-serif;"><![endif]-->
+                                        {{ sender_sig }} have invited you to their <strong>{{ event_name }}</strong> on {{ event_date }}.
+                                        <!--[if mso]></span><![endif]-->
+                                    </p>
+                                    <p class="mail-text">
+                                        <!--[if mso]><span style="font-family: sans-serif;"><![endif]-->
+                                        Click below to see your invitation in detail and send us your response.
+                                        <!--[if mso]></span><![endif]-->
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="mail-button-container" align="center">
+                                    <div>
+                                        <!--[if mso]>
+                                        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{ invite_url }}" style="height:50px;v-text-anchor:middle;width:200px;" arcsize="100%" stroke="f" fillcolor="#3b4e3b">
+                                            <w:anchorlock/>
+                                            <center style="color:#f7f2e1;font-family:sans-serif;font-size:16px;font-weight:bold;">
+                                                Have a look
+                                            </center>
+                                        </v:roundrect>
+                                        <![endif]-->
+                                        <a href="{{ invite_url }}" class="mail-button">
+                                            Have a look
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <p class="mail-text" style="font-size: 12px; opacity: 0.8;">
+                                        <!--[if mso]><span style="font-family: sans-serif;"><![endif]-->
+                                        If you're having trouble with the button above, copy and paste the URL below into your web browser:
+                                        <br/>
+                                        {{ invite_url }}
+                                        <!--[if mso]></span><![endif]-->
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="mail-footer">
+                                    <!--[if mso]><span style="font-family: sans-serif;"><![endif]-->
+                                    If you have any questions for {{ sender_sig }}, reply to this email or write an new email to <a href="mailto:{{ reply_email }}?subject=Questions about the Wedding">{{ reply_email }}</a>.
+                                    <br/><br/>
+                                    We are looking forward to hearing from you!<br/>
+                                    <strong>{{ sender_sig }}</strong>
+                                    <!--[if mso]></span><![endif]-->
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
