@@ -14,11 +14,13 @@
             margin: 0;
             padding: 0;
             width: 100% !important;
+            min-height: 100vh;
             background-color: #e0e8e0;
         }
 
         .mail-wrapper {
             padding: 40px 0;
+            vertical-align: top;
         }
 
         .mail-container {
@@ -28,18 +30,17 @@
 
         .mail-card {
             background-color: #dbe2f0;
-            border: 1px solid #c0c8d0;
             border-radius: 8px;
             padding: 40px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
         }
 
         .mail-logo {
             color: #273427;
-            font-size: 24px;
+            font-size: 14px;
             font-weight: 700;
             text-align: center;
-            margin-bottom: 30px;
+            padding-bottom: 30px;
             text-transform: uppercase;
             letter-spacing: 2px;
         }
@@ -49,15 +50,13 @@
             font-size: 24px;
             font-weight: bold;
             color: #273427;
-            text-align: center;
         }
 
         .mail-text {
             font-size: 16px;
             line-height: 1.6;
-            color: #2c3e50;
+            color: #2e2e2e;
             margin: 16px 0;
-            text-align: center;
         }
 
         .mail-button-container {
@@ -79,12 +78,6 @@
             width: 220px;
             -webkit-text-size-adjust: none;
             mso-hide: all;
-        }
-
-        .mail-divider {
-            border: 0;
-            border-top: 1px solid #c0c8d0;
-            margin: 20px 0;
         }
 
         @media screen and (max-width: 620px) {
@@ -143,7 +136,6 @@
                             </tr>
                             <tr>
                                 <td>
-                                    <hr class="mail-divider" />
                                     <p class="mail-text" style="font-size: 12px; opacity: 0.8;">
                                         <!--[if mso]><span style="font-family: sans-serif;"><![endif]-->
                                         If you're having trouble with the button above, copy and paste the URL below into your web browser:

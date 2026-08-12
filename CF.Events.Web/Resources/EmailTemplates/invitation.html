@@ -10,24 +10,18 @@
             font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
-        .cursive {
-            font-family: "Italianno", cursive;
-        }
-
-        .serif {
-            font-family: "Cormorant Upright", serif;
-        }
-
         body, .mail-body {
             margin: 0;
             padding: 0;
-            height: 100vh;
+            width: 100% !important;
+            min-height: 100vh;
             background: #778874; /* Fallback for gradient */
         }
 
         .mail-wrapper {
             background: radial-gradient(circle, #778874 10%, #ECF6E2 100%);
             padding: 40px 0;
+            vertical-align: top;
         }
 
         .mail-container {
@@ -44,8 +38,8 @@
         }
 
         .mail-logo {
-            color: #fff;
-            font-size: 24px;
+            color: #273427;
+            font-size: 14px;
             font-weight: 700;
             text-align: center;
             padding-bottom: 30px;
@@ -100,12 +94,6 @@
         .mail-footer a {
             color: #3b4e3b;
             text-decoration: underline;
-        }
-
-        .mail-divider {
-            border: 0;
-            border-top: 1px solid rgba(255, 255, 255, 0.15);
-            margin: 20px 0;
         }
 
         @media screen and (max-width: 620px) {
