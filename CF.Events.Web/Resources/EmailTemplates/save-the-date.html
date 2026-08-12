@@ -1,0 +1,100 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Save the Date</title>
+    <style>
+        body,
+        .template-email-body {
+            margin: 0;
+            font-family: Verdana, Helvetica, Arial, sans-serif;
+            background-color: #fff;
+            width: 100%;
+        }
+
+        body {
+            padding: 36px 0;
+        }
+
+        .template-email-body {
+            padding: 0;
+        }
+
+        .template-email-content-box {
+            margin: -2px 0 0;
+        }
+
+        .template-email-content-container {
+            background-color: #f9f9f9;
+            width: 600px;
+            vertical-align: top;
+        }
+
+        .template-email-logo {
+            padding-top: 18px;
+            background-color: #f9f9f9;
+            width: 608px;
+        }
+
+        .template-email-image {
+            border:none;
+            border-radius:0px;
+            display:block;
+            outline:none;
+            text-decoration:none;
+        }
+
+        @media screen and (max-width: 596px) {
+            .template-email-content-container {
+                max-width: 100%;
+            }
+        }
+
+        .intro-text {
+            margin-bottom: 0;
+            text-align: center;
+            font-family: "Brush Script MT", cursive;
+            font-size: 24pt;
+            color: #7f6d54;
+        }
+
+        .footer-text {
+            margin-top: 0;
+            text-align: center;
+            font-family: "Brush Script MT", cursive;
+            font-size: 20pt;
+            color: #7f6d54;
+        }
+    </style>
+</head>
+
+<body>
+<table class="template-email-body">
+    <tr>
+        <td class="template-email-float-center" align="center" valign="top">
+            <table class="template-email-content-box">
+                <tr>
+                    <td class="template-email-content-container">
+                        <table>
+                            <tr>
+                                <td class="template-email-content">
+                                    <p class="intro-text">
+                                        {{ sender_sig }} have exciting news to share!
+                                    </p>
+                                    <img alt="save the date details poster" src="cid:save-the-date.png" class="template-email-image" width="600" height="auto" />
+                                    <p class=footer-text>
+                                        Stay tuned!
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
