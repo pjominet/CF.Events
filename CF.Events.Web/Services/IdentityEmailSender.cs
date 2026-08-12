@@ -30,15 +30,6 @@ public class IdentityEmailSender(IEmailProvider emailProvider) : IEmailSender<Ap
 
     public async Task SendPasswordResetCodeAsync(AppUser user, string email, string resetCode)
     {
-        /*
-         var variables = new Dictionary<string, string>
-        {
-            { "app_name", "P&E WEDDING" },
-            { "reset_code", resetCode }
-        };
-
-        await emailProvider.SendTemplatedEmailAsync("", email, variables, null);
-        */
         throw new NotImplementedException();
     }
 }

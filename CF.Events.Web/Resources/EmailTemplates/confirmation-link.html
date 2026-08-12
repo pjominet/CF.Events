@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>Reset your password</title>
+    <title>Confirm your email</title>
     <style type="text/css">
         /* Fonts alignment with webapp */
         body, table, td, p, a, span {
@@ -81,15 +81,6 @@
             mso-hide: all;
         }
 
-        .mail-footer {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #c0c8d0;
-            font-size: 14px;
-            color: #2c3e50;
-            text-align: center;
-        }
-
         .mail-divider {
             border: 0;
             border-top: 1px solid #c0c8d0;
@@ -123,14 +114,12 @@
                                 <td>
                                     <h1 class="mail-title">
                                         <!--[if mso]><span style="font-family: sans-serif;"><![endif]-->
-                                        Forgot Your Password?
+                                        Welcome, {{ user_name }}!
                                         <!--[if mso]></span><![endif]-->
                                     </h1>
                                     <p class="mail-text">
                                         <!--[if mso]><span style="font-family: sans-serif;"><![endif]-->
-                                        It happens. Click the link below to reset your password.
-                                        <br/>
-                                        (This link expires in 24 hours)
+                                        Thank you for registering. Please confirm your email address by clicking the button below.
                                         <!--[if mso]></span><![endif]-->
                                     </p>
                                 </td>
@@ -139,28 +128,17 @@
                                 <td class="mail-button-container" align="center">
                                     <div>
                                         <!--[if mso]>
-                                        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{ reset_url }}" style="height:44px;v-text-anchor:middle;width:220px;" arcsize="10%" stroke="f" fillcolor="#273427">
+                                        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{ confirm_url }}" style="height:44px;v-text-anchor:middle;width:220px;" arcsize="10%" stroke="f" fillcolor="#273427">
                                             <w:anchorlock/>
                                             <center style="color:#ffffff;font-family:sans-serif;font-size:16px;font-weight:bold;">
-                                                Reset Password
+                                                Confirm Email
                                             </center>
                                         </v:roundrect>
                                         <![endif]-->
-                                        <a href="{{ reset_url }}" class="mail-button">
-                                            Reset Password
+                                        <a href="{{ confirm_url }}" class="mail-button">
+                                            Confirm Email
                                         </a>
                                     </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="mail-footer">
-                                    <!--[if mso]><span style="font-family: sans-serif; font-weight: bold;"><![endif]-->
-                                    <strong>Didn’t request this email?</strong>
-                                    <!--[if mso]></span><![endif]-->
-                                    <br/>
-                                    <!--[if mso]><span style="font-family: sans-serif;"><![endif]-->
-                                    Feel free to discard this email if you didn’t request to reset your password with our service.
-                                    <!--[if mso]></span><![endif]-->
                                 </td>
                             </tr>
                             <tr>
@@ -170,7 +148,7 @@
                                         <!--[if mso]><span style="font-family: sans-serif;"><![endif]-->
                                         If you're having trouble with the button above, copy and paste the URL below into your web browser:
                                         <br/>
-                                        {{ reset_url }}
+                                        {{ confirm_url }}
                                         <!--[if mso]></span><![endif]-->
                                     </p>
                                 </td>

@@ -1,13 +1,12 @@
 ﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Save the Date</title>
-    <style>
+    <style type="text/css">
         body,
-        .template-email-body {
+        .mail-body {
             margin: 0;
             font-family: Verdana, Helvetica, Arial, sans-serif;
             background-color: #fff;
@@ -18,41 +17,35 @@
             padding: 36px 0;
         }
 
-        .template-email-body {
+        .mail-body {
             padding: 0;
         }
 
-        .template-email-content-box {
+        .mail-content-box {
             margin: -2px 0 0;
         }
 
-        .template-email-content-container {
+        .mail-content-container {
             background-color: #f9f9f9;
             width: 600px;
             vertical-align: top;
         }
 
-        .template-email-logo {
-            padding-top: 18px;
-            background-color: #f9f9f9;
-            width: 608px;
-        }
-
-        .template-email-image {
+        .mail-image {
             border:none;
-            border-radius:0px;
+            border-radius:0;
             display:block;
             outline:none;
             text-decoration:none;
         }
 
         @media screen and (max-width: 596px) {
-            .template-email-content-container {
+            .mail-content-container {
                 max-width: 100%;
             }
         }
 
-        .intro-text {
+        .mail-intro-text {
             margin-bottom: 0;
             text-align: center;
             font-family: "Brush Script MT", cursive;
@@ -60,7 +53,7 @@
             color: #7f6d54;
         }
 
-        .footer-text {
+        .mail-footer-text {
             margin-top: 0;
             text-align: center;
             font-family: "Brush Script MT", cursive;
@@ -71,20 +64,20 @@
 </head>
 
 <body>
-<table class="template-email-body">
+<table class="mail-body">
     <tr>
-        <td class="template-email-float-center" align="center" valign="top">
-            <table class="template-email-content-box">
+        <td align="center" valign="top">
+            <table class="mail-content-box">
                 <tr>
-                    <td class="template-email-content-container">
+                    <td class="mail-content-container">
                         <table>
                             <tr>
-                                <td class="template-email-content">
-                                    <p class="intro-text">
+                                <td class="mail-content">
+                                    <p class="mail-intro-text">
                                         {{ sender_sig }} have exciting news to share!
                                     </p>
                                     <img alt="save the date details poster" src="cid:save-the-date.png" class="template-email-image" width="600" height="auto" />
-                                    <p class=footer-text>
+                                    <p class=mail-footer-text>
                                         Stay tuned!
                                     </p>
                                 </td>
