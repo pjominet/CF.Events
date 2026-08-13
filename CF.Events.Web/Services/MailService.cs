@@ -14,6 +14,7 @@ public class MailService(IEmailProvider emailProvider) : IMailService
             { "user_name", request.UserName },
             { "event_name", request.EventName },
             { "event_date", request.EventDate },
+            { "deadline", DateTime.UtcNow.AddDays(request.CallbackValidity).ToLongDateString() },
             { "reply-email", "info@jominet.tech" }
         };
 
