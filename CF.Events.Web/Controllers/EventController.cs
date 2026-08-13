@@ -26,8 +26,12 @@ public class EventController(
     [HttpGet("{eventId:int}/{userId}/asset")]
     public async Task<IActionResult> GetEventAsset([FromRoute] int eventId, [FromRoute] string userId, [FromQuery] string type)
     {
+        var isAdmin = User.IsAdmin();
+        if (User.GetId() != userId && !isAdmin)
+            return Forbid();
+
         var isInvited = await db.EventUsers.AnyAsync(r => r.EventId == eventId && r.UserId == userId);
-        if (!isInvited && !User.IsAdmin())
+        if (!isInvited && !isAdmin)
             return Forbid();
 
         var resourceRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources"));
@@ -337,14 +341,20 @@ public class EventController(
     [AllowAnonymous]
     public async Task<IActionResult> InvitationCallback([FromQuery] string code, [FromQuery] int? eventId)
     {
-        var invitedUser = await db.InviteCodes
-            .Where(c => c.Value == code && c.ValidUntil > DateTime.UtcNow)
-            .Select(ic => ic.User)
-            .FirstOrDefaultAsync();
+        var inviteCode = await db.InviteCodes
+            .FirstOrDefaultAsync(c => c.Value == code && c.ValidUntil > DateTime.UtcNow);
+
+        if (inviteCode is null || (eventId.HasValue && inviteCode.EventId != eventId))
+        {
+            logger.LogWarning("Invalid, expired or event-mismatched invite code was used: {Code}", code);
+            return BadRequest();
+        }
+
+        var invitedUser = await db.Users.FirstOrDefaultAsync(u => u.Id == inviteCode.UserId);
 
         if (invitedUser is null)
         {
-            logger.LogWarning("Invalid or expired invite code was used: {Code}", code);
+            logger.LogWarning("User for invite code not found: {Code}", code);
             return BadRequest();
         }
 
@@ -353,6 +363,9 @@ public class EventController(
             logger.LogWarning("User with id {Id} is inactive", invitedUser.Id);
             return BadRequest();
         }
+
+        // Invalidate the code immediately after successful retrieval
+        await db.InviteCodes.Where(c => c.Value == code).ExecuteDeleteAsync();
 
         await signInManager.SignInAsync(invitedUser, false);
 

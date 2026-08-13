@@ -288,6 +288,7 @@ public class InvitationService(
         await db.InviteCodes.AddAsync(new InviteCode
         {
             UserId = request.UserId,
+            EventId = request.EventId,
             Value = code,
             ValidUntil = DateTime.UtcNow.AddDays(request.CallbackValidity)
         }, ctx);

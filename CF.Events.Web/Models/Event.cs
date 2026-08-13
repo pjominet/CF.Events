@@ -53,6 +53,7 @@ public class Event
     public List<EventFaqItem> EventFaq { get; set; } = [];
     public List<EventScheduleStep> EventSchedule { get; set; } = [];
     public List<EventImage> EventImages { get; set; } = [];
+    public List<InviteCode> InviteCodes { get; set; } = [];
 
     // helper
     [NotMapped]
