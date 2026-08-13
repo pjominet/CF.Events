@@ -14,8 +14,14 @@ public class SaveTheDate(EventsDbContext db) : PageModel
 
     public async Task<IActionResult> OnGet(int eventId, string userId)
     {
-        var isInvited = await db.EventUsers.AnyAsync(r => r.EventId == eventId && r.UserId == userId);
         var isAdmin = User.IsAdmin();
+        if (User.GetId() != userId && !isAdmin)
+        {
+            NotFoundOrForbidden = true;
+            return Page();
+        }
+
+        var isInvited = await db.EventUsers.AnyAsync(r => r.EventId == eventId && r.UserId == userId);
         if (!isInvited && !isAdmin)
             NotFoundOrForbidden = true;
 

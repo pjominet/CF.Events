@@ -110,6 +110,12 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
+
+            e.HasOne(r => r.Event)
+                .WithMany(r => r.InviteCodes)
+                .HasForeignKey(r => r.EventId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
         });
 
         builder.Entity<EventImage>(e =>

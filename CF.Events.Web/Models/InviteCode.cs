@@ -13,10 +13,13 @@ public class InviteCode
     [StringLength(450)]
     public required string UserId { get; init; }
 
+    public int EventId { get; init; }
+
     public DateTime ValidUntil { get; init; }
 
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 
     // navigation properties
     public AppUser User { get; init; } = null!;
+    public Event Event { get; init; } = null!;
 }
