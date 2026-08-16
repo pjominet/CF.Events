@@ -1,7 +1,7 @@
 @using CF.Events.Web.Infrastructure.Extensions
 @model string
 
-<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-4">
+<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-3 mb-md-4">
     <div class="container">
         <a class="navbar-brand fs-3" href="/">
             <img src="~/img/wedding_logo_transparent_shadowed.png" alt="Logo" width="40" height="40" class="d-inline-block align-text-top">
@@ -19,6 +19,7 @@
                     {
                         <li class="nav-item"><a class="nav-link" href="/invites">My Invites</a></li>
                     }
+                    <li class="nav-item"><a class="nav-link" href="/privacy">Privacy</a></li>
                     @if (User.IsAdmin())
                     {
                         <li class="nav-item dropdown">
@@ -67,6 +68,7 @@
                 <h6 class="text-muted text-uppercase small fw-bold mb-3">Navigation</h6>
                 <ul class="nav flex-column gap-2">
                     <li class="nav-item"><a class="nav-link p-0" href="/"><i class="bi bi-house me-2"></i>Home</a></li>
+                    <li class="nav-item"><a class="nav-link p-0" href="/privacy"><i class="bi bi-shield-check me-2"></i>Privacy</a></li>
                     @if (User.IsUser() || User.IsGuest())
                     {
                         <li class="nav-item"><a class="nav-link p-0" href="/invites"><i class="bi bi-envelope me-2"></i>My Invite</a></li>
