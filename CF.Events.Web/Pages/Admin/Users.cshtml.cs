@@ -200,7 +200,7 @@ public class UsersModel(
                 u.PhoneNumber ?? "n/a",
                 u.DisplayName ?? "undefined",
                 u.GuestGroup?.Label ?? "n/a",
-                u.GuestGroup?.MaxPeople ?? 4,
+                u.GuestGroup?.MaxPeople ?? 0,
                 u.IsActive,
                 roles));
         }
