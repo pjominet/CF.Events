@@ -40,6 +40,6 @@ public class IdentityEmailSender(IEmailProvider emailProvider) : IIdentityEmailS
             { "login_url", loginLink }
         };
 
-        await emailProvider.SendTemplatedEmailAsync("0670355", email, variables);
+        await emailProvider.SendTemplatedEmailAsync("0214257", email, variables);
     }
 }
