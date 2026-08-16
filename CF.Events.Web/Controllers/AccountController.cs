@@ -93,6 +93,16 @@ public class AccountController(
             ExpiresUtc = isGuest ? DateTimeOffset.UtcNow.AddMonths(3) : null
         });
 
+        // Log the login audit
+        db.LoginAudits.Add(new LoginAudit
+        {
+            UserId = user.Id,
+            IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
+            UserAgent = Request.Headers.UserAgent.ToString(),
+            AuthMethod = "EmailToken"
+        });
+        await db.SaveChangesAsync();
+
         return LocalRedirect(eventId.HasValue ? $"/events/{eventId}/invitation" : "/");
     }
 }

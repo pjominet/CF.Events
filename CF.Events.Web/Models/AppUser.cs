@@ -17,4 +17,5 @@ public class AppUser : IdentityUser
     public GuestGroup? GuestGroup { get; set; }
     public List<EventUser> UserEvents { get; set; } = [];
     public List<AuthCode> InviteCodes { get; set; } = [];
+    public List<LoginAudit> LoginAudits { get; set; } = [];
 }

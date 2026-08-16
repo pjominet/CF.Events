@@ -18,6 +18,7 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
     public DbSet<EventFaqItem> EventFaq => Set<EventFaqItem>();
     public DbSet<EventScheduleStep> EventSchedule => Set<EventScheduleStep>();
     public DbSet<EventImage> EventImages => Set<EventImage>();
+    public DbSet<LoginAudit> LoginAudits => Set<LoginAudit>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -129,6 +130,21 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
                 .IsRequired();
 
             e.HasIndex(r => new { r.EventId, r.FileName }).IsUnique();
+        });
+
+        builder.Entity<LoginAudit>(e =>
+        {
+            e.ToTable("LoginAudits", "identity");
+
+            e.Property(r => r.IpAddress).HasMaxLength(50);
+            e.Property(r => r.UserAgent).HasMaxLength(500);
+            e.Property(r => r.AuthMethod).HasMaxLength(50);
+
+            e.HasOne(r => r.User)
+                .WithMany(r => r.LoginAudits)
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
         });
 
         builder.Entity<GuestGroup>(e =>
