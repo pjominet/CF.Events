@@ -4,7 +4,6 @@ using System.Text.Json.Serialization;
 using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Infrastructure.Extensions;
-using CF.Events.Web.Infrastructure.Filters;
 using CF.Events.Web.Infrastructure.Middlewares;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
@@ -24,15 +23,12 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         services.AddAppServices(environment);
         services.AddAppAuthentication(environment, configuration);
         services.AddAppDataProtection(environment);
+        services.AddAppRateLimiting();
         services.AddHttpClients(configuration);
 
         services.AddRazorPages(options =>
             {
                 options.Conventions.Add(new PageRouteTransformerConvention(new PascalCaseRouteTransformer()));
-            })
-            .AddMvcOptions(options =>
-            {
-                options.Filters.Add<InitPasswordFilter>();
             })
             .AddJsonOptions(options =>
             {
@@ -50,10 +46,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
                 HideMethod = "fadeOut"
             });
 
-        services.AddControllers(options =>
-            {
-                options.Filters.Add<InitPasswordFilter>();
-            })
+        services.AddControllers()
             .AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
@@ -135,6 +128,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         app.UseStatusCodePagesWithReExecute("/error", "?code={0}");
 
         app.UseSecurityHeaders();
+        app.UseRateLimiter();
         app.UseStaticFiles();
 
         app.UseRouting();

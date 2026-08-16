@@ -7,16 +7,12 @@
             <img src="~/img/wedding_logo_transparent_shadowed.png" alt="Logo" width="40" height="40" class="d-inline-block align-text-top">
             <span class="brand-name serif text-dark-glass fs-2 mt-1">@Model</span>
         </a>
-        @if (User.IsAuthenticated() && !User.InitPassword())
+        @if (User.IsAuthenticated())
         {
             <button class="navbar-toggler border-0" type="button" aria-label="Toggle navigation" id="sidebarToggle">
                 <span class="navbar-toggler-icon"></span>
             </button>
-        }
-
-        <div class="collapse navbar-collapse flex-grow-1" id="navbarNav">
-            @if (User.IsAuthenticated() && !User.InitPassword())
-            {
+            <div class="collapse navbar-collapse flex-grow-1" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     @if (User.IsAdmin())
                     {
@@ -26,6 +22,8 @@
                             <ul class="dropdown-menu glass glass-card border-0" aria-labelledby="adminDropdown">
                                 <li><a class="dropdown-item" href="/admin/events">Events</a></li>
                                 <li><a class="dropdown-item" href="/admin/users">Users</a></li>
+                                <li><hr class="dropdown-divider border-light"></li>
+                                <li><a class="dropdown-item text-danger" href="/admin/audit-log">Audit Log</a></li>
                             </ul>
                         </li>
                     }
@@ -47,8 +45,8 @@
                         </ul>
                     </li>
                 </ul>
-            }
-        </div>
+            </div>
+        }
     </div>
 </nav>
 
@@ -59,7 +57,7 @@
         <button type="button" class="btn-close btn-close-white" id="sidebarClose" aria-label="Close"></button>
     </div>
     <div class="sidebar-content p-3">
-        @if (User.IsAuthenticated() && !User.InitPassword())
+        @if (User.IsAuthenticated())
         {
             <div class="sidebar-section mb-4">
                 <h6 class="glass-text-muted text-uppercase small fw-bold mb-3">Navigation</h6>
@@ -75,7 +73,8 @@
                             <div class="collapse ps-4 mt-2" id="adminSidebarSubmenu">
                                 <ul class="nav flex-column gap-2">
                                     <li><a class="dropdown-item p-0 mb-2" href="/admin/events">Events</a></li>
-                                    <li><a class="dropdown-item p-0" href="/admin/users">Users</a></li>
+                                    <li><a class="dropdown-item p-0 mb-2" href="/admin/users">Users</a></li>
+                                    <li><a class="dropdown-item p-0 text-danger" href="/admin/audit-log"><i class="bi bi-shield-lock me-2"></i>Audit Log</a></li>
                                 </ul>
                             </div>
                         </li>

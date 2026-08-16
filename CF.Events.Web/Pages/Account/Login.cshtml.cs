@@ -13,6 +13,7 @@ namespace CF.Events.Web.Pages.Account;
 public class LoginModel(
     SignInManager<AppUser> signInManager,
     UserManager<AppUser> userManager,
+    EventsDbContext db,
     ILogger<LoginModel> logger) : PageModel
 {
     [BindProperty]
@@ -52,8 +53,15 @@ public class LoginModel(
             await userManager.UpdateAsync(user);
             logger.LogInformation("User {UserName} logged in", user.UserName);
 
-            if (user.MustChangePassword)
-                return RedirectToPage("./Manage/FirstLogin", new { returnUrl });
+            // Log the login audit
+            db.LoginAudits.Add(new LoginAudit
+            {
+                UserId = user.Id,
+                IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                UserAgent = Request.Headers.UserAgent.ToString(),
+                AuthMethod = "Password"
+            });
+            await db.SaveChangesAsync();
 
             return LocalRedirect(returnUrl ?? "/");
         }

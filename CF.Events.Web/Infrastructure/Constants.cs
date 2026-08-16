@@ -24,4 +24,9 @@ public static class Constants
     {
         public const string NonSendableEmail = "no-send.tech";
     }
+
+    public static class RateLimitingPolicy
+    {
+        public const string EmailLogin = "EmailLogin";
+    }
 }

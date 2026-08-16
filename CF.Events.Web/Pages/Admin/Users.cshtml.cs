@@ -46,7 +46,6 @@ public class UsersModel(
             Email = NewUser.Email,
             DisplayName = NewUser.DisplayName,
             PhoneNumber = NewUser.PhoneNumber,
-            MustChangePassword = true,
             EmailConfirmed = true
         };
 
@@ -189,8 +188,7 @@ public class UsersModel(
                 u.GuestGroup?.Label ?? "n/a",
                 u.GuestGroup?.MaxPeople ?? 4,
                 u.IsActive,
-                roles,
-                u.MustChangePassword));
+                roles));
         }
         AllUsers = AllUsers.OrderBy(u => u.DisplayName).ToList();
     }
@@ -304,7 +302,7 @@ public class UsersModel(
         return RedirectToPage();
     }
 
-    public record UserRow(string Id, string Email, string Phone, string DisplayName, string GuestGroup, int MaxPeople, bool IsActive, IList<string> Roles, bool MustChangePassword);
+    public record UserRow(string Id, string Email, string Phone, string DisplayName, string GuestGroup, int MaxPeople, bool IsActive, IList<string> Roles);
 
     public sealed class InputModel
     {

@@ -4,7 +4,6 @@ using CF.Events.Web.Models;
 using CF.Events.Web.Models.Requests;
 using CF.Events.Web.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +15,6 @@ namespace CF.Events.Web.Controllers;
 [Route("events")]
 public class EventController(
     EventsDbContext db,
-    SignInManager<AppUser> signInManager,
     IInvitationService invitationService,
     IExportService exportService,
     IToastNotification toastNotification,
@@ -335,40 +333,5 @@ public class EventController(
         }
 
         return LocalRedirect($"/admin/events/{eventId}/invitees");
-    }
-
-    [HttpGet("invite-callback")]
-    [AllowAnonymous]
-    public async Task<IActionResult> InvitationCallback([FromQuery] string code, [FromQuery] int? eventId)
-    {
-        var inviteCode = await db.InviteCodes
-            .FirstOrDefaultAsync(c => c.Value == code && c.ValidUntil > DateTime.UtcNow);
-
-        if (inviteCode is null || (eventId.HasValue && inviteCode.EventId != eventId))
-        {
-            logger.LogWarning("Invalid, expired or event-mismatched invite code was used: {Code}", code);
-            return BadRequest();
-        }
-
-        var invitedUser = await db.Users.FirstOrDefaultAsync(u => u.Id == inviteCode.UserId);
-
-        if (invitedUser is null)
-        {
-            logger.LogWarning("User for invite code not found: {Code}", code);
-            return BadRequest();
-        }
-
-        if (!invitedUser.IsActive)
-        {
-            logger.LogWarning("User with id {Id} is inactive", invitedUser.Id);
-            return BadRequest();
-        }
-
-        // Invalidate the code immediately after successful retrieval
-        await db.InviteCodes.Where(c => c.Value == code).ExecuteDeleteAsync();
-
-        await signInManager.SignInAsync(invitedUser, false);
-
-        return LocalRedirect(eventId.HasValue ? $"/events/{eventId}/invitation" : "/");
     }
 }

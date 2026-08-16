@@ -7,7 +7,6 @@ public class AppUser : IdentityUser
 {
     [StringLength(100)]
     public string? DisplayName { get; set; }
-    public bool MustChangePassword { get; set; }
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
     public DateTime? LastLogin { get; set; }
     public bool IsActive { get; set; } = true;
@@ -17,5 +16,6 @@ public class AppUser : IdentityUser
     // navigation properties
     public GuestGroup? GuestGroup { get; set; }
     public List<EventUser> UserEvents { get; set; } = [];
-    public List<InviteCode> InviteCodes { get; set; } = [];
+    public List<AuthCode> InviteCodes { get; set; } = [];
+    public List<LoginAudit> LoginAudits { get; set; } = [];
 }

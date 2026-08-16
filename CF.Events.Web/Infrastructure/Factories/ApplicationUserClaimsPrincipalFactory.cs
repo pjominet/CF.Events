@@ -17,7 +17,6 @@ public class ApplicationUserClaimsPrincipalFactory(
         var identity = await base.GenerateClaimsAsync(user);
 
         _ = identity.TryAddClaim(EventClaims.DisplayName, user.DisplayName ?? string.Empty);
-        _ = identity.TryAddClaim(EventClaims.InitPassword, user.MustChangePassword.ToString());
 
         return identity;
     }
@@ -26,5 +25,4 @@ public class ApplicationUserClaimsPrincipalFactory(
 internal static class EventClaims
 {
     public const string DisplayName = "displayName";
-    public const string InitPassword = "init_pw";
 }

@@ -1,6 +1,5 @@
 ﻿using System.Linq.Expressions;
 using CF.Events.Web.Data;
-using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Models;
 using CF.Events.Web.Models.Requests;
@@ -14,8 +13,8 @@ public interface IInvitationService
 {
     AppSettings AppSettings { get; }
     Task<int> ProcessPendingEmails(CancellationToken ctx = default);
-    Task SendBatchedEmails<T>(List<T> requests, CancellationToken ctx = default) where T : class, IEmailRequest;
-    Task SendEmail<T>(T request, CancellationToken ctx = default) where T : class, IEmailRequest;
+    Task SendBatchedEmails<T>(List<T> requests, CancellationToken ctx = default) where T : class, ITemplateEmailRequest;
+    Task SendEmail<T>(T request, CancellationToken ctx = default) where T : class, ITemplateEmailRequest;
     Task<int> InviteUsersAsync(int eventId, UsersInviteRequest inviteRequest, CancellationToken ctx = default);
     Task ResendInvitesAsync(int eventId, List<string> userIds, CancellationToken ctx = default);
     string BuildSaveDateCallbackUrl(int eventId, string userId);
@@ -24,6 +23,7 @@ public interface IInvitationService
 public class InvitationService(
     EventsDbContext db,
     IMailService mailService,
+    IAuthEmailService authEmailService,
     IOptions<AppSettings> appOptions,
     ILogger<InvitationService> logger) : IInvitationService
 {
@@ -66,7 +66,7 @@ public class InvitationService(
     private async Task<int> ProcessPendingType<T>(
         Expression<Func<EventUser, bool>> predicate,
         Expression<Func<EventUser, T>> selector,
-        CancellationToken ctx) where T : class, IEmailRequest
+        CancellationToken ctx) where T : class, ITemplateEmailRequest
     {
         var batchSize = _appSettings.EmailBatchSize ?? int.MaxValue;
 
@@ -93,7 +93,7 @@ public class InvitationService(
         return pending.Count;
     }
 
-    public async Task SendBatchedEmails<T>(List<T> requests, CancellationToken ctx = default) where T : class, IEmailRequest
+    public async Task SendBatchedEmails<T>(List<T> requests, CancellationToken ctx = default) where T : class, ITemplateEmailRequest
     {
         // filter out requests with non-sendable email addresses
         requests = [.. requests.Where(r => IsSendableEmail(r.UserEmail))];
@@ -127,7 +127,7 @@ public class InvitationService(
         }
     }
 
-    public async Task SendEmail<T>(T request, CancellationToken ctx = default) where T : class, IEmailRequest
+    public async Task SendEmail<T>(T request, CancellationToken ctx = default) where T : class, ITemplateEmailRequest
     {
         try
         {
@@ -282,19 +282,10 @@ public class InvitationService(
             await SendBatchedEmails(requests, ctx);
     }
 
-    private async Task PrepareInvitationAsync(IEmailRequest request, CancellationToken ctx = default)
+    private async Task PrepareInvitationAsync(ITemplateEmailRequest request, CancellationToken ctx = default)
     {
-        var code = CodeGenerator.Generate(64);
-        await db.InviteCodes.AddAsync(new InviteCode
-        {
-            UserId = request.UserId,
-            EventId = request.EventId,
-            Value = code,
-            ValidUntil = DateTime.UtcNow.AddDays(request.CallbackValidity)
-        }, ctx);
-
-        var baseUrl = _appSettings.BaseUrl.TrimEnd('/');
-        request.CallBackUrl = $"{baseUrl}/events/invite-callback?code={code}&eventId={request.EventId}";
+        var code = await authEmailService.CreateAuthCodeAsync(request.UserId, request.EventId, request.CallbackValidity, ctx);
+        request.CallBackUrl = authEmailService.BuildAuthCallbackUrl(code, request.EventId);
     }
 
     public string BuildSaveDateCallbackUrl(int eventId, string userId)

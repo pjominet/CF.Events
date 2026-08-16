@@ -4,6 +4,7 @@ using CF.Events.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CF.Events.Web.Data.Migrations
 {
     [DbContext(typeof(EventsDbContext))]
-    partial class EventsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260816131654_ChangeToAuthCodes")]
+    partial class ChangeToAuthCodes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -63,6 +66,9 @@ namespace CF.Events.Web.Data.Migrations
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("MustChangePassword")
+                        .HasColumnType("bit");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -140,7 +146,7 @@ namespace CF.Events.Web.Data.Migrations
                     b.HasIndex("Value")
                         .IsUnique();
 
-                    b.ToTable("AuthCodes", "identity");
+                    b.ToTable("AuthCodes", "app");
                 });
 
             modelBuilder.Entity("CF.Events.Web.Models.BookingLink", b =>
@@ -389,40 +395,6 @@ namespace CF.Events.Web.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("GuestGroups", "app");
-                });
-
-            modelBuilder.Entity("CF.Events.Web.Models.LoginAudit", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AuthMethod")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("IpAddress")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<DateTime>("LoginAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UserAgent")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("LoginAudits", "identity");
                 });
 
             modelBuilder.Entity("CF.Events.Web.Models.ParticipantAttendance", b =>
@@ -745,17 +717,6 @@ namespace CF.Events.Web.Data.Migrations
                     b.Navigation("GuestUser");
                 });
 
-            modelBuilder.Entity("CF.Events.Web.Models.LoginAudit", b =>
-                {
-                    b.HasOne("CF.Events.Web.Models.AppUser", "User")
-                        .WithMany("LoginAudits")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("CF.Events.Web.Models.ParticipantAttendance", b =>
                 {
                     b.HasOne("CF.Events.Web.Models.Rsvp", "Rsvp")
@@ -845,8 +806,6 @@ namespace CF.Events.Web.Data.Migrations
                     b.Navigation("GuestGroup");
 
                     b.Navigation("InviteCodes");
-
-                    b.Navigation("LoginAudits");
 
                     b.Navigation("UserEvents");
                 });

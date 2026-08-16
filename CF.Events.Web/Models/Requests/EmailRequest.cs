@@ -1,5 +1,5 @@
 namespace CF.Events.Web.Models.Requests;
-public interface IEmailRequest
+public interface ITemplateEmailRequest
 {
     public string TemplateId { get; }
     public bool SendWithLink { get; set; }
@@ -13,7 +13,7 @@ public interface IEmailRequest
     IEnumerable<InlineAttachment> InlineAttachments { get; }
 }
 
-public class InvitationEmailRequest : IEmailRequest
+public class InvitationEmailRequest : ITemplateEmailRequest
 {
     public required string TemplateId { get; init; }
     public bool SendWithLink { get; set; }
@@ -28,7 +28,7 @@ public class InvitationEmailRequest : IEmailRequest
     public IEnumerable<InlineAttachment> InlineAttachments { get; set; } = [];
 }
 
-public class SaveDateEmailRequest : IEmailRequest
+public class SaveDateEmailRequest : ITemplateEmailRequest
 {
     public required string TemplateId { get; init; }
     public bool SendWithLink { get; set; }
@@ -42,3 +42,4 @@ public class SaveDateEmailRequest : IEmailRequest
     public string CallBackUrl { get; set; } = string.Empty;
     public IEnumerable<InlineAttachment> InlineAttachments { get; set; } = [];
 }
+
