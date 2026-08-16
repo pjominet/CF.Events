@@ -25,6 +25,12 @@
         });
     });
 
+    document.querySelectorAll('td').forEach(td => {
+        if (td.textContent.trim().toLowerCase().endsWith('@no-send.tech')) {
+            td.classList.add('text-danger');
+        }
+    });
+
     const searchInput = document.getElementById('userSearchInput');
     if (searchInput) {
         const applyFilter = (searchTerm) => {

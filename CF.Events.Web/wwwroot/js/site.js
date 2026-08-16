@@ -235,10 +235,8 @@
 
     function muteNotAvailableText(container = document) {
         container.querySelectorAll('td').forEach(td => {
-            // Check if the cell content is exactly "n/a" (ignoring case/whitespace)
             if (td.textContent.trim().toLowerCase() === 'n/a') {
-                // Wrap the text in a muted span instead of muting the whole cell
-                td.innerHTML = '<span class="text-muted">' + td.textContent.trim() + '</span>';
+                td.classList.add('text-muted');
             }
         });
     }
