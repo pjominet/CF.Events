@@ -68,15 +68,27 @@ public class UsersModel(
             var userRoles = await userManager.GetRolesAsync(user);
             if (userRoles.Contains(Roles.Guest))
             {
-                var participants = NewUser.GuestGroup.Split("&").Select(p => p.Trim()).ToList();
-                var guestGroup = new GuestGroup
+                var participants = (NewUser.GuestGroup ?? "").Split("&").Select(p => p.Trim()).ToList();
+                var guestGroup = await db.GuestGroups.FirstOrDefaultAsync(g => g.GuestUserId == user.Id);
+
+                if (guestGroup is null)
                 {
-                    Label = NewUser.GuestGroup,
-                    GuestUserId = user.Id,
-                    Participants = participants.Count == 0 ? [user.DisplayName] : participants,
-                    MaxPeople = NewUser.MaxPeople
-                };
-                db.GuestGroups.Add(guestGroup);
+                    guestGroup = new GuestGroup
+                    {
+                        Label = NewUser.GuestGroup ?? NewUser.DisplayName!,
+                        GuestUserId = user.Id,
+                        Participants = participants.Count == 0 ? [user.DisplayName!] : participants,
+                        MaxPeople = NewUser.MaxPeople
+                    };
+                    db.GuestGroups.Add(guestGroup);
+                }
+                else
+                {
+                    guestGroup.Label = NewUser.GuestGroup ?? NewUser.DisplayName!;
+                    guestGroup.MaxPeople = NewUser.MaxPeople;
+                    guestGroup.Participants = participants.Count == 0 ? [user.DisplayName!] : participants;
+                }
+
                 await db.SaveChangesAsync();
 
                 user.GuestGroupId = guestGroup.Id;
@@ -137,12 +149,14 @@ public class UsersModel(
         var updatedRoles = await userManager.GetRolesAsync(user);
         if (updatedRoles.Contains(Roles.Guest))
         {
-            var participants = (NewUser.GuestGroup ?? "").Split("&", StringSplitOptions.RemoveEmptyEntries).Select(p => p.Trim()).ToList();
-            if (user.GuestGroupId == null)
+            var participants = (NewUser.GuestGroup).Split("&", StringSplitOptions.RemoveEmptyEntries).Select(p => p.Trim()).ToList();
+            var guestGroup = await db.GuestGroups.FirstOrDefaultAsync(g => g.GuestUserId == user.Id);
+
+            if (guestGroup is null)
             {
-                var guestGroup = new GuestGroup
+                guestGroup = new GuestGroup
                 {
-                    Label = NewUser.GuestGroup ?? NewUser.DisplayName,
+                    Label = NewUser.GuestGroup,
                     GuestUserId = user.Id,
                     Participants = participants.Count == 0 ? [user.DisplayName!] : participants,
                     MaxPeople = NewUser.MaxPeople
@@ -154,15 +168,19 @@ public class UsersModel(
             }
             else
             {
-                var guestGroup = await db.GuestGroups.FindAsync(user.GuestGroupId.Value);
-                if (guestGroup != null)
+                guestGroup.Label = NewUser.GuestGroup;
+                guestGroup.MaxPeople = NewUser.MaxPeople;
+
+                // Update participants if they were changed
+                if (participants.Count > 0)
+                    guestGroup.Participants = participants;
+
+                if (user.GuestGroupId is null)
                 {
-                    guestGroup.Label = NewUser.GuestGroup ?? NewUser.DisplayName;
-                    guestGroup.MaxPeople = NewUser.MaxPeople;
-                    // We don't necessarily want to reset participants here if they were already managed,
-                    // but for simplicity and consistency with Add, we might update them if provided.
-                    // However, the issue only mentioned MaxPeople and phone number.
+                    user.GuestGroupId = guestGroup.Id;
+                    await userManager.UpdateAsync(user);
                 }
+
                 await db.SaveChangesAsync();
             }
         }
