@@ -115,10 +115,27 @@
     };
 
     const roleGuestCheckbox = document.getElementById('roleGuest');
+    const roleUserCheckbox = document.getElementById('roleUser');
     const roleAdminCheckbox = document.getElementById('roleAdmin');
     const guestGroupContainer = document.getElementById('guestGroupContainer');
     const guestGroupInput = document.getElementById('guestGroupInput');
     const maxPeopleInput = document.getElementById('maxPeopleInput');
+
+    const toggleGuestGroup = () => {
+        if (roleGuestCheckbox && guestGroupContainer && guestGroupInput) {
+            if (roleGuestCheckbox.checked) {
+                guestGroupContainer.classList.remove('d-none');
+                guestGroupInput.required = true;
+            } else {
+                guestGroupContainer.classList.add('d-none');
+                guestGroupInput.required = false;
+            }
+        }
+    };
+
+    if (roleGuestCheckbox) {
+        roleGuestCheckbox.addEventListener('change', toggleGuestGroup);
+    }
 
     const addUserModal = document.getElementById('addUserModal');
     if (addUserModal) {
@@ -152,6 +169,7 @@
 
                 const roles = button.getAttribute('data-user-roles').split(',');
                 if (roleAdminCheckbox) roleAdminCheckbox.checked = roles.includes('Admin');
+                if (roleUserCheckbox) roleUserCheckbox.checked = roles.includes('User');
                 roleGuestCheckbox.checked = roles.includes('Guest');
             } else {
                 // Add mode
@@ -166,25 +184,13 @@
                 guestGroupInput.value = '';
                 maxPeopleInput.value = 4;
                 if (roleAdminCheckbox) roleAdminCheckbox.checked = false;
+                if (roleUserCheckbox) roleUserCheckbox.checked = false;
                 roleGuestCheckbox.checked = true;
             }
             toggleGuestGroup();
         });
     }
 
-    if (roleGuestCheckbox && guestGroupContainer && guestGroupInput) {
-        const toggleGuestGroup = () => {
-            if (roleGuestCheckbox.checked) {
-                guestGroupContainer.classList.remove('d-none');
-                guestGroupInput.required = true;
-            } else {
-                guestGroupContainer.classList.add('d-none');
-                guestGroupInput.required = false;
-            }
-        };
-
-        roleGuestCheckbox.addEventListener('change', toggleGuestGroup);
-        // Initial check
-        toggleGuestGroup();
-    }
+    // Initial check for non-modal elements if any
+    toggleGuestGroup();
 })();
