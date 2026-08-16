@@ -23,7 +23,8 @@ public class UserController(
         [FromForm] IFormFile? userList,
         [FromForm] int skipRows = 0,
         [FromForm] string delimiter = ",",
-        [FromForm] List<string>? selectedRoles = null)
+        [FromForm] List<string>? selectedRoles = null,
+        [FromQuery] string? search = null)
     {
         if (userList is null || userList.Length == 0)
             return BadRequest("No file uploaded");
@@ -119,7 +120,7 @@ public class UserController(
             toastNotification.AddSuccessToastMessage("Users imported successfully");
         else toastNotification.AddWarningToastMessage($"Import had issues:{Environment.NewLine}{string.Join(Environment.NewLine, importErrors)}");
         TempData[ViewDataKeys.ImportErrors] = importErrors;
-        return RedirectToPage("/admin/users");
+        return RedirectToPage("/admin/users", new { search });
     }
 
     private static string? GetValidEmail(string? extractedValue, string fallbackName)
