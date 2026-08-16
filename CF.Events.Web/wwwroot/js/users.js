@@ -40,42 +40,22 @@
                     row.classList.add('d-none');
                 }
             });
-
-            // Update all forms and links that need to persist the search term
-            updateSearchContext(searchTerm);
-        };
-
-        const updateSearchContext = (searchTerm) => {
-            // Update form actions with search param
-            document.querySelectorAll('form').forEach(form => {
-                const url = new URL(form.action);
-                if (searchTerm) {
-                    url.searchParams.set('search', searchTerm);
-                } else {
-                    url.searchParams.delete('search');
-                }
-
-                form.action = url.pathname + url.search;
-            });
+            window.siteHelpers?.muteNotAvailableText();
         };
 
         searchInput.addEventListener('input', function () {
             const searchTerm = this.value.toLowerCase().trim();
             applyFilter(searchTerm);
 
-            // Update URL query param
-            const url = new URL(window.location);
-            if (searchTerm) {
-                url.searchParams.set('search', searchTerm);
-            } else {
-                url.searchParams.delete('search');
-            }
-            window.history.replaceState({}, '', url);
+            // Save search term to sessionStorage
+            const storageKey = 'userSearch-' + window.location.pathname;
+            sessionStorage.setItem(storageKey, this.value);
         });
 
-        // Re-apply filter on page load if query param exists
-        const urlParams = new URLSearchParams(window.location.search);
-        const initialSearch = urlParams.get('search');
+        // Re-apply filter on page load from session storage
+        const storageKey = 'userSearch-' + window.location.pathname;
+        const initialSearch = sessionStorage.getItem(storageKey);
+
         if (initialSearch) {
             searchInput.value = initialSearch;
             applyFilter(initialSearch.toLowerCase().trim());
@@ -146,15 +126,11 @@
             const title = document.getElementById('addUserModalTitle');
             const submitBtn = document.getElementById('addUserSubmitBtn');
 
-            // Get current search term from URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const searchTerm = urlParams.get('search');
-
             if (userId) {
                 // Edit mode
                 title.textContent = 'Edit User';
                 submitBtn.textContent = 'Save Changes';
-                form.action = '?handler=Edit' + (searchTerm ? '&search=' + encodeURIComponent(searchTerm) : '');
+                form.action = '?handler=Edit';
 
                 document.getElementById('userEditId').value = userId;
                 document.getElementById('userDisplayName').value = button.getAttribute('data-user-displayname');
@@ -175,7 +151,7 @@
                 // Add mode
                 title.textContent = 'Invite New User';
                 submitBtn.textContent = 'Add';
-                form.action = '?handler=Add' + (searchTerm ? '&search=' + encodeURIComponent(searchTerm) : '');
+                form.action = '?handler=Add';
 
                 document.getElementById('userEditId').value = '';
                 document.getElementById('userDisplayName').value = '';

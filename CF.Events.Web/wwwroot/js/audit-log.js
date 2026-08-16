@@ -71,6 +71,7 @@
 
                 tableBody.appendChild(fragment);
                 initTooltips(fragment);
+                window.siteHelpers?.muteNotAvailableText(tableBody);
 
                 page++;
                 hasMore = data.length === 50;

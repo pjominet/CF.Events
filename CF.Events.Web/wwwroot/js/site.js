@@ -27,6 +27,34 @@
         });
     }
 
+    function initScrollPersistence() {
+        const storageKey = 'scrollPositions-' + window.location.pathname;
+
+        // Restore positions
+        const savedPositions = JSON.parse(sessionStorage.getItem(storageKey) || '{}');
+        Object.keys(savedPositions).forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.scrollTop = savedPositions[id].top;
+                el.scrollLeft = savedPositions[id].left;
+            }
+        });
+
+        // Save positions before unload
+        window.addEventListener('beforeunload', () => {
+            const positions = {};
+            document.querySelectorAll('[data-scroll-persist]').forEach(el => {
+                if (el.id) {
+                    positions[el.id] = {
+                        top: el.scrollTop,
+                        left: el.scrollLeft
+                    };
+                }
+            });
+            sessionStorage.setItem(storageKey, JSON.stringify(positions));
+        });
+    }
+
     // Re-open a Bootstrap modal automatically if the server flagged it (e.g. validation errors).
     function initAutoShowModals() {
         document.querySelectorAll('.modal[data-autoshow="true"]').forEach(function (el) {
@@ -205,6 +233,16 @@
         });
     }
 
+    function muteNotAvailableText(container = document) {
+        container.querySelectorAll('td').forEach(td => {
+            // Check if the cell content is exactly "n/a" (ignoring case/whitespace)
+            if (td.textContent.trim().toLowerCase() === 'n/a') {
+                // Wrap the text in a muted span instead of muting the whole cell
+                td.innerHTML = '<span class="text-muted">' + td.textContent.trim() + '</span>';
+            }
+        });
+    }
+
     window.copyToClipboardAndShowFeedback = function (elementOrId, buttonOrDuration, duration = 750) {
         let textToCopy = '';
         let button = null;
@@ -311,7 +349,8 @@
     // Exported helpers for dynamic content
     window.siteHelpers = {
         initMultiSelects: initMultiSelects,
-        initTagSelects: initTagSelects
+        initTagSelects: initTagSelects,
+        muteNotAvailableText: muteNotAvailableText
     };
 
     document.addEventListener("DOMContentLoaded", function () {
@@ -322,7 +361,9 @@
         initMultiSelects();
         initTagSelects();
         initTabPersistence();
+        initScrollPersistence();
         initSidebar();
+        muteNotAvailableText();
         setTimeout(hideLoadingOverlay, 100);
     });
 })();
