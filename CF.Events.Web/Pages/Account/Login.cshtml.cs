@@ -52,9 +52,6 @@ public class LoginModel(
             await userManager.UpdateAsync(user);
             logger.LogInformation("User {UserName} logged in", user.UserName);
 
-            if (user.MustChangePassword)
-                return RedirectToPage("./Manage/FirstLogin", new { returnUrl });
-
             return LocalRedirect(returnUrl ?? "/");
         }
 

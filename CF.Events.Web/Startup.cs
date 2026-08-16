@@ -4,7 +4,6 @@ using System.Text.Json.Serialization;
 using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Infrastructure.Extensions;
-using CF.Events.Web.Infrastructure.Filters;
 using CF.Events.Web.Infrastructure.Middlewares;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
@@ -31,10 +30,6 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
             {
                 options.Conventions.Add(new PageRouteTransformerConvention(new PascalCaseRouteTransformer()));
             })
-            .AddMvcOptions(options =>
-            {
-                options.Filters.Add<InitPasswordFilter>();
-            })
             .AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
@@ -51,10 +46,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
                 HideMethod = "fadeOut"
             });
 
-        services.AddControllers(options =>
-            {
-                options.Filters.Add<InitPasswordFilter>();
-            })
+        services.AddControllers()
             .AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
