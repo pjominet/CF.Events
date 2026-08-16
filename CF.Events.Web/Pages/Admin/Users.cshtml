@@ -83,7 +83,7 @@
                             <td>@user.Email</td>
                             <td>@user.Phone</td>
                             <td>@user.GuestGroup</td>
-                            <td>@(user.MaxPeople == 0 ? string.Empty : user.MaxPeople)</td>
+                            <td>@(user.MaxPeople == 0 ? "n/a" : user.MaxPeople)</td>
                             <td>
                                 <div class="d-flex justify-content-start align-items-center gap-1">
                                     @foreach (var role in user.Roles)
