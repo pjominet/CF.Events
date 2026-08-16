@@ -82,18 +82,21 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IHtmlParser, HtmlParser>();
         services.AddHostedService<InvitationEmailWorker>();
         services.AddScoped<IInvitationService, InvitationService>();
+        services.AddScoped<IAuthEmailService, AuthEmailService>();
         services.AddScoped<IExportService, ExportService>();
         services.AddScoped<IFileService, FileService>();
 
         if (environment.IsDevelopment())
         {
-            services.AddScoped<IEmailSender<AppUser>, NoOpIdentitySender>();
+            services.AddScoped<IIdentityEmailSender, NoOpIdentitySender>();
+            services.AddScoped<IEmailSender<AppUser>>(sp => sp.GetRequiredService<IIdentityEmailSender>());
             services.AddScoped<IMailService, NoOpMailService>();
         }
         else
         {
             services.AddScoped<IEmailProvider, Smtp2GoEmailProvider>();
-            services.AddScoped<IEmailSender<AppUser>, IdentityEmailSender>();
+            services.AddScoped<IIdentityEmailSender, IdentityEmailSender>();
+            services.AddScoped<IEmailSender<AppUser>>(sp => sp.GetRequiredService<IIdentityEmailSender>());
             services.AddScoped<IMailService, MailService>();
         }
     }

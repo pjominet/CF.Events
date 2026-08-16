@@ -20,9 +20,12 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link @(string.IsNullOrEmpty(Model.ActiveTab) || Model.ActiveTab == "profile" ? "active" : "")" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-pane" type="button" role="tab" aria-controls="profile-pane" aria-selected="true">Info</button>
             </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link @(Model.ActiveTab == "password" ? "active" : "")" id="password-tab" data-bs-toggle="tab" data-bs-target="#password-pane" type="button" role="tab" aria-controls="password-pane" aria-selected="false">Password</button>
-            </li>
+            @if (!User.IsGuest())
+            {
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link @(Model.ActiveTab == "password" ? "active" : "")" id="password-tab" data-bs-toggle="tab" data-bs-target="#password-pane" type="button" role="tab" aria-controls="password-pane" aria-selected="false">Password</button>
+                </li>
+            }
         </ul>
         <div class="tab-content" id="accountTabsContent">
             <div class="tab-pane fade @(string.IsNullOrEmpty(Model.ActiveTab) || Model.ActiveTab == "profile" ? "show active" : "")" id="profile-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">
@@ -46,27 +49,30 @@
                     <button type="submit" class="w-100 btn btn-lg btn-primary mb-3">Save profile information</button>
                 </form>
             </div>
-            <div class="tab-pane fade @(Model.ActiveTab == "password" ? "show active" : "")" id="password-pane" role="tabpanel" aria-labelledby="password-tab" tabindex="0">
-                <form method="post" asp-page-handler="ChangePassword">
-                    <input type="hidden" name="ActiveTab" value="password"/>
-                    <div class="form-floating mb-3">
-                        <input asp-for="Password.OldPassword" type="password" class="form-control" autocomplete="current-password" placeholder="Current password"/>
-                        <label asp-for="Password.OldPassword" class="form-label">Current password</label>
-                        <span asp-validation-for="Password.OldPassword" class="text-danger"></span>
-                    </div>
-                    <div class="form-floating mb-3">
-                        <input asp-for="Password.NewPassword" type="password" class="form-control" autocomplete="new-password" placeholder="New password"/>
-                        <label asp-for="Password.NewPassword" class="form-label">New password</label>
-                        <span asp-validation-for="Password.NewPassword" class="text-danger"></span>
-                    </div>
-                    <div class="form-floating mb-3">
-                        <input asp-for="Password.ConfirmPassword" type="password" class="form-control" autocomplete="new-password" placeholder="Confirm new password"/>
-                        <label asp-for="Password.ConfirmPassword" class="form-label">Confirm new password</label>
-                        <span asp-validation-for="Password.ConfirmPassword" class="text-danger"></span>
-                    </div>
-                    <button type="submit" class="w-100 btn btn-lg btn-primary">Update password</button>
-                </form>
-            </div>
+            @if (!User.IsGuest())
+            {
+                <div class="tab-pane fade @(Model.ActiveTab == "password" ? "show active" : "")" id="password-pane" role="tabpanel" aria-labelledby="password-tab" tabindex="0">
+                    <form method="post" asp-page-handler="ChangePassword">
+                        <input type="hidden" name="ActiveTab" value="password"/>
+                        <div class="form-floating mb-3">
+                            <input asp-for="Password.OldPassword" type="password" class="form-control" autocomplete="current-password" placeholder="Current password"/>
+                            <label asp-for="Password.OldPassword" class="form-label">Current password</label>
+                            <span asp-validation-for="Password.OldPassword" class="text-danger"></span>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input asp-for="Password.NewPassword" type="password" class="form-control" autocomplete="new-password" placeholder="New password"/>
+                            <label asp-for="Password.NewPassword" class="form-label">New password</label>
+                            <span asp-validation-for="Password.NewPassword" class="text-danger"></span>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input asp-for="Password.ConfirmPassword" type="password" class="form-control" autocomplete="new-password" placeholder="Confirm new password"/>
+                            <label asp-for="Password.ConfirmPassword" class="form-label">Confirm new password</label>
+                            <span asp-validation-for="Password.ConfirmPassword" class="text-danger"></span>
+                        </div>
+                        <button type="submit" class="w-100 btn btn-lg btn-primary">Update password</button>
+                    </form>
+                </div>
+            }
         </div>
     </div>
 </section>

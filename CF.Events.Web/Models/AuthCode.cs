@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CF.Events.Web.Models;
 
-public class InviteCode
+public class AuthCode
 {
     public int Id { get; set; }
 
@@ -13,7 +13,7 @@ public class InviteCode
     [StringLength(450)]
     public required string UserId { get; init; }
 
-    public int EventId { get; init; }
+    public int? EventId { get; init; }
 
     public DateTime ValidUntil { get; init; }
 
@@ -21,5 +21,5 @@ public class InviteCode
 
     // navigation properties
     public AppUser User { get; init; } = null!;
-    public Event Event { get; init; } = null!;
+    public Event? Event { get; init; }
 }

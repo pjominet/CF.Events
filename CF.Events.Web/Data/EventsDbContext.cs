@@ -8,7 +8,7 @@ namespace CF.Events.Web.Data;
 public class EventsDbContext(DbContextOptions<EventsDbContext> options) : IdentityDbContext<AppUser>(options)
 {
     public DbSet<Event> Events => Set<Event>();
-    public DbSet<InviteCode> InviteCodes => Set<InviteCode>();
+    public DbSet<AuthCode> AuthCodes => Set<AuthCode>();
     public DbSet<EventUser> EventUsers => Set<EventUser>();
     public DbSet<Rsvp> Rsvps => Set<Rsvp>();
     public DbSet<BookingLink> BookingLinks => Set<BookingLink>();
@@ -101,8 +101,10 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
                 .IsRequired();
         });
 
-        builder.Entity<InviteCode>(e =>
+        builder.Entity<AuthCode>(e =>
         {
+            e.ToTable("AuthCodes", "identity");
+
             e.HasIndex(r => r.Value).IsUnique();
 
             e.HasOne(r => r.User)

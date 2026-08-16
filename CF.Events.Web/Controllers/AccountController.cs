@@ -1,12 +1,18 @@
-﻿using CF.Events.Web.Models;
+﻿using CF.Events.Web.Data;
+using CF.Events.Web.Infrastructure;
+using CF.Events.Web.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using NToastNotify;
 
 namespace CF.Events.Web.Controllers;
 
 [Route("account")]
 public class AccountController(
+    EventsDbContext db,
     SignInManager<AppUser> signInManager,
     UserManager<AppUser> userManager,
     IToastNotification toastNotification,
@@ -44,5 +50,45 @@ public class AccountController(
 
         toastNotification.AddSuccessToastMessage("Email successfully confirmed");
         return LocalRedirect("/");
+    }
+
+    [HttpGet("auth-callback")]
+    [AllowAnonymous]
+    public async Task<IActionResult> InvitationCallback([FromQuery] string code, [FromQuery] int? eventId)
+    {
+        var authCode = await db.AuthCodes
+            .FirstOrDefaultAsync(c => c.Value == code && c.ValidUntil > DateTime.UtcNow);
+
+        if (authCode is null || (eventId.HasValue && authCode.EventId != eventId))
+        {
+            logger.LogWarning("Invalid, expired or event-mismatched invite code was used: {Code}", code);
+            return BadRequest();
+        }
+
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Id == authCode.UserId);
+
+        if (user is null)
+        {
+            logger.LogWarning("User for invite code not found: {Code}", code);
+            return BadRequest();
+        }
+
+        if (!user.IsActive)
+        {
+            logger.LogWarning("User with id {Id} is inactive", user.Id);
+            return BadRequest();
+        }
+
+        // Invalidate the code immediately after successful retrieval
+        await db.AuthCodes.Where(c => c.Value == code).ExecuteDeleteAsync();
+
+        var isGuest = await signInManager.UserManager.IsInRoleAsync(user, Constants.Roles.Guest);
+        await signInManager.SignInAsync(user, new AuthenticationProperties
+        {
+            IsPersistent = isGuest,
+            ExpiresUtc = isGuest ? DateTimeOffset.UtcNow.AddMonths(3) : null
+        });
+
+        return LocalRedirect(eventId.HasValue ? $"/events/{eventId}/invitation" : "/");
     }
 }

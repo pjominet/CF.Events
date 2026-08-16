@@ -1,9 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web.Pages.Account.Manage;
 
@@ -74,6 +76,9 @@ public class IndexModel(
         var user = await userManager.GetUserAsync(User);
         if (user is null)
             return NotFound("Unable to load user.");
+
+        if (User.IsGuest())
+            return BadRequest("Guest users cannot change password.");
 
         if (!ModelState.IsValid)
         {

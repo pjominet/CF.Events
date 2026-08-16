@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace CF.Events.Web.Services;
 
-public class IdentityEmailSender(IEmailProvider emailProvider) : IEmailSender<AppUser>
+public class IdentityEmailSender(IEmailProvider emailProvider) : IIdentityEmailSender
 {
     public async Task SendConfirmationLinkAsync(AppUser user, string email, string confirmationLink)
     {
@@ -14,7 +14,7 @@ public class IdentityEmailSender(IEmailProvider emailProvider) : IEmailSender<Ap
             { "user_name", user.DisplayName! }
         };
 
-        await emailProvider.SendTemplatedEmailAsync("0838936", email, variables, null);
+        await emailProvider.SendTemplatedEmailAsync("0838936", email, variables);
     }
 
     public async Task SendPasswordResetLinkAsync(AppUser user, string email, string resetLink)
@@ -25,11 +25,21 @@ public class IdentityEmailSender(IEmailProvider emailProvider) : IEmailSender<Ap
             { "reset_url", resetLink }
         };
 
-        await emailProvider.SendTemplatedEmailAsync("0670355", email, variables, null);
+        await emailProvider.SendTemplatedEmailAsync("0670355", email, variables);
     }
 
-    public async Task SendPasswordResetCodeAsync(AppUser user, string email, string resetCode)
+    public async Task SendPasswordResetCodeAsync(AppUser user, string email, string resetCode) => throw new NotImplementedException();
+
+    public async Task SendLoginLinkAsync(AppUser user, string email, string loginLink)
     {
-        throw new NotImplementedException();
+        var variables = new Dictionary<string, string>
+        {
+            { "sender_sig", "Patrick & Éadaoin" },
+            { "app_name", "P&E Wedding" },
+            { "user_name", user.DisplayName ?? user.UserName ?? string.Empty },
+            { "login_url", loginLink }
+        };
+
+        await emailProvider.SendTemplatedEmailAsync("0670355", email, variables);
     }
 }

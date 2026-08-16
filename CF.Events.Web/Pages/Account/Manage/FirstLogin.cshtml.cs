@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web.Pages.Account.Manage;
 
@@ -13,11 +14,11 @@ public class FirstLoginModel(
     UserManager<AppUser> userManager,
     SignInManager<AppUser> signInManager) : PageModel
 {
-    [BindProperty]
-    public InputModel Input { get; set; } = new();
+    [BindProperty] public InputModel Input { get; set; } = new();
 
-    [BindProperty]
-    public string? ReturnUrl { get; set; }
+    [BindProperty] public string? ReturnUrl { get; set; }
+
+    public bool IsGuest { get; set; }
 
     public async Task<IActionResult> OnGetAsync(string? returnUrl = null)
     {
@@ -26,9 +27,10 @@ public class FirstLoginModel(
             return NotFound("Unable to load user.");
 
         ReturnUrl = returnUrl;
+        IsGuest = await userManager.IsInRoleAsync(user, Roles.Guest);
 
-        // If user already has a display name and doesn't need to change password, they are done.
-        if (!user.MustChangePassword && !string.IsNullOrEmpty(user.DisplayName))
+        // If user already has a display name and doesn't need to change password (or is guest), they are done.
+        if ((!user.MustChangePassword || IsGuest) && !string.IsNullOrEmpty(user.DisplayName))
         {
             if (!string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl))
                 return LocalRedirect(ReturnUrl);
@@ -44,6 +46,12 @@ public class FirstLoginModel(
         var user = await userManager.GetUserAsync(User);
         if (user is null)
             return NotFound("Unable to load user.");
+
+        IsGuest = await userManager.IsInRoleAsync(user, Roles.Guest);
+
+        // Remove password requirements for guests in ModelState
+        if (IsGuest)
+            return BadRequest();
 
         if (!ModelState.IsValid)
             return Page();

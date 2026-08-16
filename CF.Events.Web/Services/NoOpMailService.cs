@@ -45,7 +45,7 @@ public class NoOpMailService(ILogger<NoOpMailService> logger) : IMailService
                 Email: {Email},
                 Callback URL: {CallBackUrl}
             """,
-            request.TemplateId, request.EventName, request.UserName, request.UserEmail, request.InlineAttachments.Count());
+            request.TemplateId, request.EventName, request.UserName, request.UserEmail, request.CallBackUrl);
         return Task.CompletedTask;
     }
 }
