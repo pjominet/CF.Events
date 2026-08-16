@@ -2,7 +2,6 @@
 using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Models;
-using CF.Events.Web.Models.Requests;
 using Microsoft.Extensions.Options;
 
 namespace CF.Events.Web.Services;
@@ -10,6 +9,8 @@ namespace CF.Events.Web.Services;
 public interface IAuthEmailService
 {
     Task SendLoginEmailAsync(AppUser user, CancellationToken ctx = default);
+    Task<string> CreateAuthCodeAsync(string userId, int? eventId, int validityDays, CancellationToken ctx = default);
+    string BuildAuthCallbackUrl(string code, int? eventId);
 }
 
 public class AuthEmailService(
@@ -21,29 +22,33 @@ public class AuthEmailService(
 
     public async Task SendLoginEmailAsync(AppUser user, CancellationToken ctx = default)
     {
-        var request = new LoginEmailRequest
-        {
-            UserId = user.Id,
-            UserName = user.DisplayName ?? user.UserName ?? string.Empty,
-            UserEmail = user.Email!
-        };
+        var code = await CreateAuthCodeAsync(user.Id, null, 1, ctx);
+        var callbackUrl = BuildAuthCallbackUrl(code, null);
 
+        await emailSender.SendLoginLinkAsync(user, user.Email!, callbackUrl);
+    }
+
+    public async Task<string> CreateAuthCodeAsync(string userId, int? eventId, int validityDays, CancellationToken ctx = default)
+    {
         var code = CodeGenerator.Generate(64);
         await db.AuthCodes.AddAsync(new AuthCode
         {
-            UserId = request.UserId,
-            EventId = request.EventId,
+            UserId = userId,
+            EventId = eventId,
             Value = code,
-            ValidUntil = DateTime.UtcNow.AddDays(1)
+            ValidUntil = DateTime.UtcNow.AddDays(validityDays)
         }, ctx);
 
-        var baseUrl = _appSettings.BaseUrl.TrimEnd('/');
-        request.CallBackUrl = $"{baseUrl}/account/auth-callback?code={code}";
-        if (request.EventId.HasValue)
-            request.CallBackUrl += $"&eventId={request.EventId.Value}";
-
         await db.SaveChangesAsync(ctx);
+        return code;
+    }
 
-        await emailSender.SendLoginLinkAsync(user, user.Email!, request.CallBackUrl);
+    public string BuildAuthCallbackUrl(string code, int? eventId)
+    {
+        var baseUrl = _appSettings.BaseUrl.TrimEnd('/');
+        var url = $"{baseUrl}/account/auth-callback?code={code}";
+        if (eventId.HasValue)
+            url += $"&eventId={eventId.Value}";
+        return url;
     }
 }

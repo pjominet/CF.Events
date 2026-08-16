@@ -43,12 +43,3 @@ public class SaveDateEmailRequest : ITemplateEmailRequest
     public IEnumerable<InlineAttachment> InlineAttachments { get; set; } = [];
 }
 
-public class LoginEmailRequest
-{
-    public bool SendWithLink { get; set; } = true;
-    public int? EventId { get; init; }
-    public required string UserId { get; init; }
-    public required string UserName { get; init; }
-    public required string UserEmail { get; init; }
-    public string CallBackUrl { get; set; } = string.Empty;
-}

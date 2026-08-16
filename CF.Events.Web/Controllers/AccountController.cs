@@ -80,7 +80,8 @@ public class AccountController(
         }
 
         // Invalidate the code immediately after successful retrieval
-        await db.AuthCodes.Where(c => c.Value == code).ExecuteDeleteAsync();
+        db.AuthCodes.Remove(authCode);
+        await db.SaveChangesAsync();
 
         var isGuest = await signInManager.UserManager.IsInRoleAsync(user, Constants.Roles.Guest);
         await signInManager.SignInAsync(user, new AuthenticationProperties

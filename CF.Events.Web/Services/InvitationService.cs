@@ -1,6 +1,5 @@
 ﻿using System.Linq.Expressions;
 using CF.Events.Web.Data;
-using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Models;
 using CF.Events.Web.Models.Requests;
@@ -24,6 +23,7 @@ public interface IInvitationService
 public class InvitationService(
     EventsDbContext db,
     IMailService mailService,
+    IAuthEmailService authEmailService,
     IOptions<AppSettings> appOptions,
     ILogger<InvitationService> logger) : IInvitationService
 {
@@ -284,17 +284,8 @@ public class InvitationService(
 
     private async Task PrepareInvitationAsync(ITemplateEmailRequest request, CancellationToken ctx = default)
     {
-        var code = CodeGenerator.Generate(64);
-        await db.AuthCodes.AddAsync(new AuthCode
-        {
-            UserId = request.UserId,
-            EventId = request.EventId,
-            Value = code,
-            ValidUntil = DateTime.UtcNow.AddDays(request.CallbackValidity)
-        }, ctx);
-
-        var baseUrl = _appSettings.BaseUrl.TrimEnd('/');
-        request.CallBackUrl = $"{baseUrl}/account/auth-callback?code={code}&eventId={request.EventId}";
+        var code = await authEmailService.CreateAuthCodeAsync(request.UserId, request.EventId, request.CallbackValidity, ctx);
+        request.CallBackUrl = authEmailService.BuildAuthCallbackUrl(code, request.EventId);
     }
 
     public string BuildSaveDateCallbackUrl(int eventId, string userId)
