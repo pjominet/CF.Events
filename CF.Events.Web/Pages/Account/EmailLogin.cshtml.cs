@@ -5,11 +5,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.RateLimiting;
 using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web.Pages.Account;
 
 [AllowAnonymous]
+[EnableRateLimiting(RateLimitingPolicy.EmailLogin)]
 public class EmailLoginModel(
     UserManager<AppUser> userManager,
     IAuthEmailService authEmailService,

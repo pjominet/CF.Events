@@ -24,6 +24,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         services.AddAppServices(environment);
         services.AddAppAuthentication(environment, configuration);
         services.AddAppDataProtection(environment);
+        services.AddAppRateLimiting();
         services.AddHttpClients(configuration);
 
         services.AddRazorPages(options =>
@@ -135,6 +136,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         app.UseStatusCodePagesWithReExecute("/error", "?code={0}");
 
         app.UseSecurityHeaders();
+        app.UseRateLimiter();
         app.UseStaticFiles();
 
         app.UseRouting();

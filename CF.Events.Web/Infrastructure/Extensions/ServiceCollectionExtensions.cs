@@ -1,4 +1,6 @@
-﻿using AngleSharp.Html.Parser;
+﻿using System.Threading.RateLimiting;
+using AngleSharp.Html.Parser;
+using Microsoft.AspNetCore.Builder;
 using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure.Exceptions;
 using CF.Events.Web.Infrastructure.Factories;
@@ -10,6 +12,7 @@ using CF.Events.Web.Services.BackgroundWorkers;
 using EditorJsonToHtmlConverter;
 using Microsoft.AspNetCore.DataProtection;
 using Smtp2Go.Api;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -113,6 +116,25 @@ public static class ServiceCollectionExtensions
         services.AddDataProtection()
             .PersistKeysToFileSystem(new DirectoryInfo(keysPath))
             .SetApplicationName("CF.Events.Web");
+    }
+
+    public static void AddAppRateLimiting(this IServiceCollection services)
+    {
+        services.AddRateLimiter(options =>
+        {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+            options.AddPolicy(RateLimitingPolicy.EmailLogin, context =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? context.Request.Headers.Host.ToString(),
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 5,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 0
+                    }));
+        });
     }
 
     public static void AddHttpClients(this IServiceCollection services, IConfiguration configuration)

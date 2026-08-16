@@ -29,8 +29,15 @@ public class FirstLoginModel(
         ReturnUrl = returnUrl;
         IsGuest = await userManager.IsInRoleAsync(user, Roles.Guest);
 
-        // If user already has a display name and doesn't need to change password (or is guest), they are done.
-        if ((!user.MustChangePassword || IsGuest) && !string.IsNullOrEmpty(user.DisplayName))
+        if (IsGuest)
+        {
+            if (!string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl))
+                return LocalRedirect(ReturnUrl);
+            return LocalRedirect("/");
+        }
+
+        // If user already has a display name and doesn't need to change password, they are done.
+        if (!user.MustChangePassword && !string.IsNullOrEmpty(user.DisplayName))
         {
             if (!string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl))
                 return LocalRedirect(ReturnUrl);

@@ -56,6 +56,9 @@ public class AccountController(
     [AllowAnonymous]
     public async Task<IActionResult> InvitationCallback([FromQuery] string code, [FromQuery] int? eventId)
     {
+        // Prevent leaking the token via Referer header
+        Response.Headers.Append("Referrer-Policy", "no-referrer");
+
         var authCode = await db.AuthCodes
             .FirstOrDefaultAsync(c => c.Value == code && c.ValidUntil > DateTime.UtcNow);
 
