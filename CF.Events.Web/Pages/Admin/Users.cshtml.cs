@@ -21,17 +21,15 @@ public class UsersModel(
 
     [BindProperty] public InputModel NewUser { get; set; } = new();
 
-    public async Task OnGetAsync()
+    public async Task OnGetAsync(string? search = null)
     {
         await LoadAsync();
     }
 
-    public async Task<IActionResult> OnPostAddAsync()
+    public async Task<IActionResult> OnPostAddAsync(string? search = null)
     {
         if (NewUser.SelectedRoles.Contains(Roles.Guest) && string.IsNullOrWhiteSpace(NewUser.GuestGroup))
-        {
             ModelState.AddModelError("NewUser.GuestGroup", "Guest Group Label is required for guests.");
-        }
 
         if (!ModelState.IsValid)
         {
@@ -78,14 +76,14 @@ public class UsersModel(
                         Label = NewUser.GuestGroup ?? NewUser.DisplayName!,
                         GuestUserId = user.Id,
                         Participants = participants.Count == 0 ? [user.DisplayName!] : participants,
-                        MaxPeople = NewUser.MaxPeople
+                        MaxPeople = NewUser.MaxPeople ?? 4
                     };
                     db.GuestGroups.Add(guestGroup);
                 }
                 else
                 {
                     guestGroup.Label = NewUser.GuestGroup ?? NewUser.DisplayName!;
-                    guestGroup.MaxPeople = NewUser.MaxPeople;
+                    guestGroup.MaxPeople = NewUser.MaxPeople ?? 4;
                     guestGroup.Participants = participants.Count == 0 ? [user.DisplayName!] : participants;
                 }
 
@@ -100,15 +98,13 @@ public class UsersModel(
         else
             toastNotification.AddErrorToastMessage($"Failed to add roles for user {NewUser.Email}");
 
-        return RedirectToPage();
+        return RedirectToPage(new { search });
     }
 
-    public async Task<IActionResult> OnPostEditAsync()
+    public async Task<IActionResult> OnPostEditAsync(string? search = null)
     {
         if (NewUser.SelectedRoles.Contains(Roles.Guest) && string.IsNullOrWhiteSpace(NewUser.GuestGroup))
-        {
             ModelState.AddModelError("NewUser.GuestGroup", "Guest Group Label is required for guests.");
-        }
 
         if (!ModelState.IsValid)
         {
@@ -118,10 +114,10 @@ public class UsersModel(
         }
 
         var user = await userManager.FindByIdAsync(NewUser.Id!);
-        if (user == null)
+        if (user is null)
         {
             toastNotification.AddErrorToastMessage("User not found");
-            return RedirectToPage();
+            return RedirectToPage(new { search });
         }
 
         user.Email = NewUser.Email;
@@ -149,17 +145,17 @@ public class UsersModel(
         var updatedRoles = await userManager.GetRolesAsync(user);
         if (updatedRoles.Contains(Roles.Guest))
         {
-            var participants = (NewUser.GuestGroup).Split("&", StringSplitOptions.RemoveEmptyEntries).Select(p => p.Trim()).ToList();
+            var participants = (NewUser.GuestGroup ?? "").Split("&", StringSplitOptions.RemoveEmptyEntries).Select(p => p.Trim()).ToList();
             var guestGroup = await db.GuestGroups.FirstOrDefaultAsync(g => g.GuestUserId == user.Id);
 
             if (guestGroup is null)
             {
                 guestGroup = new GuestGroup
                 {
-                    Label = NewUser.GuestGroup,
+                    Label = NewUser.GuestGroup ?? NewUser.DisplayName,
                     GuestUserId = user.Id,
                     Participants = participants.Count == 0 ? [user.DisplayName!] : participants,
-                    MaxPeople = NewUser.MaxPeople
+                    MaxPeople = NewUser.MaxPeople ?? 4
                 };
                 db.GuestGroups.Add(guestGroup);
                 await db.SaveChangesAsync();
@@ -168,8 +164,8 @@ public class UsersModel(
             }
             else
             {
-                guestGroup.Label = NewUser.GuestGroup;
-                guestGroup.MaxPeople = NewUser.MaxPeople;
+                guestGroup.Label = NewUser.GuestGroup ?? NewUser.DisplayName;
+                guestGroup.MaxPeople = NewUser.MaxPeople ?? 4;
 
                 // Update participants if they were changed
                 if (participants.Count > 0)
@@ -186,7 +182,7 @@ public class UsersModel(
         }
 
         toastNotification.AddSuccessToastMessage($"Updated user {NewUser.Email}");
-        return RedirectToPage();
+        return RedirectToPage(new { search });
     }
 
     private async Task LoadAsync()
@@ -208,16 +204,16 @@ public class UsersModel(
                 u.IsActive,
                 roles));
         }
-        AllUsers = AllUsers.OrderBy(u => u.DisplayName).ToList();
+        AllUsers = [.. AllUsers.OrderBy(u => u.DisplayName)];
     }
 
-    public async Task<IActionResult> OnPostPromoteAsync(string userId)
+    public async Task<IActionResult> OnPostPromoteAsync(string userId, string? search = null)
     {
         var user = await userManager.FindByIdAsync(userId);
         if (user is null)
         {
             toastNotification.AddWarningToastMessage("User not found");
-            return RedirectToPage();
+            return RedirectToPage(new { search });
         }
 
         var result = await userManager.AddToRoleAsync(user, Roles.Admin);
@@ -225,16 +221,16 @@ public class UsersModel(
             toastNotification.AddSuccessToastMessage("User promotion successfully");
         else toastNotification.AddErrorToastMessage("User promotion failed");
 
-        return RedirectToPage();
+        return RedirectToPage(new { search });
     }
 
-    public async Task<IActionResult> OnPostDemoteAsync(string userId)
+    public async Task<IActionResult> OnPostDemoteAsync(string userId, string? search = null)
     {
         var user = await userManager.FindByIdAsync(userId);
         if (user is null)
         {
             toastNotification.AddWarningToastMessage("User not found");
-            return RedirectToPage();
+            return RedirectToPage(new { search });
         }
 
         var result = await userManager.RemoveFromRoleAsync(user, Roles.Admin);
@@ -242,16 +238,16 @@ public class UsersModel(
             toastNotification.AddSuccessToastMessage("User demotion successfully");
         else toastNotification.AddErrorToastMessage("User demotion failed");
 
-        return RedirectToPage();
+        return RedirectToPage(new { search });
     }
 
-    public async Task<IActionResult> OnPostToggleAsync(string userId)
+    public async Task<IActionResult> OnPostToggleAsync(string userId, string? search = null)
     {
         var user = await userManager.FindByIdAsync(userId);
         if (user is null)
         {
             toastNotification.AddWarningToastMessage("User not found");
-            return RedirectToPage();
+            return RedirectToPage(new { search });
         }
 
         user.IsActive = !user.IsActive;
@@ -260,22 +256,22 @@ public class UsersModel(
             toastNotification.AddSuccessToastMessage("User toggled successfully");
         else toastNotification.AddErrorToastMessage("User toggle failed");
 
-        return RedirectToPage();
+        return RedirectToPage(new { search });
     }
 
-    public async Task<IActionResult> OnPostDeleteAsync(string userId)
+    public async Task<IActionResult> OnPostDeleteAsync(string userId, string? search = null)
     {
         var user = await userManager.FindByIdAsync(userId);
         if (user is null)
         {
             toastNotification.AddWarningToastMessage("User not found");
-            return RedirectToPage();
+            return RedirectToPage(new { search });
         }
 
         if (user.IsActive)
         {
             toastNotification.AddErrorToastMessage("Only deactivated users can be deleted");
-            return RedirectToPage();
+            return RedirectToPage(new { search });
         }
 
         var result = await userManager.DeleteAsync(user);
@@ -283,13 +279,13 @@ public class UsersModel(
             toastNotification.AddSuccessToastMessage($"Deleted user {user.Email}");
         else toastNotification.AddErrorToastMessage($"Failed to delete user {user.Email}");
 
-        return RedirectToPage();
+        return RedirectToPage(new { search });
     }
 
-    public async Task<IActionResult> OnPostBulkDeleteAsync(string userIds)
+    public async Task<IActionResult> OnPostBulkDeleteAsync(string userIds, string? search = null)
     {
         if (string.IsNullOrEmpty(userIds))
-            return RedirectToPage();
+            return RedirectToPage(new { search });
 
         var ids = userIds.Split(',', StringSplitOptions.RemoveEmptyEntries);
         var count = 0;
@@ -317,7 +313,7 @@ public class UsersModel(
         if (failed > 0)
             toastNotification.AddErrorToastMessage($"Failed to delete {failed} users (they might be active or system protected)");
 
-        return RedirectToPage();
+        return RedirectToPage(new { search });
     }
 
     public record UserRow(string Id, string Email, string Phone, string DisplayName, string GuestGroup, int MaxPeople, bool IsActive, IList<string> Roles);
@@ -329,9 +325,8 @@ public class UsersModel(
         [Required]
         public string DisplayName { get; set; } = string.Empty;
 
-        public string GuestGroup { get; set; } = string.Empty;
-
-        public int MaxPeople { get; set; } = 4;
+        public string? GuestGroup { get; set; }
+        public int? MaxPeople { get; set; } = 4;
 
         [Required]
         [EmailAddress]

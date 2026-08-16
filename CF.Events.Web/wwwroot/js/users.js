@@ -25,6 +25,63 @@
         });
     });
 
+    const searchInput = document.getElementById('userSearchInput');
+    if (searchInput) {
+        const applyFilter = (searchTerm) => {
+            const rows = document.querySelectorAll('table tbody tr');
+            rows.forEach(row => {
+                const displayName = row.querySelector('td:nth-child(2)')?.textContent?.toLowerCase() || '';
+                const email = row.querySelector('td:nth-child(3)')?.textContent?.toLowerCase() || '';
+                const guestGroup = row.querySelector('td:nth-child(5)')?.textContent?.toLowerCase() || '';
+
+                if (displayName.includes(searchTerm) || email.includes(searchTerm) || guestGroup.includes(searchTerm)) {
+                    row.classList.remove('d-none');
+                } else {
+                    row.classList.add('d-none');
+                }
+            });
+
+            // Update all forms and links that need to persist the search term
+            updateSearchContext(searchTerm);
+        };
+
+        const updateSearchContext = (searchTerm) => {
+            // Update form actions with search param
+            document.querySelectorAll('form').forEach(form => {
+                const url = new URL(form.action);
+                if (searchTerm) {
+                    url.searchParams.set('search', searchTerm);
+                } else {
+                    url.searchParams.delete('search');
+                }
+
+                form.action = url.pathname + url.search;
+            });
+        };
+
+        searchInput.addEventListener('input', function () {
+            const searchTerm = this.value.toLowerCase().trim();
+            applyFilter(searchTerm);
+
+            // Update URL query param
+            const url = new URL(window.location);
+            if (searchTerm) {
+                url.searchParams.set('search', searchTerm);
+            } else {
+                url.searchParams.delete('search');
+            }
+            window.history.replaceState({}, '', url);
+        });
+
+        // Re-apply filter on page load if query param exists
+        const urlParams = new URLSearchParams(window.location.search);
+        const initialSearch = urlParams.get('search');
+        if (initialSearch) {
+            searchInput.value = initialSearch;
+            applyFilter(initialSearch.toLowerCase().trim());
+        }
+    }
+
     function updateBulkButtons() {
         const anyChecked = Array.from(userCheckboxes).some(cb => cb.checked);
         bulkActionButtons.forEach(btn => {
@@ -58,7 +115,7 @@
     };
 
     const roleGuestCheckbox = document.getElementById('roleGuest');
-    const roleUserCheckbox = document.getElementById('roleUser');
+    const roleAdminCheckbox = document.getElementById('roleAdmin');
     const guestGroupContainer = document.getElementById('guestGroupContainer');
     const guestGroupInput = document.getElementById('guestGroupInput');
     const maxPeopleInput = document.getElementById('maxPeopleInput');
@@ -72,11 +129,15 @@
             const title = document.getElementById('addUserModalTitle');
             const submitBtn = document.getElementById('addUserSubmitBtn');
 
+            // Get current search term from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchTerm = urlParams.get('search');
+
             if (userId) {
                 // Edit mode
                 title.textContent = 'Edit User';
                 submitBtn.textContent = 'Save Changes';
-                form.action = '?handler=Edit';
+                form.action = '?handler=Edit' + (searchTerm ? '&search=' + encodeURIComponent(searchTerm) : '');
 
                 document.getElementById('userEditId').value = userId;
                 document.getElementById('userDisplayName').value = button.getAttribute('data-user-displayname');
@@ -90,13 +151,13 @@
                 maxPeopleInput.value = maxPeople || 4;
 
                 const roles = button.getAttribute('data-user-roles').split(',');
-                roleUserCheckbox.checked = roles.includes('User');
+                if (roleAdminCheckbox) roleAdminCheckbox.checked = roles.includes('Admin');
                 roleGuestCheckbox.checked = roles.includes('Guest');
             } else {
                 // Add mode
                 title.textContent = 'Invite New User';
                 submitBtn.textContent = 'Add';
-                form.action = '?handler=Add';
+                form.action = '?handler=Add' + (searchTerm ? '&search=' + encodeURIComponent(searchTerm) : '');
 
                 document.getElementById('userEditId').value = '';
                 document.getElementById('userDisplayName').value = '';
@@ -104,7 +165,7 @@
                 document.getElementById('userPhone').value = '';
                 guestGroupInput.value = '';
                 maxPeopleInput.value = 4;
-                roleUserCheckbox.checked = false;
+                if (roleAdminCheckbox) roleAdminCheckbox.checked = false;
                 roleGuestCheckbox.checked = true;
             }
             toggleGuestGroup();
