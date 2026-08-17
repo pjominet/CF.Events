@@ -13,7 +13,7 @@
 @switch (Model.MyInvites.Count)
 {
     case 0:
-        <div class="text-center py-5 glass-card mx-auto mt-5">
+        <div class="text-center py-5 glass-card mx-auto mt-3 mt-md-4">
             <i class="bi bi-envelope-slash glass-text-muted display-1 mb-3"></i>
             <h3 class="text-white mb-3">No invitations found</h3>
             <p class="glass-text-muted">You haven't been invited to any events yet.</p>
@@ -22,7 +22,7 @@
     case 1:
     {
         var invite = Model.MyInvites.First();
-        <section class="d-flex justify-content-center align-items-center mt-5">
+        <section class="d-flex justify-content-center align-items-center mt-3 mt-md-4">
             <div class="glass-card glass-card-lg">
                 <h2 class="mb-3 brand-name serif">@invite.Event.Name</h2>
                 <div class="invite-header">

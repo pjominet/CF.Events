@@ -42,6 +42,14 @@ body.glass-theme:before {
     body.glass-theme:before {
         background-image: url("/img/bg_floral_edges_vertical.png");
     }
+
+    .glass-theme footer {
+        display: none !important;
+    }
+
+    .glass-theme main {
+        padding-bottom: 12px;
+    }
 }
 
 .text-dark-glass {
@@ -76,7 +84,6 @@ body.glass-theme:before {
     .glass-card {
         padding: 1rem;
         max-width: 100%;
-
     }
 
     .glass-card-lg {
@@ -91,19 +98,20 @@ body.glass-theme:before {
     border: 1px solid var(--border-glass);
     border-radius: 50px;
     position: sticky;
-    top: 20px;
+    top: 1.5rem;
     z-index: 1000;
     box-shadow: var(--glass-shadow);
     transition: margin 0.3s ease, border-radius 0.3s ease;
     max-width: 1400px;
     margin-left: auto;
     margin-right: auto;
-    margin-top: 20px;
+    margin-top: 1.5rem;
 }
 
 @media (max-width: 991.98px) {
     .glass-navbar {
-        margin: 10px 10px 0 10px;
+        top: 12px;
+        margin: 12px 12px 0 12px;
         border-radius: 25px;
     }
 }
