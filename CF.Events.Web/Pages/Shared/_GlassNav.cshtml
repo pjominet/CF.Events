@@ -7,12 +7,16 @@
             <img src="~/img/wedding_logo_transparent_shadowed.png" alt="Logo" width="40" height="40" class="d-inline-block align-text-top">
             <span class="brand-name serif text-dark-glass fs-2 mt-1">@Model</span>
         </a>
-        @if (User.IsAuthenticated())
+        @if (User.IsAuthenticated() && !User.InitPassword())
         {
             <button class="navbar-toggler border-0" type="button" aria-label="Toggle navigation" id="sidebarToggle">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse flex-grow-1" id="navbarNav">
+        }
+
+        <div class="collapse navbar-collapse flex-grow-1" id="navbarNav">
+            @if (User.IsAuthenticated() && !User.InitPassword())
+            {
                 <ul class="navbar-nav me-auto">
                     @if (User.IsAdmin())
                     {
@@ -45,8 +49,8 @@
                         </ul>
                     </li>
                 </ul>
-            </div>
-        }
+            }
+        </div>
     </div>
 </nav>
 
@@ -57,15 +61,15 @@
         <button type="button" class="btn-close btn-close-white" id="sidebarClose" aria-label="Close"></button>
     </div>
     <div class="sidebar-content p-3">
-        @if (User.IsAuthenticated())
+        @if (User.IsAuthenticated() && !User.InitPassword())
         {
             <div class="sidebar-section mb-4">
                 <h6 class="glass-text-muted text-uppercase small fw-bold mb-3">Navigation</h6>
                 <ul class="nav flex-column gap-2">
-                    <li class="nav-item"><a class="nav-link p-0" href="/"><i class="bi bi-house me-2"></i>Home</a></li>
+                    <li class="nav-item"><a class="nav-link p-0" href="/invites"><i class="bi bi-envelope me-2"></i>My Invites</a></li>
+                    <li class="nav-item"><a class="nav-link p-0" href="/privacy"><i class="bi bi-shield-check me-2"></i>Privacy</a></li>
                     @if (User.IsAdmin())
                     {
-                        <li class="nav-item"><a class="nav-link p-0" href="/invites"><i class="bi bi-envelope me-2"></i>My Invites</a></li>
                         <li class="nav-item">
                             <a class="nav-link p-0 dropdown-toggle" href="#adminSidebarSubmenu" data-bs-toggle="collapse" role="button" aria-expanded="false">
                                 <i class="bi bi-shield-lock me-2"></i>Admin

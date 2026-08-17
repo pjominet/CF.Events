@@ -17,8 +17,7 @@ public class EmailLoginModel(
     IAuthEmailService authEmailService,
     ILogger<EmailLoginModel> logger) : PageModel
 {
-    [BindProperty]
-    public InputModel Input { get; set; } = new();
+    [BindProperty] public InputModel Input { get; set; } = new();
 
     public bool EmailSent { get; set; }
 
@@ -29,27 +28,24 @@ public class EmailLoginModel(
 
         var user = await userManager.FindByEmailAsync(Input.Email);
 
-        // We only allow email auth for Guest users
         if (user is { IsActive: true } && await userManager.IsInRoleAsync(user, Roles.Guest))
         {
             logger.LogInformation("Sending login email to guest user {Email}", Input.Email);
             await authEmailService.SendLoginEmailAsync(user);
         }
-        else if (user is not null && await userManager.IsInRoleAsync(user, Roles.Admin))
+        else
         {
-             logger.LogWarning("Admin user {Email} attempted to use email login flow", Input.Email);
-             // We don't send the email for admins, they must use password
-             // But we still show the success message to avoid user enumeration
+            // log failed access attempt
+            logger.LogWarning("Invalid user {Email} attempted to use email login flow", Input.Email);
         }
 
+        // don't reveal that the user was not found
         EmailSent = true;
         return Page();
     }
 
     public class InputModel
     {
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; } = string.Empty;
+        [Required] [EmailAddress] public string Email { get; set; } = string.Empty;
     }
 }

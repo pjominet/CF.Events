@@ -44,6 +44,7 @@ public class UsersModel(
             Email = NewUser.Email,
             DisplayName = NewUser.DisplayName,
             PhoneNumber = NewUser.PhoneNumber,
+            MustChangePassword = !NewUser.SelectedRoles.Contains(Roles.Guest),
             EmailConfirmed = true
         };
 
@@ -194,6 +195,7 @@ public class UsersModel(
         foreach (var u in users)
         {
             var roles = await userManager.GetRolesAsync(u);
+            var passwordSet = !string.IsNullOrWhiteSpace(u.PasswordHash) && !u.MustChangePassword;
             AllUsers.Add(new UserRow(
                 u.Id,
                 u.Email ?? "undefined",
@@ -202,7 +204,8 @@ public class UsersModel(
                 u.GuestGroup?.Label ?? "n/a",
                 u.GuestGroup?.MaxPeople ?? 0,
                 u.IsActive,
-                roles));
+                roles,
+                passwordSet ? u.MustChangePassword : null));
         }
         AllUsers = [.. AllUsers.OrderBy(u => u.DisplayName)];
     }
@@ -316,7 +319,7 @@ public class UsersModel(
         return RedirectToPage();
     }
 
-    public record UserRow(string Id, string Email, string Phone, string DisplayName, string GuestGroup, int MaxPeople, bool IsActive, IList<string> Roles);
+    public record UserRow(string Id, string Email, string Phone, string DisplayName, string GuestGroup, int MaxPeople, bool IsActive, IList<string> Roles, bool? MustChangePassword);
 
     public sealed class InputModel
     {

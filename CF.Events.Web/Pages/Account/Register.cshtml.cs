@@ -19,8 +19,7 @@ public class RegisterModel(
     IWebHostEnvironment environment,
     ILogger<RegisterModel> logger) : PageModel
 {
-    [BindProperty]
-    public InputModel Input { get; set; } = new();
+    [BindProperty] public InputModel Input { get; set; } = new();
 
     public string? ReturnUrl { get; set; }
 
@@ -33,6 +32,8 @@ public class RegisterModel(
             return Page();
 
         var isFirstUser = !userManager.Users.Any();
+        if (!isFirstUser)
+            return BadRequest("Currently not allowed to register as new user");
 
         var user = new AppUser
         {

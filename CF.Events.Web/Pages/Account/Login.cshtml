@@ -2,7 +2,7 @@
 @attribute [AllowAnonymous]
 @model CF.Events.Web.Pages.Account.LoginModel
 @{
-    ViewData["Title"] = "Log in";
+    ViewData["Title"] = "Log In";
     Layout = "_GlassLayout";
 }
 
@@ -15,34 +15,51 @@
         <section class="card-body">
             <form method="post">
                 <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com"/>
-                    <label asp-for="Input.Email" class="form-label">Email</label>
-                    <span asp-validation-for="Input.Email" class="text-danger"></span>
-                </div>
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Password" type="password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password"/>
-                    <label asp-for="Input.Password" class="form-label">Password</label>
-                    <span asp-validation-for="Input.Password" class="text-danger"></span>
-                </div>
-                <div class="checkbox mb-3">
-                    <label class="form-label">
-                        <input asp-for="Input.RememberMe" class="form-check-input"/>
-                        @Html.DisplayNameFor(m => m.Input.RememberMe)
-                    </label>
-                </div>
-                <div>
-                    <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-                </div>
-                <div class="text-center mt-3">
-                    <p class="text-white">Guest user? <a asp-page="./EmailLogin" class="text-info">Login via Email</a></p>
-                </div>
+                <input type="hidden" asp-for="ReturnUrl"/>
+                @if (!Model.ShowPasswordStep)
+                {
+                    <input type="hidden" asp-for="ShowPasswordStep" value="false"/>
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com"/>
+                        <label asp-for="Input.Email" class="form-label">Email</label>
+                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <button type="submit" class="w-100 btn btn-lg btn-primary">Continue</button>
+                    </div>
+                    <div class="text-center">
+                        <a class="text-dark-glass" asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Register as a new user</a>
+                    </div>
+                }
+                else
+                {
+                    <input type="hidden" asp-for="ShowPasswordStep" value="true"/>
+                    <input type="hidden" asp-for="Input.Email"/>
+                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                        <span class="text-dark-glass fw-semibold">@Model.Input.Email</span>
+                        <a asp-page="./Login" asp-route-email="@Model.Input.Email" asp-route-returnUrl="@Model.ReturnUrl" class="text-dark-glass">Change</a>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.Password" type="password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password"/>
+                        <label asp-for="Input.Password" class="form-label">Password</label>
+                        <span asp-validation-for="Input.Password" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <input asp-for="Input.RememberMe" class="form-check-input"/>
+                            @Html.DisplayNameFor(m => m.Input.RememberMe)
+                        </label>
+                    </div>
+                    <div class="mb-3">
+                        <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
+                    </div>
+                    <div class="text-center">
+                        <a class="text-dark-glass" asp-page="./ForgotPassword">Forgot your password?</a>
+                    </div>
+                }
             </form>
         </section>
-        <section class="d-flex gap-3 justify-content-center">
-            <p><a class="text-dark-glass" asp-page="./ForgotPassword">Forgot your password?</a></p>
-            @*<p><a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Register as a new user</a></p>*@
-        </section>
+
     </div>
 </div>
 

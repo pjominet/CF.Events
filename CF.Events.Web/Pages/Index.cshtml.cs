@@ -10,7 +10,10 @@ public class IndexModel : PageModel
     public IActionResult OnGet()
     {
         if (User.Identity?.IsAuthenticated != true)
-            return Redirect("/account/login");
+            return Redirect("/account/email-login");
+
+        if (User.InitPassword())
+            return Redirect("/account/manage/first-login");
 
         return User.IsInRole(Constants.Roles.Admin)
             ? Redirect("/admin")

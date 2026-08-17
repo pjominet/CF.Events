@@ -47,11 +47,11 @@
                         <label class="form-label fw-bold">Roles</label>
                         <div class="d-flex gap-3">
                             <div class="form-check">
-                                <input class="form-check-input role-checkbox" type="checkbox" name="NewUser.SelectedRoles" value="@Roles.User" id="roleUser">
+                                <input class="form-check-input role-radio" type="radio" asp-for="SelectedRoles" value="@Roles.User" id="roleUser">
                                 <label class="form-check-label" for="roleUser">@Roles.User</label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input role-checkbox" type="checkbox" name="NewUser.SelectedRoles" value="@Roles.Guest" id="roleGuest" checked>
+                                <input class="form-check-input role-radio" type="radio" asp-for="SelectedRoles" value="@Roles.Guest" id="roleGuest" checked>
                                 <label class="form-check-label" for="roleGuest">@Roles.Guest</label>
                             </div>
                         </div>

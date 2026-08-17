@@ -1,0 +1,48 @@
+﻿@page "/account/manage/first-login"
+@model CF.Events.Web.Pages.Account.Manage.FirstLoginModel
+@{
+    ViewData["Title"] = "Complete your profile";
+}
+
+@if (Model.IsGuest)
+{
+    <div class="d-flex justify-content-center align-items-center mt-5">
+        <div class="alert alert-warning">You are not allowed to use this feature. Please go through <a href="/Account/EmailLogin">our email auth system</a>.</div>
+    </div>
+    return;
+}
+
+<section class="d-flex justify-content-center align-items-center mt-5">
+    <div class="card card-500 border-0 p-4 mx-auto rounded shadow-sm">
+        <h3>Complete your profile</h3>
+        <hr />
+        <form method="post">
+            <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.DisplayName" class="form-control" placeholder="Please enter your display name."/>
+                <label asp-for="Input.DisplayName" class="form-label">Display Name</label>
+                <span asp-validation-for="Input.DisplayName" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.NewPassword" type="password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Please enter your new password."/>
+                <label asp-for="Input.NewPassword" class="form-label">New Password</label>
+                <span asp-validation-for="Input.NewPassword" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.ConfirmPassword" type="password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Please confirm your new password."/>
+                <label asp-for="Input.ConfirmPassword" class="form-label">Confirm Password</label>
+                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+            </div>
+            <p class="text-muted text-small">
+                <i class="bi bi-info-circle text-info me-2"></i>Passwords need to be at least <b>8 characters</b> long,
+                and need to contain at least one <b>uppercase</b> letter, one <b>special</b> character and one <b>digit</b>.
+            </p>
+            <input asp-for="ReturnUrl" type="hidden"/>
+            <button type="submit" class="w-100 btn btn-lg btn-primary">Save Changes</button>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial"/>
+}

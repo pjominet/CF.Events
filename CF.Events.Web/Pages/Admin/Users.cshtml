@@ -68,6 +68,7 @@
                         <th>Guest Group</th>
                         <th>Group Max People</th>
                         <th>Roles</th>
+                        <th>Password Set?</th>
                         <th>Is Active</th>
                         <th>Actions</th>
                     </tr>
@@ -98,6 +99,23 @@
                                         <span class="badge @badgeColor me-1">@role</span>
                                     }
                                 </div>
+                            </td>
+                            <td>
+                                @if (user.MustChangePassword.HasValue)
+                                {
+                                    if (user.MustChangePassword.Value)
+                                    {
+                                        @:<i class="bi bi-x text-danger"></i>
+                                    }
+                                    else
+                                    {
+                                        @:<i class="bi bi-check text-success"></i>
+                                    }
+                                }
+                                else
+                                {
+                                    @:<i class="bi bi-dash text-muted"></i>
+                                }
                             </td>
                             <td>
                                 <div class="d-flex justify-content-start align-items-center">
