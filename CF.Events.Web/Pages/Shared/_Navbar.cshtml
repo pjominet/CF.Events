@@ -7,13 +7,16 @@
             <img src="~/img/wedding_logo_transparent_shadowed.png" alt="Logo" width="40" height="40" class="d-inline-block align-text-top">
             <span class="brand-name">@Model</span>
         </a>
-        @if (User.IsAuthenticated())
+        @if (User.IsAuthenticated() && !User.InitPassword())
         {
             <button class="navbar-toggler border-0" type="button" aria-label="Toggle navigation" id="sidebarToggle">
                 <span class="navbar-toggler-icon"></span>
             </button>
+        }
 
-            <div class="collapse navbar-collapse" id="navbarNav">
+        <div class="collapse navbar-collapse" id="navbarNav">
+            @if (User.IsAuthenticated() && !User.InitPassword())
+            {
                 <ul class="navbar-nav me-auto">
                     @if (User.IsUser() || User.IsGuest())
                     {
@@ -50,8 +53,8 @@
                         </ul>
                     </li>
                 </ul>
-            </div>
-        }
+            }
+        </div>
     </div>
 </nav>
 
@@ -62,7 +65,7 @@
         <button type="button" class="btn-close" id="sidebarClose" aria-label="Close"></button>
     </div>
     <div class="sidebar-content p-3">
-        @if (User.IsAuthenticated())
+        @if (User.IsAuthenticated() && !User.InitPassword())
         {
             <div class="sidebar-section mb-4">
                 <h6 class="text-muted text-uppercase small fw-bold mb-3">Navigation</h6>

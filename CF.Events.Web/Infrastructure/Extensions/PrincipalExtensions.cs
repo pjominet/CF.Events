@@ -16,6 +16,7 @@ public static class PrincipalExtensions
         public string GetId() => currentPrincipal.GetClaimValue(ClaimTypes.NameIdentifier);
         public string GetEmail() => currentPrincipal.GetClaimValue(ClaimTypes.Name);
         public string GetDisplayName() => currentPrincipal.GetClaimValue(EventClaims.DisplayName);
+        public bool InitPassword() => Convert.ToBoolean(currentPrincipal.GetClaimValue(EventClaims.InitPassword));
 
         private string GetClaimValue(string key)
         {

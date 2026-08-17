@@ -89,6 +89,7 @@ public class UserController(
                 Email = email,
                 PhoneNumber = !string.IsNullOrWhiteSpace(phone) ? phone : null,
                 DisplayName = name,
+                MustChangePassword = true,
                 EmailConfirmed = true,
                 IsActive = true
             };

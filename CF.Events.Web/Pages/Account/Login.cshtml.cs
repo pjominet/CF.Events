@@ -63,6 +63,9 @@ public class LoginModel(
             });
             await db.SaveChangesAsync();
 
+            if (user.MustChangePassword)
+                return RedirectToPage("./Manage/FirstLogin", new { returnUrl });
+
             return LocalRedirect(returnUrl ?? "/");
         }
 
