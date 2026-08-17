@@ -289,7 +289,7 @@
     }
 
     // Hide loading overlay
-    function hideLoadingOverlay() {
+    window.hideLoadingOverlay = function() {
         const overlay = document.getElementById('globalLoadingOverlay');
         if (overlay) {
             overlay.classList.remove('active');

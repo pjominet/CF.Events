@@ -21,6 +21,31 @@
         rootMargin: '100px'
     });
 
+    const refreshBtn = document.getElementById('refreshAuditBtn');
+
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', async () => {
+            window.showLoadingOverlay();
+
+            // Reset state
+            page = 0;
+            hasMore = true;
+            tableBody.innerHTML = '';
+
+            // Scroll to top of the container
+            scrollContainer.scrollTop = 0;
+
+            // Disable button during load
+            refreshBtn.disabled = true;
+
+            await loadMore();
+
+            refreshBtn.disabled = false;
+
+            window.hideLoadingOverlay();
+        });
+    }
+
     function updateObserver() {
         const lastRow = tableBody.lastElementChild;
         if (lastRow) {
