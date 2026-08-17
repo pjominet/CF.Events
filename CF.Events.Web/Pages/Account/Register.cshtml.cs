@@ -32,6 +32,8 @@ public class RegisterModel(
             return Page();
 
         var isFirstUser = !userManager.Users.Any();
+        if (!isFirstUser)
+            return BadRequest("Currently not allowed to register as new user");
 
         var user = new AppUser
         {
