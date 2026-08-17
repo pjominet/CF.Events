@@ -44,7 +44,7 @@ public class UsersModel(
             Email = NewUser.Email,
             DisplayName = NewUser.DisplayName,
             PhoneNumber = NewUser.PhoneNumber,
-            MustChangePassword = true,
+            MustChangePassword = !NewUser.SelectedRoles.Contains(Roles.Guest),
             EmailConfirmed = true
         };
 

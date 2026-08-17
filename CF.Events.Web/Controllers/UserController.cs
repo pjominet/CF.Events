@@ -75,7 +75,7 @@ public class UserController(
 
             var guestGroupLabel = parts.Length > 3 ? parts[3].Trim() : null;
             var maxPeopleStr = parts.Length > 4 ? parts[4].Trim() : null;
-            int maxPeople = int.TryParse(maxPeopleStr, out var parsed) ? parsed : 4;
+            var maxPeople = int.TryParse(maxPeopleStr, out var parsed) ? parsed : 4;
 
             if (selectedRoles.Contains(Roles.Guest) && string.IsNullOrWhiteSpace(guestGroupLabel))
             {
@@ -89,7 +89,7 @@ public class UserController(
                 Email = email,
                 PhoneNumber = !string.IsNullOrWhiteSpace(phone) ? phone : null,
                 DisplayName = name,
-                MustChangePassword = true,
+                MustChangePassword = !selectedRoles.Contains(Roles.Guest),
                 EmailConfirmed = true,
                 IsActive = true
             };

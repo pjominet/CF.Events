@@ -1,7 +1,7 @@
-﻿@page
+﻿@page "/account/email-login"
 @model CF.Events.Web.Pages.Account.EmailLoginModel
 @{
-    ViewData["Title"] = "Login via Email";
+    ViewData["Title"] = "Log In";
     Layout = "_GlassLayout";
 }
 
@@ -9,32 +9,35 @@
     <div class="card card-500 bg-glass border-glass p-4 mx-auto rounded-glass shadow-sm">
         <section class="text-center">
             <h1 class="serif">@ViewData["Title"]</h1>
-            <p class="text-white">Enter your email address and we'll send you a link to log in again</p>
         </section>
         <hr/>
-        <section class="card-body">
+        <section class="card-body pt-0">
             @if (Model.EmailSent)
             {
                 <div class="alert alert-success" role="alert">
                     If an active account was found for that email, a login link has been sent. Please check your inbox.
                 </div>
                 <div class="text-center">
-                    <a asp-page="./Login" class="btn btn-primary">Back to Login</a>
+                    <a asp-page="./" class="btn btn-primary">Retry</a>
                 </div>
             }
             else
             {
                 <form method="post">
                     <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+                    <p class="glass-text-muted mb-3">Enter your email address and we'll send you a link to log in.</p>
                     <div class="form-floating mb-3">
                         <input asp-for="Input.Email" class="form-control" autocomplete="email" aria-required="true" placeholder="name@example.com"/>
                         <label asp-for="Input.Email" class="form-label">Email</label>
                         <span asp-validation-for="Input.Email" class="text-danger"></span>
                     </div>
                     <div>
-                        <button type="submit" class="w-100 btn btn-lg btn-primary">Send Login Link</button>
+                        <button type="submit" class="w-100 btn btn-lg btn-primary">Send Link</button>
                     </div>
                 </form>
+                <section class="d-flex flex-column justify-content-center align-items-center mt-3">
+                    <p class="glass-text-muted mb-2">Not a guest?&nbsp;<a asp-page="./login" class="text-dark-glass">Classic Login</a></p>
+                </section>
             }
         </section>
     </div>
