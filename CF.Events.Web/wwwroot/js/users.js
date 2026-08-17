@@ -100,16 +100,15 @@
         form.submit();
     };
 
-    const roleGuestCheckbox = document.getElementById('roleGuest');
-    const roleUserCheckbox = document.getElementById('roleUser');
-    const roleAdminCheckbox = document.getElementById('roleAdmin');
+    const roleRadios = document.querySelectorAll('.role-radio');
+    const roleGuestRadio = document.getElementById('roleGuest');
     const guestGroupContainer = document.getElementById('guestGroupContainer');
     const guestGroupInput = document.getElementById('guestGroupInput');
     const maxPeopleInput = document.getElementById('maxPeopleInput');
 
     const toggleGuestGroup = () => {
-        if (roleGuestCheckbox && guestGroupContainer && guestGroupInput) {
-            if (roleGuestCheckbox.checked) {
+        if (roleGuestRadio && guestGroupContainer && guestGroupInput) {
+            if (roleGuestRadio.checked) {
                 guestGroupContainer.classList.remove('d-none');
                 guestGroupInput.required = true;
             } else {
@@ -119,9 +118,9 @@
         }
     };
 
-    if (roleGuestCheckbox) {
-        roleGuestCheckbox.addEventListener('change', toggleGuestGroup);
-    }
+    roleRadios.forEach(radio => {
+        radio.addEventListener('change', toggleGuestGroup);
+    });
 
     const addUserModal = document.getElementById('addUserModal');
     if (addUserModal) {
@@ -150,9 +149,9 @@
                 maxPeopleInput.value = maxPeople || 4;
 
                 const roles = button.getAttribute('data-user-roles').split(',');
-                if (roleAdminCheckbox) roleAdminCheckbox.checked = roles.includes('Admin');
-                if (roleUserCheckbox) roleUserCheckbox.checked = roles.includes('User');
-                roleGuestCheckbox.checked = roles.includes('Guest');
+                if (roleAdminRadio) roleAdminRadio.checked = roles.includes('Admin');
+                if (roleUserRadio) roleUserRadio.checked = roles.includes('User');
+                if (roleGuestRadio) roleGuestRadio.checked = roles.includes('Guest');
             } else {
                 // Add mode
                 title.textContent = 'Invite New User';
@@ -165,9 +164,9 @@
                 document.getElementById('userPhone').value = '';
                 guestGroupInput.value = '';
                 maxPeopleInput.value = 4;
-                if (roleAdminCheckbox) roleAdminCheckbox.checked = false;
-                if (roleUserCheckbox) roleUserCheckbox.checked = false;
-                roleGuestCheckbox.checked = true;
+                if (roleAdminRadio) roleAdminRadio.checked = false;
+                if (roleUserRadio) roleUserRadio.checked = false;
+                if (roleGuestRadio) roleGuestRadio.checked = true;
             }
             toggleGuestGroup();
         });
