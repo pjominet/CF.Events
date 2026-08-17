@@ -56,12 +56,13 @@ public class InitPasswordFilter(LinkGenerator linkGenerator) : IAsyncPageFilter,
         // 2. Check if the MustChangePassword flag is set
         if (!user.InitPassword()) return false;
 
-        // 3. Avoid infinite loops: check if we are already on the FirstLogin page or logging out
+        // 3. Avoid infinite loops: check if we are on any of the excluded pages
         var path = httpContext.Request.Path.Value ?? string.Empty;
 
         var excludedPages = new[]
         {
             "/Account/Manage/FirstLogin",
+            "/Account/EmailLogin",
             "/Account/Logout"
         };
 

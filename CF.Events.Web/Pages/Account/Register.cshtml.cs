@@ -51,6 +51,7 @@ public class RegisterModel(
 
         logger.LogInformation("User created a new account with password");
 
+        await userManager.AddToRoleAsync(user, Roles.User);
         if (isFirstUser)
         {
             // First user: auto-add admin role and sign in
@@ -59,9 +60,6 @@ public class RegisterModel(
             await signInManager.SignInAsync(user, isPersistent: true);
             return LocalRedirect(returnUrl ?? "/");
         }
-
-        // Non-first users: add user role by default
-        await userManager.AddToRoleAsync(user, Roles.User);
 
         // Non-first users: send confirmation email, do NOT sign in
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);

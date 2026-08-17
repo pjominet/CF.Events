@@ -195,6 +195,7 @@ public class UsersModel(
         foreach (var u in users)
         {
             var roles = await userManager.GetRolesAsync(u);
+            var passwordSet = !string.IsNullOrWhiteSpace(u.PasswordHash) && !u.MustChangePassword;
             AllUsers.Add(new UserRow(
                 u.Id,
                 u.Email ?? "undefined",
@@ -204,7 +205,7 @@ public class UsersModel(
                 u.GuestGroup?.MaxPeople ?? 0,
                 u.IsActive,
                 roles,
-                u.MustChangePassword));
+                passwordSet ? u.MustChangePassword : null));
         }
         AllUsers = [.. AllUsers.OrderBy(u => u.DisplayName)];
     }
@@ -318,7 +319,7 @@ public class UsersModel(
         return RedirectToPage();
     }
 
-    public record UserRow(string Id, string Email, string Phone, string DisplayName, string GuestGroup, int MaxPeople, bool IsActive, IList<string> Roles, bool MustChangePassword);
+    public record UserRow(string Id, string Email, string Phone, string DisplayName, string GuestGroup, int MaxPeople, bool IsActive, IList<string> Roles, bool? MustChangePassword);
 
     public sealed class InputModel
     {

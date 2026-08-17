@@ -19,6 +19,10 @@ public class LoginModel(
     [BindProperty]
     public InputModel Input { get; set; } = new();
 
+    [BindProperty]
+    public bool ShowPasswordStep { get; set; }
+
+    [BindProperty(SupportsGet = true)]
     public string? ReturnUrl { get; set; }
 
     public async Task<IActionResult> OnGetAsync(string? email = null, string? returnUrl = null)
@@ -37,11 +41,46 @@ public class LoginModel(
 
     public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
     {
-        ReturnUrl = returnUrl;
+        ReturnUrl = returnUrl ?? ReturnUrl;
+
+        if (!ShowPasswordStep)
+        {
+            ModelState.Remove("Input.Password");
+            if (!ModelState.IsValid)
+                return Page();
+
+            var user = await userManager.FindByEmailAsync(Input.Email);
+            if (user is { MustChangePassword: true })
+            {
+                await signInManager.SignInAsync(user, isPersistent: false);
+                user.LastLogin = DateTime.UtcNow;
+                await userManager.UpdateAsync(user);
+                logger.LogInformation("User {UserName} logged in for first login", user.UserName);
+
+                db.LoginAudits.Add(new LoginAudit
+                {
+                    UserId = user.Id,
+                    IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    UserAgent = Request.Headers.UserAgent.ToString(),
+                    AuthMethod = "First Login"
+                });
+                await db.SaveChangesAsync();
+
+                return RedirectToPage("./Manage/FirstLogin", new { returnUrl = ReturnUrl });
+            }
+
+            ShowPasswordStep = true;
+            ModelState.Clear();
+            return Page();
+        }
+
+        if (string.IsNullOrWhiteSpace(Input.Password))
+            ModelState.AddModelError("Input.Password", "The Password field is required.");
+
         if (!ModelState.IsValid)
             return Page();
 
-        var result = await signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+        var result = await signInManager.PasswordSignInAsync(Input.Email, Input.Password!, Input.RememberMe, lockoutOnFailure: false);
 
         if (result.Succeeded)
         {
@@ -64,9 +103,9 @@ public class LoginModel(
             await db.SaveChangesAsync();
 
             if (user.MustChangePassword)
-                return RedirectToPage("./Manage/FirstLogin", new { returnUrl });
+                return RedirectToPage("./Manage/FirstLogin", new { returnUrl = ReturnUrl });
 
-            return LocalRedirect(returnUrl ?? "/");
+            return LocalRedirect(ReturnUrl ?? "/");
         }
 
         if (result.IsLockedOut)
@@ -85,9 +124,8 @@ public class LoginModel(
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        [Required]
         [DataType(DataType.Password)]
-        public string Password { get; set; } = string.Empty;
+        public string? Password { get; set; }
 
         [Display(Name = "Remember me?")]
         public bool RememberMe { get; init; }
