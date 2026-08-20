@@ -152,12 +152,13 @@ public class EventInviteesModel(
         var assetRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources", "Assets"));
         var request = new SaveDateEmailRequest
         {
-            SenderName = _appSettings.EmailProviderSettings.SenderName,
             TemplateId = @event.SaveDateTemplateId,
+            SenderName = _appSettings.EmailProviderSettings.SenderName,
+            SenderEmail = _appSettings.EmailProviderSettings.SenderEmail,
             SendWithLink = @event.EmailWithLink,
             EventId = @event.Id,
             EventName = @event.Name,
-            EventStartDate = @event.StartDate.ToString("dd MMMM yyyy"),
+            EventDate = @event.StartDate.ToLongDateString(),
             UserId = userId,
             UserName = user.DisplayName!,
             UserEmail = user.Email!
@@ -198,12 +199,13 @@ public class EventInviteesModel(
             .Where(eu => eu.EventId == id && ids.Contains(eu.UserId) && eu.User.IsActive)
             .Select(eu => new SaveDateEmailRequest
             {
-                SenderName = _appSettings.EmailProviderSettings.SenderName,
                 TemplateId = eu.Event.SaveDateTemplateId!,
+                SenderName = _appSettings.EmailProviderSettings.SenderName,
+                SenderEmail = _appSettings.EmailProviderSettings.SenderEmail,
                 SendWithLink = eu.Event.EmailWithLink,
                 EventId = eu.EventId,
                 EventName = eu.Event.Name,
-                EventStartDate = eu.Event.StartDate.ToString("dd MMMM yyyy"),
+                EventDate = eu.Event.StartDate.ToLongDateString(),
                 UserName = eu.User.DisplayName!,
                 UserId = eu.UserId,
                 UserEmail = eu.User.Email!

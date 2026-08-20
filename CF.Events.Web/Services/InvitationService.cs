@@ -12,8 +12,8 @@ namespace CF.Events.Web.Services;
 public interface IInvitationService
 {
     Task<int> ProcessPendingEmails(CancellationToken ctx = default);
-    Task SendBatchedEmails<T>(List<T> requests, CancellationToken ctx = default) where T : class, ITemplateEmailRequest;
-    Task SendEmail<T>(T request, CancellationToken ctx = default) where T : class, ITemplateEmailRequest;
+    Task SendBatchedEmails<T>(List<T> requests, CancellationToken ctx = default) where T : TemplateEmailRequest;
+    Task SendEmail<T>(T request, CancellationToken ctx = default) where T : TemplateEmailRequest;
     Task<int> InviteUsersAsync(int eventId, UsersInviteRequest inviteRequest, CancellationToken ctx = default);
     Task ResendInvitesAsync(int eventId, List<string> userIds, CancellationToken ctx = default);
     string BuildSaveDateCallbackUrl(int eventId, string userId);
@@ -35,6 +35,7 @@ public class InvitationService(
             ue => new InvitationEmailRequest
             {
                 SenderName = _appSettings.EmailProviderSettings.SenderName,
+                SenderEmail = _appSettings.EmailProviderSettings.SenderEmail,
                 EventId = ue.EventId,
                 UserId = ue.UserId,
                 EventName = ue.Event.Name,
@@ -50,10 +51,11 @@ public class InvitationService(
             ue => new SaveDateEmailRequest
             {
                 SenderName = _appSettings.EmailProviderSettings.SenderName,
+                SenderEmail = _appSettings.EmailProviderSettings.SenderEmail,
                 EventId = ue.EventId,
                 UserId = ue.UserId,
                 EventName = ue.Event.Name,
-                EventStartDate = ue.Event.StartDate.ToLongDateString(),
+                EventDate = ue.Event.StartDate.ToLongDateString(),
                 UserName = ue.User.DisplayName!,
                 UserEmail = ue.User.Email!,
                 TemplateId = ue.Event.SaveDateTemplateId ?? string.Empty,
@@ -66,7 +68,7 @@ public class InvitationService(
     private async Task<int> ProcessPendingType<T>(
         Expression<Func<EventUser, bool>> predicate,
         Expression<Func<EventUser, T>> selector,
-        CancellationToken ctx) where T : class, ITemplateEmailRequest
+        CancellationToken ctx) where T : TemplateEmailRequest
     {
         var batchSize = _appSettings.EmailBatchSize ?? int.MaxValue;
 
@@ -93,7 +95,7 @@ public class InvitationService(
         return pending.Count;
     }
 
-    public async Task SendBatchedEmails<T>(List<T> requests, CancellationToken ctx = default) where T : class, ITemplateEmailRequest
+    public async Task SendBatchedEmails<T>(List<T> requests, CancellationToken ctx = default) where T : TemplateEmailRequest
     {
         // filter out requests with non-sendable email addresses
         requests = [.. requests.Where(r => IsSendableEmail(r.UserEmail))];
@@ -127,28 +129,26 @@ public class InvitationService(
         }
     }
 
-    public async Task SendEmail<T>(T request, CancellationToken ctx = default) where T : class, ITemplateEmailRequest
+    public async Task SendEmail<T>(T request, CancellationToken ctx = default) where T : TemplateEmailRequest
     {
         try
         {
+            if (string.IsNullOrEmpty(request.TemplateId))
+            {
+                logger.LogWarning("No template ID found for event {EventId}", request.EventId);
+                return;
+            }
+
+            await mailService.SendTemplatedEmailAsync(request, ctx);
+
             switch (request)
             {
-                case InvitationEmailRequest inv when string.IsNullOrEmpty(inv.TemplateId):
-                    logger.LogWarning("No invitation template ID found for event {EventId}", inv.EventId);
-                    return;
                 case InvitationEmailRequest inv:
-                    await mailService.SendInvitationAsync(inv, ctx);
                     await db.EventUsers
                         .Where(ue => ue.EventId == inv.EventId && ue.UserId == inv.UserId)
                         .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.InviteEmailSent, true), ctx);
                     break;
-                case SaveDateEmailRequest std when string.IsNullOrEmpty(std.TemplateId):
-                    logger.LogWarning("No save the date template ID found for event {EventId}", std.EventId);
-                    return;
                 case SaveDateEmailRequest std:
-                    if (request.SendWithLink)
-                        await mailService.SendSaveTheDateWithLinkAsync(std, ctx);
-                    else await mailService.SendSaveTheDateAsync(std, ctx);
                     await db.EventUsers
                         .Where(ue => ue.EventId == std.EventId && ue.UserId == std.UserId)
                         .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.SaveTheDateEmailSent, true), ctx);
@@ -215,8 +215,9 @@ public class InvitationService(
             .Where(ue => ue.EventId == eventId && newUserIds.Contains(ue.UserId))
             .Select(ue => new InvitationEmailRequest
             {
-                SenderName = _appSettings.EmailProviderSettings.SenderName,
                 TemplateId = ue.Event.InvitationTemplateId ?? string.Empty,
+                SenderName = _appSettings.EmailProviderSettings.SenderName,
+                SenderEmail = _appSettings.EmailProviderSettings.SenderEmail,
                 EventId = ue.EventId,
                 UserId = ue.UserId,
                 EventName = ue.Event.Name,
@@ -263,8 +264,9 @@ public class InvitationService(
         {
             var request = new InvitationEmailRequest
             {
-                SenderName = _appSettings.EmailProviderSettings.SenderName,
                 TemplateId = eventData.InvitationTemplateId ?? string.Empty,
+                SenderName = _appSettings.EmailProviderSettings.SenderName,
+                SenderEmail = _appSettings.EmailProviderSettings.SenderEmail,
                 EventId = eventData.Id,
                 EventName = eventData.Name,
                 EventDate = eventData.StartDate.ToLongDateString(),
@@ -284,7 +286,7 @@ public class InvitationService(
             await SendBatchedEmails(requests, ctx);
     }
 
-    private async Task PrepareInvitationAsync(ITemplateEmailRequest request, CancellationToken ctx = default)
+    private async Task PrepareInvitationAsync(TemplateEmailRequest request, CancellationToken ctx = default)
     {
         var code = await authEmailService.CreateAuthCodeAsync(request.UserId, request.EventId, request.CallbackValidity, ctx);
         request.CallBackUrl = authEmailService.BuildAuthCallbackUrl(code, request.EventId);
