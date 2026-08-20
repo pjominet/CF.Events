@@ -186,13 +186,13 @@
                             <td class="text-center">
                                 @if (invitee.SaveTheDateSent.HasValue)
                                 {
-                                    <span class="text-success">@invitee.SaveTheDateSent.Value.ToString("dd/MM/yyyy hh:mm")</span>
+                                    <span class="text-success">@invitee.SaveTheDateSent.Value.ToString("g")</span>
                                 }
                             </td>
                             <td class="text-center">
                                 @if (invitee.InvitationEmailSent.HasValue)
                                 {
-                                    <span class="text-success">@invitee.InvitationEmailSent.Value.ToString("dd/MM/yyyy hh:mm")</span>
+                                    <span class="text-success">@invitee.InvitationEmailSent.Value.ToString("g")</span>
 
                                 }
                                 @*else if (invitee.ScheduledFor != null)

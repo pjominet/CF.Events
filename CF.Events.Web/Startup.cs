@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure;
@@ -24,6 +23,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         services.AddAppServices(environment);
         services.AddAppAuthentication(environment, configuration);
         services.AddAppDataProtection(environment);
+        services.AddAppLocalization();
         services.AddAppRateLimiting();
         services.AddHttpClients(configuration);
 
@@ -83,8 +83,6 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
             options.LowercaseUrls = true;
             options.LowercaseQueryStrings = false;
         });
-
-        SetDefaultCulture();
     }
 
     public async Task EnsureDatabase(IServiceProvider serviceProvider, CancellationToken ctx = default)
@@ -139,6 +137,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         app.UseRateLimiter();
         app.UseStaticFiles();
 
+        app.UseRequestLocalization();
         app.UseRouting();
         app.UseSession();
 
@@ -148,12 +147,5 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         app.UseUrlTransformer();
         app.MapControllers();
         app.MapRazorPages();
-    }
-
-    private static void SetDefaultCulture()
-    {
-        var cultureInfo = new CultureInfo("en-UK");
-        CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
-        CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
     }
 }
