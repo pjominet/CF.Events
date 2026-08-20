@@ -12,17 +12,17 @@ namespace CF.Events.Web.Services;
 public interface IInvitationService
 {
     Task<int> ProcessPendingEmails(CancellationToken ctx = default);
-    Task SendBatchedEmails<T>(List<T> requests, CancellationToken ctx = default) where T : TemplateEmailRequest;
-    Task SendEmail<T>(T request, CancellationToken ctx = default) where T : TemplateEmailRequest;
     Task<int> InviteUsersAsync(int eventId, UsersInviteRequest inviteRequest, CancellationToken ctx = default);
     Task ResendInvitesAsync(int eventId, List<string> userIds, CancellationToken ctx = default);
-    string BuildSaveDateCallbackUrl(int eventId, string userId);
+    Task<EmailSendResult> SendSaveTheDateAsync(int eventId, string userId, CancellationToken ctx = default);
+    Task<EmailSendResult> SendBulkSaveTheDateAsync(int eventId, List<string> userIds, CancellationToken ctx = default);
 }
 
 public class InvitationService(
     EventsDbContext db,
     IMailService mailService,
     IAuthEmailService authEmailService,
+    IFileService fileService,
     IOptions<AppSettings> appOptions,
     ILogger<InvitationService> logger) : IInvitationService
 {
@@ -63,104 +63,6 @@ public class InvitationService(
             }, ctx);
 
         return sentInvitations + sentSaveTheDates;
-    }
-
-    private async Task<int> ProcessPendingType<T>(
-        Expression<Func<EventUser, bool>> predicate,
-        Expression<Func<EventUser, T>> selector,
-        CancellationToken ctx) where T : TemplateEmailRequest
-    {
-        var batchSize = _appSettings.EmailBatchSize ?? int.MaxValue;
-
-        var pending = await db.EventUsers
-            .Where(predicate)
-            .OrderBy(ue => ue.ScheduledFor)
-            .Take(batchSize)
-            .Select(selector)
-            .ToListAsync(ctx);
-
-        if (pending.Count == 0) return 0;
-
-        foreach (var request in pending)
-        {
-            await PrepareInvitationAsync(request, ctx);
-        }
-
-        await db.SaveChangesAsync(ctx);
-
-        logger.LogInformation("Processing {Count} pending {Type} emails", pending.Count, typeof(T).Name);
-
-        await SendBatchedEmails(pending, ctx);
-
-        return pending.Count;
-    }
-
-    public async Task SendBatchedEmails<T>(List<T> requests, CancellationToken ctx = default) where T : TemplateEmailRequest
-    {
-        // filter out requests with non-sendable email addresses
-        requests = [.. requests.Where(r => IsSendableEmail(r.UserEmail))];
-
-        if (requests.Count == 0) return;
-
-        var batchSize = _appSettings.EmailBatchSize ?? int.MaxValue;
-        var toSendImmediately = requests;
-
-        if (requests.Count > batchSize)
-        {
-            logger.LogInformation("Immediate {Type} count {Count} exceeds batch size {BatchSize}. Sending first batch and scheduling remaining for worker",
-                typeof(T).Name, requests.Count, batchSize);
-
-            var remainingRequests = requests.Skip(batchSize).Select(r => new { r.EventId, r.UserId }).ToList();
-
-            foreach (var request in remainingRequests)
-            {
-                await db.EventUsers
-                    .Where(ue => ue.EventId == request.EventId && ue.UserId == request.UserId)
-                    .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.ScheduledFor, DateTime.UtcNow), ctx);
-            }
-
-            toSendImmediately = [.. requests.Take(batchSize)];
-        }
-
-        foreach (var request in toSendImmediately)
-        {
-            if (ctx.IsCancellationRequested) break;
-            await SendEmail(request, ctx);
-        }
-    }
-
-    public async Task SendEmail<T>(T request, CancellationToken ctx = default) where T : TemplateEmailRequest
-    {
-        try
-        {
-            if (string.IsNullOrEmpty(request.TemplateId))
-            {
-                logger.LogWarning("No template ID found for event {EventId}", request.EventId);
-                return;
-            }
-
-            await mailService.SendTemplatedEmailAsync(request, ctx);
-
-            switch (request)
-            {
-                case InvitationEmailRequest inv:
-                    await db.EventUsers
-                        .Where(ue => ue.EventId == inv.EventId && ue.UserId == inv.UserId)
-                        .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.InviteEmailSent, true), ctx);
-                    break;
-                case SaveDateEmailRequest std:
-                    await db.EventUsers
-                        .Where(ue => ue.EventId == std.EventId && ue.UserId == std.UserId)
-                        .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.SaveTheDateEmailSent, true), ctx);
-                    break;
-            }
-
-            logger.LogInformation("Sent {Type} email to {Email} for event {EventName}", typeof(T).Name, request.UserEmail, request.EventName);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to send {Type} email to {Email}", typeof(T).Name, request.UserEmail);
-        }
     }
 
     public async Task<int> InviteUsersAsync(int eventId, UsersInviteRequest inviteRequest, CancellationToken ctx = default)
@@ -230,8 +132,9 @@ public class InvitationService(
 
         foreach (var newInvitation in newInvitations)
         {
-            await PrepareInvitationAsync(newInvitation, ctx);
+            await PrepareEmailRequestAsync(newInvitation, ctx);
         }
+
         await db.SaveChangesAsync(ctx);
 
         await SendBatchedEmails(newInvitations, ctx);
@@ -276,7 +179,7 @@ public class InvitationService(
                 CallbackValidity = eventData.InviteValidity
             };
 
-            await PrepareInvitationAsync(request, ctx);
+            await PrepareEmailRequestAsync(request, ctx);
             requests.Add(request);
         }
 
@@ -286,13 +189,195 @@ public class InvitationService(
             await SendBatchedEmails(requests, ctx);
     }
 
-    private async Task PrepareInvitationAsync(TemplateEmailRequest request, CancellationToken ctx = default)
+    public async Task<EmailSendResult> SendSaveTheDateAsync(int eventId, string userId, CancellationToken ctx = default)
     {
-        var code = await authEmailService.CreateAuthCodeAsync(request.UserId, request.EventId, request.CallbackValidity, ctx);
-        request.CallBackUrl = authEmailService.BuildAuthCallbackUrl(code, request.EventId);
+        var @event = await db.Events.FindAsync([eventId], ctx);
+        if (@event is null)
+            return new EmailSendResult(EmailSendResultStatus.EventNotFound, Message: "Event not found");
+
+        if (string.IsNullOrEmpty(@event.SaveDateTemplateId))
+            return new EmailSendResult(EmailSendResultStatus.TemplateMissing, Message: "Event is not eligible for Save the Date (no template ID set)");
+
+        var user = await db.Users
+            .Where(u => u.IsActive && u.Id == userId)
+            .FirstOrDefaultAsync(ctx);
+        if (user is null)
+            return new EmailSendResult(EmailSendResultStatus.UserNotFound, Message: "User not found");
+
+        var request = BuildSaveDateRequest(@event, user.Id, user.DisplayName!, user.Email!);
+        await SendEmail(request, ctx);
+
+        return new EmailSendResult(EmailSendResultStatus.Success, Message: user.DisplayName);
     }
 
-    public string BuildSaveDateCallbackUrl(int eventId, string userId)
+    public async Task<EmailSendResult> SendBulkSaveTheDateAsync(int eventId, List<string> userIds, CancellationToken ctx = default)
+    {
+        if (userIds.Count == 0)
+            return new EmailSendResult(EmailSendResultStatus.UserNotFound, Message: "No users selected");
+
+        var @event = await db.Events.FindAsync([eventId], ctx);
+        if (@event is null)
+            return new EmailSendResult(EmailSendResultStatus.EventNotFound, Message: "Event not found");
+
+        if (string.IsNullOrEmpty(@event.SaveDateTemplateId))
+            return new EmailSendResult(EmailSendResultStatus.TemplateMissing, Message: "Event is not eligible for Save the Date (no template ID set)");
+
+        var eligibleUsers = await db.EventUsers
+            .Where(eu => eu.EventId == eventId && userIds.Contains(eu.UserId) && eu.User.IsActive)
+            .Select(eu => new { eu.UserId, DisplayName = eu.User.DisplayName!, Email = eu.User.Email! })
+            .ToListAsync(ctx);
+
+        if (eligibleUsers.Count == 0)
+            return new EmailSendResult(EmailSendResultStatus.UserNotFound, Message: "No users found or eligible for Save the Date");
+
+        var requests = eligibleUsers
+            .Select(u => BuildSaveDateRequest(@event, u.UserId, u.DisplayName, u.Email))
+            .ToList();
+
+        await SendBatchedEmails(requests, ctx);
+
+        return new EmailSendResult(EmailSendResultStatus.Success, requests.Count);
+    }
+
+    private async Task<int> ProcessPendingType<T>(
+        Expression<Func<EventUser, bool>> predicate,
+        Expression<Func<EventUser, T>> selector,
+        CancellationToken ctx) where T : TemplateEmailRequest
+    {
+        var batchSize = _appSettings.EmailBatchSize ?? int.MaxValue;
+
+        var pending = await db.EventUsers
+            .Where(predicate)
+            .OrderBy(ue => ue.ScheduledFor)
+            .Take(batchSize)
+            .Select(selector)
+            .ToListAsync(ctx);
+
+        if (pending.Count == 0) return 0;
+
+        foreach (var request in pending)
+        {
+            await PrepareEmailRequestAsync(request, ctx);
+        }
+
+        await db.SaveChangesAsync(ctx);
+
+        logger.LogInformation("Processing {Count} pending {Type} emails", pending.Count, typeof(T).Name);
+
+        await SendBatchedEmails(pending, ctx);
+
+        return pending.Count;
+    }
+
+    private async Task SendBatchedEmails<T>(List<T> requests, CancellationToken ctx = default) where T : TemplateEmailRequest
+    {
+        // filter out requests with non-sendable email addresses
+        requests = [.. requests.Where(r => IsSendableEmail(r.UserEmail))];
+
+        if (requests.Count == 0) return;
+
+        var batchSize = _appSettings.EmailBatchSize ?? int.MaxValue;
+        var toSendImmediately = requests;
+
+        if (requests.Count > batchSize)
+        {
+            logger.LogInformation("Immediate {Type} count {Count} exceeds batch size {BatchSize}. Sending first batch and scheduling remaining for worker",
+                typeof(T).Name, requests.Count, batchSize);
+
+            var remainingRequests = requests.Skip(batchSize).Select(r => new { r.EventId, r.UserId }).ToList();
+
+            foreach (var request in remainingRequests)
+            {
+                await db.EventUsers
+                    .Where(ue => ue.EventId == request.EventId && ue.UserId == request.UserId)
+                    .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.ScheduledFor, DateTime.UtcNow), ctx);
+            }
+
+            toSendImmediately = [.. requests.Take(batchSize)];
+        }
+
+        foreach (var request in toSendImmediately)
+        {
+            if (ctx.IsCancellationRequested) break;
+            await SendEmail(request, ctx);
+        }
+    }
+
+    private async Task SendEmail<T>(T request, CancellationToken ctx = default) where T : TemplateEmailRequest
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(request.TemplateId))
+            {
+                logger.LogWarning("No template ID found for event {EventId}", request.EventId);
+                return;
+            }
+
+            await mailService.SendTemplatedEmailAsync(request, ctx);
+
+            switch (request)
+            {
+                case InvitationEmailRequest inv:
+                    await db.EventUsers
+                        .Where(ue => ue.EventId == inv.EventId && ue.UserId == inv.UserId)
+                        .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.InviteEmailSent, true), ctx);
+                    break;
+                case SaveDateEmailRequest std:
+                    await db.EventUsers
+                        .Where(ue => ue.EventId == std.EventId && ue.UserId == std.UserId)
+                        .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.SaveTheDateEmailSent, true), ctx);
+                    break;
+            }
+
+            logger.LogInformation("Sent {Type} email to {Email} for event {EventName}", typeof(T).Name, request.UserEmail, request.EventName);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to send {Type} email to {Email}", typeof(T).Name, request.UserEmail);
+        }
+    }
+
+
+    private SaveDateEmailRequest BuildSaveDateRequest(Event @event, string userId, string userName, string userEmail)
+    {
+        var request = new SaveDateEmailRequest
+        {
+            TemplateId = @event.SaveDateTemplateId!,
+            SenderName = _appSettings.EmailProviderSettings.SenderName,
+            SenderEmail = _appSettings.EmailProviderSettings.SenderEmail,
+            SendWithLink = @event.EmailWithLink,
+            EventId = @event.Id,
+            EventName = @event.Name,
+            EventDate = @event.StartDate.ToLongDateString(),
+            UserId = userId,
+            UserName = userName,
+            UserEmail = userEmail
+        };
+
+        if (request.SendWithLink)
+            request.CallBackUrl = BuildSaveDateCallbackUrl(request.EventId, request.UserId);
+        else request.InlineAttachments = [fileService.GetAssetAttachment("save-the-date.png")];
+
+        return request;
+    }
+
+    private async Task PrepareEmailRequestAsync(TemplateEmailRequest request, CancellationToken ctx = default)
+    {
+        switch (request)
+        {
+            case InvitationEmailRequest inv:
+                var code = await authEmailService.CreateAuthCodeAsync(inv.UserId, inv.EventId, inv.CallbackValidity, ctx);
+                inv.CallBackUrl = authEmailService.BuildAuthCallbackUrl(code, inv.EventId);
+                break;
+            case SaveDateEmailRequest std:
+                if (std.SendWithLink)
+                    std.CallBackUrl = BuildSaveDateCallbackUrl(std.EventId, std.UserId);
+                else std.InlineAttachments = [fileService.GetAssetAttachment("save-the-date.png")];
+                break;
+        }
+    }
+
+    private string BuildSaveDateCallbackUrl(int eventId, string userId)
     {
         var baseUrl = _appSettings.BaseUrl.TrimEnd('/');
         return $"{baseUrl}/events/{eventId}/{userId}/save-the-date";

@@ -2,7 +2,6 @@
 using CF.Events.Web.Models;
 using CF.Events.Web.Models.Requests;
 using CF.Events.Web.Infrastructure.ModelBinders;
-using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Services;
 using CF.Events.Web.Pages.Events;
 using Microsoft.AspNetCore.Authorization;
@@ -10,7 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using NToastNotify;
 using static CF.Events.Web.Infrastructure.Constants;
 
@@ -19,12 +17,9 @@ namespace CF.Events.Web.Pages.Admin;
 [Authorize(Roles = Roles.Admin)]
 public class EventInviteesModel(
     EventsDbContext db,
-    IWebHostEnvironment env,
     IInvitationService inviteService,
-    IOptions<AppSettings> appOptions,
     IToastNotification toastNotification) : PageModel
 {
-    private readonly AppSettings _appSettings = appOptions.Value;
 
     public required Event EventData { get; set; }
     public List<SelectListItem> AccommodationCodes { get; private set; } = [];
@@ -127,48 +122,22 @@ public class EventInviteesModel(
 
     public async Task<IActionResult> OnPostSaveTheDateAsync(int id, string userId)
     {
-        var @event = await db.Events.FindAsync(id);
-        if (@event is null)
+        var result = await inviteService.SendSaveTheDateAsync(id, userId);
+
+        switch (result.Status)
         {
-            toastNotification.AddErrorToastMessage("Event not found");
-            return RedirectToPage(new { id });
+            case EmailSendResultStatus.Success:
+                toastNotification.AddSuccessToastMessage($"Save the Date email sent to {result.Message}");
+                break;
+            case EmailSendResultStatus.EventNotFound:
+                toastNotification.AddErrorToastMessage(result.Message!);
+                break;
+            case EmailSendResultStatus.TemplateMissing:
+            case EmailSendResultStatus.UserNotFound:
+            case EmailSendResultStatus.Failed:
+                toastNotification.AddWarningToastMessage(result.Message!);
+                break;
         }
-
-        if (string.IsNullOrEmpty(@event.SaveDateTemplateId))
-        {
-            toastNotification.AddWarningToastMessage("Event is not eligible for Save the Date (no template ID set)");
-            return RedirectToPage(new { id });
-        }
-
-        var user = await db.Users
-            .Where(u => u.IsActive && u.Id == userId)
-            .FirstOrDefaultAsync();
-        if (user is null)
-        {
-            toastNotification.AddWarningToastMessage("User not found");
-            return RedirectToPage(new { id });
-        }
-
-        var assetRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources", "Assets"));
-        var request = new SaveDateEmailRequest
-        {
-            TemplateId = @event.SaveDateTemplateId,
-            SenderName = _appSettings.EmailProviderSettings.SenderName,
-            SenderEmail = _appSettings.EmailProviderSettings.SenderEmail,
-            SendWithLink = @event.EmailWithLink,
-            EventId = @event.Id,
-            EventName = @event.Name,
-            EventDate = @event.StartDate.ToLongDateString(),
-            UserId = userId,
-            UserName = user.DisplayName!,
-            UserEmail = user.Email!
-        };
-        if (request.SendWithLink)
-            request.CallBackUrl = inviteService.BuildSaveDateCallbackUrl(request.EventId, request.UserId);
-        else request.InlineAttachments = [InlineAttachment.BuildInlineImage(Path.Combine(assetRoot, "save-the-date.png"))];
-        await inviteService.SendEmail(request);
-
-        toastNotification.AddSuccessToastMessage($"Save the Date email sent to {user.DisplayName}");
 
         return RedirectToPage(new { id });
     }
@@ -181,54 +150,21 @@ public class EventInviteesModel(
             return RedirectToPage(new { id });
         }
 
-        var @event = await db.Events.FindAsync(id);
-        if (@event is null)
-        {
-            toastNotification.AddErrorToastMessage("Event not found");
-            return RedirectToPage(new { id });
-        }
-
-        if (string.IsNullOrEmpty(@event.SaveDateTemplateId))
-        {
-            toastNotification.AddWarningToastMessage("Event is not eligible for Save the Date (no template ID set)");
-            return RedirectToPage(new { id });
-        }
-
         var ids = userIds.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
-        var requests = await db.EventUsers
-            .Where(eu => eu.EventId == id && ids.Contains(eu.UserId) && eu.User.IsActive)
-            .Select(eu => new SaveDateEmailRequest
-            {
-                TemplateId = eu.Event.SaveDateTemplateId!,
-                SenderName = _appSettings.EmailProviderSettings.SenderName,
-                SenderEmail = _appSettings.EmailProviderSettings.SenderEmail,
-                SendWithLink = eu.Event.EmailWithLink,
-                EventId = eu.EventId,
-                EventName = eu.Event.Name,
-                EventDate = eu.Event.StartDate.ToLongDateString(),
-                UserName = eu.User.DisplayName!,
-                UserId = eu.UserId,
-                UserEmail = eu.User.Email!
-            })
-            .ToListAsync();
+        var result = await inviteService.SendBulkSaveTheDateAsync(id, ids);
 
-        if (requests.Count == 0)
+        switch (result.Status)
         {
-            toastNotification.AddWarningToastMessage("No users found or eligible for Save the Date");
-            return RedirectToPage(new { id });
+            case EmailSendResultStatus.Success:
+                toastNotification.AddSuccessToastMessage($"Successfully sent {result.SentCount} Save the Date emails");
+                break;
+            case EmailSendResultStatus.TemplateMissing:
+            case EmailSendResultStatus.UserNotFound:
+            case EmailSendResultStatus.EventNotFound:
+            case EmailSendResultStatus.Failed:
+                toastNotification.AddErrorToastMessage(result.Message!);
+                break;
         }
-
-        var assetRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources", "Assets"));
-        foreach (var request in requests)
-        {
-            if (request.SendWithLink)
-                request.CallBackUrl = inviteService.BuildSaveDateCallbackUrl(request.EventId, request.UserId);
-            else request.InlineAttachments = [InlineAttachment.BuildInlineImage(Path.Combine(assetRoot, "save-the-date.png"))];
-        }
-
-        await inviteService.SendBatchedEmails(requests);
-
-        toastNotification.AddSuccessToastMessage($"Successfully sent {requests.Count} Save the Date emails");
 
         return RedirectToPage(new { id });
     }

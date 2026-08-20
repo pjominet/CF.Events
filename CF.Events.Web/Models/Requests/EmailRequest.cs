@@ -57,3 +57,14 @@ public class SaveDateEmailRequest : TemplateEmailRequest
     }
 }
 
+public enum EmailSendResultStatus
+{
+    Success,
+    EventNotFound,
+    TemplateMissing,
+    UserNotFound,
+    Failed
+}
+
+public record EmailSendResult(EmailSendResultStatus Status, int SentCount = 0, string? Message = null);
+
