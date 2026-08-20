@@ -53,7 +53,7 @@
                             <input type="hidden" name="InviteCodeId" value="0"/>
                         </div>
                     </section>
-                    <section class="row">
+                    @*<section class="row">
                         <div class="col-4">
                             <div class="flex-column gap-2">
                                 <div class="form-check mb-3">
@@ -97,7 +97,12 @@
                                 <i class="bi bi-plus-lg me-1"></i>Invite to event
                             </button>
                         </div>
-                    </section>
+                    </section>*@
+                    <div class="d-flex justifiy-content-center align-items-center">
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-plus-lg me-1"></i>Invite to event
+                        </button>
+                    </div>
                 </form>
             }
         </div>
@@ -116,7 +121,7 @@
                 @if (!string.IsNullOrEmpty(Model.EventData.InvitationTemplateId))
                 {
                     <button type="button" class="btn btn-info btn-sm bulk-action-btn" disabled onclick="executeBulkAction('resend')">
-                        <i class="bi bi-send me-1"></i>Resend invitations
+                        <i class="bi bi-send me-1"></i>Send invitations
                     </button>
                 }
                 <button type="button" class="btn btn-danger btn-sm bulk-action-btn" disabled onclick="executeBulkAction('remove')">
@@ -132,12 +137,12 @@
                     </button>
                 </form>
                 <form id="bulkActionForm" method="post"
-                      data-resend-url="@Url.Action("BulkResendInvite", "Event", new { eventId = Model.EventData.Id })"
+                      data-resend-url="@Url.Action("SendInvites", "Event", new { eventId = Model.EventData.Id })"
                       data-remove-url="@Url.Page("", "BulkRemove", new { id = Model.EventData.Id })"
                       data-save-date-url="@Url.Page("", "BulkSaveTheDate", new { id = Model.EventData.Id })">
                     @Html.AntiForgeryToken()
-                    <input type="hidden" name="userIds" id="bulkActionUserIds"/>
-                    <input type="hidden" name="actionType" id="bulkActionType"/>
+                    <input type="hidden" name="userIds"/>
+                    <input type="hidden" name="actionType"/>
                 </form>
             </div>
         </div>
@@ -155,7 +160,7 @@
                         <th>Display Name</th>
                         <th>Email</th>
                         <th>Assigned Accommodation Code</th>
-                        <th class="text-center">Save the Date Sent</th>
+                        <th class="text-center">Save Date Sent</th>
                         <th class="text-center">Invitation Sent</th>
                         <th class="text-center">Status</th>
                         <th class="text-end">Actions</th>
@@ -179,27 +184,24 @@
                                 </div>
                             </td>
                             <td class="text-center">
-                                @if (invitee.SaveTheDateSent)
+                                @if (invitee.SaveTheDateSent.HasValue)
                                 {
-                                    <i class="bi bi-check-lg me-1 text-success"></i>
+                                    <span class="text-success">@invitee.SaveTheDateSent.Value.ToString("g")</span>
                                 }
                             </td>
                             <td class="text-center">
-                                @if (invitee.InvitationEmailSent)
+                                @if (invitee.InvitationEmailSent.HasValue)
                                 {
-                                    <i class="bi bi-check-lg me-1 text-success"></i>
+                                    <span class="text-success">@invitee.InvitationEmailSent.Value.ToString("g")</span>
+
                                 }
-                                else if (invitee.ScheduledFor != null)
+                                @*else if (invitee.ScheduledFor != null)
                                 {
                                     <div class="d-flex flex-column align-items-center">
                                         <span class="badge bg-info"><i class="bi bi-calendar-event me-1"></i>Scheduled</span>
                                         <small class="text-muted mt-1" style="font-size: 0.75rem;">@invitee.ScheduledFor.Value.ToString("g")</small>
                                     </div>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Pending</span>
-                                }
+                                }*@
                             </td>
                             <td class="text-center">
                                 @{
@@ -234,10 +236,10 @@
                                     }
                                     @if (!string.IsNullOrEmpty(Model.EventData.InvitationTemplateId))
                                     {
-                                        <form method="post" asp-action="ResendInvite" asp-controller="Event" asp-route-eventId="@Model.EventData.Id" class="d-inline">
+                                        <form method="post" asp-action="SendInvite" asp-controller="Event" asp-route-eventId="@Model.EventData.Id" class="d-inline">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="userId" value="@invitee.UserId"/>
-                                            <button type="submit" class="btn btn-info btn-sm" title="Resend invite" data-bs-toggle="tooltip">
+                                            <button type="submit" class="btn btn-info btn-sm" title="Send invite" data-bs-toggle="tooltip">
                                                 <i class="bi bi-send"></i>
                                             </button>
                                         </form>

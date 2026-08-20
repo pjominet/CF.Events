@@ -1,5 +1,6 @@
 using CF.Events.Web.Data;
 using CF.Events.Web.Models;
+using CF.Events.Web.Models.Requests;
 using Microsoft.EntityFrameworkCore;
 
 namespace CF.Events.Web.Services;
@@ -11,10 +12,18 @@ public interface IFileService
     Task RegisterImageAsync(int eventId, string fileName);
     Task SyncEventImagesAsync(int eventId, IEnumerable<string> currentFileNames);
     Task DeleteEventImagesAsync(int eventId);
+    InlineAttachment GetAssetAttachment(string assetName);
 }
 
 public class FileService(IWebHostEnvironment env, EventsDbContext db, ILogger<FileService> logger) : IFileService
 {
+    public InlineAttachment GetAssetAttachment(string assetName)
+    {
+        var assetRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources", "Assets"));
+        var filePath = Path.Combine(assetRoot, assetName);
+        return InlineAttachment.BuildInlineImage(filePath);
+    }
+
     public async Task<string> SaveImageAsync(string folderName, IFormFile file)
     {
         var eventsRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources", "Events"));

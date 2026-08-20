@@ -1,11 +1,13 @@
 ﻿using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure;
+using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using NToastNotify;
 
 namespace CF.Events.Web.Controllers;
@@ -16,8 +18,11 @@ public class AccountController(
     SignInManager<AppUser> signInManager,
     UserManager<AppUser> userManager,
     IToastNotification toastNotification,
+    IOptions<AppSettings> appOptions,
     ILogger<AccountController> logger) : Controller
 {
+    private readonly AppSettings _appSettings = appOptions.Value;
+
     [HttpGet("logout")]
     public async Task<IActionResult> Logout([FromQuery] string? returnUrl = null)
     {
@@ -90,7 +95,7 @@ public class AccountController(
         await signInManager.SignInAsync(user, new AuthenticationProperties
         {
             IsPersistent = isGuest,
-            ExpiresUtc = isGuest ? DateTimeOffset.UtcNow.AddMonths(3) : null
+            ExpiresUtc = isGuest ? DateTimeOffset.UtcNow.AddMonths(_appSettings.GuestLoginValidityMonths) : null
         });
 
         // Log the login audit

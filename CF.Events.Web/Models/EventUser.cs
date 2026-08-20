@@ -10,8 +10,8 @@ public class EventUser
     [StringLength(100)]
     public string? AssignedAccommodationCode { get; set; }
 
-    public bool InviteEmailSent { get; set; }
-    public bool SaveTheDateEmailSent { get; set; }
+    public DateTime? InviteEmailSent { get; set; }
+    public DateTime? SaveTheDateEmailSent { get; set; }
     public DateTime? ScheduledFor { get; set; }
 
     // navigation properties

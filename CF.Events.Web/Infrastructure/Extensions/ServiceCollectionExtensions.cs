@@ -1,4 +1,5 @@
-﻿using System.Threading.RateLimiting;
+﻿using System.Globalization;
+using System.Threading.RateLimiting;
 using AngleSharp.Html.Parser;
 using Microsoft.AspNetCore.Builder;
 using CF.Events.Web.Data;
@@ -14,6 +15,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Smtp2Go.Api;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using static CF.Events.Web.Infrastructure.Constants;
@@ -102,6 +104,29 @@ public static class ServiceCollectionExtensions
             services.AddScoped<IEmailSender<AppUser>>(sp => sp.GetRequiredService<IIdentityEmailSender>());
             services.AddScoped<IMailService, MailService>();
         }
+    }
+
+    public static void AddAppLocalization(this IServiceCollection services)
+    {
+        var culture = new CultureInfo("en-GB")
+        {
+            DateTimeFormat =
+            {
+                ShortTimePattern = "HH:mm",
+                LongTimePattern = "HH:mm:ss",
+                ShortDatePattern = "dd/MM/yyyy"
+            }
+        };
+
+        CultureInfo.DefaultThreadCurrentCulture = culture;
+        CultureInfo.DefaultThreadCurrentUICulture = culture;
+
+        services.Configure<RequestLocalizationOptions>(options =>
+        {
+            options.DefaultRequestCulture = new RequestCulture(culture);
+            options.SupportedCultures = [culture];
+            options.SupportedUICultures = [culture];
+        });
     }
 
     public static void AddAppDataProtection(this IServiceCollection services, IWebHostEnvironment environment)
