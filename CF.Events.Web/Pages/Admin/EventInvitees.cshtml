@@ -184,19 +184,16 @@
                                 </div>
                             </td>
                             <td class="text-center">
-                                @if (invitee.SaveTheDateSent)
+                                @if (invitee.SaveTheDateSent.HasValue)
                                 {
-                                    <i class="bi bi-check-lg text-success"></i>
-                                }
-                                else
-                                {
-                                    <i class="bi bi-x-lg text-danger"></i>
+                                    <span class="text-success">@invitee.SaveTheDateSent.Value.ToString("dd/MM/yyyy hh:mm")</span>
                                 }
                             </td>
                             <td class="text-center">
-                                @if (invitee.InvitationEmailSent)
+                                @if (invitee.InvitationEmailSent.HasValue)
                                 {
-                                    <i class="bi bi-check-lg text-success"></i>
+                                    <span class="text-success">@invitee.InvitationEmailSent.Value.ToString("dd/MM/yyyy hh:mm")</span>
+
                                 }
                                 @*else if (invitee.ScheduledFor != null)
                                 {
@@ -205,10 +202,6 @@
                                         <small class="text-muted mt-1" style="font-size: 0.75rem;">@invitee.ScheduledFor.Value.ToString("g")</small>
                                     </div>
                                 }*@
-                                else
-                                {
-                                    <i class="bi bi-x-lg text-danger"></i>
-                                }
                             </td>
                             <td class="text-center">
                                 @{

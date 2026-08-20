@@ -31,7 +31,7 @@ public class InvitationService(
     public async Task<int> ProcessPendingEmails(CancellationToken ctx = default)
     {
         var sentInvitations = await ProcessPendingType<InvitationEmailRequest>(
-            ue => !ue.InviteEmailSent && ue.ScheduledFor != null && ue.ScheduledFor <= DateTime.UtcNow,
+            ue => ue.InviteEmailSent == null && ue.ScheduledFor != null && ue.ScheduledFor <= DateTime.UtcNow,
             ue => new InvitationEmailRequest
             {
                 SenderName = _appSettings.EmailProviderSettings.SenderName,
@@ -47,7 +47,7 @@ public class InvitationService(
             }, ctx);
 
         var sentSaveTheDates = await ProcessPendingType<SaveDateEmailRequest>(
-            ue => !ue.SaveTheDateEmailSent && ue.ScheduledFor != null && ue.ScheduledFor <= DateTime.UtcNow,
+            ue => ue.SaveTheDateEmailSent == null && ue.ScheduledFor != null && ue.ScheduledFor <= DateTime.UtcNow,
             ue => new SaveDateEmailRequest
             {
                 SenderName = _appSettings.EmailProviderSettings.SenderName,
@@ -101,8 +101,7 @@ public class InvitationService(
             EventId = eventId,
             UserId = userId,
             AssignedAccommodationCode = inviteRequest.AllowAccommodationCode ? inviteRequest.SelectedAccommodationCode : null,
-            ScheduledFor = inviteRequest.ScheduledFor,
-            InviteEmailSent = false
+            ScheduledFor = inviteRequest.ScheduledFor
         }).ToList();
 
         db.EventUsers.AddRange(newEventUsers);
@@ -320,12 +319,12 @@ public class InvitationService(
                 case InvitationEmailRequest inv:
                     await db.EventUsers
                         .Where(ue => ue.EventId == inv.EventId && ue.UserId == inv.UserId)
-                        .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.InviteEmailSent, true), ctx);
+                        .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.InviteEmailSent, DateTime.UtcNow), ctx);
                     break;
                 case SaveDateEmailRequest std:
                     await db.EventUsers
                         .Where(ue => ue.EventId == std.EventId && ue.UserId == std.UserId)
-                        .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.SaveTheDateEmailSent, true), ctx);
+                        .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.SaveTheDateEmailSent, DateTime.UtcNow), ctx);
                     break;
             }
 
