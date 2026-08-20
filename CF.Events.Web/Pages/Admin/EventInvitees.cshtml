@@ -188,6 +188,10 @@
                                 {
                                     <span class="text-success">@invitee.SaveTheDateSent.Value.ToString("g")</span>
                                 }
+                                else
+                                {
+                                    <i class="bi bi-minus text-muted"></i>
+                                }
                             </td>
                             <td class="text-center">
                                 @if (invitee.InvitationEmailSent.HasValue)
@@ -202,6 +206,10 @@
                                         <small class="text-muted mt-1" style="font-size: 0.75rem;">@invitee.ScheduledFor.Value.ToString("g")</small>
                                     </div>
                                 }*@
+                                else
+                                {
+                                    <i class="bi bi-minus text-muted"></i>
+                                }
                             </td>
                             <td class="text-center">
                                 @{
