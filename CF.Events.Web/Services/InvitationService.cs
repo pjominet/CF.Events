@@ -11,7 +11,6 @@ namespace CF.Events.Web.Services;
 
 public interface IInvitationService
 {
-    AppSettings AppSettings { get; }
     Task<int> ProcessPendingEmails(CancellationToken ctx = default);
     Task SendBatchedEmails<T>(List<T> requests, CancellationToken ctx = default) where T : class, ITemplateEmailRequest;
     Task SendEmail<T>(T request, CancellationToken ctx = default) where T : class, ITemplateEmailRequest;
@@ -27,7 +26,6 @@ public class InvitationService(
     IOptions<AppSettings> appOptions,
     ILogger<InvitationService> logger) : IInvitationService
 {
-    public AppSettings AppSettings { get; } = appOptions.Value;
     private readonly AppSettings _appSettings = appOptions.Value;
 
     public async Task<int> ProcessPendingEmails(CancellationToken ctx = default)
@@ -36,6 +34,7 @@ public class InvitationService(
             ue => !ue.InviteEmailSent && ue.ScheduledFor != null && ue.ScheduledFor <= DateTime.UtcNow,
             ue => new InvitationEmailRequest
             {
+                SenderName = _appSettings.EmailProviderSettings.SenderName,
                 EventId = ue.EventId,
                 UserId = ue.UserId,
                 EventName = ue.Event.Name,
@@ -50,6 +49,7 @@ public class InvitationService(
             ue => !ue.SaveTheDateEmailSent && ue.ScheduledFor != null && ue.ScheduledFor <= DateTime.UtcNow,
             ue => new SaveDateEmailRequest
             {
+                SenderName = _appSettings.EmailProviderSettings.SenderName,
                 EventId = ue.EventId,
                 UserId = ue.UserId,
                 EventName = ue.Event.Name,
@@ -215,6 +215,7 @@ public class InvitationService(
             .Where(ue => ue.EventId == eventId && newUserIds.Contains(ue.UserId))
             .Select(ue => new InvitationEmailRequest
             {
+                SenderName = _appSettings.EmailProviderSettings.SenderName,
                 TemplateId = ue.Event.InvitationTemplateId ?? string.Empty,
                 EventId = ue.EventId,
                 UserId = ue.UserId,
@@ -262,6 +263,7 @@ public class InvitationService(
         {
             var request = new InvitationEmailRequest
             {
+                SenderName = _appSettings.EmailProviderSettings.SenderName,
                 TemplateId = eventData.InvitationTemplateId ?? string.Empty,
                 EventId = eventData.Id,
                 EventName = eventData.Name,

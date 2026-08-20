@@ -2,6 +2,7 @@
 using CF.Events.Web.Models;
 using CF.Events.Web.Models.Requests;
 using CF.Events.Web.Infrastructure.ModelBinders;
+using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Services;
 using CF.Events.Web.Pages.Events;
 using Microsoft.AspNetCore.Authorization;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using NToastNotify;
 using static CF.Events.Web.Infrastructure.Constants;
 
@@ -19,8 +21,10 @@ public class EventInviteesModel(
     EventsDbContext db,
     IWebHostEnvironment env,
     IInvitationService inviteService,
+    IOptions<AppSettings> appOptions,
     IToastNotification toastNotification) : PageModel
 {
+    private readonly AppSettings _appSettings = appOptions.Value;
 
     public required Event EventData { get; set; }
     public List<SelectListItem> AccommodationCodes { get; private set; } = [];
@@ -148,6 +152,7 @@ public class EventInviteesModel(
         var assetRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "Resources", "Assets"));
         var request = new SaveDateEmailRequest
         {
+            SenderName = _appSettings.EmailProviderSettings.SenderName,
             TemplateId = @event.SaveDateTemplateId,
             SendWithLink = @event.EmailWithLink,
             EventId = @event.Id,
@@ -193,6 +198,7 @@ public class EventInviteesModel(
             .Where(eu => eu.EventId == id && ids.Contains(eu.UserId) && eu.User.IsActive)
             .Select(eu => new SaveDateEmailRequest
             {
+                SenderName = _appSettings.EmailProviderSettings.SenderName,
                 TemplateId = eu.Event.SaveDateTemplateId!,
                 SendWithLink = eu.Event.EmailWithLink,
                 EventId = eu.EventId,
