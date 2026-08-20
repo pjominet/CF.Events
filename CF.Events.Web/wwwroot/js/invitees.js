@@ -1,7 +1,7 @@
 ﻿(function () {
     "use strict";
 
-    const scheduleRadios = document.querySelectorAll('input[name="SendEmailsOnInvite"]');
+    /*const scheduleRadios = document.querySelectorAll('input[name="SendEmailsOnInvite"]');
     const scheduleOption = document.getElementById('scheduleRadio');
     const scheduleInput = document.querySelector('input[name="ScheduledFor"]');
 
@@ -45,7 +45,7 @@
     // Initialize on page load
     if (scheduleOption) {
         updateScheduleInput();
-    }
+    }*/
 
     const selectAllCheckbox = document.getElementById('selectAllInvitees');
     const inviteeCheckboxes = document.querySelectorAll('.invitee-checkbox');

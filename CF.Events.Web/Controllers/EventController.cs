@@ -285,11 +285,11 @@ public class EventController(
 
     [HttpPost("{eventId:int}/resend-invite")]
     [Authorize(Roles = Roles.Admin)]
-    public async Task<IActionResult> ResendInvite([FromRoute] int eventId, [FromForm] string userId)
+    public async Task<IActionResult> SendInvite([FromRoute] int eventId, [FromForm] string userId)
     {
         try
         {
-            await invitationService.ResendInvitesAsync(eventId, [userId]);
+            await invitationService.SendInvitesAsync(eventId, [userId]);
             toastNotification.AddSuccessToastMessage("Successfully resent invitation");
         }
         catch (ArgumentException ex)
@@ -307,7 +307,7 @@ public class EventController(
 
     [HttpPost("{eventId:int}/resend-invites")]
     [Authorize(Roles = Roles.Admin)]
-    public async Task<IActionResult> BulkResendInvite([FromRoute] int eventId, [FromForm] string userIds)
+    public async Task<IActionResult> SendInvites([FromRoute] int eventId, [FromForm] string userIds)
     {
         if (string.IsNullOrWhiteSpace(userIds))
         {
@@ -319,7 +319,7 @@ public class EventController(
 
         try
         {
-            await invitationService.ResendInvitesAsync(eventId, ids);
+            await invitationService.SendInvitesAsync(eventId, ids);
             toastNotification.AddSuccessToastMessage($"Successfully resent {ids.Count} invitations");
         }
         catch (ArgumentException ex)

@@ -13,7 +13,7 @@ public interface IInvitationService
 {
     Task<int> ProcessPendingEmails(CancellationToken ctx = default);
     Task<int> InviteUsersAsync(int eventId, UsersInviteRequest inviteRequest, CancellationToken ctx = default);
-    Task ResendInvitesAsync(int eventId, List<string> userIds, CancellationToken ctx = default);
+    Task SendInvitesAsync(int eventId, List<string> userIds, CancellationToken ctx = default);
     Task<EmailSendResult> SendSaveTheDateAsync(int eventId, string userId, CancellationToken ctx = default);
     Task<EmailSendResult> SendBulkSaveTheDateAsync(int eventId, List<string> userIds, CancellationToken ctx = default);
 }
@@ -142,7 +142,7 @@ public class InvitationService(
         return count;
     }
 
-    public async Task ResendInvitesAsync(int eventId, List<string> userIds, CancellationToken ctx = default)
+    public async Task SendInvitesAsync(int eventId, List<string> userIds, CancellationToken ctx = default)
     {
         var eventUsers = await db.EventUsers
             .Include(eu => eu.User)
