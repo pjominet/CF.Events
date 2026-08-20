@@ -4,6 +4,7 @@ public class AppSettings
 {
     public required string Title { get; set; }
     public required int PasswordLength { get; init; }
+    public int GuestLoginValidityMonths { get; set; }
     public required EmailProviderSettings EmailProviderSettings { get; init; }
     public required string BaseUrl { get; init; }
     public int? EmailBatchSize { get; init; }
