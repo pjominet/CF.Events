@@ -3,15 +3,11 @@
 @model CF.Events.Web.Pages.Account.LoginModel
 @{
     ViewData["Title"] = "Log In";
-    Layout = "_GlassLayout";
 }
 
 <div class="d-flex align-items-center justify-content-center mt-5">
-    <div class="card card-500 bg-glass border-glass p-4 mx-auto rounded-glass shadow-sm">
-        <section class="text-center">
-            <h1 class="serif">@ViewData["Title"]</h1>
-        </section>
-        <hr/>
+    <div class="card card-500 p-4 mx-auto shadow-sm">
+        <h1 class="text-center mb-3">@ViewData["Title"]</h1>
         <section class="card-body">
             <form method="post">
                 <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
