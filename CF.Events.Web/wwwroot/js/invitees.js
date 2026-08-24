@@ -78,6 +78,41 @@
         });
     }
 
+    const searchInput = document.getElementById('inviteeSearchInput');
+    if (searchInput) {
+        const applyFilter = (searchTerm) => {
+            const rows = document.querySelectorAll('table tbody tr');
+            rows.forEach(row => {
+                const displayName = row.querySelector('td:nth-child(2)')?.textContent?.toLowerCase() || '';
+                const email = row.querySelector('td:nth-child(3)')?.textContent?.toLowerCase() || '';
+
+                if (displayName.includes(searchTerm) || email.includes(searchTerm)) {
+                    row.classList.remove('d-none');
+                } else {
+                    row.classList.add('d-none');
+                }
+            });
+        };
+
+        searchInput.addEventListener('input', function () {
+            const searchTerm = this.value.toLowerCase().trim();
+            applyFilter(searchTerm);
+
+            // Save search term to sessionStorage
+            const storageKey = 'inviteeSearch-' + window.location.pathname;
+            sessionStorage.setItem(storageKey, this.value);
+        });
+
+        // Re-apply filter on page load from session storage
+        const storageKey = 'inviteeSearch-' + window.location.pathname;
+        const initialSearch = sessionStorage.getItem(storageKey);
+
+        if (initialSearch) {
+            searchInput.value = initialSearch;
+            applyFilter(initialSearch.toLowerCase().trim());
+        }
+    }
+
     window.executeBulkAction = async function (actionType) {
         const selectedUserIds = Array.from(inviteeCheckboxes)
             .filter(cb => cb.checked)

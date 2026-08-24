@@ -18,7 +18,7 @@
             @if (User.IsAuthenticated() && !User.InitPassword())
             {
                 <ul class="navbar-nav me-auto">
-                    @if (User.IsUser() || User.IsGuest())
+                    @if (User.IsGuest())
                     {
                         <li class="nav-item"><a class="nav-link" href="/invites">My Invites</a></li>
                     }
@@ -70,7 +70,10 @@
             <div class="sidebar-section mb-4">
                 <h6 class="text-muted text-uppercase small fw-bold mb-3">Navigation</h6>
                 <ul class="nav flex-column gap-2">
-                    <li class="nav-item"><a class="nav-link p-0" href="/invites"><i class="bi bi-envelope me-2"></i>My Invites</a></li>
+                    @if (User.IsGuest())
+                    {
+                        <li class="nav-item"><a class="nav-link p-0" href="/invites"><i class="bi bi-envelope me-2"></i>My Invites</a></li>
+                    }
                     <li class="nav-item"><a class="nav-link p-0" href="/privacy"><i class="bi bi-shield-check me-2"></i>Privacy</a></li>
                     @if (User.IsAdmin())
                     {
