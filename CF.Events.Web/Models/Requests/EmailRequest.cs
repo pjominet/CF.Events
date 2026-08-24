@@ -31,7 +31,7 @@ public class InvitationEmailRequest : TemplateEmailRequest
         { "event_name", EventName },
         { "event_date", EventDate },
         { "deadline", DateTime.UtcNow.AddDays(CallbackValidity).ToLongDateString() },
-        { "reply-email", SenderEmail }
+        { "reply_email", SenderEmail }
     };
 }
 

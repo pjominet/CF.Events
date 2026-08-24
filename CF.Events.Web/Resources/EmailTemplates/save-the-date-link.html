@@ -10,6 +10,15 @@
             font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
+        .serif {
+            font-family: "Georgia", serif !important;
+        }
+
+        .footnote {
+            font-size: 12px !important;
+            opacity: 0.8 !important;
+        }
+
         body, .mail-body {
             margin: 0;
             padding: 0;
@@ -61,15 +70,15 @@
         }
 
         .mail-text {
-            font-size: 16px;
+            font-style: italic;
+            font-size: 18px;
             line-height: 1.6;
             color: #f5f5f5;
             margin: 16px 0;
         }
 
         .mail-button-container {
-            margin: 30px 0;
-            text-align: center;
+            margin: 20px 0;
         }
 
         .mail-button {
@@ -78,7 +87,7 @@
             border-radius: 12px;
             color: #731616 !important;
             display: inline-block;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 600;
             line-height: 50px;
             text-align: center;
@@ -129,21 +138,21 @@
                                                     Hi {{ user_name }}!
                                                     <!--[if mso]></span><![endif]-->
                                                 </h1>
-                                                <p class="mail-text">
-                                                    <!--[if mso]><span style="font-family: sans-serif;"><![endif]-->
+                                                <p class="mail-text serif">
+                                                    <!--[if mso]><span style="font-family: serif;"><![endif]-->
                                                     {{ sender_sig }} would like you to save a special date.
                                                     <!--[if mso]></span><![endif]-->
                                                 </p>
-                                                <p class="mail-text">
-                                                    <!--[if mso]><span style="font-family: sans-serif;"><![endif]-->
+                                                <p class="mail-text serif">
+                                                    <!--[if mso]><span style="font-family: serif;"><![endif]-->
                                                     Click below to see what's happening on {{ event_date }}.
                                                     <!--[if mso]></span><![endif]-->
                                                 </p>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td class="mail-button-container" align="center">
-                                                <div>
+                                            <td align="center">
+                                                <div class="mail-button-container">
                                                     <!--[if mso]>
                                                     <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{ invite_url }}" style="height:50px;v-text-anchor:middle;width:200px;" arcsize="8%" stroke="f" fillcolor="#c5b358">
                                                         <w:anchorlock/>
@@ -160,7 +169,7 @@
                                         </tr>
                                         <tr>
                                             <td>
-                                                <p class="mail-text" style="font-size: 12px; opacity: 0.8;">
+                                                <p class="mail-text footnote">
                                                     <!--[if mso]><span style="font-family: sans-serif;"><![endif]-->
                                                     If you're having trouble with the button above, copy and paste the URL below into your web browser:
                                                     <br/>
