@@ -1,5 +1,6 @@
 ﻿using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure;
+using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Authentication;
@@ -26,14 +27,15 @@ public class AccountController(
     [HttpGet("logout")]
     public async Task<IActionResult> Logout([FromQuery] string? returnUrl = null)
     {
-        var username = HttpContext.User.Identity?.Name;
+        var userEmail = User.GetEmail();
+        var isGuest = User.IsGuest();
         await signInManager.SignOutAsync();
-        logger.LogInformation("User {Username} logged out", username);
+        logger.LogInformation("User {Username} logged out", userEmail);
 
         if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
             return LocalRedirect(returnUrl);
 
-        return RedirectToPage("/account/login");
+        return !isGuest ? LocalRedirect("/account/login") : LocalRedirect("/account/email-login");
     }
 
     [HttpGet("confirm-email")]

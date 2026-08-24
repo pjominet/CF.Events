@@ -129,6 +129,12 @@
                 </button>
             </div>
             <div class="d-flex align-items-center gap-2">
+                <div class="flex-grow-1" style="max-width: 300px;">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" id="inviteeSearchInput" class="form-control" placeholder="Search invitees...">
+                    </div>
+                </div>
                 <form id="bulkAccommodationForm" method="post" asp-page-handler="BulkUpdateAccommodationCodes" asp-route-id="@Model.EventData.Id">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="updates" id="bulkAccommodationUpdates"/>
@@ -141,8 +147,8 @@
                       data-remove-url="@Url.Page("", "BulkRemove", new { id = Model.EventData.Id })"
                       data-save-date-url="@Url.Page("", "BulkSaveTheDate", new { id = Model.EventData.Id })">
                     @Html.AntiForgeryToken()
-                    <input type="hidden" name="userIds"/>
-                    <input type="hidden" name="actionType"/>
+                    <input type="hidden" name="userIds" id="bulkActionUserIds"/>
+                    <input type="hidden" name="actionType" id="bulkActionType"/>
                 </form>
             </div>
         </div>
