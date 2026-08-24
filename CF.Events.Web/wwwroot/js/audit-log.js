@@ -96,7 +96,7 @@
 
                 tableBody.appendChild(fragment);
                 initTooltips(fragment);
-                window.siteHelpers?.muteNotAvailableText(tableBody);
+                window?.applyDynamicTableStyles(tableBody);
 
                 page++;
                 hasMore = data.length === 50;

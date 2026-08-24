@@ -46,7 +46,7 @@
                     row.classList.add('d-none');
                 }
             });
-            window.siteHelpers?.muteNotAvailableText();
+            window?.applyDynamicTableStyles();
         };
 
         searchInput.addEventListener('input', function () {
@@ -102,6 +102,7 @@
 
     const roleRadios = document.querySelectorAll('.role-radio');
     const roleGuestRadio = document.getElementById('roleGuest');
+    const roleUserRadio = document.getElementById('roleUser');
     const guestGroupContainer = document.getElementById('guestGroupContainer');
     const guestGroupInput = document.getElementById('guestGroupInput');
     const maxPeopleInput = document.getElementById('maxPeopleInput');
@@ -149,7 +150,6 @@
                 maxPeopleInput.value = maxPeople || 4;
 
                 const roles = button.getAttribute('data-user-roles').split(',');
-                if (roleAdminRadio) roleAdminRadio.checked = roles.includes('Admin');
                 if (roleUserRadio) roleUserRadio.checked = roles.includes('User');
                 if (roleGuestRadio) roleGuestRadio.checked = roles.includes('Guest');
             } else {
@@ -164,7 +164,6 @@
                 document.getElementById('userPhone').value = '';
                 guestGroupInput.value = '';
                 maxPeopleInput.value = 4;
-                if (roleAdminRadio) roleAdminRadio.checked = false;
                 if (roleUserRadio) roleUserRadio.checked = false;
                 if (roleGuestRadio) roleGuestRadio.checked = true;
             }

@@ -216,14 +216,14 @@
         });
     }
 
-    function initAdminRsvpModal(modalEl) {
-        const form = modalEl.querySelector('#adminRsvpForm');
-        const attendingFields = modalEl.querySelector('#admin-attending-fields');
-        const participantContainer = modalEl.querySelector('#participant-container');
-        const addBtn = modalEl.querySelector('#add-participant');
+    function initAdminRsvpModal(modalContainer) {
+        const form = modalContainer.querySelector('#adminRsvpForm');
+        const attendingFields = modalContainer.querySelector('#admin-attending-fields');
+        const participantContainer = modalContainer.querySelector('#participant-container');
+        const addBtn = modalContainer.querySelector('#add-participant');
 
         // Toggle attending fields
-        modalEl.querySelectorAll('input[name="NewRsvp.Attending"]').forEach(radio => {
+        modalContainer.querySelectorAll('input[name="NewRsvp.Attending"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
                 attendingFields.classList.toggle('d-none', e.target.value === 'false');
             });
@@ -246,7 +246,7 @@
                 participantContainer.appendChild(row);
                 // Participants changed, update other lists
                 if (window.rsvpShared) {
-                    window.rsvpShared.updateParticipantSelections(modalEl);
+                    window.rsvpShared.updateParticipantSelections(modalContainer);
                 }
             });
         }
@@ -256,7 +256,7 @@
                 if (e.target.closest('.remove-participant')) {
                     e.target.closest('.participant-row').remove();
                     if (window.rsvpShared) {
-                        window.rsvpShared.updateParticipantSelections(modalEl);
+                        window.rsvpShared.updateParticipantSelections(modalContainer);
                     }
                 }
             });
@@ -264,7 +264,7 @@
             participantContainer.addEventListener('input', (e) => {
                 if (e.target.classList.contains('participant-input')) {
                     if (window.rsvpShared) {
-                        window.rsvpShared.updateParticipantSelections(modalEl);
+                        window.rsvpShared.updateParticipantSelections(modalContainer);
                     }
                 }
             });
@@ -272,14 +272,12 @@
 
         // Initialize shared rsvp logic
         if (window.rsvpShared) {
-            if (window.siteHelpers && window.siteHelpers.initMultiSelects) {
-                window.siteHelpers.initMultiSelects(modalEl);
-            }
-            window.rsvpShared.initDayCheckboxes(modalEl);
-            window.rsvpShared.initDietarySwitches(modalEl);
+            window?.applyDynamicTableStyles(modalContainer);
+            window.rsvpShared.initDayCheckboxes(modalContainer);
+            window.rsvpShared.initDietarySwitches(modalContainer);
 
             // Populate participant options if they already exist (e.g. editing)
-            window.rsvpShared.updateParticipantSelections(modalEl);
+            window.rsvpShared.updateParticipantSelections(modalContainer);
 
             form?.addEventListener('submit', function (e) {
                 // Ensure participants are up to date for dietary/attendance?

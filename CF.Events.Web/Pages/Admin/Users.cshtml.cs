@@ -211,9 +211,9 @@ public class UsersModel(
             AllUsers.Add(new UserRow(
                 u.Id,
                 u.Email ?? "undefined",
-                u.PhoneNumber ?? "n/a",
+                u.PhoneNumber ?? "-",
                 u.DisplayName ?? "undefined",
-                u.GuestGroup?.Label ?? "n/a",
+                u.GuestGroup?.Label ?? "-",
                 u.GuestGroup?.MaxPeople ?? 0,
                 u.IsActive,
                 roles,
