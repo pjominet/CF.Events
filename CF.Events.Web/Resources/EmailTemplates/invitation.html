@@ -7,7 +7,20 @@
     <style type="text/css">
         /* Fonts alignment with webapp */
         body, table, td, p, a, span {
-            font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: "Segoe UI", sans-serif;
+        }
+
+        .serif {
+            font-family: "Georgia", serif !important;
+        }
+
+        .cursive {
+            font-family: "Brush Script MT", cursive !important;
+        }
+
+        .footnote {
+            font-size: 12px !important;
+            opacity: 0.8 !important;
         }
 
         body, .mail-body {
@@ -61,7 +74,8 @@
         }
 
         .mail-text {
-            font-size: 16px;
+            font-style: italic;
+            font-size: 18px;
             line-height: 1.6;
             color: #f5f5f5;
             margin: 16px 0;
@@ -72,8 +86,7 @@
         }
 
         .mail-button-container {
-            margin: 30px 0;
-            text-align: center;
+            margin: 20px 0;
         }
 
         .mail-button {
@@ -82,12 +95,12 @@
             border-radius: 12px;
             color: #731616 !important;
             display: inline-block;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 600;
             line-height: 50px;
             text-align: center;
             text-decoration: none;
-            width: 200px;
+            min-width: 200px;
             -webkit-text-size-adjust: none;
             mso-hide: all;
         }
@@ -96,7 +109,7 @@
             margin-top: 30px;
             padding-top: 20px;
             border-top: 1px solid rgba(197, 179, 88, 0.4);
-            font-size: 14px;
+            font-size: 16px;
             color: #f5f5f5;
             text-align: center;
         }
@@ -147,21 +160,21 @@
                                                     Hi {{ user_name }}!
                                                     <!--[if mso]></span><![endif]-->
                                                 </h1>
-                                                <p class="mail-text">
-                                                    <!--[if mso]><span style="font-family: sans-serif;"><![endif]-->
+                                                <p class="mail-text serif">
+                                                    <!--[if mso]><span style="font-family: serif;"><![endif]-->
                                                     We hope you can join us for our <strong>{{ event_name }}</strong> on {{ event_date }}.
                                                     <!--[if mso]></span><![endif]-->
                                                 </p>
-                                                <p class="mail-text">
-                                                    <!--[if mso]><span style="font-family: sans-serif;"><![endif]-->
+                                                <p class="mail-text serif">
+                                                    <!--[if mso]><span style="font-family: serif;"><![endif]-->
                                                     Check out your invitation in detail and send us your response before {{ deadline }}.
                                                     <!--[if mso]></span><![endif]-->
                                                 </p>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td class="mail-button-container" align="center">
-                                                <div>
+                                            <td align="center">
+                                                <div class="mail-button-container">
                                                     <!--[if mso]>
                                                     <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{ invite_url }}" style="height:50px;v-text-anchor:middle;width:200px;" arcsize="8%" stroke="f" fillcolor="#c5b358">
                                                         <w:anchorlock/>
@@ -178,7 +191,7 @@
                                         </tr>
                                         <tr>
                                             <td>
-                                                <p class="mail-text" style="font-size: 12px; opacity: 0.8;">
+                                                <p class="mail-text footnote">
                                                     <!--[if mso]><span style="font-family: sans-serif;"><![endif]-->
                                                     If you're having trouble with the button above, copy and paste the URL below into your web browser:
                                                     <br/>
