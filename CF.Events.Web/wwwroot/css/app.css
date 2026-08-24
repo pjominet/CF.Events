@@ -320,3 +320,7 @@ h1:focus {
     max-width: 500px;
     width: 100%;
 }
+
+.container-stretch {
+    max-width: 75vw !important;
+}

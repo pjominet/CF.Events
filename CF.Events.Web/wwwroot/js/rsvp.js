@@ -109,9 +109,7 @@
                 });
 
                 // Re-init multi-selects
-                if (window.siteHelpers && window.siteHelpers.initMultiSelects) {
-                    window.siteHelpers.initMultiSelects(dietaryContainer);
-                }
+                window?.initMultiSelects(dietaryContainer);
             }
         },
 

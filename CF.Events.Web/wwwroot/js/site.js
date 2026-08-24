@@ -179,6 +179,7 @@
             }
         });
     }
+    window.initMultiSelects = initMultiSelects;
 
     function initTagSelects(container = document) {
         container.querySelectorAll("input.tag-select").forEach(function (el) {
@@ -233,13 +234,20 @@
         });
     }
 
-    function muteNotAvailableText(container = document) {
+    function applyDynamicTableStyles(container = document) {
         container.querySelectorAll('td').forEach(td => {
-            if (td.textContent.trim().toLowerCase() === 'n/a') {
+            if (td.textContent.trim().toLowerCase() === 'n/a' || td.textContent.trim().toLowerCase() === '-') {
                 td.classList.add('text-muted');
             }
         });
+
+        container.querySelectorAll('td').forEach(td => {
+            if (td.textContent.trim().toLowerCase().endsWith('@no-send.tech') || td.textContent.trim().toLowerCase() === 'undefined') {
+                td.classList.add('text-danger');
+            }
+        });
     }
+    window.applyDynamicTableStyles = applyDynamicTableStyles;
 
     window.copyToClipboardAndShowFeedback = function (elementOrId, buttonOrDuration, duration = 750) {
         let textToCopy = '';
@@ -344,13 +352,6 @@
         });
     }
 
-    // Exported helpers for dynamic content
-    window.siteHelpers = {
-        initMultiSelects: initMultiSelects,
-        initTagSelects: initTagSelects,
-        muteNotAvailableText: muteNotAvailableText
-    };
-
     document.addEventListener("DOMContentLoaded", function () {
         initTooltips();
         initPopovers();
@@ -361,7 +362,7 @@
         initTabPersistence();
         initScrollPersistence();
         initSidebar();
-        muteNotAvailableText();
+        applyDynamicTableStyles();
         setTimeout(hideLoadingOverlay, 100);
     });
 })();
