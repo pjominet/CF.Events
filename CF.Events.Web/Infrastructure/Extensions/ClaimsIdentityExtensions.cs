@@ -29,10 +29,7 @@ public static class ClaimsIdentityExtensions
         /// <returns>Collection of claims</returns>
         public IEnumerable<Claim> TryGetClaims(string type)
         {
-            return identity
-                .Claims
-                .Where(c => c.Type == type)
-                .ToArray();
+            return [.. identity.Claims.Where(c => c.Type == type)];
         }
 
         /// <summary>

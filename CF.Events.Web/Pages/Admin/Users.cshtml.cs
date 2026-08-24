@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using CF.Events.Web.Data;
+using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -121,6 +122,12 @@ public class UsersModel(
             return RedirectToPage();
         }
 
+        if (await userManager.IsInRoleAsync(user, Roles.Sudo) && !User.IsSudo())
+        {
+            toastNotification.AddErrorToastMessage("You cannot modify a Sudo user");
+            return RedirectToPage();
+        }
+
         user.Email = NewUser.Email;
         user.UserName = NewUser.Email;
         user.DisplayName = NewUser.DisplayName;
@@ -137,11 +144,16 @@ public class UsersModel(
         }
 
         var currentRoles = await userManager.GetRolesAsync(user);
+        var wasSudo = currentRoles.Contains(Roles.Sudo);
         await userManager.RemoveFromRolesAsync(user, currentRoles);
-        if (NewUser.SelectedRoles is { Count: > 0 })
-            await userManager.AddToRolesAsync(user, NewUser.SelectedRoles);
-        else
-            await userManager.AddToRoleAsync(user, Roles.Guest);
+        var newRoles = NewUser.SelectedRoles is { Count: > 0 } ? NewUser.SelectedRoles : [Roles.Guest];
+        if (wasSudo && !newRoles.Contains(Roles.Sudo))
+        {
+            newRoles.Add(Roles.Sudo);
+            if (!newRoles.Contains(Roles.Admin))
+                newRoles.Add(Roles.Admin);
+        }
+        await userManager.AddToRolesAsync(user, newRoles);
 
         var updatedRoles = await userManager.GetRolesAsync(user);
         if (updatedRoles.Contains(Roles.Guest))
@@ -236,6 +248,12 @@ public class UsersModel(
             return RedirectToPage();
         }
 
+        if (await userManager.IsInRoleAsync(user, Roles.Sudo) && !User.IsSudo())
+        {
+            toastNotification.AddErrorToastMessage("You cannot demote a Sudo user");
+            return RedirectToPage();
+        }
+
         var result = await userManager.RemoveFromRoleAsync(user, Roles.Admin);
         if (result.Succeeded)
             toastNotification.AddSuccessToastMessage("User demotion successfully");
@@ -250,6 +268,12 @@ public class UsersModel(
         if (user is null)
         {
             toastNotification.AddWarningToastMessage("User not found");
+            return RedirectToPage();
+        }
+
+        if (await userManager.IsInRoleAsync(user, Roles.Sudo) && !User.IsSudo())
+        {
+            toastNotification.AddErrorToastMessage("You cannot deactivate a Sudo user");
             return RedirectToPage();
         }
 
@@ -268,6 +292,12 @@ public class UsersModel(
         if (user is null)
         {
             toastNotification.AddWarningToastMessage("User not found");
+            return RedirectToPage();
+        }
+
+        if (await userManager.IsInRoleAsync(user, Roles.Sudo) && !User.IsSudo())
+        {
+            toastNotification.AddErrorToastMessage("You cannot delete a Sudo user");
             return RedirectToPage();
         }
 
@@ -297,9 +327,9 @@ public class UsersModel(
         foreach (var id in ids)
         {
             var user = await userManager.FindByIdAsync(id);
-            if (user == null) continue;
+            if (user is null) continue;
 
-            if (user.IsActive)
+            if (user.IsActive || (await userManager.IsInRoleAsync(user, Roles.Sudo) && !User.IsSudo()))
             {
                 failed++;
                 continue;
@@ -319,7 +349,24 @@ public class UsersModel(
         return RedirectToPage();
     }
 
-    public record UserRow(string Id, string Email, string Phone, string DisplayName, string GuestGroup, int MaxPeople, bool IsActive, IList<string> Roles, bool? MustChangePassword);
+    public record UserRow(string Id, string Email, string Phone, string DisplayName, string GuestGroup, int MaxPeople, bool IsActive, IList<string> UserRoles, bool? MustChangePassword)
+    {
+        public IEnumerable<string> GetOrderedRoles(bool isCurrentViewerSudo)
+        {
+            return UserRoles
+                .Where(r => isCurrentViewerSudo || r != Roles.Sudo)
+                .OrderBy(GetRoleOrder);
+        }
+
+        private static short GetRoleOrder(string role) => role switch
+        {
+            Roles.Sudo => (short)RoleOrder.Sudo,
+            Roles.Admin => (short)RoleOrder.Admin,
+            Roles.User => (short)RoleOrder.User,
+            Roles.Guest => (short)RoleOrder.Guest,
+            _ => short.MaxValue
+        };
+    }
 
     public sealed class InputModel
     {
