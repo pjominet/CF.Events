@@ -10,6 +10,7 @@ public static class PrincipalExtensions
     extension(IPrincipal currentPrincipal)
     {
         public bool IsAuthenticated() => currentPrincipal.Identity?.IsAuthenticated == true;
+        public bool IsSudo() => currentPrincipal.IsInRole(Roles.Sudo);
         public bool IsAdmin() => currentPrincipal.IsInRole(Roles.Admin);
         public bool IsUser() => currentPrincipal.IsInRole(Roles.User);
         public bool IsGuest() => currentPrincipal.IsInRole(Roles.Guest);

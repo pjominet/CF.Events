@@ -76,7 +76,7 @@
                     {
                         <tr>
                             <td>
-                                <input class="form-check-input user-checkbox" type="checkbox" value="@user.Id" @(user.IsActive ? "disabled" : "")>
+                                <input class="form-check-input user-checkbox" type="checkbox" value="@user.Id" @(user.IsActive || (user.UserRoles.Contains(Roles.Sudo) && !User.IsSudo()) ? "disabled" : "")>
                             </td>
                             <td class="fw-bold">@user.DisplayName</td>
                             <td>@user.Email</td>
@@ -85,10 +85,11 @@
                             <td>@(user.MaxPeople == 0 ? "n/a" : user.MaxPeople)</td>
                             <td>
                                 <div class="d-flex justify-content-start align-items-center gap-1">
-                                    @foreach (var role in user.Roles)
+                                    @foreach (var role in user.GetOrderedRoles(User.IsSudo()))
                                     {
                                         var badgeColor = role switch
                                         {
+                                            Roles.Sudo => "bg-success",
                                             Roles.Admin => "bg-danger",
                                             Roles.User => "bg-secondary",
                                             Roles.Guest => "bg-info",
@@ -121,8 +122,8 @@
                                           class="d-flex align-items-center justify-content-center">
                                         <div class="form-check form-switch d-inline-block">
                                             <input class="form-check-input" type="checkbox" checked="@user.IsActive"
-                                                   disabled="@(!User.IsAdmin() || User.GetId() == user.Id)"
-                                                   onchange="@(User.IsAdmin() && User.GetId() != user.Id ? "this.form.submit()" : string.Empty)">
+                                                   disabled="@(!User.IsAdmin() || User.GetId() == user.Id || (user.UserRoles.Contains(Roles.Sudo) && !User.IsSudo()))"
+                                                   onchange="@(User.IsAdmin() && User.GetId() != user.Id && (!user.UserRoles.Contains(Roles.Sudo) || User.IsSudo()) ? "this.form.submit()" : string.Empty)">
                                         </div>
                                     </form>
                                 </div>
@@ -137,12 +138,12 @@
                                             data-user-phone="@user.Phone"
                                             data-user-guestgroup="@user.GuestGroup"
                                             data-user-maxpeople="@user.MaxPeople"
-                                            data-user-roles="@string.Join(",", user.Roles)">
+                                            data-user-roles="@string.Join(",", user.UserRoles)">
                                         <i class="bi bi-pencil"></i>
                                     </button>
-                                    @if (User.IsAdmin() && User.GetId() != user.Id && !user.Roles.Contains(Roles.Guest))
+                                    @if (User.IsAdmin() && User.GetId() != user.Id && !user.UserRoles.Contains(Roles.Guest))
                                     {
-                                        if (!user.Roles.Contains(Roles.Admin))
+                                        if (!user.UserRoles.Contains(Roles.Admin))
                                         {
                                             <form method="post" asp-page-handler="Promote" asp-route-userId="@user.Id"
                                                   class="d-flex align-items-center justify-content-center">
@@ -152,7 +153,7 @@
                                                 </button>
                                             </form>
                                         }
-                                        else
+                                        else if (!user.UserRoles.Contains(Roles.Sudo) || User.IsSudo())
                                         {
                                             <form method="post" asp-page-handler="Demote" asp-route-userId="@user.Id"
                                                   class="d-flex align-items-center justify-content-center">
@@ -163,7 +164,7 @@
                                             </form>
                                         }
                                     }
-                                    @if (User.IsAdmin() && User.GetId() != user.Id && !user.IsActive)
+                                    @if (User.IsAdmin() && User.GetId() != user.Id && !user.IsActive && (!user.UserRoles.Contains(Roles.Sudo) || User.IsSudo()))
                                     {
                                         <form method="post" asp-page-handler="Delete" asp-route-userId="@user.Id"
                                               data-confirm="Delete user &quot;@user.DisplayName&quot;? This cannot be undone.">
