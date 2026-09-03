@@ -212,14 +212,14 @@ public class EventController(
         {
             var @event = await db.Events.Include(e => e.EventFaq).FirstOrDefaultAsync(e => e.Id == eventId);
             if (@event is null) return NotFound();
-            return PartialView("~/Pages/Events/Shared/_EventFaq.cshtml", @event.EventFaq);
+            return PartialView("~/Pages/Events/Shared/_EventFaq.cshtml", @event.EventFaq.OrderBy(f => f.SortOrder).ToList());
         }
 
         var eventUser = await db.EventUsers
             .Where(eu => eu.EventId == eventId && eu.UserId == userId)
             .Select(eu => new
             {
-                eu.Event.EventFaq
+                EventFaq = eu.Event.EventFaq.OrderBy(f => f.SortOrder).ToList()
             })
             .FirstOrDefaultAsync();
 

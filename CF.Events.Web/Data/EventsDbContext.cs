@@ -117,8 +117,7 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
             e.HasOne(r => r.Event)
                 .WithMany(r => r.InviteCodes)
                 .HasForeignKey(r => r.EventId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .IsRequired();
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         builder.Entity<EventImage>(e =>
