@@ -28,7 +28,7 @@ public class SaveTheDate(EventsDbContext db) : PageModel
         ImageUrl = $"/events/{eventId}/{userId}/asset?type=sd";
 
         // Admins reach this page by previewing from the events list, regular users from their invitation list.
-        BackUrl = isAdmin && !isInvited ? "/admin/events" : "/invites";
+        BackUrl = isAdmin && !isInvited ? $"/admin/edit-event/{eventId}" : "/invites";
 
         return Page();
     }

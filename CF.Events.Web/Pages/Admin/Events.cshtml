@@ -1,5 +1,4 @@
 ﻿@page "/admin/events"
-@using CF.Events.Web.Infrastructure.Extensions
 @model CF.Events.Web.Pages.Admin.EventsModel
 @{
     ViewData["Title"] = "Manage Events";
@@ -64,12 +63,6 @@
                                 <div class="btn-group">
                                     <a asp-page="/Admin/EditEvent" asp-route-id="@eventData.Id" class="btn btn-warning btn-sm" title="Edit Event">
                                         <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <a href="/events/@eventData.Id/@User.GetId()/save-the-date" class="btn btn-success btn-sm" title="Preview Save the Date" data-bs-toggle="tooltip">
-                                        <i class="bi bi-calendar-check"></i>
-                                    </a>
-                                    <a href="/events/@eventData.Id/invitation" class="btn btn-info btn-sm" title="Preview Invitation" data-bs-toggle="tooltip">
-                                        <i class="bi bi-calendar-heart"></i>
                                     </a>
                                     <a href="/admin/events/@eventData.Id/invitees" class="btn btn-primary btn-sm" title="Manage Invitees" data-bs-toggle="tooltip">
                                         <i class="bi bi-people"></i>
