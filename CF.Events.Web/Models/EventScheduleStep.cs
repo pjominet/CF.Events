@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace CF.Events.Web.Models;
 
@@ -8,6 +8,7 @@ public class EventScheduleStep
     public int EventId { get; set; }
     public int Day { get; set; }
     public TimeOnly TimeStamp { get; set; }
+    public int SortOrder { get; set; }
     [StringLength(500)]
     public required string Label { get; set; }
 

@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Infrastructure.ModelBinders;
@@ -60,7 +60,8 @@ public class EditEventModel(
                 BookingLinks = [.. @event.BookingLinks.Select(bl => bl.Link)],
                 FaqItems =
                 [
-                    .. @event.EventFaq.OrderBy(f => f.SortOrder).Select(f => new FaqInputModel
+                    .. @event.EventFaq.OrderBy(f => f.SortOrder)
+                        .Select(f => new FaqInputModel
                     {
                         Question = f.Question,
                         Answer = f.Answer,
@@ -69,7 +70,10 @@ public class EditEventModel(
                 ],
                 ScheduleSteps =
                 [
-                    .. @event.EventSchedule.OrderBy(es => es.Day).Select(s => new ScheduleInputModel
+                    .. @event.EventSchedule.OrderBy(es => es.Day)
+                        .ThenBy(s => s.TimeStamp.Hour < 6 ? 1 : 0)
+                        .ThenBy(s => s.TimeStamp)
+                        .Select(s => new ScheduleInputModel
                     {
                         Day = s.Day,
                         TimeStamp = s.TimeStamp,
@@ -249,6 +253,7 @@ public class EditEventModel(
     {
         public int Day { get; set; }
         public TimeOnly TimeStamp { get; set; }
+        public int SortOrder { get; set; }
         public string Label { get; set; } = null!;
     }
 

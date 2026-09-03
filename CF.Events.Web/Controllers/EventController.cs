@@ -239,7 +239,10 @@ public class EventController(
         {
             var @event = await db.Events.Include(e => e.EventSchedule).FirstOrDefaultAsync(e => e.Id == eventId);
             if (@event is null) return NotFound();
-            return PartialView("~/Pages/Events/Shared/_EventSchedule.cshtml", @event.EventSchedule.OrderBy(s => s.Day).ThenBy(s => s.TimeStamp).ToList());
+            return PartialView("~/Pages/Events/Shared/_EventSchedule.cshtml", @event.EventSchedule
+                .OrderBy(s => s.Day)
+                .ThenBy(s => s.TimeStamp.Hour < 6 ? 1 : 0)
+                .ThenBy(s => s.TimeStamp).ToList());
         }
 
         var eventUser = await db.EventUsers

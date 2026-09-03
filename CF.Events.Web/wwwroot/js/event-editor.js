@@ -65,7 +65,10 @@
             const html = `
                 <div class="row gx-2 mb-2 schedule-row">
                     <div class="col-md-2">
-                        <input name="Event.ScheduleSteps[${index}].Day" type="number" class="form-control" placeholder="Day" value="1" min="1" max="${maxDays}" step="1" />
+                        <div class="input-group">
+                            <span class="input-group-text">Day</span>
+                            <input name="Event.ScheduleSteps[${index}].Day" type="number" class="form-control" placeholder="Day" value="1" min="1" max="${maxDays}" step="1" />
+                        </div>
                     </div>
                     <div class="col-md-3">
                         <input name="Event.ScheduleSteps[${index}].TimeStamp" type="time" class="form-control" />
