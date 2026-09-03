@@ -104,6 +104,90 @@
     let originalMaxDays = 0;
     let eventDurationChanged = false;
 
+    // Change tracking
+    let isDirty = false;
+    const eventForm = document.getElementById('eventForm');
+
+    if (eventForm) {
+        // Track changes on regular inputs
+        eventForm.addEventListener('input', () => isDirty = true);
+        eventForm.addEventListener('change', () => isDirty = true);
+
+        // RTE-specific: Since RTE updates the textarea and triggers 'change',
+        // the event listener above should already catch it.
+
+        eventForm.addEventListener('submit', () => {
+            isDirty = false;
+        });
+
+        // Handle navigation confirmation
+        const handleNavigation = async (e, url) => {
+            if (isDirty) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const saveBefore = await window.customConfirm('You have unsaved changes. Would you like to save them before previewing?', {
+                    title: 'Unsaved Changes',
+                    confirmText: 'Save and Continue',
+                    cancelText: 'Discard Changes',
+                    confirmClass: 'btn-success'
+                });
+
+                if (saveBefore) {
+                    const submitBtn = eventForm.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        let redirectInput = document.getElementById('redirectAfterSave');
+                        if (!redirectInput) {
+                            redirectInput = document.createElement('input');
+                            redirectInput.type = 'hidden';
+                            redirectInput.id = 'redirectAfterSave';
+                            redirectInput.name = 'RedirectAfterSave';
+                            eventForm.appendChild(redirectInput);
+                        }
+                        redirectInput.value = url;
+                        submitBtn.click();
+                    }
+                } else {
+                    const discard = await window.customConfirm('Discard changes and proceed to preview?', {
+                        title: 'Confirm Discard',
+                        confirmText: 'Discard and Proceed',
+                        cancelText: 'Stay on Page',
+                        confirmClass: 'btn-danger'
+                    });
+
+                    if (discard) {
+                        isDirty = false; // Prevent beforeunload trigger
+                        window.location.href = url;
+                    }
+                }
+            }
+        };
+
+        // Attach to preview links and other navigation
+        const attachNavigationHandlers = () => {
+            const previewLinks = document.querySelectorAll('a[class*="confirm-required"]');
+            previewLinks.forEach(link => {
+                // Remove existing to avoid double handlers if called multiple times
+                link.removeEventListener('click', link._navHandler);
+                link._navHandler = (e) => handleNavigation(e, link.href);
+                link.addEventListener('click', link._navHandler);
+            });
+        };
+
+        attachNavigationHandlers();
+
+        // Also watch for dynamic links (if any are added later)
+        const observer = new MutationObserver(attachNavigationHandlers);
+        observer.observe(eventForm, { childList: true, subtree: true });
+
+        window.addEventListener('beforeunload', (e) => {
+            if (isDirty) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    }
+
     if (startDateInput && endDateInput) {
         const calculateDays = () => {
             if (startDateInput.value && endDateInput.value) {

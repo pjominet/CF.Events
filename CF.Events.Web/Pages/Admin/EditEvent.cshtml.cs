@@ -19,8 +19,9 @@ public class EditEventModel(
     IFileService fileService,
     IToastNotification toastNotification) : PageModel
 {
-    [BindProperty]
-    public EventModel Event { get; set; } = new();
+    [BindProperty] public EventModel Event { get; set; } = new();
+
+    [BindProperty] public string? RedirectAfterSave { get; set; }
 
     public async Task<IActionResult> OnGetAsync(int? id)
     {
@@ -188,6 +189,10 @@ public class EditEventModel(
         await fileService.SyncEventImagesAsync(@event.Id, currentEventImages);
 
         toastNotification.AddSuccessToastMessage($"Event {(isNew ? "created" : "updated")} successfully!");
+
+        if (!string.IsNullOrEmpty(RedirectAfterSave) && (Url.IsLocalUrl(RedirectAfterSave) || RedirectAfterSave.StartsWith('/')))
+            return Redirect(RedirectAfterSave);
+
         return Page();
     }
 
@@ -203,16 +208,16 @@ public class EditEventModel(
     {
         public int Id { get; set; }
         public string? UploadSessionId { get; set; }
-        [Required, StringLength(100)]
-        public string Name { get; set; } = null!;
+        [Required, StringLength(100)] public string Name { get; set; } = null!;
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string? Location { get; set; }
-        [Required]
-        public string Description { get; set; } = null!;
+        [Required] public string Description { get; set; } = null!;
         public string? TravelInstructions { get; set; }
+
         [ModelBinder(BinderType = typeof(FlatListModelBinder))]
         public List<string> AccommodationCodes { get; set; } = [];
+
         public string? AccommodationDetails { get; set; }
         public string? SaveDateEmailTemplateId { get; set; }
         public bool SendWithLink { get; set; } = false;
@@ -221,8 +226,10 @@ public class EditEventModel(
         public List<DonationType> DonationTypes { get; set; } = [];
         public string? DonationIban { get; set; }
         public string? DonationLink { get; set; }
+
         [ModelBinder(BinderType = typeof(FlatListModelBinder))]
         public List<string> BookingLinks { get; set; } = [];
+
         public List<FaqInputModel> FaqItems { get; set; } = [];
         public List<ScheduleInputModel> ScheduleSteps { get; set; } = [];
 
