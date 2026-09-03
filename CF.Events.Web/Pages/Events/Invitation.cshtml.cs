@@ -17,7 +17,7 @@ public class InvitationModel(EventsDbContext db) : PageModel
     public string BackUrl { get; private set; } = "/";
     public bool NotFoundOrForbidden { get; private set; }
 
-    public async Task<IActionResult> OnGetAsync(int eventId)
+    public async Task<IActionResult> OnGetAsync(int eventId, string? returnUrl = null)
     {
         var userId = User.GetId();
         var isInvited = await db.EventUsers.AnyAsync(r => r.EventId == eventId && r.UserId == userId);
@@ -47,8 +47,8 @@ public class InvitationModel(EventsDbContext db) : PageModel
 
         HasRsvped = await db.Rsvps.AnyAsync(r => r.EventId == eventId && r.UserId == userId);
 
-        // Admins reach this page by previewing from the events list, regular users from their invitation list.
-        BackUrl = isAdmin && !isInvited ? "/admin/events" : "/invites";
+        // Admins reach this page by previewing from the event editor, regular users from their invitation list.
+        BackUrl = isAdmin && !isInvited ? $"/admin/edit-event/{eventId}" : "/invites";
 
         return Page();
     }

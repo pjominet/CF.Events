@@ -1,5 +1,6 @@
 @page "{id:int?}"
 @model EditEventModel
+@using CF.Events.Web.Infrastructure.Extensions
 @{
     ViewData["Title"] = Model.Event.Id == 0 ? "Create Event" : $"Edit Event: {Model.Event.Name}";
 }
@@ -19,14 +20,30 @@
     </ol>
 
     <form method="post" enctype="multipart/form-data" id="eventForm">
+        <input type="hidden" name="RedirectAfterSave" id="redirectAfterSave" value="" />
         <partial name="Shared/_EventEditor" for="Event"/>
         <div class="event-form-actions">
-            <a asp-page="/Admin/Events" class="btn btn-secondary">Back</a>
+            <a asp-page="/Admin/Events" class="btn btn-secondary confirm-required">Back</a>
             <button type="submit" class="btn btn-primary" id="saveButton">
                 <i class="fas fa-save me-1"></i> Save Event
             </button>
         </div>
     </form>
+
+    @if (Model.Event.Id > 0)
+    {
+        <div class="d-flex justify-content-end mt-3 gap-3">
+                <a href="/events/@Model.Event.Id/@User.GetId()/save-the-date" class="btn btn-success confirm-required">
+                    <i class="bi bi-calendar-check me-1"></i> Preview Save the Date
+                </a>
+                <a href="/events/@Model.Event.Id/invitation" class="btn btn-info confirm-required">
+                    <i class="bi bi-calendar-heart me-1"></i> Preview Invitation
+                </a>
+                <a asp-page="/Admin/EventPreview" asp-route-id="@Model.Event.Id" class="btn btn-primary confirm-required">
+                    <i class="bi bi-eye me-1"></i> Preview Event Details
+                </a>
+        </div>
+    }
 </div>
 
 @section Scripts {

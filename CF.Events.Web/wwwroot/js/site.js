@@ -93,25 +93,36 @@
 
             const onConfirm = () => {
                 cleanup();
-                resolve(true);
+                modalEl.addEventListener('hidden.bs.modal', () => resolve(true), { once: true });
                 modal.hide();
             };
 
             const onCancel = () => {
                 cleanup();
-                resolve(false);
+                modalEl.addEventListener('hidden.bs.modal', () => resolve(false), { once: true });
                 modal.hide();
             };
 
             const cleanup = () => {
                 confirmBtn.removeEventListener('click', onConfirm);
                 cancelBtn.removeEventListener('click', onCancel);
+                modalEl.removeEventListener('hidden.bs.modal', onHidden);
             };
 
+            const onHidden = () => {
+                cleanup();
+            };
+
+            modalEl.addEventListener('hidden.bs.modal', onHidden, { once: true });
             confirmBtn.addEventListener('click', onConfirm);
             cancelBtn.addEventListener('click', onCancel);
 
-            modal.show();
+            // If the modal is currently being hidden, wait until it's hidden before showing it again
+            if (modalEl.classList.contains('collapsing') || modalEl.classList.contains('showing')) {
+                 modalEl.addEventListener('hidden.bs.modal', () => modal.show(), { once: true });
+            } else {
+                modal.show();
+            }
         });
     }
 

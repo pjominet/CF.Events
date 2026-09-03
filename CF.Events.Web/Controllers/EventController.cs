@@ -107,7 +107,28 @@ public class EventController(
     [Authorize]
     public async Task<IActionResult> GetEventAccommodationDetail([FromRoute] int eventId)
     {
+        var isAdmin = User.IsAdmin();
         var userId = User.GetId();
+
+        if (isAdmin)
+        {
+            var @event = await db.Events
+                .Include(e => e.BookingLinks)
+                .FirstOrDefaultAsync(e => e.Id == eventId);
+
+            if (@event is null) return NotFound();
+
+            var adminModel = new AccommodationDetails
+            {
+                HasRsvped = false,
+                IsAttending = true,
+                Details = @event.AccommodationDetails,
+                Code = "PREVIEW_CODE",
+                BookingLinks = @event.BookingLinks.ToDictionary(bl => bl.Type, bl => bl.Link)
+            };
+
+            return PartialView("~/Pages/Events/Shared/_EventAccommodation.cshtml", adminModel);
+        }
 
         var eventUser = await db.EventUsers
             .Where(eu => eu.EventId == eventId && eu.UserId == userId)
@@ -139,7 +160,23 @@ public class EventController(
     [Authorize]
     public async Task<IActionResult> GetEventDonationDetail([FromRoute] int eventId)
     {
+        var isAdmin = User.IsAdmin();
         var userId = User.GetId();
+
+        if (isAdmin)
+        {
+            var @event = await db.Events.FirstOrDefaultAsync(e => e.Id == eventId);
+            if (@event is null) return NotFound();
+
+            var adminModel = new DonationDetails
+            {
+                Iban = @event.DonationIban,
+                Link = @event.DonationLink,
+                Reference = @event.GetDonationReference()
+            };
+
+            return PartialView("~/Pages/Events/Shared/_EventDonations.cshtml", adminModel);
+        }
 
         var eventUser = await db.EventUsers
             .Where(eu => eu.EventId == eventId && eu.UserId == userId)
@@ -168,7 +205,15 @@ public class EventController(
     [Authorize]
     public async Task<IActionResult> GetEventFaq([FromRoute] int eventId)
     {
+        var isAdmin = User.IsAdmin();
         var userId = User.GetId();
+
+        if (isAdmin)
+        {
+            var @event = await db.Events.Include(e => e.EventFaq).FirstOrDefaultAsync(e => e.Id == eventId);
+            if (@event is null) return NotFound();
+            return PartialView("~/Pages/Events/Shared/_EventFaq.cshtml", @event.EventFaq);
+        }
 
         var eventUser = await db.EventUsers
             .Where(eu => eu.EventId == eventId && eu.UserId == userId)
@@ -187,7 +232,15 @@ public class EventController(
     [Authorize]
     public async Task<IActionResult> GetEventSchedule([FromRoute] int eventId)
     {
+        var isAdmin = User.IsAdmin();
         var userId = User.GetId();
+
+        if (isAdmin)
+        {
+            var @event = await db.Events.Include(e => e.EventSchedule).FirstOrDefaultAsync(e => e.Id == eventId);
+            if (@event is null) return NotFound();
+            return PartialView("~/Pages/Events/Shared/_EventSchedule.cshtml", @event.EventSchedule.OrderBy(s => s.Day).ThenBy(s => s.TimeStamp).ToList());
+        }
 
         var eventUser = await db.EventUsers
             .Where(eu => eu.EventId == eventId && eu.UserId == userId)
@@ -206,7 +259,15 @@ public class EventController(
     [Authorize]
     public async Task<IActionResult> GetEventTravelInstructions([FromRoute] int eventId)
     {
+        var isAdmin = User.IsAdmin();
         var userId = User.GetId();
+
+        if (isAdmin)
+        {
+            var @event = await db.Events.FirstOrDefaultAsync(e => e.Id == eventId);
+            if (@event is null) return NotFound();
+            return PartialView("~/Pages/Events/Shared/_EventTravel.cshtml", @event.TravelInstructions);
+        }
 
         var eventUser = await db.EventUsers
             .Where(eu => eu.EventId == eventId && eu.UserId == userId)
