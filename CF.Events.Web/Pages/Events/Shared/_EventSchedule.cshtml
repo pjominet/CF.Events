@@ -30,7 +30,7 @@
                             var day = groupedSchedule[i];
                             <div class="tab-pane fade @(i == 0 ? "show active" : "")" id="day-pane-@day.Key" role="tabpanel" aria-labelledby="day-tab-@day.Key" tabindex="0">
                                 <div class="timeline">
-                                    @foreach (var step in day.OrderBy(s => s.TimeStamp))
+                                    @foreach (var step in day.OrderBy(s => s.TimeStamp.Hour < 6 ? 1 : 0).ThenBy(s => s.TimeStamp))
                                     {
                                         <div class="timeline-item">
                                             <div class="timeline-marker"></div>
