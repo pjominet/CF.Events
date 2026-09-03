@@ -29,6 +29,8 @@
     }
 
     function reindexRows(container) {
+        if (!container) return;
+        const isFaq = container.id === 'faq-container';
         container.querySelectorAll('.schedule-row, .faq-row').forEach((row, index) => {
             row.querySelectorAll('input, textarea').forEach(input => {
                 const name = input.getAttribute('name');
@@ -40,6 +42,10 @@
                 if (id) {
                     // Update the index in the id attribute, e.g., Event_ScheduleSteps_0__Day -> Event_ScheduleSteps_1__Day
                     input.setAttribute('id', id.replace(/_\d+__/, '_' + index + '__'));
+                }
+
+                if (isFaq && input.classList.contains('faq-sort-order')) {
+                    input.value = index;
                 }
             });
         });
@@ -80,20 +86,37 @@
         addFaqBtn.addEventListener('click', function() {
             const index = faqContainer.querySelectorAll('.faq-row').length;
             const html = `
-                <div class="row gx-2 mb-3 faq-row">
-                    <div class="col-11">
+                <div class="row gx-2 mb-3 faq-row align-items-center">
+                    <div class="col-auto">
+                        <i class="bi bi-list faq-handle" style="cursor: grab;"></i>
+                    </div>
+                    <div class="col">
                         <div class="mb-2">
                             <input name="Event.FaqItems[${index}].Question" class="form-control" placeholder="Question" />
                         </div>
                         <div class="mb-2">
-                            <textarea name="Event.FaqItems[${index}].Answer" class="form-control" placeholder="Answer" rows="1"></textarea>
+                            <textarea name="Event.FaqItems[${index}].Answer" class="form-control" placeholder="Answer" rows="2"></textarea>
                         </div>
+                        <input type="hidden" name="Event.FaqItems[${index}].SortOrder" class="faq-sort-order" value="${index}" />
                     </div>
-                    <div class="col-1">
+                    <div class="col-auto">
                         <button type="button" class="btn btn-link text-danger remove-row"><i class="bi bi-x-lg"></i></button>
                     </div>
                 </div>`;
             faqContainer.insertAdjacentHTML('beforeend', html);
+        });
+    }
+
+    // FAQ Drag and Drop
+    if (faqContainer && typeof Sortable !== 'undefined') {
+        new Sortable(faqContainer, {
+            handle: '.faq-handle',
+            animation: 150,
+            ghostClass: 'bg-light',
+            onEnd: function() {
+                reindexRows(faqContainer);
+                isDirty = true;
+            }
         });
     }
 

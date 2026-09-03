@@ -60,10 +60,11 @@ public class EditEventModel(
                 BookingLinks = [.. @event.BookingLinks.Select(bl => bl.Link)],
                 FaqItems =
                 [
-                    .. @event.EventFaq.Select(f => new FaqInputModel
+                    .. @event.EventFaq.OrderBy(f => f.SortOrder).Select(f => new FaqInputModel
                     {
                         Question = f.Question,
-                        Answer = f.Answer
+                        Answer = f.Answer,
+                        SortOrder = f.SortOrder
                     })
                 ],
                 ScheduleSteps =
@@ -154,9 +155,10 @@ public class EditEventModel(
 
         // FAQ
         @event.EventFaq.Clear();
+        var faqIndex = 1;
         foreach (var faq in Event.FaqItems.Where(f => !string.IsNullOrWhiteSpace(f.Question) && !string.IsNullOrWhiteSpace(f.Answer)))
         {
-            @event.EventFaq.Add(new EventFaqItem { Question = faq.Question, Answer = faq.Answer });
+            @event.EventFaq.Add(new EventFaqItem { Question = faq.Question, Answer = faq.Answer, SortOrder = faqIndex++ });
         }
 
         // Schedule
@@ -240,6 +242,7 @@ public class EditEventModel(
     {
         public string Question { get; set; } = null!;
         public string Answer { get; set; } = null!;
+        public int SortOrder { get; set; }
     }
 
     public class ScheduleInputModel
