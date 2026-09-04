@@ -2,7 +2,7 @@
     var errors = TempData[ViewDataKeys.ImportErrors] as List<string> ?? [];
 }
 <div class="modal fade" id="importUsersModal" data-bs-backdrop="static" tabindex="-1" data-autoshow="@(errors.Count > 0 ? "true" : "false")">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form method="post" asp-action="ImportUsers" asp-controller="User" enctype="multipart/form-data">
                 @Html.AntiForgeryToken()

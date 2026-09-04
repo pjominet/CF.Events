@@ -19,6 +19,7 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
     public DbSet<EventScheduleStep> EventSchedule => Set<EventScheduleStep>();
     public DbSet<EventImage> EventImages => Set<EventImage>();
     public DbSet<LoginAudit> LoginAudits => Set<LoginAudit>();
+    public DbSet<Feedback> Feedbacks => Set<Feedback>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -170,6 +171,20 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
             e.HasKey(o => o.Id);
             e.Property(o => o.AttendingDays)
                 .HasMaxLength(1000);
+        });
+
+        builder.Entity<Feedback>(e =>
+        {
+            e.HasKey(o => o.Id);
+            e.Property(o => o.Text)
+                .IsRequired()
+                .HasMaxLength(1000);
+
+            e.HasOne(r => r.User)
+                .WithMany(r => r.GivenFeedbacks)
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
         });
     }
 }

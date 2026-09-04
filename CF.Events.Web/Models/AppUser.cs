@@ -19,4 +19,5 @@ public class AppUser : IdentityUser
     public List<EventUser> UserEvents { get; set; } = [];
     public List<AuthCode> InviteCodes { get; set; } = [];
     public List<LoginAudit> LoginAudits { get; set; } = [];
+    public List<Feedback> GivenFeedbacks { get; set; } = [];
 }

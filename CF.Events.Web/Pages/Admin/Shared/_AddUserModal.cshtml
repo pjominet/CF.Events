@@ -3,7 +3,7 @@
     var show = ViewData[ViewDataKeys.ShowAddModal] as bool? ?? false;
 }
 <div class="modal fade" id="addUserModal" data-bs-backdrop="static" tabindex="-1" data-autoshow="@(show ? "true" : "false")">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form method="post" asp-page-handler="Add" id="addUserForm">
                 <input type="hidden" asp-for="Id" id="userEditId" />

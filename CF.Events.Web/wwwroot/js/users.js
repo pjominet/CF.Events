@@ -171,6 +171,56 @@
         });
     }
 
+    const viewFeedbackModal = document.getElementById('viewFeedbackModal');
+    if (viewFeedbackModal) {
+        viewFeedbackModal.addEventListener('show.bs.modal', async function (event) {
+            const button = event.relatedTarget;
+            const userId = button.getAttribute('data-user-id');
+            document.getElementById('feedbackUserDisplayName').textContent = button.getAttribute('data-user-displayname');
+
+            const loading = document.getElementById('feedbackLoading');
+            const content = document.getElementById('feedbackContent');
+            const empty = document.getElementById('feedbackEmpty');
+            const list = document.getElementById('feedbackList');
+
+            loading.classList.remove('d-none');
+            content.classList.add('d-none');
+            empty.classList.add('d-none');
+            list.innerHTML = '';
+
+            try {
+                const response = await fetch(`?handler=Feedback&userId=${userId}`);
+                if (!response.ok) throw new Error('Failed to load feedback');
+
+                const feedbacks = await response.json();
+
+                loading.classList.add('d-none');
+
+                if (feedbacks && feedbacks.length > 0) {
+                    feedbacks.forEach(f => {
+                        const item = document.createElement('div');
+                        item.className = 'list-group-item px-0';
+                        item.innerHTML = `
+                            <div class="d-flex w-100 justify-content-between mb-1">
+                                <small class="text-muted">${f.submittedAt}</small>
+                            </div>
+                            <p class="mb-1 text-wrap text-break" style="white-space: pre-wrap;">${f.text}</p>
+                        `;
+                        list.appendChild(item);
+                    });
+                    content.classList.remove('d-none');
+                } else {
+                    empty.classList.remove('d-none');
+                }
+            } catch (error) {
+                console.error('Error fetching feedback:', error);
+                loading.classList.add('d-none');
+                empty.textContent = 'Error loading feedback.';
+                empty.classList.remove('d-none');
+            }
+        });
+    }
+
     // Initial check for non-modal elements if any
     toggleGuestGroup();
 })();

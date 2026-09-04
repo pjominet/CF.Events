@@ -27,6 +27,21 @@ public class UsersModel(
         await LoadAsync();
     }
 
+    public async Task<IActionResult> OnGetFeedbackAsync(string userId)
+    {
+        var feedbacks = await db.Feedbacks
+            .Where(f => f.UserId == userId)
+            .OrderByDescending(f => f.SubmittedAt)
+            .Select(f => new
+            {
+                f.Text,
+                SubmittedAt = f.SubmittedAt.ToString("g")
+            })
+            .ToListAsync();
+
+        return new JsonResult(feedbacks);
+    }
+
     public async Task<IActionResult> OnPostAddAsync()
     {
         if (NewUser.SelectedRoles.Contains(Roles.Guest) && string.IsNullOrWhiteSpace(NewUser.GuestGroup))
@@ -202,6 +217,7 @@ public class UsersModel(
     {
         var users = await userManager.Users
             .Include(u => u.GuestGroup)
+            .Include(u => u.GivenFeedbacks)
             .ToListAsync();
         AllUsers = [];
         foreach (var u in users)
@@ -217,7 +233,8 @@ public class UsersModel(
                 u.GuestGroup?.MaxPeople ?? 0,
                 u.IsActive,
                 roles,
-                passwordSet ? u.MustChangePassword : null));
+                passwordSet ? u.MustChangePassword : null,
+                u.GivenFeedbacks.Count > 0));
         }
         AllUsers = [.. AllUsers.OrderBy(u => u.DisplayName)];
     }
@@ -349,7 +366,7 @@ public class UsersModel(
         return RedirectToPage();
     }
 
-    public record UserRow(string Id, string Email, string Phone, string DisplayName, string GuestGroup, int MaxPeople, bool IsActive, IList<string> UserRoles, bool? MustChangePassword)
+    public record UserRow(string Id, string Email, string Phone, string DisplayName, string GuestGroup, int MaxPeople, bool IsActive, IList<string> UserRoles, bool? MustChangePassword, bool HasFeedback)
     {
         public IEnumerable<string> GetOrderedRoles(bool isCurrentViewerSudo)
         {
