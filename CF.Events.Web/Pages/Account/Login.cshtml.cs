@@ -36,7 +36,7 @@ public class LoginModel(
         if (email.HasValue(false))
             Input.Email = email;
 
-        ReturnUrl = returnUrl;
+        ReturnUrl = returnUrl ?? "/";
         return Page();
     }
 
