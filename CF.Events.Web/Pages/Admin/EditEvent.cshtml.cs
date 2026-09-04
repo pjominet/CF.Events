@@ -154,7 +154,7 @@ public class EditEventModel(
 
         @event.DonationIban = Event.DonationTypes.Contains(DonationType.Iban) ? Event.DonationIban : null;
         @event.DonationLink = Event.DonationTypes.Contains(DonationType.Link) ? Event.DonationLink : null;
-        @event.AllowPhysicalGifts = Event.DonationTypes.Contains(DonationType.Physical);
+        @event.PhysicalGiftInfo = Event.DonationTypes.Contains(DonationType.Physical) ? Event.PhysicalGiftInfo : null;
 
         // Booking Links
         @event.BookingLinks.Clear();
@@ -219,7 +219,7 @@ public class EditEventModel(
         var types = new List<DonationType>();
         if (@event.DonationIban.HasValue()) types.Add(DonationType.Iban);
         if (@event.DonationLink.HasValue()) types.Add(DonationType.Link);
-        if (@event.AllowPhysicalGifts) types.Add(DonationType.Physical);
+        if (@event.PhysicalGiftInfo.HasValue()) types.Add(DonationType.Physical);
         return types;
     }
 
@@ -246,6 +246,7 @@ public class EditEventModel(
         public List<DonationType> DonationTypes { get; set; } = [];
         public string? DonationIban { get; set; }
         public string? DonationLink { get; set; }
+        public string? PhysicalGiftInfo { get; set; }
 
         [ModelBinder(BinderType = typeof(FlatListModelBinder))]
         public List<string> BookingLinks { get; set; } = [];

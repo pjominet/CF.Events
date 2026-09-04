@@ -9,7 +9,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                @if (Model.Iban.HasValue(false) || Model.Link.HasValue() || Model.AllowPhysicalGifts)
+                @if (Model.Iban.HasValue(false) || Model.Link.HasValue() || Model.PhysicalGiftInfo.HasValue())
                 {
                     <p class="fw-bold">Would you like to contribute to our @Model.EventName?</p>
                 }
@@ -25,7 +25,7 @@
                     </section>
                 }
 
-                @if (Model.AllowPhysicalGifts)
+                @if (Model.PhysicalGiftInfo.HasValue())
                 {
                     if (Model.Link.HasValue())
                     {
@@ -34,12 +34,12 @@
                     <section class="mt-3">
                         <h3 class="h6 mb-0">Bring a gift to the event</h3>
                         <div class="alert alert-secondary py-2 text-center my-3">
-                            We will have a dedicated table/box for physical gifts at the venue.
+                            @Html.Raw(Model.PhysicalGiftInfo)
                         </div>
                     </section>
                 }
 
-                @if (Model.Iban.HasValue(false) && (Model.Link.HasValue() || Model.AllowPhysicalGifts))
+                @if (Model.Iban.HasValue(false) && (Model.Link.HasValue() || Model.PhysicalGiftInfo.HasValue()))
                 {
                     <div class="text-divider">or</div>
                 }
@@ -58,7 +58,7 @@
                     </div>
                 }
 
-                @if (!Model.Iban.HasValue(false) && !Model.Link.HasValue(false) && !Model.AllowPhysicalGifts)
+                @if (!Model.Iban.HasValue(false) && !Model.Link.HasValue(false) && !Model.PhysicalGiftInfo.HasValue())
                 {
                     <div class="alert alert-info mb-3">
                         <i class="bi bi-info-circle me-2"></i>This event does not have any gifts or donations setup.

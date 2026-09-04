@@ -1,4 +1,3 @@
-@using CF.Events.Web.Infrastructure.Extensions
 @model EditEventModel.EventModel
 
 <input type="hidden" asp-for="Id" data-upload-id="@Model.UploadSessionId"/>
@@ -31,7 +30,7 @@
             <div class="col-12 col-md-4">
                 <div class="mb-3">
                     <label class="form-label fw-bold">Event Name</label>
-                    <input asp-for="Name" class="form-control" placeholder="Wedding"/>
+                    <input asp-for="Name" type="text" class="form-control" placeholder="Wedding"/>
                     <span asp-validation-for="Name" class="text-danger"></span>
                 </div>
                 <div class="row mb-3">
@@ -52,7 +51,7 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-bold">Location</label>
-                    <input asp-for="Location" class="form-control" placeholder="Grand Hotel"/>
+                    <input asp-for="Location" type="text" class="form-control" placeholder="Grand Hotel"/>
                     <span asp-validation-for="Location" class="text-danger"></span>
                 </div>
             </div>
@@ -120,21 +119,28 @@
 
         <div id="donationIbanWrapper" style="display: @(Model.DonationTypes.Contains(EditEventModel.DonationType.Iban) ? "block" : "none")" class="mb-3">
             <label class="form-label fw-bold">Donation IBAN</label>
-            <input asp-for="DonationIban" class="form-control"/>
-            <div class="form-text">If set, the event will be eligible for donations.</div>
+            <input asp-for="DonationIban" type="text" class="form-control" data-max-length="64" data-counter-id="ibanCounter"/>
+            <div class="d-flex justify-content-between mt-2">
+                <div class="form-text">If set, the event will be eligible for donations via direct transfers.</div>
+                <small id="ibanCounter" class="text-muted"></small>
+            </div>
         </div>
 
         <div id="donationLinkWrapper" style="display: @(Model.DonationTypes.Contains(EditEventModel.DonationType.Link) ? "block" : "none")" class="mb-3">
             <label class="form-label fw-bold">Service Link</label>
-            <input asp-for="DonationLink" class="form-control"/>
-            <div class="form-text">If set, the event will be eligible for donations via an external service.</div>
+            <input asp-for="DonationLink" type="text" class="form-control" data-max-length="250" data-counter-id="linkCounter"/>
+            <div class="d-flex justify-content-between mt-2">
+                <div class="form-text">If set, the event will be eligible for donations via an external service.</div>
+                <small id="linkCounter" class="text-muted"></small>
+            </div>
         </div>
 
         <div id="donationPhysicalWrapper" style="display: @(Model.DonationTypes.Contains(EditEventModel.DonationType.Physical) ? "block" : "none")" class="mb-3">
-            <div class="alert alert-info py-2">
-                <p class="mb-0 small">
-                    <i class="bi bi-info-circle me-2"></i>Physical gifts will be mentioned in the invitation details, informing guests that there is a gift table/box at the venue.
-                </p>
+            <label class="form-label fw-bold">Physical Gift Info</label>
+            <textarea asp-for="PhysicalGiftInfo" class="form-control" rows="3" data-max-length="1000" data-counter-id="giftCounter"></textarea>
+            <div class="d-flex justify-content-between mt-2">
+                <div class="form-text">Description of how physical gifts should be handled.</div>
+                <small id="giftCounter" class="text-muted"></small>
             </div>
         </div>
     </div>
@@ -156,7 +162,7 @@
                         <input asp-for="ScheduleSteps[i].TimeStamp" type="time" class="form-control"/>
                     </div>
                     <div class="col-md-6">
-                        <input asp-for="ScheduleSteps[i].Label" class="form-control" placeholder="Label"/>
+                        <input asp-for="ScheduleSteps[i].Label" type="text" class="form-control" placeholder="Label"/>
                     </div>
                     <div class="col-md-1">
                         <button type="button" class="btn btn-link text-danger remove-row"><i class="bi bi-x-lg"></i></button>
@@ -182,7 +188,7 @@
                 </div>
                 <div class="col">
                     <div class="mb-2">
-                        <input asp-for="FaqItems[i].Question" class="form-control" placeholder="Question"/>
+                        <input asp-for="FaqItems[i].Question" type="text" class="form-control" placeholder="Question"/>
                     </div>
                     <div class="mb-2">
                         <textarea asp-for="FaqItems[i].Answer" class="form-control" placeholder="Answer" data-max-length="1000" data-counter-id="faq-c-@i"></textarea>
@@ -209,7 +215,7 @@
             <div class="col-12">
                 <div class="mb-3">
                     <label class="form-label fw-bold"><i>Save the Date</i> Email Template ID</label>
-                    <input asp-for="SaveDateEmailTemplateId" class="form-control"/>
+                    <input asp-for="SaveDateEmailTemplateId" type="text" class="form-control"/>
                     <div class="form-text">If set, the event will be eligible for 'Save the Date' emails using this template.</div>
                 </div>
                 <div class="mb-3">
@@ -220,7 +226,7 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-bold"><i>Invitation Email</i> Template ID</label>
-                    <input asp-for="InvitationEmailTemplateId" class="form-control"/>
+                    <input asp-for="InvitationEmailTemplateId" type="text" class="form-control"/>
                     <div class="form-text">If set, the event will be eligible for 'Invite' emails using this template.</div>
                 </div>
                 <div class="mb-3">
