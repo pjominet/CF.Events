@@ -260,6 +260,32 @@
     }
     window.applyDynamicTableStyles = applyDynamicTableStyles;
 
+    function initCharacterCounters(container = document) {
+        container.querySelectorAll('[data-max-length]').forEach(function (el) {
+            const maxLength = parseInt(el.getAttribute('data-max-length'));
+            const counterId = el.getAttribute('data-counter-id');
+            const counterEl = document.getElementById(counterId);
+
+            if (!counterEl) return;
+
+            const updateCounter = () => {
+                const currentLength = el.value.length;
+                counterEl.textContent = `${currentLength}/${maxLength}`;
+
+                if (currentLength > maxLength) {
+                    counterEl.classList.add('text-danger');
+                } else {
+                    counterEl.classList.remove('text-danger');
+                }
+            };
+
+            ['input', 'keyup', 'paste', 'change'].forEach(event => {
+                el.addEventListener(event, updateCounter);
+            });
+            updateCounter(); // Initial call
+        });
+    }
+
     window.copyToClipboardAndShowFeedback = function (elementOrId, buttonOrDuration, duration = 750) {
         let textToCopy = '';
         let button = null;
@@ -373,6 +399,7 @@
         initTabPersistence();
         initScrollPersistence();
         initSidebar();
+        initCharacterCounters();
         applyDynamicTableStyles();
         setTimeout(hideLoadingOverlay, 100);
     });

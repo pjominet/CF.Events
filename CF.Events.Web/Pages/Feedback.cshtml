@@ -1,0 +1,35 @@
+﻿@page
+@model CF.Events.Web.Pages.FeedbackModel
+@{
+    ViewData["Title"] = "Leave some Feedback";
+}
+
+<div class="container-fluid pb-3">
+    <div class="row justify-content-center">
+        <div class="col-md-9 col-lg-8">
+            <div class="card shadow-sm border-0 bg-light-subtle">
+                <div class="card-body p-4 p-md-5">
+                    <h1 class="h3 mb-4 text-primary">@ViewData["Title"]</h1>
+
+                    <form method="post" enctype="multipart/form-data" id="feedbackForm">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tell us your opinion about this service or any issues you encountered</label>
+                            <textarea asp-for="Feedback.Text" class="form-control" rows="10" data-max-length="1000" data-counter-id="feedback-counter"></textarea>
+                            <div class="d-flex justify-content-between mt-2">
+                                <span asp-validation-for="Feedback.Text" class="text-danger"></span>
+                                <small id="feedback-counter" class="text-muted"></small>
+                            </div>
+
+                            <div class="d-flex justify-content-between mt-2">
+                                <a href="/" class="btn btn-secondary btn-sm">
+                                    Cancel
+                                </a>
+                                <button type="submit" class="btn btn-sm btn-primary">Submit</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

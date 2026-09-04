@@ -135,7 +135,10 @@
                     <div class="form-step d-none" id="step-5">
                         <section class="commentSection">
                             <h3 class="h5 serif">Comments</h3>
-                            <textarea asp-for="NewRsvp.Comments" class="form-control" maxlength="500" placeholder="Add a comment... (optional)" rows="3"></textarea>
+                            <textarea asp-for="NewRsvp.Comments" class="form-control" maxlength="500" placeholder="Add a comment... (optional)" rows="3" data-max-length="500" data-counter-id="feedback-counter"></textarea>
+                            <div class="d-flex justify-content-end mt-2">
+                                <small id="feedback-counter" class="text-muted"></small>
+                            </div>
                         </section>
                     </div>
                 </div>

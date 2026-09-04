@@ -19,7 +19,7 @@ public class EditEventModel(
     IFileService fileService,
     IToastNotification toastNotification) : PageModel
 {
-    [BindProperty] public EventModel Event { get; set; } = new();
+    [BindProperty] public EventModel Event { get; set; } = null!;
 
     [BindProperty] public string? RedirectAfterSave { get; set; }
 
