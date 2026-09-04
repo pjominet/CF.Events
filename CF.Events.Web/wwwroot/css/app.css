@@ -106,7 +106,7 @@ h1:focus {
     color: var(--dark-color);
     opacity: .85;
     font-size: 0.9rem;
-    margin: 1rem 0;
+    margin: 1.25rem 0;
 }
 
 .text-divider::before,

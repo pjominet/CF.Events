@@ -5,7 +5,7 @@
     <div class="modal-dialog modal-dialog-centered modal-fullscreen-md-down">
         <div class="modal-content modal-glass">
             <div class="modal-header">
-                <h5 class="modal-title serif h3">Wedding Gifts</h5>
+                <h5 class="modal-title serif h3">Gifts & Donations</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -13,11 +13,10 @@
                 {
                     <p class="fw-bold">Would you like to contribute to our @Model.EventName?</p>
                 }
-                a
                 @if (!string.IsNullOrWhiteSpace(Model.Link))
                 {
                     <section class="mt-3">
-                        <h3 class="h6">Have a look at our gift list</h3>
+                        <h3 class="h6 mb-0">Have a look at our gift list</h3>
                         <div class="my-3 w-100">
                             <a class="btn btn-primary w-100" href="@Model.Link" target="_blank" rel="noopener">
                                 @Model.Link<i class="bi bi-box-arrow-in-up-right ms-2"></i>
@@ -26,33 +25,50 @@
                     </section>
                 }
 
-                @if (!string.IsNullOrEmpty(Model.Iban) && !string.IsNullOrWhiteSpace(Model.Link))
+                @if (Model.AllowPhysicalGifts)
+                {
+                    if (!string.IsNullOrWhiteSpace(Model.Link))
+                    {
+                        <div class="text-divider">or</div>
+                    }
+                    <section class="mt-3">
+                        <h3 class="h6 mb-0">Bring a gift to the event</h3>
+                        <div class="alert alert-secondary py-2 text-center my-3">
+                            We will have a dedicated table/box for physical gifts at the venue.
+                        </div>
+                    </section>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.Iban) && (!string.IsNullOrWhiteSpace(Model.Link) || Model.AllowPhysicalGifts))
                 {
                     <div class="text-divider">or</div>
                 }
 
                 @if (!string.IsNullOrEmpty(Model.Iban))
                 {
-                    <h3 class="h6">Feel free to send us money directly</h3>
+                    <h3 class="h6 mb-0">Feel free to send us money directly</h3>
                     <button class="btn btn-outline-primary w-100 my-3" type="button"
                             onclick="copyToClipboardAndShowFeedback(this)">
                         @Model.Iban.FormatAsIban()<i class="bi bi-copy ms-2"></i>
                     </button>
-                    <div class="form-text text-muted mt-2 mb-3">
-                        <p class="mb-1">
+                    <div class="form-text text-muted mb-3">
+                        <p class="mb-0">
                             <i class="bi bi-exclamation-diamond text-danger me-2"></i>Add the reference <strong>@($"{Model.Reference}")</strong> to your transaction.
-                        </p>
-                        <p class="fst-italic mb-0">
-                            <i class="bi bi-info-circle text-info me-2"></i>Any monetary gifts will go directly into the @Model.EventName fund.
                         </p>
                     </div>
                 }
 
-                @if (string.IsNullOrEmpty(Model.Iban) && string.IsNullOrEmpty(Model.Link))
+                @if (string.IsNullOrEmpty(Model.Iban) && string.IsNullOrEmpty(Model.Link) && !Model.AllowPhysicalGifts)
                 {
                     <div class="alert alert-info mb-3">
                         <i class="bi bi-info-circle me-2"></i>This event does not have any gifts or donations setup.
                     </div>
+                }
+                else
+                {
+                    <p class="fst-italic mb-0 form-text text-muted">
+                        <i class="bi bi-info-circle text-info me-2"></i>Any monetary gifts will count towards the @Model.EventName fund.
+                    </p>
                 }
             </div>
         </div>

@@ -8,10 +8,13 @@
             cb.addEventListener('change', function() {
                 const ibanWrapper = document.getElementById('donationIbanWrapper');
                 const linkWrapper = document.getElementById('donationLinkWrapper');
+                const physicalWrapper = document.getElementById('donationPhysicalWrapper');
                 const ibanCb = document.getElementById('donationTypeIban');
                 const linkCb = document.getElementById('donationTypeLink');
+                const physicalCb = document.getElementById('donationTypePhysical');
                 if (ibanWrapper) ibanWrapper.style.display = (ibanCb && ibanCb.checked) ? 'block' : 'none';
                 if (linkWrapper) linkWrapper.style.display = (linkCb && linkCb.checked) ? 'block' : 'none';
+                if (physicalWrapper) physicalWrapper.style.display = (physicalCb && physicalCb.checked) ? 'block' : 'none';
             });
         });
     }
