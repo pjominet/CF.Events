@@ -430,6 +430,7 @@ hr.invite-divider {
     height: calc(var(--book-height) / 2.15);
     overflow-y: scroll;
     margin-bottom: 1rem;
+    padding: 0 3rem;
 }
 
 .rsvp-description img {
