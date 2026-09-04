@@ -1,3 +1,4 @@
+@using CF.Events.Web.Infrastructure.Extensions
 @model EditEventModel.EventModel
 
 <input type="hidden" asp-for="Id" data-upload-id="@Model.UploadSessionId"/>
@@ -10,7 +11,7 @@
         <button class="nav-link" id="travel-accommodation-tab" data-bs-toggle="tab" data-bs-target="#travel-accommodation" type="button" role="tab" aria-controls="travel-accommodation" aria-selected="false">Travel & Accommodation</button>
     </li>
     <li class="nav-item" role="presentation">
-        <button class="nav-link" id="donation-tab" data-bs-toggle="tab" data-bs-target="#donation" type="button" role="tab" aria-controls="donation" aria-selected="false">Donations</button>
+        <button class="nav-link" id="donation-tab" data-bs-toggle="tab" data-bs-target="#donation" type="button" role="tab" aria-controls="donation" aria-selected="false">Gifts & Donations</button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="schedule-tab" data-bs-toggle="tab" data-bs-target="#schedule" type="button" role="tab" aria-controls="schedule" aria-selected="false">Schedule</button>
@@ -97,29 +98,41 @@
     <!-- Donations Tab -->
     <div class="tab-pane fade" id="donation" role="tabpanel" aria-labelledby="donation-tab">
         <div class="mb-3">
-            <label class="form-label fw-bold">Donation Types</label>
+            <label class="form-label fw-bold">Available Types</label>
             <div class="d-flex gap-3 mt-2">
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="Event.DonationTypes" id="donationTypeIban" value="@EditEventModel.DonationType.Iban" @(Model.DonationTypes.Contains(EditEventModel.DonationType.Iban) ? "checked" : "")>
+                    <input class="form-check-input" type="checkbox" name="Event.DonationTypes" id="donationTypeIban" value="@EditEventModel.DonationType.Iban" @(Model.DonationTypes.IsIn(EditEventModel.DonationType.Iban) ? "checked" : "")>
                     <label class="form-check-label" for="donationTypeIban">IBAN</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="Event.DonationTypes" id="donationTypeLink" value="@EditEventModel.DonationType.Link" @(Model.DonationTypes.Contains(EditEventModel.DonationType.Link) ? "checked" : "")>
+                    <input class="form-check-input" type="checkbox" name="Event.DonationTypes" id="donationTypeLink" value="@EditEventModel.DonationType.Link" @(Model.DonationTypes.IsIn(EditEventModel.DonationType.Link) ? "checked" : "")>
                     <label class="form-check-label" for="donationTypeLink">Link</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="Event.DonationTypes" id="donationTypePhysical" value="@EditEventModel.DonationType.Physical" @(Model.DonationTypes.IsIn(EditEventModel.DonationType.Physical) ? "checked" : "")>
+                    <label class="form-check-label" for="donationTypePhysical">Physical</label>
                 </div>
             </div>
         </div>
 
-        <div id="donationIbanWrapper" style="display: @(Model.DonationTypes.Contains(EditEventModel.DonationType.Iban) ? "block" : "none")" class="mb-3">
+        <div id="donationIbanWrapper" style="display: @(Model.DonationTypes.IsIn(EditEventModel.DonationType.Iban) ? "block" : "none")" class="mb-3">
             <label class="form-label fw-bold">Donation IBAN</label>
             <input asp-for="DonationIban" class="form-control"/>
             <div class="form-text">If set, the event will be eligible for donations.</div>
         </div>
 
-        <div id="donationLinkWrapper" style="display: @(Model.DonationTypes.Contains(EditEventModel.DonationType.Link) ? "block" : "none")" class="mb-3">
-            <label class="form-label fw-bold">Donation Link</label>
+        <div id="donationLinkWrapper" style="display: @(Model.DonationTypes.IsIn(EditEventModel.DonationType.Link) ? "block" : "none")" class="mb-3">
+            <label class="form-label fw-bold">Service Link</label>
             <input asp-for="DonationLink" class="form-control"/>
             <div class="form-text">If set, the event will be eligible for donations via an external service.</div>
+        </div>
+
+        <div id="donationPhysicalWrapper" style="display: @(Model.DonationTypes.IsIn(EditEventModel.DonationType.Physical) ? "block" : "none")" class="mb-3">
+            <div class="alert alert-info py-2">
+                <p class="mb-0 small">
+                    <i class="bi bi-info-circle me-2"></i>Physical gifts will be mentioned in the invitation details, informing guests that there is a gift table/box at the venue.
+                </p>
+            </div>
         </div>
     </div>
 

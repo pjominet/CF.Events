@@ -100,6 +100,32 @@ h1:focus {
     font-family: var(--font-serif);
 }
 
+.text-divider {
+    display: flex;
+    align-items: center;
+    color: var(--dark-color);
+    opacity: .85;
+    font-size: 0.9rem;
+    margin: 1.25rem 0;
+}
+
+.text-divider::before,
+.text-divider::after {
+    content: "";
+    flex: 1;
+    border-bottom: 1px solid var(--dark-color);
+    opacity: .66;
+    margin-top: 3px;
+}
+
+.text-divider:not(:empty)::before {
+    margin-right: .75em;
+}
+
+.text-divider:not(:empty)::after {
+    margin-left: .75em;
+}
+
 .bg-card-custom {
     background-color: rgba(var(--glass-color-light), 0.75);
 }

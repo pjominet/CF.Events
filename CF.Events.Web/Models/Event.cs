@@ -32,6 +32,8 @@ public class Event
     [StringLength(1000)]
     public string? DonationLink { get; set; }
 
+    public bool AllowPhysicalGifts { get; set; } = false;
+
     [StringLength(255)]
     public string? SaveDateTemplateId { get; set; }
 

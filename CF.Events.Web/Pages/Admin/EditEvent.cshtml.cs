@@ -143,6 +143,7 @@ public class EditEventModel(
 
         @event.DonationIban = Event.DonationTypes.Contains(DonationType.Iban) ? Event.DonationIban : null;
         @event.DonationLink = Event.DonationTypes.Contains(DonationType.Link) ? Event.DonationLink : null;
+        @event.AllowPhysicalGifts = Event.DonationTypes.Contains(DonationType.Physical);
 
         // Booking Links
         @event.BookingLinks.Clear();
@@ -207,6 +208,7 @@ public class EditEventModel(
         var types = new List<DonationType>();
         if (!string.IsNullOrEmpty(@event.DonationIban)) types.Add(DonationType.Iban);
         if (!string.IsNullOrEmpty(@event.DonationLink)) types.Add(DonationType.Link);
+        if (@event.AllowPhysicalGifts) types.Add(DonationType.Physical);
         return types;
     }
 
@@ -253,13 +255,13 @@ public class EditEventModel(
     {
         public int Day { get; set; }
         public TimeOnly TimeStamp { get; set; }
-        public int SortOrder { get; set; }
         public string Label { get; set; } = null!;
     }
 
     public enum DonationType
     {
         Iban,
-        Link
+        Link,
+        Physical
     }
 }
