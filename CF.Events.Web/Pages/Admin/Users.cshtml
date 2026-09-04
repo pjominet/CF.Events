@@ -170,6 +170,15 @@
                                             </button>
                                         </form>
                                     }
+                                    @if (user.HasFeedback)
+                                    {
+                                        <button class="btn btn-sm btn-outline-info" type="button"
+                                                data-bs-toggle="modal" data-bs-target="#viewFeedbackModal"
+                                                data-user-id="@user.Id"
+                                                data-user-displayname="@user.DisplayName">
+                                            <i class="bi bi-chat-left-text"></i>
+                                        </button>
+                                    }
                                 </div>
                             </td>
                         </tr>
@@ -187,6 +196,7 @@
 
 <partial name="Shared/_AddUserModal" for="NewUser"/>
 <partial name="Shared/_ImportUsersModal"/>
+<partial name="Shared/_ViewFeedbackModal"/>
 
 @section Scripts {
     <script src="/js/users.js" type="text/javascript" asp-append-version="true"></script>

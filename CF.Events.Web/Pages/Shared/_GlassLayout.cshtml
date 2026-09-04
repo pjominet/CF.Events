@@ -1,3 +1,4 @@
+@using CF.Events.Web.Infrastructure.Extensions
 @inject IOptions<AppSettings> AppOptions
 <!DOCTYPE html>
 <html lang="en">
@@ -25,12 +26,15 @@
 </main>
 <footer class="mt-auto py-4 text-center">
     <div class="container d-flex flex-column gap-2">
-        <a href="/privacy" class="text-dark-glass text-decoration-none small opacity-75">
-            <i class="bi bi-shield-check me-1"></i>Privacy & Security
-        </a>
-        <a href="/feedback" class="text-dark-glass small opacity-75">
-            Leave Feedback
-        </a>
+        @if (!User.IsAdmin())
+        {
+            <a href="/privacy" class="text-dark-glass text-decoration-none small opacity-75">
+                <i class="bi bi-shield-check me-1"></i>Privacy & Security
+            </a>
+            <a href="/feedback" class="text-dark-glass small opacity-75">
+                Leave Feedback
+            </a>
+        }
     </div>
 </footer>
 

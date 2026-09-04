@@ -1,0 +1,26 @@
+﻿<div class="modal fade" id="viewFeedbackModal" tabindex="-1" aria-labelledby="viewFeedbackModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewFeedbackModalLabel">Feedback from <span id="feedbackUserDisplayName"></span></h5>
+            </div>
+            <div class="modal-body">
+                <div id="feedbackLoading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                <div id="feedbackContent" class="d-none">
+                    <div id="feedbackList" class="list-group list-group-flush">
+                    </div>
+                </div>
+                <div id="feedbackEmpty" class="d-none text-center py-4 text-muted">
+                    No feedback found for this user.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
