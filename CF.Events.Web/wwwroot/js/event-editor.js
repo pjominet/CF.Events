@@ -73,10 +73,13 @@
                             <input name="Event.ScheduleSteps[${index}].Day" type="number" class="form-control" placeholder="Day" value="1" min="1" max="${maxDays}" step="1" />
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <input name="Event.ScheduleSteps[${index}].TimeStamp" type="time" class="form-control" />
+                    <div class="col-md-2">
+                        <input name="Event.ScheduleSteps[${index}].TimeStamp" type="time" class="form-control" title="Start Time" />
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-2">
+                        <input name="Event.ScheduleSteps[${index}].EndTime" type="time" class="form-control" title="End Time" />
+                    </div>
+                    <div class="col-md-5">
                         <input name="Event.ScheduleSteps[${index}].Label" type="text" class="form-control" placeholder="Label" />
                     </div>
                     <div class="col-md-1">

@@ -4,7 +4,7 @@
 
 .timeline {
     position: relative;
-    padding: 1.5rem 2rem 1.5rem 0;
+    padding: 1.5rem 0.5rem 1.5rem 0;
 }
 
 /* The vertical line */
@@ -13,15 +13,15 @@
     position: absolute;
     top: 0;
     bottom: 0;
-    left: 1.5rem;
+    left: 0.75rem;
     width: 2px;
-    background: rgba(var(--glass-color-primary), 0.1);
+    background: rgba(var(--glass-color-primary), 0.15);
 }
 
 .timeline-item {
     position: relative;
-    padding-left: 3.5rem;
-    padding-bottom: 2.5rem;
+    padding-left: 2.5rem;
+    padding-bottom: 2rem;
 }
 
 .timeline-item:last-child {
@@ -31,47 +31,74 @@
 /* The bullets/markers */
 .timeline-marker {
     position: absolute;
-    left: 1.15rem;
-    top: -0.2rem;
-    width: 14px;
-    height: 14px;
+    left: 0.45rem;
+    top: 0.25rem;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
-    background: var(--primary-color);
+    background: #fff;
+    border: 2px solid var(--primary-color);
     z-index: 2;
-    box-shadow: 0 0 0 2px rgba(var(--glass-color-primary), 0.1);
+    transition: all 0.3s ease;
 }
 
-/* The content box */
+.timeline-item.completed .timeline-marker {
+    background: var(--primary-color);
+}
+
+.timeline-item.current .timeline-marker {
+    background: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(var(--glass-color-primary), 0.2);
+    transform: scale(1.2);
+}
+
+/* The content area */
 .timeline-content {
-    background: #e8e2da;
-    padding: 1.25rem;
-    border-radius: 0 5px 5px 5px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     position: relative;
-}
-
-/* Arrow for the box */
-.timeline-content::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -9px;
-    width: 0;
-    height: 0;
-    border-top: 0 solid transparent;
-    border-bottom: 15px solid transparent;
-    border-right: 10px solid #e8e2da;
-    filter: drop-shadow(-4px 4px 5px rgba(0, 0, 0, 0.1));
+    padding-top: 0.15rem;
 }
 
 .timeline-item .badge {
     font-weight: 600;
-    padding: 0.5em 1em;
+    padding: 0.4em 0.8em;
     border-radius: 50px;
-    margin-bottom: 0.75rem;
     display: inline-block;
     background-color: var(--secondary-color) !important;
+    font-size: 0.75rem;
+    flex-shrink: 0;
 }
+
+.timeline-label {
+    font-size: 1.05rem;
+    color: #333;
+}
+
+/* Progress line highlighting */
+.timeline-item::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0.75rem;
+    width: 2px;
+    height: 100%;
+    background: var(--primary-color);
+    z-index: 1;
+    display: none;
+}
+
+.timeline-item.completed::after {
+    display: block;
+}
+
+.timeline-item.current::after {
+    display: block;
+    height: 0.5rem; /* Only highlight up to the marker */
+}
+
+.timeline-item:last-child::after {
+    display: none !important;
+}
+
 
 /* Custom Nav Tabs for Glass Theme - Matching RSVP Stepper */
 .schedule-tabs {

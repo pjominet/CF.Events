@@ -72,12 +72,12 @@ public class EditEventModel(
                 ScheduleSteps =
                 [
                     .. @event.EventSchedule.OrderBy(es => es.Day)
-                        .ThenBy(s => s.TimeStamp.Hour < 6 ? 1 : 0)
-                        .ThenBy(s => s.TimeStamp)
+                        .ThenBy(s => s.StartTime.Hour < 6 ? 1 : 0)
+                        .ThenBy(s => s.StartTime)
                         .Select(s => new ScheduleInputModel
                     {
                         Day = s.Day,
-                        TimeStamp = s.TimeStamp,
+                        TimeStamp = s.StartTime,
                         Label = s.Label
                     })
                 ]
@@ -181,7 +181,7 @@ public class EditEventModel(
         @event.EventSchedule.Clear();
         foreach (var step in Event.ScheduleSteps)
         {
-            @event.EventSchedule.Add(new EventScheduleStep { Day = step.Day, TimeStamp = step.TimeStamp, Label = step.Label });
+            @event.EventSchedule.Add(new EventScheduleStep { Day = step.Day, StartTime = step.TimeStamp, EndTime = step.EndTime, Label = step.Label });
         }
 
         await db.SaveChangesAsync();
@@ -268,6 +268,7 @@ public class EditEventModel(
     {
         public int Day { get; set; }
         public TimeOnly TimeStamp { get; set; }
+        public TimeOnly? EndTime { get; set; }
         public string Label { get; set; } = null!;
     }
 
