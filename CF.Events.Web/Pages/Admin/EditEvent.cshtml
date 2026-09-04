@@ -12,7 +12,6 @@
 
 <div class="container container-stretch mb-3">
     <h1 class="mt-4">@ViewData["Title"]</h1>
-    <div asp-validation-summary="All" class="text-danger"></div>
     <ol class="breadcrumb mb-4">
         <li class="breadcrumb-item"><a asp-page="/Admin/Dashboard">Dashboard</a></li>
         <li class="breadcrumb-item"><a asp-page="/Admin/Events">Events</a></li>
@@ -47,7 +46,7 @@
 </div>
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.7/Sortable.min.js"></script>
     <partial name="_RteScripts" />
     <script src="~/js/event-editor.js" type="text/javascript" asp-append-version="true"></script>
 }

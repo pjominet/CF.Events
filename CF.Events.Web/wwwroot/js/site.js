@@ -274,8 +274,10 @@
 
                 if (currentLength > maxLength) {
                     counterEl.classList.add('text-danger');
+                    el.classList.add('is-invalid');
                 } else {
                     counterEl.classList.remove('text-danger');
+                    el.classList.remove('is-invalid');
                 }
             };
 
