@@ -46,6 +46,7 @@ public class Event
     public string? InvitationTemplateId { get; set; }
 
     public bool IsActive { get; set; } = true;
+    public bool IsFinalised { get; set; } = false;
 
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 
