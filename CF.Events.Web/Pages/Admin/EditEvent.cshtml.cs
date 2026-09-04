@@ -58,6 +58,7 @@ public class EditEventModel(
                 DonationIban = @event.DonationIban,
                 DonationLink = @event.DonationLink,
                 BookingLinks = [.. @event.BookingLinks.Select(bl => bl.Link)],
+                IsFinalised = @event.IsFinalised,
                 FaqItems =
                 [
                     .. @event.EventFaq.OrderBy(f => f.SortOrder)
@@ -140,6 +141,7 @@ public class EditEventModel(
         @event.InvitationTemplateId = Event.InvitationEmailTemplateId;
         @event.EmailWithLink = Event.SendWithLink;
         @event.MaxParticipantsPerRsvp = Event.MaxParticipantsPerRsvp;
+        @event.IsFinalised = Event.IsFinalised;
 
         @event.DonationIban = Event.DonationTypes.Contains(DonationType.Iban) ? Event.DonationIban : null;
         @event.DonationLink = Event.DonationTypes.Contains(DonationType.Link) ? Event.DonationLink : null;
@@ -220,6 +222,7 @@ public class EditEventModel(
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string? Location { get; set; }
+        public bool IsFinalised { get; set; } = false;
         [Required] public string Description { get; set; } = null!;
         public string? TravelInstructions { get; set; }
 
