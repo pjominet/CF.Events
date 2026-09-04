@@ -1,4 +1,5 @@
 ﻿@page "/events/{eventId:int}/rsvp"
+@using CF.Events.Web.Infrastructure.Extensions
 @model CF.Events.Web.Pages.Events.RsvpModel
 @{
     Layout = "_GlassLayout";
@@ -37,9 +38,9 @@
                         </div>
                         <div class="col-md-6">
                             <h3 class="h4 mb-4 serif"><i class="bi bi-fork-knife me-2"></i>Dietary Requirements</h3>
-                            @if (Model.NewRsvp.ParticipantsDiets.Any(o => o.Restrictions.Any() || !string.IsNullOrWhiteSpace(o.OtherDetails)))
+                            @if (Model.NewRsvp.ParticipantsDiets.Any(o => o.Restrictions.Any() || o.OtherDetails.HasValue()))
                             {
-                                foreach (var opt in Model.NewRsvp.ParticipantsDiets.Where(o => o.Restrictions.Any() || !string.IsNullOrWhiteSpace(o.OtherDetails)))
+                                foreach (var opt in Model.NewRsvp.ParticipantsDiets.Where(o => o.Restrictions.Any() || o.OtherDetails.HasValue()))
                                 {
                                     <p class="mb-1"><strong>@opt.ParticipantName:</strong></p>
                                     if (opt.Restrictions.Any())
@@ -52,7 +53,7 @@
                                         </div>
                                     }
 
-                                    if (!string.IsNullOrWhiteSpace(opt.OtherDetails))
+                                    if (opt.OtherDetails.HasValue())
                                     {
                                         <p class="small text-muted mb-2">@opt.OtherDetails</p>
                                     }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+﻿using CF.Events.Web.Infrastructure.Extensions;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace CF.Events.Web.Infrastructure.ModelBinders;
 
@@ -10,7 +11,7 @@ public class FlatListModelBinder : IModelBinder
         if (valueProviderResult == ValueProviderResult.None) return Task.CompletedTask;
 
         var value = valueProviderResult.FirstValue;
-        if (string.IsNullOrWhiteSpace(value))
+        if (!value.HasValue())
         {
             bindingContext.Result = ModelBindingResult.Success(new List<string>());
             return Task.CompletedTask;

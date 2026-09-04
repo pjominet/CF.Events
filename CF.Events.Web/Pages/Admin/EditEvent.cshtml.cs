@@ -99,12 +99,21 @@ public class EditEventModel(
 
     public async Task<IActionResult> OnPostAsync()
     {
-        if (Event.EndDate < Event.StartDate)
-        {
-            ModelState.AddModelError("Event.EndDate", "End Date cannot be earlier than Start Date");
-        }
+        // Pre-filter FAQ and Schedule steps to ignore empty ones to avoid model state tripping over invalid entries
+        Event.FaqItems = [.. Event.FaqItems.Where(f => f.Question.HasValue() || f.Answer.HasValue())];
+        Event.ScheduleSteps = [.. Event.ScheduleSteps.Where(s => s.Label.HasValue() || s.Day <= Event.MaxEventDays())];
 
-        if (!ModelState.IsValid) return Page();
+        ModelState.Clear();
+        TryValidateModel(Event, nameof(EventModel));
+
+        if (Event.EndDate < Event.StartDate)
+            ModelState.AddModelError("Event.EndDate", "End Date cannot be earlier than Start Date");
+
+        if (!ModelState.IsValid)
+        {
+            toastNotification.AddWarningToastMessage($"Failed to save: Found {ModelState.ErrorCount} from errors");
+            return Page();
+        }
 
         Event? @event;
         var isNew = Event.Id == 0;
@@ -149,7 +158,7 @@ public class EditEventModel(
 
         // Booking Links
         @event.BookingLinks.Clear();
-        foreach (var link in Event.BookingLinks.Where(l => !string.IsNullOrWhiteSpace(l)))
+        foreach (var link in Event.BookingLinks.Where(l => l.HasValue()))
         {
             var trimmedLink = link.Trim();
             var type = LinkType.Web;
@@ -163,21 +172,21 @@ public class EditEventModel(
         // FAQ
         @event.EventFaq.Clear();
         var faqIndex = 1;
-        foreach (var faq in Event.FaqItems.Where(f => !string.IsNullOrWhiteSpace(f.Question) && !string.IsNullOrWhiteSpace(f.Answer)))
+        foreach (var faq in Event.FaqItems)
         {
             @event.EventFaq.Add(new EventFaqItem { Question = faq.Question, Answer = faq.Answer, SortOrder = faqIndex++ });
         }
 
         // Schedule
         @event.EventSchedule.Clear();
-        foreach (var step in Event.ScheduleSteps.Where(s => !string.IsNullOrWhiteSpace(s.Label) && s.Day <= Event.MaxEventDays()))
+        foreach (var step in Event.ScheduleSteps)
         {
             @event.EventSchedule.Add(new EventScheduleStep { Day = step.Day, TimeStamp = step.TimeStamp, Label = step.Label });
         }
 
         await db.SaveChangesAsync();
 
-        if (isNew && !string.IsNullOrEmpty(Event.UploadSessionId))
+        if (isNew && Event.UploadSessionId.HasValue())
         {
             await fileService.MoveEventImagesAsync(Event.UploadSessionId, @event.Id);
 
@@ -185,10 +194,10 @@ public class EditEventModel(
             var tempPath = $"/events/{Event.UploadSessionId}/image/";
             var permanentPath = $"/events/{@event.Id}/image/";
 
-            if (!string.IsNullOrEmpty(@event.Description))
+            if (@event.Description.HasValue())
                 @event.Description = @event.Description.Replace(tempPath, permanentPath);
 
-            if (!string.IsNullOrEmpty(@event.TravelInstructions))
+            if (@event.TravelInstructions.HasValue())
                 @event.TravelInstructions = @event.TravelInstructions.Replace(tempPath, permanentPath);
 
             await db.SaveChangesAsync();
@@ -199,7 +208,7 @@ public class EditEventModel(
 
         toastNotification.AddSuccessToastMessage($"Event {(isNew ? "created" : "updated")} successfully!");
 
-        if (!string.IsNullOrEmpty(RedirectAfterSave) && (Url.IsLocalUrl(RedirectAfterSave) || RedirectAfterSave.StartsWith('/')))
+        if (RedirectAfterSave.HasValue() && (Url.IsLocalUrl(RedirectAfterSave) || RedirectAfterSave.StartsWith('/')))
             return Redirect(RedirectAfterSave);
 
         return Page();
@@ -208,8 +217,8 @@ public class EditEventModel(
     private static List<DonationType> GetDonationTypes(Event @event)
     {
         var types = new List<DonationType>();
-        if (!string.IsNullOrEmpty(@event.DonationIban)) types.Add(DonationType.Iban);
-        if (!string.IsNullOrEmpty(@event.DonationLink)) types.Add(DonationType.Link);
+        if (@event.DonationIban.HasValue()) types.Add(DonationType.Iban);
+        if (@event.DonationLink.HasValue()) types.Add(DonationType.Link);
         if (@event.AllowPhysicalGifts) types.Add(DonationType.Physical);
         return types;
     }
@@ -222,7 +231,7 @@ public class EditEventModel(
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string? Location { get; set; }
-        public bool IsFinalised { get; set; } = false;
+        public bool IsFinalised { get; set; }
         [Required] public string Description { get; set; } = null!;
         public string? TravelInstructions { get; set; }
 
@@ -231,7 +240,7 @@ public class EditEventModel(
 
         public string? AccommodationDetails { get; set; }
         public string? SaveDateEmailTemplateId { get; set; }
-        public bool SendWithLink { get; set; } = false;
+        public bool SendWithLink { get; set; }
         public string? InvitationEmailTemplateId { get; set; }
         public int MaxParticipantsPerRsvp { get; set; } = 4;
         public List<DonationType> DonationTypes { get; set; } = [];

@@ -1,4 +1,5 @@
 ﻿@page "/admin/events/{id:int}/invitees"
+@using CF.Events.Web.Infrastructure.Extensions
 @model CF.Events.Web.Pages.Admin.EventInviteesModel
 @{
     ViewData["Title"] = "Manage Invitees";
@@ -111,13 +112,13 @@
         <div class="card-body d-flex justify-content-between align-items-center py-2">
             <div>
                 <span class="text-muted me-2">Bulk actions:</span>
-                @if (!string.IsNullOrEmpty(Model.EventData.SaveDateTemplateId))
+                @if (Model.EventData.SaveDateTemplateId.HasValue(false))
                 {
                     <button type="button" class="btn btn-primary btn-sm bulk-action-btn" disabled onclick="executeBulkAction('save-date')">
                         <i class="bi bi-calendar-check me-1"></i>Send Save the Date
                     </button>
                 }
-                @if (!string.IsNullOrEmpty(Model.EventData.InvitationTemplateId))
+                @if (Model.EventData.InvitationTemplateId.HasValue(false))
                 {
                     <button type="button" class="btn btn-info btn-sm bulk-action-btn" disabled onclick="executeBulkAction('resend')">
                         <i class="bi bi-send me-1"></i>Send invitations
@@ -237,7 +238,7 @@
                                             <i class="bi bi-eye"></i>
                                         </button>
                                     }
-                                    @if (!string.IsNullOrEmpty(Model.EventData.SaveDateTemplateId) && invitee.Status is AttendanceStatus.Pending)
+                                    @if (Model.EventData.SaveDateTemplateId.HasValue(false) && invitee.Status is AttendanceStatus.Pending)
                                     {
                                         <form method="post" asp-page-handler="SaveTheDate" asp-route-id="@Model.EventData.Id" asp-route-userId="@invitee.UserId"
                                               class="d-flex align-items-center justify-content-center">
@@ -247,7 +248,7 @@
                                             </button>
                                         </form>
                                     }
-                                    @if (!string.IsNullOrEmpty(Model.EventData.InvitationTemplateId))
+                                    @if (Model.EventData.InvitationTemplateId.HasValue(false))
                                     {
                                         <form method="post" asp-action="SendInvite" asp-controller="Event" asp-route-eventId="@Model.EventData.Id" class="d-inline">
                                             @Html.AntiForgeryToken()

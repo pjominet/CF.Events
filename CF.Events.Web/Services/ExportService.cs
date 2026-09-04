@@ -1,4 +1,5 @@
 using CF.Events.Web.Data;
+using CF.Events.Web.Infrastructure.Extensions;
 using ClosedXML.Excel;
 using Microsoft.EntityFrameworkCore;
 
@@ -63,7 +64,7 @@ public class ExportService(EventsDbContext db) : IExportService
                 ? string.Join("|", eu.Rsvp.ParticipantAttendance.Select(pa => $"{pa.ParticipantName}: {string.Join(", ", pa.AttendingDays)}"))
                 : string.Empty;
             var dietaryOptions = eu.Rsvp is not null
-                ? string.Join("|", eu.Rsvp.DietaryOptions.Select(d => $"{d.ParticipantName}: {string.Join(", ", d.Restrictions)}{(string.IsNullOrWhiteSpace(d.OtherDetails) ? "" : $" (Other: {d.OtherDetails})")}"))
+                ? string.Join("|", eu.Rsvp.DietaryOptions.Select(d => $"{d.ParticipantName}: {string.Join(", ", d.Restrictions)}{(d.OtherDetails.HasValue() ? $" (Other: {d.OtherDetails})" : "")}"))
                 : string.Empty;
             var comments = eu.Rsvp?.Comments ?? string.Empty;
             var submittedAt = eu.Rsvp?.SubmittedAt.ToString("yyyy-MM-dd HH:mm:ss") ?? string.Empty;

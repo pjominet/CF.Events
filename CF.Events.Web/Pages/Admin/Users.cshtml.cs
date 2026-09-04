@@ -44,7 +44,7 @@ public class UsersModel(
 
     public async Task<IActionResult> OnPostAddAsync()
     {
-        if (NewUser.SelectedRoles.Contains(Roles.Guest) && string.IsNullOrWhiteSpace(NewUser.GuestGroup))
+        if (NewUser.SelectedRoles.Contains(Roles.Guest) && !NewUser.GuestGroup.HasValue())
             ModelState.AddModelError("NewUser.GuestGroup", "Guest Group Label is required for guests.");
 
         if (!ModelState.IsValid)
@@ -120,7 +120,7 @@ public class UsersModel(
 
     public async Task<IActionResult> OnPostEditAsync()
     {
-        if (NewUser.SelectedRoles.Contains(Roles.Guest) && string.IsNullOrWhiteSpace(NewUser.GuestGroup))
+        if (NewUser.SelectedRoles.Contains(Roles.Guest) && !NewUser.GuestGroup.HasValue())
             ModelState.AddModelError("NewUser.GuestGroup", "Guest Group Label is required for guests.");
 
         if (!ModelState.IsValid)
@@ -223,7 +223,7 @@ public class UsersModel(
         foreach (var u in users)
         {
             var roles = await userManager.GetRolesAsync(u);
-            var passwordSet = !string.IsNullOrWhiteSpace(u.PasswordHash) && !u.MustChangePassword;
+            var passwordSet = u.PasswordHash.HasValue() && !u.MustChangePassword;
             AllUsers.Add(new UserRow(
                 u.Id,
                 u.Email ?? "undefined",
@@ -334,7 +334,7 @@ public class UsersModel(
 
     public async Task<IActionResult> OnPostBulkDeleteAsync(string userIds)
     {
-        if (string.IsNullOrEmpty(userIds))
+        if (!userIds.HasValue(false))
             return RedirectToPage();
 
         var ids = userIds.Split(',', StringSplitOptions.RemoveEmptyEntries);

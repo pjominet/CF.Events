@@ -79,8 +79,11 @@
             <div class="col-12 col-md-7">
                 <div class="mb-3">
                     <label class="form-label fw-bold">Accommodation Details</label>
-                    <textarea asp-for="AccommodationDetails" class="form-control" rows="3"></textarea>
-                    <div class="form-text">Descriptive text explaining on how to book accommodation.</div>
+                    <textarea asp-for="AccommodationDetails" class="form-control" rows="3" data-max-length="500" data-counter-id="accommodationCounter"></textarea>
+                    <div class="d-flex justify-content-between mt-2">
+                        <div class="form-text">Descriptive text explaining on how to book accommodation.</div>
+                        <small id="accommodationCounter" class="text-muted"></small>
+                    </div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-bold">Booking Links</label>
@@ -173,7 +176,7 @@
     <div id="faq-container">
         @for (var i = 0; i < Model.FaqItems.Count; i++)
         {
-            <div class="row gx-2 mb-3 faq-row align-items-center">
+            <div class="row gx-2 faq-row align-items-center">
                 <div class="col-auto">
                     <i class="bi bi-list faq-handle" style="cursor: grab;"></i>
                 </div>
@@ -182,7 +185,10 @@
                         <input asp-for="FaqItems[i].Question" class="form-control" placeholder="Question"/>
                     </div>
                     <div class="mb-2">
-                        <textarea asp-for="FaqItems[i].Answer" class="form-control" placeholder="Answer" rows="2"></textarea>
+                        <textarea asp-for="FaqItems[i].Answer" class="form-control" placeholder="Answer" data-max-length="1000" data-counter-id="faq-c-@i"></textarea>
+                        <div class="d-flex justify-content-end mt-2">
+                            <small id="faq-c-@i" class="text-muted"></small>
+                        </div>
                     </div>
                     <input type="hidden" asp-for="FaqItems[i].SortOrder" class="faq-sort-order" />
                 </div>
@@ -191,7 +197,6 @@
                 </div>
             </div>
         }
-        <hr/>
     </div>
         <div class="d-flex justify-content-center">
             <button type="button" class="btn btn-sm btn-success mt-1" id="add-faq">Add Item</button>

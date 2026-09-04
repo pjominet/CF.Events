@@ -274,8 +274,10 @@
 
                 if (currentLength > maxLength) {
                     counterEl.classList.add('text-danger');
+                    el.classList.add('is-invalid');
                 } else {
                     counterEl.classList.remove('text-danger');
+                    el.classList.remove('is-invalid');
                 }
             };
 
@@ -285,6 +287,7 @@
             updateCounter(); // Initial call
         });
     }
+    window.initCharacterCounters = initCharacterCounters;
 
     window.copyToClipboardAndShowFeedback = function (elementOrId, buttonOrDuration, duration = 750) {
         let textToCopy = '';

@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using NToastNotify;
+using CF.Events.Web.Infrastructure.Extensions;
 using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web.Pages.Admin;
@@ -96,7 +97,7 @@ public class EventInviteesModel(
 
     public async Task<IActionResult> OnPostBulkRemoveAsync(int id, string userIds)
     {
-        if (string.IsNullOrWhiteSpace(userIds))
+        if (!userIds.HasValue())
         {
             toastNotification.AddWarningToastMessage("No users selected");
             return RedirectToPage(new { id });
@@ -144,7 +145,7 @@ public class EventInviteesModel(
 
     public async Task<IActionResult> OnPostBulkSaveTheDateAsync(int id, string userIds)
     {
-        if (string.IsNullOrWhiteSpace(userIds))
+        if (!userIds.HasValue())
         {
             toastNotification.AddWarningToastMessage("No users selected");
             return RedirectToPage(new { id });
@@ -192,7 +193,7 @@ public class EventInviteesModel(
             return RedirectToPage(new { id });
         }
 
-        userEvent.AssignedAccommodationCode = string.IsNullOrWhiteSpace(accommodationCode) ? null : accommodationCode;
+        userEvent.AssignedAccommodationCode = !accommodationCode.HasValue() ? null : accommodationCode;
         await db.SaveChangesAsync();
 
         toastNotification.AddSuccessToastMessage("Accommodation code updated");
@@ -314,7 +315,7 @@ public class EventInviteesModel(
         foreach (var userEvent in userEvents)
         {
             if (updates.TryGetValue(userEvent.UserId, out var code))
-                userEvent.AssignedAccommodationCode = string.IsNullOrWhiteSpace(code) ? null : code;
+                userEvent.AssignedAccommodationCode = !code.HasValue() ? null : code;
         }
 
         await db.SaveChangesAsync();
@@ -328,7 +329,7 @@ public class EventInviteesModel(
         var list = EventData.AccommodationCodes
             .Select(ac => new SelectListItem(ac, ac, ac == currentCode))
             .ToList();
-        list.Insert(0, new SelectListItem("none", "", string.IsNullOrEmpty(currentCode)));
+        list.Insert(0, new SelectListItem("none", "", !currentCode.HasValue(false)));
         return list;
     }
 

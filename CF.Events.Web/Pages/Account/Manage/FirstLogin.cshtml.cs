@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using CF.Events.Web.Infrastructure.Extensions;
 using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web.Pages.Account.Manage;
@@ -31,15 +32,15 @@ public class FirstLoginModel(
 
         if (IsGuest)
         {
-            if (!string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl))
+            if (ReturnUrl.HasValue(false) && Url.IsLocalUrl(ReturnUrl))
                 return LocalRedirect(ReturnUrl);
             return LocalRedirect("/");
         }
 
         // If user already has a display name and doesn't need to change password, they are done.
-        if (!user.MustChangePassword && !string.IsNullOrEmpty(user.DisplayName))
+        if (!user.MustChangePassword && user.DisplayName.HasValue(false))
         {
-            if (!string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl))
+            if (ReturnUrl.HasValue(false) && Url.IsLocalUrl(ReturnUrl))
                 return LocalRedirect(ReturnUrl);
             return LocalRedirect("/");
         }
@@ -92,7 +93,7 @@ public class FirstLoginModel(
 
         await signInManager.RefreshSignInAsync(user);
 
-        if (!string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl))
+        if (ReturnUrl.HasValue(false) && Url.IsLocalUrl(ReturnUrl))
             return LocalRedirect(ReturnUrl);
 
         return LocalRedirect("/");

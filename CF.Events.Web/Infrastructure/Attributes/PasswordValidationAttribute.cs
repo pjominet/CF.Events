@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Infrastructure.Settings;
 using Microsoft.Extensions.Options;
 
@@ -12,7 +13,7 @@ public class PasswordValidationAttribute(int maxLength = 100) : ValidationAttrib
     protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
     {
         var password = value as string;
-        if (string.IsNullOrEmpty(password))
+        if (!password.HasValue())
             return ValidationResult.Success;
 
         var options = validationContext.GetService<IOptions<AppSettings>>();

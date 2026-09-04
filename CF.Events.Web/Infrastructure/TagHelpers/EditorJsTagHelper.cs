@@ -1,5 +1,6 @@
 using System.Text.Json;
 using AngleSharp.Html.Parser;
+using CF.Events.Web.Infrastructure.Extensions;
 using EditorJsonToHtmlConverter;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Razor.TagHelpers;
@@ -15,7 +16,7 @@ public class EditorJsTagHelper(HtmlRenderer htmlRenderer, IHtmlParser parser) : 
     {
         output.TagName = null; // Remove the <editorjs> tag itself
 
-        if (string.IsNullOrWhiteSpace(Input))
+        if (!Input.HasValue())
         {
             output.Content.SetContent(string.Empty);
             return;
@@ -69,7 +70,7 @@ public class EditorJsTagHelper(HtmlRenderer htmlRenderer, IHtmlParser parser) : 
                 var img = images[i];
 
                 // If src is already present, we do not want to override it
-                if (!string.IsNullOrEmpty(img.GetAttribute("src"))) continue;
+                if (img.GetAttribute("src").HasValue(false)) continue;
 
                 var data = block.GetProperty("data");
                 if (data.TryGetProperty("file", out var file) && file.TryGetProperty("url", out var url))
@@ -155,7 +156,7 @@ public class EditorJsTagHelper(HtmlRenderer htmlRenderer, IHtmlParser parser) : 
 
                 var existingStyle = img.GetAttribute("style");
                 var newStyles = string.Join(" ", styles);
-                img.SetAttribute("style", string.IsNullOrEmpty(existingStyle) ? newStyles : $"{existingStyle.TrimEnd(';', ' ' )}; {newStyles}");
+                img.SetAttribute("style", !existingStyle.HasValue(false) ? newStyles : $"{existingStyle.TrimEnd(';', ' ' )}; {newStyles}");
             }
 
             // Return the body content or the whole HTML if no body

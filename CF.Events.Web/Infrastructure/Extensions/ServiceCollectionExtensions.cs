@@ -167,7 +167,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IApiService, Smtp2GoApiService>(_ =>
         {
             var apiKey = configuration["AppSettings:EmailProviderSettings:Smtp2Go:ApiKey"];
-            return string.IsNullOrEmpty(apiKey)
+            return !apiKey.HasValue(false)
                 ? throw new BootstrappingException("Missing Smtp2Go API key")
                 : new Smtp2GoApiService(apiKey);
         });

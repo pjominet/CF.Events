@@ -1,4 +1,6 @@
-﻿namespace CF.Events.Web.Infrastructure.Middlewares;
+﻿using CF.Events.Web.Infrastructure.Extensions;
+
+namespace CF.Events.Web.Infrastructure.Middlewares;
 
 public class SecurityHeadersMiddleware(RequestDelegate next, string? contentSecurityPolicy = null)
 {
@@ -9,7 +11,7 @@ public class SecurityHeadersMiddleware(RequestDelegate next, string? contentSecu
         context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
         context.Response.Headers.Append("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
 
-        if (!string.IsNullOrEmpty(contentSecurityPolicy))
+        if (contentSecurityPolicy.HasValue(false))
             context.Response.Headers.Append("Content-Security-Policy", contentSecurityPolicy);
 
         await next(context);
