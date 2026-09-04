@@ -17,7 +17,7 @@ public static partial class StringExtensions
 
         public IEnumerable<string> ExtractImageFileNamesFromJsonString()
         {
-            if (string.IsNullOrWhiteSpace(@string)) return [];
+            if (!@string.HasValue()) return [];
 
             try
             {
@@ -35,7 +35,7 @@ public static partial class StringExtensions
                         !file.TryGetProperty("url", out var urlProperty)) continue;
 
                     var url = urlProperty.GetString();
-                    if (string.IsNullOrWhiteSpace(url)) continue;
+                    if (!url.HasValue()) continue;
 
                     fileNames.Add(Path.GetFileName(url));
                 }
@@ -49,7 +49,7 @@ public static partial class StringExtensions
 
         public string IntoWords()
         {
-            if (string.IsNullOrEmpty(@string))
+            if (!@string.HasValue(false))
                 return @string;
 
             var result = new StringBuilder();

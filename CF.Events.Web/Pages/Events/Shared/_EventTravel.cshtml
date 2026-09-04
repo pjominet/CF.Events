@@ -1,4 +1,5 @@
-﻿@model string
+﻿@using CF.Events.Web.Infrastructure.Extensions
+@model string
 
 <div class="modal fade" id="eventTravelModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered modal-fullscreen-md-down">
@@ -8,7 +9,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-emp">
-                @if (!string.IsNullOrWhiteSpace(Model))
+                @if (Model.HasValue())
                 {
                     <jsonrenderer input="@Model"/>
                 }

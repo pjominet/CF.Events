@@ -225,8 +225,8 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
 
     public bool HasAccommodationInfo()
     {
-        return !string.IsNullOrWhiteSpace(AssignedAccommodationCode)
-               || !string.IsNullOrWhiteSpace(EventData.AccommodationDetails)
+        return AssignedAccommodationCode.HasValue()
+               || EventData.AccommodationDetails.HasValue()
                || EventData.AccommodationCodes.Count > 0;
     }
 

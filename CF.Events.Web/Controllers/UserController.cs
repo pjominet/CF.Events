@@ -34,7 +34,7 @@ public class UserController(
         if (!_allowedFileExtensions.Contains(extension))
             return BadRequest("Only CSV files are allowed");
 
-        if (string.IsNullOrEmpty(delimiter)) delimiter = ",";
+        if (!delimiter.HasValue(false)) delimiter = ",";
 
         selectedRoles ??= [Roles.Guest];
 
@@ -52,13 +52,13 @@ public class UserController(
                 continue;
 
             // Skip empty lines
-            if (string.IsNullOrWhiteSpace(line))
+            if (!line.HasValue())
                 continue;
 
             var parts = line.Split(delimiter);
 
             var name = parts.Length > 0 ? parts[0].Trim() : null;
-            if (string.IsNullOrWhiteSpace(name))
+            if (!name.HasValue())
             {
                 importErrors.Add($"Error importing row {currentRow}: Name is required.");
                 continue;
@@ -77,7 +77,7 @@ public class UserController(
             var maxPeopleStr = parts.Length > 4 ? parts[4].Trim() : null;
             var maxPeople = int.TryParse(maxPeopleStr, out var parsed) ? parsed : 4;
 
-            if (selectedRoles.Contains(Roles.Guest) && string.IsNullOrWhiteSpace(guestGroupLabel))
+            if (selectedRoles.Contains(Roles.Guest) && !guestGroupLabel.HasValue())
             {
                 importErrors.Add($"Error importing row {currentRow}: Guest group is required for guest role.");
                 continue;
@@ -87,7 +87,7 @@ public class UserController(
             {
                 UserName = email,
                 Email = email,
-                PhoneNumber = !string.IsNullOrWhiteSpace(phone) ? phone : null,
+                PhoneNumber = phone.HasValue() ? phone : null,
                 DisplayName = name,
                 MustChangePassword = !selectedRoles.Contains(Roles.Guest),
                 EmailConfirmed = true,
@@ -109,7 +109,7 @@ public class UserController(
             var participants = guestGroupLabel?.Split("&").Select(p => p.Trim()).ToList() ??[];
             user.GuestGroup = new GuestGroup
             {
-                Label = !string.IsNullOrWhiteSpace(guestGroupLabel) ? guestGroupLabel : name,
+                Label = guestGroupLabel.HasValue() ? guestGroupLabel : name!,
                 GuestUserId = user.Id,
                 Participants = participants.Count > 0 ? participants : [user.DisplayName!],
                 MaxPeople = maxPeople
@@ -126,7 +126,7 @@ public class UserController(
 
     private static string? GetValidEmail(string? extractedValue, string fallbackName)
     {
-        if (string.IsNullOrWhiteSpace(extractedValue))
+        if (!extractedValue.HasValue())
             return null;
 
         if (extractedValue.StartsWith('!'))

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using CF.Events.Web.Infrastructure.Extensions;
 
 namespace CF.Events.Web.Pages.Account;
 
@@ -32,7 +33,7 @@ public class LoginModel(
         if (!userManager.Users.Any())
             return RedirectToPage("./Register");
 
-        if (!string.IsNullOrEmpty(email))
+        if (email.HasValue(false))
             Input.Email = email;
 
         ReturnUrl = returnUrl;
@@ -74,7 +75,7 @@ public class LoginModel(
             return Page();
         }
 
-        if (string.IsNullOrWhiteSpace(Input.Password))
+        if (!Input.Password.HasValue())
             ModelState.AddModelError("Input.Password", "The Password field is required.");
 
         if (!ModelState.IsValid)

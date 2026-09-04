@@ -32,7 +32,7 @@ public class AccountController(
         await signInManager.SignOutAsync();
         logger.LogInformation("User {Username} logged out", userEmail);
 
-        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+        if (returnUrl.HasValue(false) && Url.IsLocalUrl(returnUrl))
             return LocalRedirect(returnUrl);
 
         return !isGuest ? LocalRedirect("/account/login") : LocalRedirect("/account/email-login");
@@ -41,7 +41,7 @@ public class AccountController(
     [HttpGet("confirm-email")]
     public async Task<IActionResult> ConfirmEmail([FromQuery] string userId, [FromQuery] string token)
     {
-        if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(token))
+        if (!userId.HasValue() || !token.HasValue())
             return BadRequest();
 
         var user = await userManager.FindByIdAsync(userId);

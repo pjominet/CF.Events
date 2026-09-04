@@ -79,11 +79,11 @@
                             @Model.EventData.EndDate.ToLongDateString()
                         }
                     </p>
-                    @if (!string.IsNullOrEmpty(Model.EventData.Location))
+                    @if (Model.EventData.Location.HasValue(false))
                     {
                         <p><strong class="serif fs-5">Location:</strong><br>@Model.EventData.Location</p>
                     }
-                    @if (!string.IsNullOrEmpty(Model.EventData.Description))
+                    @if (Model.EventData.Description.HasValue(false))
                     {
                         <div class="rsvp-description">
                             <jsonrenderer input="@Model.EventData.Description"/>

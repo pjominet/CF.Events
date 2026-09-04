@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using CF.Events.Web.Data;
+using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Models;
 using CF.Events.Web.Models.Requests;
@@ -194,7 +195,7 @@ public class InvitationService(
         if (@event is null)
             return new EmailSendResult(EmailSendResultStatus.EventNotFound, Message: "Event not found");
 
-        if (string.IsNullOrEmpty(@event.SaveDateTemplateId))
+        if (!@event.SaveDateTemplateId.HasValue(false))
             return new EmailSendResult(EmailSendResultStatus.TemplateMissing, Message: "Event is not eligible for Save the Date (no template ID set)");
 
         var user = await db.Users
@@ -218,7 +219,7 @@ public class InvitationService(
         if (@event is null)
             return new EmailSendResult(EmailSendResultStatus.EventNotFound, Message: "Event not found");
 
-        if (string.IsNullOrEmpty(@event.SaveDateTemplateId))
+        if (!@event.SaveDateTemplateId.HasValue(false))
             return new EmailSendResult(EmailSendResultStatus.TemplateMissing, Message: "Event is not eligible for Save the Date (no template ID set)");
 
         var eligibleUsers = await db.EventUsers
@@ -306,7 +307,7 @@ public class InvitationService(
     {
         try
         {
-            if (string.IsNullOrEmpty(request.TemplateId))
+            if (!request.TemplateId.HasValue(false))
             {
                 logger.LogWarning("No template ID found for event {EventId}", request.EventId);
                 return;

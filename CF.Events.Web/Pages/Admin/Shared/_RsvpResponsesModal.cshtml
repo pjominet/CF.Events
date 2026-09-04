@@ -1,3 +1,4 @@
+@using CF.Events.Web.Infrastructure.Extensions
 @model RsvpResponses
 
 <div class="modal fade" id="adminRsvpModal" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
@@ -34,7 +35,7 @@
                     <h6 class="serif fw-bold"><i class="bi bi-fork-knife me-2"></i>Dietary Requirements</h6>
                     @{
                         var participantRestrictions = Model.ParticipantsDiets
-                            .Where(pdr => pdr.Restrictions.Count > 0 || !string.IsNullOrWhiteSpace(pdr.OtherDetails))
+                            .Where(pdr => pdr.Restrictions.Count > 0 || pdr.OtherDetails.HasValue())
                             .ToList();
                         if (participantRestrictions.Count > 0)
                         {
@@ -52,7 +53,7 @@
                                                 }
                                             </ul>
                                         }
-                                        @if (!string.IsNullOrWhiteSpace(participantRestriction.OtherDetails))
+                                        @if (participantRestriction.OtherDetails.HasValue())
                                         {
                                             <p class="mb-0 text-muted ms-3">@participantRestriction.OtherDetails</p>
                                         }
@@ -69,7 +70,7 @@
                 <hr/>
                 <div class="mb-0">
                     <h6 class="serif fw-bold"><i class="bi bi-chat-left-text me-2"></i>Comments</h6>
-                    @if (!string.IsNullOrWhiteSpace(Model.Comments))
+                    @if (Model.Comments.HasValue())
                     {
                         <p class="mb-0 text-muted">@Model.Comments</p>
                     }

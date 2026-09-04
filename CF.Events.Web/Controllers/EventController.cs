@@ -372,7 +372,7 @@ public class EventController(
     [Authorize(Roles = Roles.Admin)]
     public async Task<IActionResult> SendInvites([FromRoute] int eventId, [FromForm] string userIds)
     {
-        if (string.IsNullOrWhiteSpace(userIds))
+        if (!userIds.HasValue())
         {
             toastNotification.AddWarningToastMessage("No users selected");
             return LocalRedirect($"/admin/events/{eventId}/invitees");

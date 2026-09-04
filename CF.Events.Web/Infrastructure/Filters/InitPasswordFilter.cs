@@ -68,6 +68,6 @@ public class InitPasswordFilter(LinkGenerator linkGenerator) : IAsyncPageFilter,
 
         return excludedPages
             .Select(page => linkGenerator.GetPathByPage(page))
-            .All(excludedPath => string.IsNullOrEmpty(excludedPath) || !path.Equals(excludedPath, StringComparison.OrdinalIgnoreCase));
+            .All(excludedPath => !excludedPath.HasValue(false) || !path.Equals(excludedPath, StringComparison.OrdinalIgnoreCase));
     }
 }

@@ -18,7 +18,7 @@
     <div class="container">
         <ul class="nav nav-tabs" id="accountTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link @(string.IsNullOrEmpty(Model.ActiveTab) || Model.ActiveTab == "profile" ? "active" : "")" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-pane" type="button" role="tab" aria-controls="profile-pane" aria-selected="true">Info</button>
+                <button class="nav-link @(!Model.ActiveTab.HasValue(false) || Model.ActiveTab == "profile" ? "active" : "")" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-pane" type="button" role="tab" aria-controls="profile-pane" aria-selected="true">Info</button>
             </li>
             @if (!User.IsGuest())
             {
@@ -28,7 +28,7 @@
             }
         </ul>
         <div class="tab-content" id="accountTabsContent">
-            <div class="tab-pane fade @(string.IsNullOrEmpty(Model.ActiveTab) || Model.ActiveTab == "profile" ? "show active" : "")" id="profile-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">
+            <div class="tab-pane fade @(!Model.ActiveTab.HasValue(false) || Model.ActiveTab == "profile" ? "show active" : "")" id="profile-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">
                 <form method="post" asp-page-handler="UpdateProfile">
                     <input type="hidden" name="ActiveTab" value="profile"/>
                     <div asp-validation-summary="All" class="text-danger" role="alert"></div>
