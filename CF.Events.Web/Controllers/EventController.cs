@@ -174,7 +174,7 @@ public class EventController(
                 EventName = @event.Name,
                 Iban = @event.DonationIban,
                 Link = @event.DonationLink,
-                AllowPhysicalGifts = @event.AllowPhysicalGifts,
+                PhysicalGiftInfo = @event.PhysicalGiftInfo,
                 Reference = @event.GetDonationReference()
             };
 
@@ -193,7 +193,7 @@ public class EventController(
             EventName = @event.Name,
             Iban = @event.DonationIban,
             Link = @event.DonationLink,
-            AllowPhysicalGifts = @event.AllowPhysicalGifts,
+            PhysicalGiftInfo = @event.PhysicalGiftInfo,
             Reference = @event.GetDonationReference()
         };
 

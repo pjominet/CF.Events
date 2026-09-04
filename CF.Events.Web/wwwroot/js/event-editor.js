@@ -77,7 +77,7 @@
                         <input name="Event.ScheduleSteps[${index}].TimeStamp" type="time" class="form-control" />
                     </div>
                     <div class="col-md-6">
-                        <input name="Event.ScheduleSteps[${index}].Label" class="form-control" placeholder="Label" />
+                        <input name="Event.ScheduleSteps[${index}].Label" type="text" class="form-control" placeholder="Label" />
                     </div>
                     <div class="col-md-1">
                         <button type="button" class="btn btn-link text-danger remove-row"><i class="bi bi-x-lg"></i></button>
@@ -98,7 +98,7 @@
                     </div>
                     <div class="col">
                         <div class="mb-2">
-                            <input name="Event.FaqItems[${index}].Question" class="form-control" placeholder="Question" />
+                            <input name="Event.FaqItems[${index}].Question" type="text" class="form-control" placeholder="Question" />
                         </div>
                         <div class="mb-2">
                             <textarea name="Event.FaqItems[${index}].Answer" class="form-control" placeholder="Answer" data-max-length="1000" data-counter-id="faq-c-${index}"></textarea>

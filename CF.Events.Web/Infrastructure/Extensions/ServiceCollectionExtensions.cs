@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Threading.RateLimiting;
 using AngleSharp.Html.Parser;
-using Microsoft.AspNetCore.Builder;
+using Ganss.Xss;
 using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure.Exceptions;
 using CF.Events.Web.Infrastructure.Factories;
@@ -13,7 +13,6 @@ using CF.Events.Web.Services.BackgroundWorkers;
 using EditorJsonToHtmlConverter;
 using Microsoft.AspNetCore.DataProtection;
 using Smtp2Go.Api;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
@@ -170,6 +169,15 @@ public static class ServiceCollectionExtensions
             return !apiKey.HasValue(false)
                 ? throw new BootstrappingException("Missing Smtp2Go API key")
                 : new Smtp2GoApiService(apiKey);
+        });
+    }
+
+    public static void AddAppSanitization(this IServiceCollection services)
+    {
+        services.AddSingleton<IHtmlSanitizer>(_ =>
+        {
+            var sanitizer = new HtmlSanitizer();
+            return sanitizer;
         });
     }
 }

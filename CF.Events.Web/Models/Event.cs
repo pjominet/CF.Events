@@ -29,10 +29,11 @@ public class Event
     [StringLength(64)]
     public string? DonationIban { get; set; }
 
-    [StringLength(1000)]
+    [StringLength(250)]
     public string? DonationLink { get; set; }
 
-    public bool AllowPhysicalGifts { get; set; } = false;
+    [StringLength(1000)]
+    public string? PhysicalGiftInfo { get; set; }
 
     [StringLength(255)]
     public string? SaveDateTemplateId { get; set; }

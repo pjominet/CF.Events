@@ -11,8 +11,9 @@ public static partial class StringExtensions
     {
         public bool IsEmail() => EmailRegex().IsMatch(@string);
         public bool IsPhoneNumber() => PhoneRegex().IsMatch(@string);
+
         public string FormatAsIban() => string.Join(' ', Enumerable.Range(0,
-                (int)Math.Ceiling(@string.Replace(" ", "").Length / 4.0)).Select(i => @string.Replace(" ", "")
+            (int)Math.Ceiling(@string.Replace(" ", "").Length / 4.0)).Select(i => @string.Replace(" ", "")
             .Substring(i * 4, Math.Min(4, @string.Replace(" ", "").Length - i * 4))));
 
         public IEnumerable<string> ExtractImageFileNamesFromJsonString()
@@ -39,6 +40,7 @@ public static partial class StringExtensions
 
                     fileNames.Add(Path.GetFileName(url));
                 }
+
                 return fileNames;
             }
             catch (JsonException)
@@ -60,6 +62,31 @@ public static partial class StringExtensions
             }
 
             return result.ToString();
+        }
+
+        public bool IsJson()
+        {
+            var stringContent = Encoding.UTF8.GetBytes(@string);
+            Utf8JsonReader reader = new(stringContent);
+            try
+            {
+                reader.Read();
+            }
+            catch
+            {
+                return false;
+            }
+
+            try
+            {
+                reader.TrySkip();
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 

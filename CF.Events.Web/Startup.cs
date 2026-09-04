@@ -5,6 +5,7 @@ using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Infrastructure.Filters;
 using CF.Events.Web.Infrastructure.Middlewares;
+using CF.Events.Web.Infrastructure.Providers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +27,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         services.AddAppLocalization();
         services.AddAppRateLimiting();
         services.AddHttpClients(configuration);
+        services.AddAppSanitization();
 
         services.AddRazorPages(options =>
             {
@@ -34,6 +36,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
             .AddMvcOptions(options =>
             {
                 options.Filters.Add<InitPasswordFilter>();
+                options.ModelBinderProviders.Insert(0, new SanitizedStringModelBinderProvider());
             })
             .AddJsonOptions(options =>
             {
@@ -54,6 +57,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         services.AddControllers(options =>
             {
                 options.Filters.Add<InitPasswordFilter>();
+                options.ModelBinderProviders.Insert(0, new SanitizedStringModelBinderProvider());
             })
             .AddJsonOptions(options =>
             {
