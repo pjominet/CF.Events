@@ -2,7 +2,6 @@
 using System.Threading.RateLimiting;
 using AngleSharp.Html.Parser;
 using Ganss.Xss;
-using Microsoft.AspNetCore.Builder;
 using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure.Exceptions;
 using CF.Events.Web.Infrastructure.Factories;
@@ -14,7 +13,6 @@ using CF.Events.Web.Services.BackgroundWorkers;
 using EditorJsonToHtmlConverter;
 using Microsoft.AspNetCore.DataProtection;
 using Smtp2Go.Api;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;

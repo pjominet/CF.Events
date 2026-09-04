@@ -5,7 +5,6 @@ using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Infrastructure.Filters;
 using CF.Events.Web.Infrastructure.Middlewares;
-using CF.Events.Web.Infrastructure.ModelBinders;
 using CF.Events.Web.Infrastructure.Providers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
