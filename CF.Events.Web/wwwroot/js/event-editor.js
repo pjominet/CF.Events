@@ -92,7 +92,7 @@
         addFaqBtn.addEventListener('click', function() {
             const index = faqContainer.querySelectorAll('.faq-row').length;
             const html = `
-                <div class="row gx-2 mb-3 faq-row align-items-center">
+                <div class="row gx-2 faq-row align-items-center">
                     <div class="col-auto">
                         <i class="bi bi-list faq-handle" style="cursor: grab;"></i>
                     </div>
@@ -101,7 +101,10 @@
                             <input name="Event.FaqItems[${index}].Question" class="form-control" placeholder="Question" />
                         </div>
                         <div class="mb-2">
-                            <textarea name="Event.FaqItems[${index}].Answer" class="form-control" placeholder="Answer" rows="2"></textarea>
+                            <textarea name="Event.FaqItems[${index}].Answer" class="form-control" placeholder="Answer" data-max-length="1000" data-counter-id="faq-c-${index}"></textarea>
+                            <div class="d-flex justify-content-end mt-2">
+                            <small id="faq-c-${index}" class="text-muted"></small>
+                        </div>
                         </div>
                         <input type="hidden" name="Event.FaqItems[${index}].SortOrder" class="faq-sort-order" value="${index}" />
                     </div>
@@ -110,6 +113,7 @@
                     </div>
                 </div>`;
             faqContainer.insertAdjacentHTML('beforeend', html);
+            window.initCharacterCounters(faqContainer);
         });
     }
 

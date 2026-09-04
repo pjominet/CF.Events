@@ -13,7 +13,9 @@ function initRichTextEditors() {
         // Create a container for EditorJS
         const rteContainer = document.createElement('div');
         rteContainer.className = 'rte-container border rounded p-2 bg-white';
-        rteContainer.style.minHeight = '300px';
+        if (textarea.classList.contains('rte-sm'))
+            rteContainer.style.minHeight = '100px';
+        else rteContainer.style.minHeight = '300px';
 
         textarea.parentNode.insertBefore(rteContainer, textarea.nextSibling);
 

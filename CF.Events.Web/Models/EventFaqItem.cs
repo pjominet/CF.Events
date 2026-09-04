@@ -8,7 +8,7 @@ public class EventFaqItem
     public int EventId { get; set; }
     [StringLength(500)]
     public required string Question { get; set; }
-    [StringLength(500)]
+    [StringLength(1000)]
     public required string Answer { get; set; }
 
     public int SortOrder { get; set; }

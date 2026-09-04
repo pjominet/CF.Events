@@ -285,6 +285,7 @@
             updateCounter(); // Initial call
         });
     }
+    window.initCharacterCounters = initCharacterCounters;
 
     window.copyToClipboardAndShowFeedback = function (elementOrId, buttonOrDuration, duration = 750) {
         let textToCopy = '';

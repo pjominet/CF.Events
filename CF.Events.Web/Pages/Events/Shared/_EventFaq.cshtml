@@ -19,7 +19,9 @@
                                 </button>
                             </h2>
                             <div id="faq-@i" class="accordion-collapse collapse @(i == 0 ? "show": string.Empty)">
-                                <div class="accordion-body text-emp">@item.Answer</div>
+                                <div class="accordion-body text-emp">
+                                    @Html.Raw(item.Answer)
+                                </div>
                             </div>
                         </div>
                     }

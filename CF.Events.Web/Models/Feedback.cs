@@ -6,13 +6,11 @@ public class Feedback
 {
     public int Id { get; set; }
 
-    [Required]
     [StringLength(1000)]
-    public string Text { get; set; }
+    public required string Text { get; set; }
 
-    [Required]
     [StringLength(450)]
-    public string UserId { get; set; }
+    public required string UserId { get; set; }
 
     public DateTime SubmittedAt { get; set; } = DateTime.UtcNow;
 
