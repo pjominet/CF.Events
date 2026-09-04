@@ -24,6 +24,12 @@
         <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
         <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
         <PackageReference Include="Smtp2Go.ApiClient" Version="0.0.5" />
+        <!--
+        Newtonsoft is needed for some obscure reason, as without it,
+        when deployed the server is unable to call app.MapControllers() without exceptions, works locally tho without issue...
+        Newtonsoft is not actually used in the app itself, so it must be a weird internal dependency issue.
+        -->
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     </ItemGroup>
 
     <ItemGroup>
