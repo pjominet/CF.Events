@@ -163,13 +163,15 @@ public class EventController(
         var isAdmin = User.IsAdmin();
         var userId = User.GetId();
 
+        Event? @event;
         if (isAdmin)
         {
-            var @event = await db.Events.FirstOrDefaultAsync(e => e.Id == eventId);
+            @event = await db.Events.FirstOrDefaultAsync(e => e.Id == eventId);
             if (@event is null) return NotFound();
 
             var adminModel = new DonationDetails
             {
+                EventName = @event.Name,
                 Iban = @event.DonationIban,
                 Link = @event.DonationLink,
                 Reference = @event.GetDonationReference()
@@ -178,24 +180,19 @@ public class EventController(
             return PartialView("~/Pages/Events/Shared/_EventDonations.cshtml", adminModel);
         }
 
-        var eventUser = await db.EventUsers
+        @event = await db.EventUsers
             .Where(eu => eu.EventId == eventId && eu.UserId == userId)
-            .Select(eu => new
-            {
-                EventName = eu.Event.Name,
-                eu.Event.DonationIban,
-                eu.Event.DonationLink,
-                EventStartDate = eu.Event.StartDate
-            })
+            .Select(eu => eu.Event)
             .FirstOrDefaultAsync();
 
-        if (eventUser is null) return NotFound();
+        if (@event is null) return NotFound();
 
         var model = new DonationDetails
         {
-            Iban = eventUser.DonationIban,
-            Link = eventUser.DonationLink,
-            Reference = new Event { Name = eventUser.EventName, StartDate = eventUser.EventStartDate }.GetDonationReference()
+            EventName = @event.Name,
+            Iban = @event.DonationIban,
+            Link = @event.DonationLink,
+            Reference = @event.GetDonationReference()
         };
 
         return PartialView("~/Pages/Events/Shared/_EventDonations.cshtml", model);

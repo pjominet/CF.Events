@@ -8,12 +8,14 @@ public static class EventExtensions
     {
         public List<string> ExtractEventImageFileNames()
         {
-            return @event.Description.ExtractImageFileNamesFromJsonString()
-                .Concat(@event.TravelInstructions?.ExtractImageFileNamesFromJsonString() ?? [])
-                .Distinct()
-                .ToList();
+            return
+            [
+                .. @event.Description.ExtractImageFileNamesFromJsonString()
+                    .Concat(@event.TravelInstructions?.ExtractImageFileNamesFromJsonString() ?? [])
+                    .Distinct()
+            ];
         }
 
-        public string GetDonationReference() => $"{@event.Name}{@event.StartDate.Month}{@event.StartDate.Year}";
+        public string GetDonationReference() => $"{@event.Name}{@event.StartDate.Month}{@event.StartDate.Year}".Replace(" ", "");
     }
 }
