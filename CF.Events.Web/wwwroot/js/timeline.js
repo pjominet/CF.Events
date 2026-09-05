@@ -1,6 +1,5 @@
 (function() {
-    const modal = document.getElementById('eventScheduleModal');
-    if (!modal) return;
+    let intervalId = null;
 
     function parseTime(timeStr, baseDate = new Date(2000, 0, 1)) {
         const [h, m] = timeStr.split(':').map(Number);
@@ -37,6 +36,9 @@
     }
 
     function updateTimelineProgress(animate = false) {
+        const modal = document.getElementById('eventScheduleModal');
+        if (!modal) return;
+
         const now = new Date();
         const todayStr = now.toISOString().split('T')[0];
 
@@ -83,12 +85,12 @@
         });
     }
 
-    let intervalId = null;
+    // Use event delegation for Bootstrap modal events to handle AJAX-injected content
+    document.addEventListener('shown.bs.modal', function (event) {
+        if (event.target.id !== 'eventScheduleModal') return;
 
-    modal.addEventListener('shown.bs.modal', function () {
         updateTimelineProgress(true);
 
-        // Start interval when shown
         if (!intervalId) {
             intervalId = setInterval(updateTimelineProgress, 60000);
         }
@@ -104,13 +106,28 @@
         }
     });
 
-    modal.addEventListener('hidden.bs.modal', function() {
+    document.addEventListener('hidden.bs.modal', function (event) {
+        if (event.target.id !== 'eventScheduleModal') return;
+
         if (intervalId) {
             clearInterval(intervalId);
             intervalId = null;
         }
     });
 
-    // Initial check
+    // Handle AJAX-injected content by listening for Bootstrap modal creation or content updates
+    // Use a MutationObserver on the body to find when the modal is added to the DOM
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+                if (node.id === 'eventScheduleModal' || (node.nodeType === 1 && node.querySelector('#eventScheduleModal'))) {
+                    updateTimelineProgress();
+                }
+            });
+        });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // Also try initial check in case it's already there
     updateTimelineProgress();
 })();
