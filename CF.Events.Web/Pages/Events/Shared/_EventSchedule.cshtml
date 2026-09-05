@@ -53,27 +53,15 @@
                                     @for (var j = 0; j < steps.Count; j++)
                                     {
                                         var step = steps[j];
-                                        var stepDateTime = dayDate.Date.Add(step.StartTime.ToTimeSpan());
                                         var nextStep = j < steps.Count - 1 ? steps[j + 1] : null;
 
-                                        var isCompleted = isToday && now > stepDateTime;
-                                        var isCurrent = false;
-                                        if (isToday)
-                                        {
-                                            if (nextStep is not null)
-                                            {
-                                                var nextStepDateTime = dayDate.Date.Add(nextStep.StartTime.ToTimeSpan());
-                                                isCurrent = now >= stepDateTime && now < nextStepDateTime;
-                                            }
-                                            else isCurrent = now >= stepDateTime && now < stepDateTime.AddHours(2);
-                                        }
-
-                                        <div class="timeline-item @(isCompleted ? "completed" : "") @(isCurrent ? "current" : "")"
+                                        <div class="timeline-item"
                                              id="step-@step.Id"
                                              data-start="@step.StartTime.ToString("HH:mm")"
+                                             data-end="@(step.EndTime?.ToString("HH:mm"))"
                                              data-next-start="@(nextStep?.StartTime.ToString("HH:mm"))">
                                             <div class="timeline-marker"></div>
-                                            <div class="timeline-content">
+                                            <div class="timeline-content d-flex align-items-baseline gap-2">
                                                 <span class="badge text-white">
                                                     @step.StartTime.ToString("HH:mm")
                                                     @if (step.EndTime.HasValue)
@@ -89,8 +77,6 @@
                             </div>
                         }
                     </div>
-
-                    <script src="~/js/timeline.js" asp-append-version="true"></script>
                 }
                 else
                 {
@@ -100,4 +86,3 @@
         </div>
     </div>
 </div>
-

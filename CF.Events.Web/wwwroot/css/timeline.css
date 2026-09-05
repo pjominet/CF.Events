@@ -40,12 +40,14 @@
 
 .timeline-item.completed .timeline-marker {
     background: var(--primary-color);
+    transition: background-color 0.8s ease;
 }
 
 .timeline-item.current .timeline-marker {
     background: var(--primary-color);
     box-shadow: 0 0 0 2px rgba(var(--glass-color-primary), 0.4);
     transform: scale(1.2);
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 /* The content area */
@@ -68,6 +70,8 @@
     background-color: var(--secondary-color) !important;
     font-size: 0.85rem;
     flex-shrink: 0;
+    width: 110px;
+    text-align: center;
 }
 
 .timeline-label {
@@ -79,28 +83,77 @@
 .timeline-item::after {
     content: "";
     position: absolute;
-    top: -2rem;
+    top: -2.1rem;
     left: 0.75rem;
     width: 2px;
-    height: 150%;
+    height: calc(100% + 1rem);
     background: var(--primary-color);
     z-index: 1;
-    display: none;
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 1s ease-in-out;
 }
 
 .timeline-item.completed::after {
-    display: block;
+    transform: scaleY(1);
 }
 
 .timeline-item.current::after {
-    display: block;
-    height: 0.5rem; /* Only highlight up to the marker */
+    transform: scaleY(0.4); /* Highlight down to the marker approx */
+}
+
+/* Roundel animation when appearing */
+@keyframes markerFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.timeline-item.animate .timeline-marker {
+    animation: markerFadeIn 0.5s both;
+}
+
+.timeline-item.animate.current .timeline-marker {
+    animation: markerFadeIn 0.5s both, pulseMarker 2s infinite 0.5s;
+}
+
+@keyframes pulseMarker {
+    0% { box-shadow: 0 0 0 0 rgba(var(--glass-color-primary), 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(var(--glass-color-primary), 0); }
+    100% { box-shadow: 0 0 0 0 rgba(var(--glass-color-primary), 0); }
 }
 
 .timeline-item:last-child::after {
     display: none !important;
 }
 
+/* Dashed line for gaps */
+.timeline-item.gap::before {
+    content: "";
+    position: absolute;
+    top: 1.5rem;
+    left: 0.75rem;
+    width: 2px;
+    height: calc(100% - 1.5rem);
+    background: repeating-linear-gradient(to bottom, var(--primary-color), var(--primary-color) 4px, transparent 4px, transparent 8px);
+    z-index: 3;
+    display: none;
+}
+
+.timeline-item.gap.completed::before {
+    display: block;
+}
+
+.timeline-item.gap:not(.completed)::before {
+    background: repeating-linear-gradient(to bottom, rgba(var(--glass-color-primary), 0.2), rgba(var(--glass-color-primary), 0.2) 4px, transparent 4px, transparent 8px);
+    display: block;
+    z-index: 1;
+}
 
 /* Custom Nav Tabs for Glass Theme - Matching RSVP Stepper */
 .schedule-tabs {
