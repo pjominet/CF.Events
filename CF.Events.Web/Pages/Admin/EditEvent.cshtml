@@ -20,6 +20,7 @@
 
     <form method="post" enctype="multipart/form-data" id="eventForm">
         <input type="hidden" name="RedirectAfterSave" id="redirectAfterSave" value="" />
+        <input type="hidden" name="ActiveTab" id="activeTab" value="" />
         <partial name="Shared/_EventEditor" for="Event"/>
         <div class="event-form-actions">
             <a asp-page="/Admin/Events" class="btn btn-secondary confirm-required">Back</a>

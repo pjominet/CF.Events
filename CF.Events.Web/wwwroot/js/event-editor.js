@@ -74,10 +74,16 @@
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <input name="Event.ScheduleSteps[${index}].TimeStamp" type="time" class="form-control" title="Start Time" />
+                        <div class="input-group">
+                            <span class="input-group-text">Start</span>
+                            <input name="Event.ScheduleSteps[${index}].StartTime" type="time" class="form-control" title="Start Time" />
+                        </div>
                     </div>
                     <div class="col-md-2">
-                        <input name="Event.ScheduleSteps[${index}].EndTime" type="time" class="form-control" title="End Time" />
+                        <div class="input-group">
+                            <span class="input-group-text">End</span>
+                            <input name="Event.ScheduleSteps[${index}].EndTime" type="time" class="form-control" title="End Time" />
+                        </div>
                     </div>
                     <div class="col-md-5">
                         <input name="Event.ScheduleSteps[${index}].Label" type="text" class="form-control" placeholder="Label" />
@@ -152,8 +158,23 @@
         // RTE-specific: Since RTE updates the textarea and triggers 'change',
         // the event listener above should already catch it.
 
-        eventForm.addEventListener('submit', () => {
+        eventForm.addEventListener('submit', (e) => {
+            if (!eventForm.checkValidity()) {
+                return;
+            }
+
             isDirty = false;
+
+            // Save active tab
+            const activeTabButton = document.querySelector('#eventEditorTabs .nav-link.active');
+            if (activeTabButton) {
+                const activeTabInput = document.getElementById('activeTab');
+                if (activeTabInput) {
+                    activeTabInput.value = activeTabButton.id;
+                }
+            }
+
+            window.showLoadingOverlay();
         });
 
         // Handle navigation confirmation
@@ -287,4 +308,16 @@
         endDateInput.addEventListener('input', updateMinEndDate);
         updateMinEndDate();
     }
+
+    // Restore active tab from URL query parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabId = urlParams.get('tab');
+    if (tabId) {
+        const tabButton = document.getElementById(tabId);
+        if (tabButton) {
+            const tab = new bootstrap.Tab(tabButton);
+            tab.show();
+        }
+    }
+
 })();
