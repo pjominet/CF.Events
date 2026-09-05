@@ -220,7 +220,7 @@ public class EventInviteesModel(
 
         if (maxParticipants == 0 && eventData.MaxParticipantsPerRsvp > 0)
             maxParticipants = eventData.MaxParticipantsPerRsvp;
-        else maxParticipants = 4;
+        else maxParticipants = 2;
 
         var model = new RsvpModel.InputModel
         {

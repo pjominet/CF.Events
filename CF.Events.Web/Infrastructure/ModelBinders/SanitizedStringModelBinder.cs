@@ -14,7 +14,7 @@ public class SanitizedStringModelBinder(IHtmlSanitizer sanitizer) : IModelBinder
         var value = valueProviderResult.FirstValue;
         if (!value.HasValue())
         {
-            bindingContext.Result = ModelBindingResult.Success(value);
+            bindingContext.Result = ModelBindingResult.Success(null);
             return Task.CompletedTask;
         }
 
@@ -28,15 +28,28 @@ public class SanitizedStringModelBinder(IHtmlSanitizer sanitizer) : IModelBinder
         // Sanitize the input
         var sanitizedValue = sanitizer.Sanitize(value);
 
+        if (!sanitizedValue.HasValue())
+        {
+            bindingContext.Result = ModelBindingResult.Success(null);
+            return Task.CompletedTask;
+        }
+
         // HtmlSanitizer encodes special characters like & to &amp; (because of AngleSharp's parsing algorithm)
         // Apply selective decoding to prevent double-encoding of safe characters
         var safeValue = sanitizedValue
             .Replace("&amp;", "&")
             .Replace("&quot;", "\"")
             .Replace("&#39;", "'")
-            .Replace("&apos;", "'");
+            .Replace("&apos;", "'")
+            .Trim();
 
-        bindingContext.Result = ModelBindingResult.Success(safeValue.Trim());
+        if (safeValue.Length == 0)
+        {
+            bindingContext.Result = ModelBindingResult.Success(null);
+            return Task.CompletedTask;
+        }
+
+        bindingContext.Result = ModelBindingResult.Success(safeValue);
         return Task.CompletedTask;
     }
 }
