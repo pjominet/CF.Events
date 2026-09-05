@@ -1,7 +1,7 @@
 (function () {
     let intervalId = null;
 
-    const SEGMENT_DURATION = 0.4; // seconds
+    const SEGMENT_DURATION = 0.3; // seconds
 
     function applyAnimations(item, index, animate) {
         if (animate) {
@@ -10,14 +10,18 @@
             // Only animate if already completed (to avoid flashing all markers) or if it's the current one.
             if (item.classList.contains('completed') || item.classList.contains('current')) {
                 // Add sequential delay for a nice drawing effect
-                // Each segment starts after the previous one finishes
-                const delay = index * SEGMENT_DURATION;
+                // Each segment starts slightly before the previous one finishes to create a continuous look
+                const delay = index * (SEGMENT_DURATION * 0.7);
                 item.style.transitionDelay = `${delay}s`;
 
-                // For the marker pulse, we want it to start after the line reaches it
+                // For the marker pulse and fill, we want it to start as the line approaches it
                 const marker = item.querySelector('.timeline-marker');
                 if (marker) {
-                    marker.style.animationDelay = `${delay + SEGMENT_DURATION}s`;
+                    // Start filling the marker when the line segment is about halfway through
+                    // since the marker is near the top of the item and the line draws downward.
+                    const fillDelay = delay + (SEGMENT_DURATION * 0.35);
+                    marker.style.transitionDelay = `${fillDelay}s`;
+                    marker.style.animationDelay = `${fillDelay}s`;
                 }
 
                 item.classList.add('animate');
@@ -112,6 +116,7 @@
             item.style.transitionDelay = '';
             const marker = item.querySelector('.timeline-marker');
             if (marker) {
+                marker.style.transitionDelay = '';
                 marker.style.animationDelay = '';
             }
         });
