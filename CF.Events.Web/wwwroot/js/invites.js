@@ -2,7 +2,7 @@
     "use strict";
 
     const grid = document.getElementById('invitesGrid');
-    if (!!grid) {
+    if (grid) {
         const pageSize = parseInt(grid.dataset.pageSize);
         const totalCount = parseInt(grid.dataset.totalCount);
         const loadUrl = grid.dataset.loadUrl;

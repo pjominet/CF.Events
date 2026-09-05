@@ -1,5 +1,5 @@
 ﻿@using CF.Events.Web.Pages.Events
-@model (CF.Events.Web.Models.Event EventData, string UserId, RsvpModel.InputModel NewRsvp)
+@model (int MaxParticipants, int EventDuration, string UserId, RsvpModel.InputModel NewRsvp)
 
 <div class="modal fade" id="adminRsvpModal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="adminRsvpModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -23,10 +23,10 @@
                     </div>
 
                     <div id="admin-attending-fields" class="@(Model.NewRsvp.Attending ? "" : "d-none")">
-                        <partial name="~/Pages/Events/Shared/_RsvpParticipants.cshtml" model="(Model.NewRsvp.Participants, Model.EventData.MaxParticipantsPerRsvp)" />
+                        <partial name="~/Pages/Events/Shared/_RsvpParticipants.cshtml" model="(Model.NewRsvp.Participants, Model.MaxParticipants)" />
 
                         <h6 class="border-bottom pb-1 mb-3">Attendance Schedule</h6>
-                        <partial name="~/Pages/Events/Shared/_RsvpAttendanceSchedule.cshtml" model="(Model.EventData.EventDuration, Model.NewRsvp.Participants, Model.NewRsvp.ParticipantsAttendance)" />
+                        <partial name="~/Pages/Events/Shared/_RsvpAttendanceSchedule.cshtml" model="(Model.EventDuration, Model.NewRsvp.Participants, Model.NewRsvp.ParticipantsAttendance)" />
 
                         <h6 class="border-bottom pb-1 mb-3 mt-4">Dietary Requirements</h6>
                         <partial name="~/Pages/Events/Shared/_RsvpDietaryOptions.cshtml" model="(Model.NewRsvp.Participants, Model.NewRsvp.ParticipantsDiets)" />

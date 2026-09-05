@@ -21,7 +21,6 @@ public class EventInviteesModel(
     IInvitationService inviteService,
     IToastNotification toastNotification) : PageModel
 {
-
     public required Event EventData { get; set; }
     public List<SelectListItem> AccommodationCodes { get; private set; } = [];
 
@@ -35,9 +34,7 @@ public class EventInviteesModel(
     {
         EventData = await db.Events.FirstAsync(e => e.Id == id);
 
-        AccommodationCodes = EventData.AccommodationCodes
-            .Select(ac => new SelectListItem(ac, ac))
-            .ToList();
+        AccommodationCodes = [.. EventData.AccommodationCodes.Select(ac => new SelectListItem(ac, ac))];
 
         var invitedUsers = db.EventUsers
             .Where(ue => ue.EventId == id)
@@ -47,26 +44,27 @@ public class EventInviteesModel(
         var rsvps = db.Rsvps.Where(r => r.EventId == id).ToList();
 
         var unavailableUsers = new HashSet<string>();
-        Invitees = invitedUsers
-            .Select(iu =>
-            {
-                var user = iu.User;
-                var rsvp = rsvps.FirstOrDefault(r => r.UserId == user.Id);
-                var responded = rsvp?.SubmittedAt > DateTime.MinValue.AddDays(1);
-                var status = responded ? (rsvp?.Attending == true ? AttendanceStatus.Attending : AttendanceStatus.Declined) : AttendanceStatus.Pending;
-                unavailableUsers.Add(user.Id);
-                return new InviteeRow(
-                    user.Id,
-                    user.DisplayName!,
-                    user.Email!,
-                    iu.AssignedAccommodationCode,
-                    status,
-                    iu.InvitationEmailSent,
-                    iu.SaveTheDateSent,
-                    iu.ScheduledFor);
-            })
-            .OrderBy(i => i.DisplayName)
-            .ToList();
+        Invitees =
+        [
+            .. invitedUsers.Select(iu =>
+                {
+                    var user = iu.User;
+                    var rsvp = rsvps.FirstOrDefault(r => r.UserId == user.Id);
+                    var responded = rsvp?.SubmittedAt > DateTime.MinValue.AddDays(1);
+                    var status = responded ? (rsvp?.Attending == true ? AttendanceStatus.Attending : AttendanceStatus.Declined) : AttendanceStatus.Pending;
+                    unavailableUsers.Add(user.Id);
+                    return new InviteeRow(
+                        user.Id,
+                        user.DisplayName!,
+                        user.Email!,
+                        iu.AssignedAccommodationCode,
+                        status,
+                        iu.InvitationEmailSent,
+                        iu.SaveTheDateSent,
+                        iu.ScheduledFor);
+                })
+                .OrderBy(i => i.DisplayName)
+        ];
 
         AvailableUsers = await (from u in db.Users
                 join ur in db.UserRoles on u.Id equals ur.UserId
@@ -203,14 +201,26 @@ public class EventInviteesModel(
     public async Task<IActionResult> OnGetAdminRsvpFormAsync(int id, string userId)
     {
         var user = await db.Users.Include(u => u.GuestGroup).FirstAsync(u => u.Id == userId);
-        var participants = user.GuestGroup?.Participants ?? (user.DisplayName != null ? [user.DisplayName] : []);
+        var participants = user.GuestGroup?.Participants ?? (user.DisplayName.HasValue() ? [user.DisplayName] : []);
 
         var rsvp = await db.Rsvps
             .Include(r => r.ParticipantsDiets)
             .Include(r => r.ParticipantsAttendance)
             .FirstOrDefaultAsync(r => r.EventId == id && r.UserId == userId);
 
-        var eventData = await db.Events.FirstAsync(e => e.Id == id);
+        var eventData = await db.Events
+            .Where(e => e.Id == id)
+            .Select(e => new { e.EventDuration, e.MaxParticipantsPerRsvp})
+            .FirstAsync();
+
+        var maxParticipants = await db.GuestGroups
+            .Where(gg => gg.GuestUserId == userId)
+            .Select(gg => gg.MaxPeople)
+            .FirstOrDefaultAsync();
+
+        if (maxParticipants == 0 && eventData.MaxParticipantsPerRsvp > 0)
+            maxParticipants = eventData.MaxParticipantsPerRsvp;
+        else maxParticipants = 4;
 
         var model = new RsvpModel.InputModel
         {
@@ -221,7 +231,7 @@ public class EventInviteesModel(
             Comments = rsvp?.Comments
         };
 
-        return Partial("Shared/_AdminRsvpForm", (eventData, userId, model));
+        return Partial("Shared/_AdminRsvpForm", (maxParticipants, eventData.EventDuration, userId, model));
     }
 
     public async Task<IActionResult> OnPostAdminRsvpAsync(int id, string userId, RsvpModel.InputModel newRsvp)
@@ -259,26 +269,32 @@ public class EventInviteesModel(
             var attendanceToDelete = await db.ParticipantsAttendance.Where(pa => pa.EventId == id && pa.UserId == userId).ToListAsync();
             db.ParticipantsAttendance.RemoveRange(attendanceToDelete);
 
-            rsvp.ParticipantsAttendance = newRsvp.ParticipantsAttendance.Select(pa => new ParticipantAttendance
-            {
-                EventId = id,
-                UserId = userId,
-                ParticipantName = pa.ParticipantName,
-                AttendingDays = pa.AttendingDays
-            }).ToList();
+            rsvp.ParticipantsAttendance =
+            [
+                .. newRsvp.ParticipantsAttendance.Select(pa => new ParticipantAttendance
+                {
+                    EventId = id,
+                    UserId = userId,
+                    ParticipantName = pa.ParticipantName,
+                    AttendingDays = pa.AttendingDays
+                })
+            ];
 
             // Handle dietary options update
             var dietsToDelete = await db.ParticipantsDiets.Where(pd => pd.EventId == id && pd.UserId == userId).ToListAsync();
             db.ParticipantsDiets.RemoveRange(dietsToDelete);
 
-            rsvp.ParticipantsDiets = newRsvp.ParticipantsDiets.Select(o => new ParticipantDiet
-            {
-                EventId = id,
-                UserId = userId,
-                ParticipantName = o.ParticipantName,
-                Restrictions = o.Restrictions,
-                OtherDetails = o.OtherDetails
-            }).ToList();
+            rsvp.ParticipantsDiets =
+            [
+                .. newRsvp.ParticipantsDiets.Select(o => new ParticipantDiet
+                {
+                    EventId = id,
+                    UserId = userId,
+                    ParticipantName = o.ParticipantName,
+                    Restrictions = o.Restrictions,
+                    OtherDetails = o.OtherDetails
+                })
+            ];
 
             rsvp.Comments = newRsvp.Comments;
         }
