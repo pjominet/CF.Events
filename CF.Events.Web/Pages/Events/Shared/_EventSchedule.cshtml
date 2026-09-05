@@ -40,7 +40,7 @@
                             var isToday = dayDate.Date == now.Date;
                             var isActivePane = isToday || (i == 0 && now.Date < Model.EventStartDate.Date);
 
-                            <div class="tab-pane fade @(isActivePane ? "show active" : "")"
+                            <div class="tab-pane ps-2 fade @(isActivePane ? "show active" : "")"
                                  id="day-pane-@day.Key"
                                  role="tabpanel"
                                  aria-labelledby="day-tab-@day.Key"
@@ -73,7 +73,7 @@
                                              data-start="@step.StartTime.ToString("HH:mm")"
                                              data-next-start="@(nextStep?.StartTime.ToString("HH:mm"))">
                                             <div class="timeline-marker"></div>
-                                            <div class="timeline-content d-flex align-items-baseline gap-2">
+                                            <div class="timeline-content">
                                                 <span class="badge text-white">
                                                     @step.StartTime.ToString("HH:mm")
                                                     @if (step.EndTime.HasValue)

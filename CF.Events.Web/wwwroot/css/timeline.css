@@ -8,12 +8,12 @@
 }
 
 /* The vertical line */
-.timeline::before {
+.timeline-item::before {
     content: "";
     position: absolute;
-    top: 0;
-    bottom: 0;
+    top: -2rem;
     left: 0.75rem;
+    bottom: 2rem;
     width: 2px;
     background: rgba(var(--glass-color-primary), 0.15);
 }
@@ -21,20 +21,16 @@
 .timeline-item {
     position: relative;
     padding-left: 2.5rem;
-    padding-bottom: 2rem;
-}
-
-.timeline-item:last-child {
-    padding-bottom: 0;
+    padding-bottom: 3.5rem;
 }
 
 /* The bullets/markers */
 .timeline-marker {
     position: absolute;
-    left: 0.45rem;
-    top: 0.25rem;
-    width: 12px;
-    height: 12px;
+    left: 0.35rem;
+    top: 0.95rem;
+    width: 15px;
+    height: 15px;
     border-radius: 50%;
     background: #fff;
     border: 2px solid var(--primary-color);
@@ -48,14 +44,20 @@
 
 .timeline-item.current .timeline-marker {
     background: var(--primary-color);
-    box-shadow: 0 0 0 4px rgba(var(--glass-color-primary), 0.2);
+    box-shadow: 0 0 0 2px rgba(var(--glass-color-primary), 0.4);
     transform: scale(1.2);
 }
 
 /* The content area */
 .timeline-content {
+    display: flex;
+    align-items: baseline;
+    gap: 2rem;
     position: relative;
-    padding-top: 0.15rem;
+    font-weight: bold;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, .05);
 }
 
 .timeline-item .badge {
@@ -64,23 +66,23 @@
     border-radius: 50px;
     display: inline-block;
     background-color: var(--secondary-color) !important;
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     flex-shrink: 0;
 }
 
 .timeline-label {
-    font-size: 1.05rem;
-    color: #333;
+    font-size: 1.1rem;
+    color: var(--dark-color);
 }
 
 /* Progress line highlighting */
 .timeline-item::after {
     content: "";
     position: absolute;
-    top: 0;
+    top: -2rem;
     left: 0.75rem;
     width: 2px;
-    height: 100%;
+    height: 150%;
     background: var(--primary-color);
     z-index: 1;
     display: none;
