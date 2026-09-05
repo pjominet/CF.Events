@@ -101,7 +101,7 @@ public class EditEventModel(
     {
         // Pre-filter FAQ and Schedule steps to ignore empty ones to avoid model state tripping over invalid entries
         Event.FaqItems = [.. Event.FaqItems.Where(f => f.Question.HasValue() || f.Answer.HasValue())];
-        Event.ScheduleSteps = [.. Event.ScheduleSteps.Where(s => s.Label.HasValue() || s.Day <= Event.MaxEventDays())];
+        Event.ScheduleSteps = [.. Event.ScheduleSteps.Where(s => s.Label.HasValue() && s.Day <= Event.MaxEventDays())];
 
         ModelState.Clear();
         TryValidateModel(Event, nameof(EventModel));

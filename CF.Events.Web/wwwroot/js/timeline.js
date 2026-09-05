@@ -52,13 +52,25 @@
 
                 const startStr = item.getAttribute('data-start');
                 const nextStartStr = item.getAttribute('data-next-start');
-                const startTime = new Date(todayStr + 'T' + startStr + ':00');
+
+                // Parse start time components
+                const [startHour, startMinute] = startStr.split(':').map(Number);
+
+                // If the hour is < 6, it belongs to the next calendar day logically
+                let startTime = new Date(paneDate + 'T' + startStr + ':00');
+                if (startHour < 6) {
+                    startTime.setDate(startTime.getDate() + 1);
+                }
 
                 let isCompleted = now > startTime;
-                let isCurrent = false;
+                let isCurrent;
 
                 if (nextStartStr) {
-                    const nextStartTime = new Date(todayStr + 'T' + nextStartStr + ':00');
+                    const [nextHour, nextMinute] = nextStartStr.split(':').map(Number);
+                    let nextStartTime = new Date(paneDate + 'T' + nextStartStr + ':00');
+                    if (nextHour < 6) {
+                        nextStartTime.setDate(nextStartTime.getDate() + 1);
+                    }
                     isCurrent = now >= startTime && now < nextStartTime;
                 } else {
                     const twoHoursLater = new Date(startTime.getTime() + 2 * 60 * 60 * 1000);
