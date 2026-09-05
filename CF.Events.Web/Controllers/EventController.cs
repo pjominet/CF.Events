@@ -123,7 +123,7 @@ public class EventController(
                 HasRsvped = false,
                 IsAttending = true,
                 Details = @event.AccommodationDetails,
-                Code = "PREVIEW_CODE",
+                Code = string.Join(" ", @event.AccommodationCodes),
                 BookingLinks = @event.BookingLinks.ToDictionary(bl => bl.Type, bl => bl.Link)
             };
 
@@ -238,23 +238,45 @@ public class EventController(
         {
             var @event = await db.Events.Include(e => e.EventSchedule).FirstOrDefaultAsync(e => e.Id == eventId);
             if (@event is null) return NotFound();
-            return PartialView("~/Pages/Events/Shared/_EventSchedule.cshtml", @event.EventSchedule
-                .OrderBy(s => s.Day)
-                .ThenBy(s => s.TimeStamp.Hour < 6 ? 1 : 0)
-                .ThenBy(s => s.TimeStamp).ToList());
+
+            var model = new EventScheduleViewModel
+            {
+                EventStartDate = @event.StartDate,
+                Steps =
+                [
+                    .. @event.EventSchedule
+                        .OrderBy(s => s.Day)
+                        .ThenBy(s => s.StartTime.Hour < 6 ? 1 : 0)
+                        .ThenBy(s => s.StartTime)
+                ]
+            };
+            return PartialView("~/Pages/Events/Shared/_EventSchedule.cshtml", model);
         }
 
         var eventUser = await db.EventUsers
             .Where(eu => eu.EventId == eventId && eu.UserId == userId)
             .Select(eu => new
             {
+                eu.Event.StartDate,
                 eu.Event.EventSchedule
             })
             .FirstOrDefaultAsync();
 
         if (eventUser is null) return NotFound();
 
-        return PartialView("~/Pages/Events/Shared/_EventSchedule.cshtml", eventUser.EventSchedule);
+        var guestModel = new EventScheduleViewModel
+        {
+            EventStartDate = eventUser.StartDate,
+            Steps =
+            [
+                .. eventUser.EventSchedule
+                    .OrderBy(s => s.Day)
+                    .ThenBy(s => s.StartTime.Hour < 6 ? 1 : 0)
+                    .ThenBy(s => s.StartTime)
+            ]
+        };
+
+        return PartialView("~/Pages/Events/Shared/_EventSchedule.cshtml", guestModel);
     }
 
     [HttpGet("{eventId:int}/travel")]

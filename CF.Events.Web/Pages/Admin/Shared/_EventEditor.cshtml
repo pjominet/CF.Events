@@ -158,10 +158,19 @@
                             <input asp-for="ScheduleSteps[i].Day" type="number" class="form-control" placeholder="Day" value="@(Model.ScheduleSteps[i].Day == 0 ? 1 : Model.ScheduleSteps[i].Day)" min="1" max="@Model.MaxEventDays()" step="1"/>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <input asp-for="ScheduleSteps[i].TimeStamp" type="time" class="form-control"/>
+                    <div class="col-md-2">
+                        <div class="input-group">
+                            <span class="input-group-text">Start</span>
+                            <input asp-for="ScheduleSteps[i].TimeStamp" type="time" class="form-control" title="Start Time"/>
+                        </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-2">
+                        <div class="input-group">
+                            <span class="input-group-text">End</span>
+                            <input asp-for="ScheduleSteps[i].EndTime" type="time" class="form-control" title="End Time"/>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
                         <input asp-for="ScheduleSteps[i].Label" type="text" class="form-control" placeholder="Label"/>
                     </div>
                     <div class="col-md-1">

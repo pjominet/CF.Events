@@ -1,76 +1,121 @@
 ﻿:root {
     --timeline-padding: 56px;
+    --timeline-color: #49573f;
 }
 
 .timeline {
     position: relative;
-    padding: 1.5rem 2rem 1.5rem 0;
+    padding: 1.5rem 0.5rem 1.5rem 0;
 }
 
 /* The vertical line */
-.timeline::before {
+.timeline-item::before {
     content: "";
     position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 1.5rem;
+    top: -2rem;
+    left: 0.75rem;
+    bottom: 2rem;
     width: 2px;
-    background: rgba(var(--glass-color-primary), 0.1);
+    background: rgba(var(--glass-color-primary), 0.15);
 }
 
 .timeline-item {
     position: relative;
-    padding-left: 3.5rem;
-    padding-bottom: 2.5rem;
-}
-
-.timeline-item:last-child {
-    padding-bottom: 0;
+    padding-left: 2.5rem;
+    padding-bottom: 3.5rem;
 }
 
 /* The bullets/markers */
 .timeline-marker {
     position: absolute;
-    left: 1.15rem;
-    top: -0.2rem;
-    width: 14px;
-    height: 14px;
+    left: 0.35rem;
+    top: 0.95rem;
+    width: 15px;
+    height: 15px;
     border-radius: 50%;
-    background: var(--primary-color);
+    background: #fff;
+    border: 2px solid var(--timeline-color);
     z-index: 2;
-    box-shadow: 0 0 0 2px rgba(var(--glass-color-primary), 0.1);
+    transition: all 0.3s ease;
 }
 
-/* The content box */
+.timeline-item.animate.completed .timeline-marker {
+    background: var(--timeline-color);
+    transition: background-color 0.1s ease-out;
+    transition-delay: inherit;
+}
+
+.timeline-item.animate.current .timeline-marker {
+    background: var(--timeline-color);
+    box-shadow: 0 0 0 2px rgba(var(--glass-color-primary), 0.4);
+    transform: scale(1.2);
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition-delay: inherit;
+}
+
+/* The content area */
 .timeline-content {
-    background: #e8e2da;
-    padding: 1.25rem;
-    border-radius: 0 5px 5px 5px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: baseline;
+    gap: 2rem;
     position: relative;
-}
-
-/* Arrow for the box */
-.timeline-content::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -9px;
-    width: 0;
-    height: 0;
-    border-top: 0 solid transparent;
-    border-bottom: 15px solid transparent;
-    border-right: 10px solid #e8e2da;
-    filter: drop-shadow(-4px 4px 5px rgba(0, 0, 0, 0.1));
+    font-weight: bold;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, .05);
 }
 
 .timeline-item .badge {
     font-weight: 600;
-    padding: 0.5em 1em;
+    padding: 0.4em 0.8em;
     border-radius: 50px;
-    margin-bottom: 0.75rem;
     display: inline-block;
     background-color: var(--secondary-color) !important;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    width: 110px;
+    text-align: center;
+}
+
+.timeline-label {
+    font-size: 1.1rem;
+    color: var(--dark-color);
+}
+
+/* Progress line highlighting */
+.timeline-item::after {
+    content: "";
+    position: absolute;
+    top: -2.1rem;
+    left: 0.75rem;
+    width: 2px;
+    height: calc(100% + 1.1rem);
+    background: var(--timeline-color);
+    z-index: 1;
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 0.3s linear;
+    transition-delay: inherit; /* Allow JS to control the delay */
+}
+
+.timeline-item.animate.completed::after {
+    transform: scaleY(1);
+}
+
+.timeline-item.animate.current::after {
+    transform: scaleY(0.45); /* Highlight down to the marker approx */
+    transition: transform 0.3s linear;
+    transition-delay: inherit;
+}
+
+.timeline-item.animate.current .timeline-marker {
+    animation: pulseMarker 2s infinite;
+}
+
+@keyframes pulseMarker {
+    0% { box-shadow: 0 0 0 0 rgba(var(--glass-color-primary), 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(var(--glass-color-primary), 0); }
+    100% { box-shadow: 0 0 0 0 rgba(var(--glass-color-primary), 0); }
 }
 
 /* Custom Nav Tabs for Glass Theme - Matching RSVP Stepper */
@@ -108,8 +153,8 @@
 
 .schedule-tabs .nav-link.active {
     opacity: 1 !important;
-    border-bottom-color: var(--bs-primary) !important;
-    color: var(--bs-primary) !important;
+    border-bottom-color: var(--primary-hover) !important;
+    color: var(--primary-hover) !important;
 }
 
 .schedule {

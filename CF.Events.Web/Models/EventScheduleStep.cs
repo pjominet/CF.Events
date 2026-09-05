@@ -7,7 +7,8 @@ public class EventScheduleStep
     public int Id { get; set; }
     public int EventId { get; set; }
     public int Day { get; set; }
-    public TimeOnly TimeStamp { get; set; }
+    public TimeOnly StartTime { get; set; }
+    public TimeOnly? EndTime { get; set; }
     [StringLength(500)]
     public required string Label { get; set; }
 

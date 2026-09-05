@@ -1,4 +1,4 @@
-﻿@model List<EventScheduleStep>
+﻿@model EventScheduleViewModel
 
 <div class="modal fade" id="eventScheduleModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-fullscreen-md-down">
@@ -9,7 +9,8 @@
             </div>
             <div class="modal-body schedule">
                 @{
-                    var groupedSchedule = Model.GroupBy(s => s.Day).OrderBy(g => g.Key).ToList();
+                    var groupedSchedule = Model.Steps.GroupBy(s => s.Day).OrderBy(g => g.Key).ToList();
+                    var now = DateTime.Now;
                 }
 
                 @if (groupedSchedule.Any())
@@ -18,8 +19,15 @@
                         @for (var i = 0; i < groupedSchedule.Count; i++)
                         {
                             var day = groupedSchedule[i];
+                            var dayDate = Model.EventStartDate.AddDays(day.Key - 1);
+                            var isActive = dayDate.Date == now.Date || (i == 0 && now.Date < Model.EventStartDate.Date);
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link @(i == 0 ? "active" : "") fs-5" id="day-tab-@day.Key" data-bs-toggle="tab" data-bs-target="#day-pane-@day.Key" type="button" role="tab" aria-controls="day-pane-@day.Key" aria-selected="@(i == 0 ? "true" : "false")">Day @day.Key</button>
+                                <button class="nav-link @(isActive ? "active" : "") fs-5"
+                                        id="day-tab-@day.Key"
+                                        data-bs-toggle="tab" data-bs-target="#day-pane-@day.Key"
+                                        type="button" role="tab">
+                                    Day @day.Key
+                                </button>
                             </li>
                         }
                     </ul>
@@ -28,15 +36,39 @@
                         @for (var i = 0; i < groupedSchedule.Count; i++)
                         {
                             var day = groupedSchedule[i];
-                            <div class="tab-pane fade @(i == 0 ? "show active" : "")" id="day-pane-@day.Key" role="tabpanel" aria-labelledby="day-tab-@day.Key" tabindex="0">
+                            var dayDate = Model.EventStartDate.AddDays(day.Key - 1);
+                            var isToday = dayDate.Date == now.Date;
+                            var isActivePane = isToday || (i == 0 && now.Date < Model.EventStartDate.Date);
+
+                            <div class="tab-pane ps-2 fade @(isActivePane ? "show active" : "")"
+                                 id="day-pane-@day.Key"
+                                 role="tabpanel"
+                                 aria-labelledby="day-tab-@day.Key"
+                                 tabindex="0"
+                                 data-date="@dayDate.ToString("yyyy-MM-dd")">
                                 <div class="timeline">
-                                    @foreach (var step in day.OrderBy(s => s.TimeStamp.Hour < 6 ? 1 : 0).ThenBy(s => s.TimeStamp))
+                                    @{
+                                        var steps = day.OrderBy(s => s.StartTime.Hour < 6 ? 1 : 0).ThenBy(s => s.StartTime).ToList();
+                                    }
+                                    @for (var j = 0; j < steps.Count; j++)
                                     {
-                                        <div class="timeline-item">
+                                        var step = steps[j];
+                                        var nextStep = j < steps.Count - 1 ? steps[j + 1] : null;
+
+                                        <div class="timeline-item"
+                                             id="step-@step.Id"
+                                             data-start="@step.StartTime.ToString("HH:mm")"
+                                             data-next-start="@(nextStep?.StartTime.ToString("HH:mm"))">
                                             <div class="timeline-marker"></div>
                                             <div class="timeline-content">
-                                                <span class="badge text-white">@step.TimeStamp</span>
-                                                <div class="mb-0">@step.Label</div>
+                                                <span class="badge text-white">
+                                                    @step.StartTime.ToString("HH:mm")
+                                                    @if (step.EndTime.HasValue)
+                                                    {
+                                                        @:- @step.EndTime.Value.ToString("HH:mm")
+                                                    }
+                                                </span>
+                                                <div class="timeline-label">@step.Label</div>
                                             </div>
                                         </div>
                                     }
@@ -53,4 +85,3 @@
         </div>
     </div>
 </div>
-
