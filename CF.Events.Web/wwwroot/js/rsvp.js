@@ -11,6 +11,64 @@
 
     // Shared functions
     window.rsvpShared = {
+        initParticipantManagement: function (container = document, addBtnId = "add-participant", participantContainerId = "participant-container") {
+            const participantContainer = container.getElementById ? container.getElementById(participantContainerId) : container.querySelector("#" + participantContainerId);
+            const addParticipantBtn = container.getElementById ? container.getElementById(addBtnId) : container.querySelector("#" + addBtnId);
+
+            if (!participantContainer) return;
+
+            const update = () => this.updateParticipantSelections(container);
+
+            addParticipantBtn?.addEventListener("click", () => {
+                const maxParticipants = parseInt(participantContainer.getAttribute("data-max-participants")) || 2;
+                const currentParticipants = participantContainer.querySelectorAll(".participant-row").length;
+
+                if (currentParticipants >= maxParticipants) return;
+
+                const index = currentParticipants;
+                const row = document.createElement("div");
+                row.className = "row g-2 mb-2 participant-row";
+                row.innerHTML = `
+                    <div class="col">
+                        <input name="NewRsvp.Participants[${index}]" class="form-control participant-input" placeholder="Participant Name" required />
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-link text-danger remove-participant"><i class="bi bi-x-lg"></i></button>
+                    </div>
+                `;
+                participantContainer.appendChild(row);
+
+                if (participantContainer.querySelectorAll(".participant-row").length >= maxParticipants) {
+                    addParticipantBtn.classList.add("d-none");
+                }
+
+                row.querySelector(".remove-participant").addEventListener("click", () => {
+                    row.remove();
+                    if (participantContainer.querySelectorAll(".participant-row").length < maxParticipants) {
+                        addParticipantBtn.classList.remove("d-none");
+                    }
+                    update();
+                });
+            });
+
+            participantContainer.addEventListener("click", (e) => {
+                if (e.target.closest(".remove-participant")) {
+                    const maxParticipants = parseInt(participantContainer.getAttribute("data-max-participants")) || 4;
+                    e.target.closest(".participant-row").remove();
+                    if (participantContainer.querySelectorAll(".participant-row").length < maxParticipants) {
+                        addParticipantBtn?.classList.remove("d-none");
+                    }
+                    update();
+                }
+            });
+
+            participantContainer.addEventListener("input", (e) => {
+                if (e.target.classList.contains("participant-input")) {
+                    update();
+                }
+            });
+        },
+
         updateParticipantSelections: function (container = document) {
             const participants = Array.from(container.querySelectorAll(".participant-input")).map(i => i.value).filter(v => v);
 
@@ -196,64 +254,9 @@
     };
 
     // If the RSVP form is not present (already responded view), skip stepper setup
-    if (!nextBtn || !prevBtn) {
-        // Still might need shared inits if there's anything interactive in responded view
-        return;
-    }
+    if (!nextBtn || !prevBtn) return;
 
-    const participantContainer = document.getElementById("participant-container");
-    const addParticipantBtn = document.getElementById("add-participant");
-
-    addParticipantBtn?.addEventListener("click", () => {
-        const maxParticipants = parseInt(participantContainer.getAttribute("data-max-participants")) || 4;
-        const currentParticipants = participantContainer.querySelectorAll(".participant-row").length;
-
-        if (currentParticipants >= maxParticipants) {
-            return;
-        }
-
-        const index = currentParticipants;
-        const row = document.createElement("div");
-        row.className = "row g-2 mb-2 participant-row";
-        row.innerHTML = `
-            <div class="col">
-                <input name="NewRsvp.Participants[${index}]" class="form-control participant-input" placeholder="Participant Name" required />
-            </div>
-            <div class="col-auto">
-                <button type="button" class="btn btn-link text-danger remove-participant"><i class="bi bi-x-lg"></i></button>
-            </div>
-        `;
-        participantContainer.appendChild(row);
-
-        if (participantContainer.querySelectorAll(".participant-row").length >= maxParticipants) {
-            addParticipantBtn.classList.add("d-none");
-        }
-
-        row.querySelector(".remove-participant").addEventListener("click", () => {
-            row.remove();
-            if (participantContainer.querySelectorAll(".participant-row").length < maxParticipants) {
-                addParticipantBtn.classList.remove("d-none");
-            }
-            window.rsvpShared.updateParticipantSelections(document);
-        });
-    });
-
-    participantContainer?.addEventListener("click", (e) => {
-        if (e.target.closest(".remove-participant")) {
-            const maxParticipants = parseInt(participantContainer.getAttribute("data-max-participants")) || 4;
-            e.target.closest(".participant-row").remove();
-            if (participantContainer.querySelectorAll(".participant-row").length < maxParticipants) {
-                addParticipantBtn?.classList.remove("d-none");
-            }
-            window.rsvpShared.updateParticipantSelections(document);
-        }
-    });
-
-    participantContainer?.addEventListener("input", (e) => {
-        if (e.target.classList.contains("participant-input")) {
-            window.rsvpShared.updateParticipantSelections(document);
-        }
-    });
+    window.rsvpShared.initParticipantManagement(document);
 
     // Step 1 = Attendance, Step 2 = Participants, steps 2-5 = stepper steps 1-4
     let currentStep = 1;
@@ -303,8 +306,6 @@
 
         currentStep = stepNumber;
     }
-
-    // Removed local updateParticipantSelections as it's now in window.rsvpShared
 
     // Prepare hidden inputs for attendance before submit
     document.getElementById("rsvpForm")?.addEventListener("submit", function () {

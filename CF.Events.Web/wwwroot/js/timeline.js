@@ -4,28 +4,25 @@
     const SEGMENT_DURATION = 0.3; // seconds
 
     function applyAnimations(item, index, animate) {
-        if (animate) {
-            if (item.classList.contains('animate')) return;
+        if (!animate) return;
+        if (item.classList.contains('animate')) return;
+        if (item.classList.contains('completed') || item.classList.contains('current')) {
+            // Add sequential delay for a nice drawing effect
+            // Each segment starts slightly before the previous one finishes to create a continuous look
+            const delay = index * (SEGMENT_DURATION * 0.7);
+            item.style.transitionDelay = `${delay}s`;
 
-            // Only animate if already completed (to avoid flashing all markers) or if it's the current one.
-            if (item.classList.contains('completed') || item.classList.contains('current')) {
-                // Add sequential delay for a nice drawing effect
-                // Each segment starts slightly before the previous one finishes to create a continuous look
-                const delay = index * (SEGMENT_DURATION * 0.7);
-                item.style.transitionDelay = `${delay}s`;
-
-                // For the marker pulse and fill, we want it to start as the line approaches it
-                const marker = item.querySelector('.timeline-marker');
-                if (marker) {
-                    // Start filling the marker when the line segment is about halfway through
-                    // since the marker is near the top of the item and the line draws downward.
-                    const fillDelay = delay + (SEGMENT_DURATION * 0.35);
-                    marker.style.transitionDelay = `${fillDelay}s`;
-                    marker.style.animationDelay = `${fillDelay}s`;
-                }
-
-                item.classList.add('animate');
+            // For the marker pulse and fill, we want it to start as the line approaches it
+            const marker = item.querySelector('.timeline-marker');
+            if (marker) {
+                // Start filling the marker when the line segment is about halfway through
+                // since the marker is near the top of the item and the line draws downward.
+                const fillDelay = delay + (SEGMENT_DURATION * 0.35);
+                marker.style.transitionDelay = `${fillDelay}s`;
+                marker.style.animationDelay = `${fillDelay}s`;
             }
+
+            item.classList.add('animate');
         }
     }
 

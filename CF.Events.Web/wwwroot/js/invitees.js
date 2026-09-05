@@ -219,8 +219,6 @@
     function initAdminRsvpModal(modalContainer) {
         const form = modalContainer.querySelector('#adminRsvpForm');
         const attendingFields = modalContainer.querySelector('#admin-attending-fields');
-        const participantContainer = modalContainer.querySelector('#participant-container');
-        const addParticipantBtn = modalContainer.querySelector('#add-participant');
 
         // Toggle attending fields
         modalContainer.querySelectorAll('input[name="NewRsvp.Attending"]').forEach(radio => {
@@ -229,69 +227,21 @@
             });
         });
 
-        // Add participant
-        addParticipantBtn?.addEventListener('click', () => {
-            const maxParticipants = parseInt(participantContainer.getAttribute("data-max-participants")) || 4;
-            const currentParticipants = participantContainer.querySelectorAll(".participant-row").length;
-
-            if (currentParticipants >= maxParticipants) {
-                return;
-            }
-
-            const index = participantContainer.querySelectorAll('.participant-row').length;
-            const row = document.createElement('div');
-            row.className = 'row g-2 mb-2 participant-row';
-            row.innerHTML = `
-                <div class="col">
-                    <input name="NewRsvp.Participants[${index}]" class="form-control participant-input" placeholder="Participant Name" required />
-                </div>
-                <div class="col-auto">
-                    <button type="button" class="btn btn-link text-danger remove-participant"><i class="bi bi-x-lg"></i></button>
-                </div>
-            `;
-            participantContainer.appendChild(row);
-
-            if (participantContainer.querySelectorAll(".participant-row").length >= maxParticipants) {
-                addParticipantBtn.classList.add("d-none");
-            }
-
-            // Participants changed, update other lists
-            row.querySelector(".remove-participant").addEventListener("click", () => {
-                row.remove();
-                if (participantContainer.querySelectorAll(".participant-row").length < maxParticipants) {
-                    addParticipantBtn.classList.remove("d-none");
-                }
-                window.rsvpShared.updateParticipantSelections(document);
-            });
-        });
-
-        participantContainer?.addEventListener('click', (e) => {
-            if (e.target.closest('.remove-participant')) {
-                e.target.closest('.participant-row').remove();
-                window.rsvpShared.updateParticipantSelections(modalContainer);
-            }
-        });
-
-        participantContainer?.addEventListener('input', (e) => {
-            if (e.target.classList.contains('participant-input')) {
-                window.rsvpShared.updateParticipantSelections(modalContainer);
-            }
-        });
-
         // Initialize shared rsvp logic
         window?.applyDynamicTableStyles(modalContainer);
+        window.rsvpShared.initParticipantManagement(modalContainer);
         window.rsvpShared.initDayCheckboxes(modalContainer);
         window.rsvpShared.initDietarySwitches(modalContainer);
 
         // Populate participant options if they already exist (e.g. editing)
         window.rsvpShared.updateParticipantSelections(modalContainer);
 
+        // Re-init multi-selects
+        window?.initMultiSelects(modalContainer);
+
         form?.addEventListener('submit', function (_) {
-            // Ensure participants are up to date for dietary/attendance?
-            // Actually we need to make sure the hidden inputs for attendance are generated.
-            if (window.rsvpShared.prepareAttendanceInputs) {
-                window.rsvpShared.prepareAttendanceInputs(this, this.querySelector('#participant-attendance'));
-            }
+            // Make sure the hidden inputs for attendance are generated.
+            window.rsvpShared.prepareAttendanceInputs(this, this.querySelector('#participant-attendance'));
         });
     }
 
