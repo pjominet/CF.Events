@@ -293,7 +293,7 @@
     const exportExcelBtn = document.getElementById('exportExcelBtn');
     if (exportExcelBtn) {
         exportExcelBtn.addEventListener('click', function (e) {
-            showLoadingOverlay();
+            window.showLoadingOverlay();
 
             // Check for cookie to hide overlay
             const checkCookie = setInterval(function () {

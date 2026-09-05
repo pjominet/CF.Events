@@ -22,6 +22,7 @@ public class EditEventModel(
     [BindProperty] public EventModel Event { get; set; } = null!;
 
     [BindProperty] public string? RedirectAfterSave { get; set; }
+    [BindProperty] public string? ActiveTab { get; set; }
 
     public async Task<IActionResult> OnGetAsync(int? id)
     {
@@ -57,6 +58,7 @@ public class EditEventModel(
                 DonationTypes = GetDonationTypes(@event),
                 DonationIban = @event.DonationIban,
                 DonationLink = @event.DonationLink,
+                PhysicalGiftInfo = @event.PhysicalGiftInfo,
                 BookingLinks = [.. @event.BookingLinks.Select(bl => bl.Link)],
                 IsFinalised = @event.IsFinalised,
                 FaqItems =
@@ -77,7 +79,8 @@ public class EditEventModel(
                         .Select(s => new ScheduleInputModel
                     {
                         Day = s.Day,
-                        TimeStamp = s.StartTime,
+                        StartTime = s.StartTime,
+                        EndTime = s.EndTime,
                         Label = s.Label
                     })
                 ]
@@ -181,7 +184,7 @@ public class EditEventModel(
         @event.EventSchedule.Clear();
         foreach (var step in Event.ScheduleSteps)
         {
-            @event.EventSchedule.Add(new EventScheduleStep { Day = step.Day, StartTime = step.TimeStamp, EndTime = step.EndTime, Label = step.Label });
+            @event.EventSchedule.Add(new EventScheduleStep { Day = step.Day, StartTime = step.StartTime, EndTime = step.EndTime, Label = step.Label });
         }
 
         await db.SaveChangesAsync();
@@ -209,9 +212,17 @@ public class EditEventModel(
         toastNotification.AddSuccessToastMessage($"Event {(isNew ? "created" : "updated")} successfully!");
 
         if (RedirectAfterSave.HasValue() && (Url.IsLocalUrl(RedirectAfterSave) || RedirectAfterSave.StartsWith('/')))
-            return Redirect(RedirectAfterSave);
+        {
+            var redirectUrl = RedirectAfterSave;
+            if (!ActiveTab.HasValue())
+                return Redirect(redirectUrl);
 
-        return Page();
+            var separator = redirectUrl.Contains('?') ? "&" : "?";
+            redirectUrl += $"{separator}tab={ActiveTab}";
+            return Redirect(redirectUrl);
+        }
+
+        return RedirectToPage(new { id = @event.Id, tab = ActiveTab });
     }
 
     private static List<DonationType> GetDonationTypes(Event @event)
@@ -267,7 +278,7 @@ public class EditEventModel(
     public class ScheduleInputModel
     {
         public int Day { get; set; }
-        public TimeOnly TimeStamp { get; set; }
+        public TimeOnly StartTime { get; set; }
         public TimeOnly? EndTime { get; set; }
         public string Label { get; set; } = null!;
     }
