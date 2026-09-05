@@ -174,6 +174,14 @@ public static class ServiceCollectionExtensions
 
     public static void AddAppSanitization(this IServiceCollection services)
     {
-        services.AddSingleton<IHtmlSanitizer>(_ => new HtmlSanitizer());
+        var options = new HtmlSanitizerOptions
+        {
+            AllowedTags = new HashSet<string> { "a" },
+            AllowedAttributes = new HashSet<string> { "href", "target" },
+            UriAttributes = new HashSet<string> { "href", "target" },
+            AllowedSchemes = new HashSet<string> { "https" }
+        };
+
+        services.AddSingleton<IHtmlSanitizer>(_ => new HtmlSanitizer(options));
     }
 }
