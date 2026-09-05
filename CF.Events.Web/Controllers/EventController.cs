@@ -123,7 +123,7 @@ public class EventController(
                 HasRsvped = false,
                 IsAttending = true,
                 Details = @event.AccommodationDetails,
-                Code = "PREVIEW_CODE",
+                Code = string.Join(" ", @event.AccommodationCodes),
                 BookingLinks = @event.BookingLinks.ToDictionary(bl => bl.Type, bl => bl.Link)
             };
 

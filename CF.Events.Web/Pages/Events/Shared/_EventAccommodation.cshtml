@@ -50,14 +50,14 @@
                     </div>
                 }
 
-                @if (Model.Code.HasValue(false))
+                @if (Model.Code.HasValue())
                 {
                     <div class="alert alert-info py-2 mt-3 mb-0">
                         <small><i class="bi bi-info-circle me-1"></i>Code: <strong>@Model.Code</strong></small>
                     </div>
                 }
 
-                @if (!Model.Details.HasValue(false) && !Model.Code.HasValue(false) && !Model.BookingLinks.Any())
+                @if (!Model.Details.HasValue() && !Model.Code.HasValue() && !Model.BookingLinks.Any())
                 {
                     <div class="alert alert-info py-2 mt-3 mb-0">
                         <i class="bi bi-info-circle me-2"></i>This event does not have any further accommodation details.
