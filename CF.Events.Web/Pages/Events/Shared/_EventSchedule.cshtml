@@ -58,10 +58,9 @@
                                         <div class="timeline-item"
                                              id="step-@step.Id"
                                              data-start="@step.StartTime.ToString("HH:mm")"
-                                             data-end="@(step.EndTime?.ToString("HH:mm"))"
                                              data-next-start="@(nextStep?.StartTime.ToString("HH:mm"))">
                                             <div class="timeline-marker"></div>
-                                            <div class="timeline-content d-flex align-items-baseline gap-2">
+                                            <div class="timeline-content">
                                                 <span class="badge text-white">
                                                     @step.StartTime.ToString("HH:mm")
                                                     @if (step.EndTime.HasValue)

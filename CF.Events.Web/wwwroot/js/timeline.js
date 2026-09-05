@@ -1,37 +1,14 @@
-(function() {
+(function () {
     let intervalId = null;
-
-    function parseTime(timeStr, baseDate = new Date(2000, 0, 1)) {
-        const [h, m] = timeStr.split(':').map(Number);
-        const date = new Date(baseDate);
-        date.setHours(h, m, 0, 0);
-        return date;
-    }
-
-    function calculateGap(item) {
-        const startStr = item.getAttribute('data-start');
-        const endStr = item.getAttribute('data-end');
-        const nextStartStr = item.getAttribute('data-next-start');
-
-        if (!nextStartStr) {
-            item.classList.remove('gap');
-            return;
-        }
-
-        const currentEndTimeStr = endStr || startStr;
-        const endDate = parseTime(currentEndTimeStr);
-        let nextDate = parseTime(nextStartStr);
-
-        if (nextDate < endDate) nextDate.setDate(nextDate.getDate() + 1);
-
-        const diffMin = (nextDate - endDate) / (1000 * 60);
-        item.classList.toggle('gap', diffMin > 15);
-    }
 
     function applyAnimations(item, index, animate) {
         if (animate) {
-            item.classList.add('animate');
-            item.style.animationDelay = `${index * 0.1}s`;
+            if (item.classList.contains('animate')) return;
+
+            // Only animate if already completed (to avoid flashing all markers) or if it's the current one.
+            if (item.classList.contains('completed') || item.classList.contains('current')) {
+                item.classList.add('animate');
+            }
         }
     }
 
@@ -49,7 +26,6 @@
 
             pane.querySelectorAll('.timeline-item').forEach((item, idx) => {
                 applyAnimations(item, idx, animate);
-                calculateGap(item);
 
                 if (!isToday) {
                     item.classList.toggle('completed', isPast);
@@ -79,7 +55,7 @@
                 item.classList.toggle('current', isCurrent);
 
                 if (isCurrent && !wasCurrent && modal.classList.contains('show')) {
-                    item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    item.scrollIntoView({behavior: 'smooth', block: 'center'});
                 }
             });
         });
@@ -89,6 +65,9 @@
     document.addEventListener('shown.bs.modal', function (event) {
         if (event.target.id !== 'eventScheduleModal') return;
 
+        // First set the state WITHOUT animation to ensure 'completed' classes are present
+        updateTimelineProgress(false);
+        // Then run with animation flag - applyAnimations will now know what is completed
         updateTimelineProgress(true);
 
         if (!intervalId) {
@@ -97,11 +76,11 @@
 
         const currentStep = document.querySelector('.timeline-item.current');
         if (currentStep) {
-            currentStep.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            currentStep.scrollIntoView({behavior: 'smooth', block: 'center'});
         } else {
             const completedSteps = document.querySelectorAll('.timeline-item.completed');
             if (completedSteps.length > 0) {
-                completedSteps[completedSteps.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                completedSteps[completedSteps.length - 1].scrollIntoView({behavior: 'smooth', block: 'center'});
             }
         }
     });
@@ -113,20 +92,27 @@
             clearInterval(intervalId);
             intervalId = null;
         }
+
+        // Remove animate class so it can play again next time
+        document.querySelectorAll('.timeline-item.animate').forEach(item => {
+            item.classList.remove('animate');
+            item.style.animationDelay = '';
+            item.style.transitionDelay = '';
+        });
     });
 
     // Handle AJAX-injected content by listening for Bootstrap modal creation or content updates
     // Use a MutationObserver on the body to find when the modal is added to the DOM
-    const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            mutation.addedNodes.forEach(function(node) {
+    const observer = new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
+            mutation.addedNodes.forEach(function (node) {
                 if (node.id === 'eventScheduleModal' || (node.nodeType === 1 && node.querySelector('#eventScheduleModal'))) {
                     updateTimelineProgress();
                 }
             });
         });
     });
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, {childList: true, subtree: true});
 
     // Also try initial check in case it's already there
     updateTimelineProgress();
