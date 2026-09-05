@@ -50,9 +50,8 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
             .Select(gg => gg.MaxPeople)
             .FirstOrDefaultAsync();
 
-        if (MaxParticipants == 0 && EventData.MaxParticipantsPerRsvp > 0)
-            MaxParticipants = EventData.MaxParticipantsPerRsvp;
-        else MaxParticipants = 4;
+        if (MaxParticipants == 0)
+            MaxParticipants = EventData.MaxParticipantsPerRsvp > 0 ? EventData.MaxParticipantsPerRsvp : 2;
 
         AssignedAccommodationCode = userEvent?.AssignedAccommodationCode;
         HasResponded = rsvp?.SubmittedAt > DateTime.MinValue.AddDays(1);
