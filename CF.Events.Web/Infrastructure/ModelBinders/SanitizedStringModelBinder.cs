@@ -1,4 +1,5 @@
-﻿using CF.Events.Web.Infrastructure.Extensions;
+﻿using System.Net;
+using CF.Events.Web.Infrastructure.Extensions;
 using Ganss.Xss;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
@@ -27,7 +28,12 @@ public class SanitizedStringModelBinder(IHtmlSanitizer sanitizer) : IModelBinder
 
         // Sanitize the input
         var sanitizedValue = sanitizer.Sanitize(value);
-        bindingContext.Result = ModelBindingResult.Success(sanitizedValue.Trim());
+
+        // HtmlSanitizer encodes special characters like & to &amp; (because of AngleSharp's parsing algorithm)
+        // Since using this globally, decode them back to avoid double-encoding in Razor views and display issues.
+        var decodedValue = WebUtility.HtmlDecode(sanitizedValue);
+
+        bindingContext.Result = ModelBindingResult.Success(decodedValue.Trim());
         return Task.CompletedTask;
     }
 }

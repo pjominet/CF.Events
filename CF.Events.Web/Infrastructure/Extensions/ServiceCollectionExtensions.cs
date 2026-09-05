@@ -174,10 +174,6 @@ public static class ServiceCollectionExtensions
 
     public static void AddAppSanitization(this IServiceCollection services)
     {
-        services.AddSingleton<IHtmlSanitizer>(_ =>
-        {
-            var sanitizer = new HtmlSanitizer();
-            return sanitizer;
-        });
+        services.AddSingleton<IHtmlSanitizer>(_ => new HtmlSanitizer());
     }
 }
