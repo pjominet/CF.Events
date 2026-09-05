@@ -131,8 +131,8 @@
                                             data-user-id="@user.Id"
                                             data-user-displayname="@user.DisplayName"
                                             data-user-email="@user.Email"
-                                            data-user-phone="@user.Phone"
-                                            data-user-guestgroup="@user.GuestGroup"
+                                            data-user-phone="@(user.Phone != "-" ? user.Phone : string.Empty)"
+                                            data-user-guestgroup="@(user.GuestGroup != "-" ? user.GuestGroup : string.Empty)"
                                             data-user-maxpeople="@user.MaxPeople"
                                             data-user-roles="@string.Join(",", user.UserRoles)">
                                         <i class="bi bi-pencil"></i>

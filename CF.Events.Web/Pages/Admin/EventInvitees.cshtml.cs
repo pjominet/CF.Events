@@ -218,9 +218,8 @@ public class EventInviteesModel(
             .Select(gg => gg.MaxPeople)
             .FirstOrDefaultAsync();
 
-        if (maxParticipants == 0 && eventData.MaxParticipantsPerRsvp > 0)
-            maxParticipants = eventData.MaxParticipantsPerRsvp;
-        else maxParticipants = 4;
+        if (maxParticipants == 0)
+            maxParticipants = eventData.MaxParticipantsPerRsvp > 0 ? eventData.MaxParticipantsPerRsvp : 2;
 
         var model = new RsvpModel.InputModel
         {
