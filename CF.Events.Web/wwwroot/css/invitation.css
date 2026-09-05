@@ -11,7 +11,7 @@
     );
     --text-light: #f5f5f5;
     --text-dark: #333;
-    --text-highlight: #8b4513;
+    --text-highlight: #8b5713;
     --shadow-dark: rgba(0, 0, 0, 0.5);
     --shadow-light: rgba(0, 0, 0, 0.2);
 
@@ -254,6 +254,12 @@ hr.invite-divider {
     color: var(--text-dark);
     margin-bottom: 20px;
     line-height: 1.6;
+}
+
+.page-content .rsvp-description > p {
+    font-size: 18px !important;
+    font-family: var(--font-serif);
+    font-weight: bolder;
 }
 
 .page-content strong {
