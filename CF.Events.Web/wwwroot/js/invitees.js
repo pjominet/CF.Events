@@ -220,7 +220,7 @@
         const form = modalContainer.querySelector('#adminRsvpForm');
         const attendingFields = modalContainer.querySelector('#admin-attending-fields');
         const participantContainer = modalContainer.querySelector('#participant-container');
-        const addBtn = modalContainer.querySelector('#add-participant');
+        const addParticipantBtn = modalContainer.querySelector('#add-participant');
 
         // Toggle attending fields
         modalContainer.querySelectorAll('input[name="NewRsvp.Attending"]').forEach(radio => {
@@ -230,63 +230,69 @@
         });
 
         // Add participant
-        if (addBtn) {
-            addBtn.addEventListener('click', () => {
-                const index = participantContainer.querySelectorAll('.participant-row').length;
-                const row = document.createElement('div');
-                row.className = 'row g-2 mb-2 participant-row';
-                row.innerHTML = `
-                    <div class="col">
-                        <input name="NewRsvp.Participants[${index}]" class="form-control participant-input" placeholder="Participant Name" required />
-                    </div>
-                    <div class="col-auto">
-                        <button type="button" class="btn btn-outline-danger remove-participant"><i class="bi bi-x-lg"></i></button>
-                    </div>
-                `;
-                participantContainer.appendChild(row);
-                // Participants changed, update other lists
-                if (window.rsvpShared) {
-                    window.rsvpShared.updateParticipantSelections(modalContainer);
-                }
-            });
-        }
+        addParticipantBtn?.addEventListener('click', () => {
+            const maxParticipants = parseInt(participantContainer.getAttribute("data-max-participants")) || 4;
+            const currentParticipants = participantContainer.querySelectorAll(".participant-row").length;
 
-        if (participantContainer) {
-            participantContainer.addEventListener('click', (e) => {
-                if (e.target.closest('.remove-participant')) {
-                    e.target.closest('.participant-row').remove();
-                    if (window.rsvpShared) {
-                        window.rsvpShared.updateParticipantSelections(modalContainer);
-                    }
-                }
-            });
+            if (currentParticipants >= maxParticipants) {
+                return;
+            }
 
-            participantContainer.addEventListener('input', (e) => {
-                if (e.target.classList.contains('participant-input')) {
-                    if (window.rsvpShared) {
-                        window.rsvpShared.updateParticipantSelections(modalContainer);
-                    }
+            const index = participantContainer.querySelectorAll('.participant-row').length;
+            const row = document.createElement('div');
+            row.className = 'row g-2 mb-2 participant-row';
+            row.innerHTML = `
+                <div class="col">
+                    <input name="NewRsvp.Participants[${index}]" class="form-control participant-input" placeholder="Participant Name" required />
+                </div>
+                <div class="col-auto">
+                    <button type="button" class="btn btn-link text-danger remove-participant"><i class="bi bi-x-lg"></i></button>
+                </div>
+            `;
+            participantContainer.appendChild(row);
+
+            if (participantContainer.querySelectorAll(".participant-row").length >= maxParticipants) {
+                addParticipantBtn.classList.add("d-none");
+            }
+
+            // Participants changed, update other lists
+            row.querySelector(".remove-participant").addEventListener("click", () => {
+                row.remove();
+                if (participantContainer.querySelectorAll(".participant-row").length < maxParticipants) {
+                    addParticipantBtn.classList.remove("d-none");
                 }
+                window.rsvpShared.updateParticipantSelections(document);
             });
-        }
+        });
+
+        participantContainer?.addEventListener('click', (e) => {
+            if (e.target.closest('.remove-participant')) {
+                e.target.closest('.participant-row').remove();
+                window.rsvpShared.updateParticipantSelections(modalContainer);
+            }
+        });
+
+        participantContainer?.addEventListener('input', (e) => {
+            if (e.target.classList.contains('participant-input')) {
+                window.rsvpShared.updateParticipantSelections(modalContainer);
+            }
+        });
 
         // Initialize shared rsvp logic
-        if (window.rsvpShared) {
-            window?.applyDynamicTableStyles(modalContainer);
-            window.rsvpShared.initDayCheckboxes(modalContainer);
-            window.rsvpShared.initDietarySwitches(modalContainer);
+        window?.applyDynamicTableStyles(modalContainer);
+        window.rsvpShared.initDayCheckboxes(modalContainer);
+        window.rsvpShared.initDietarySwitches(modalContainer);
 
-            // Populate participant options if they already exist (e.g. editing)
-            window.rsvpShared.updateParticipantSelections(modalContainer);
+        // Populate participant options if they already exist (e.g. editing)
+        window.rsvpShared.updateParticipantSelections(modalContainer);
 
-            form?.addEventListener('submit', function (e) {
-                // Ensure participants are up to date for dietary/attendance?
-                // Actually we need to make sure the hidden inputs for attendance are generated.
-                if (window.rsvpShared.prepareAttendanceInputs) {
-                    window.rsvpShared.prepareAttendanceInputs(this, this.querySelector('#participant-attendance'));
-                }
-            });
-        }
+        form?.addEventListener('submit', function (_) {
+            // Ensure participants are up to date for dietary/attendance?
+            // Actually we need to make sure the hidden inputs for attendance are generated.
+            if (window.rsvpShared.prepareAttendanceInputs) {
+                window.rsvpShared.prepareAttendanceInputs(this, this.querySelector('#participant-attendance'));
+            }
+        });
     }
 
     // Export Excel with loading spinner
@@ -303,7 +309,7 @@
                     document.cookie = cookieName + '=; Max-Age=-99999999; Path=/;';
 
                     // Small delay before hiding to ensure the download started
-                    setTimeout(function() {
+                    setTimeout(function () {
                         const overlay = document.getElementById('globalLoadingOverlay');
                         if (overlay) overlay.classList.remove('active');
                     }, 1000);

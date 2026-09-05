@@ -29,7 +29,7 @@
                 if (select.tomselect) {
                     select.tomselect.clearOptions();
                     participants.forEach(p => {
-                        select.tomselect.addOption({ value: p, text: p });
+                        select.tomselect.addOption({value: p, text: p});
                         if (currentSelected.includes(p)) {
                             select.tomselect.addItem(p);
                         }
@@ -204,43 +204,39 @@
     const participantContainer = document.getElementById("participant-container");
     const addParticipantBtn = document.getElementById("add-participant");
 
-    if (addParticipantBtn) {
-        addParticipantBtn.addEventListener("click", () => {
-            const maxParticipants = parseInt(participantContainer.getAttribute("data-max-participants")) || 4;
-            const currentParticipants = participantContainer.querySelectorAll(".participant-row").length;
+    addParticipantBtn?.addEventListener("click", () => {
+        const maxParticipants = parseInt(participantContainer.getAttribute("data-max-participants")) || 4;
+        const currentParticipants = participantContainer.querySelectorAll(".participant-row").length;
 
-            if (currentParticipants >= maxParticipants) {
-                return;
+        if (currentParticipants >= maxParticipants) {
+            return;
+        }
+
+        const index = currentParticipants;
+        const row = document.createElement("div");
+        row.className = "row g-2 mb-2 participant-row";
+        row.innerHTML = `
+            <div class="col">
+                <input name="NewRsvp.Participants[${index}]" class="form-control participant-input" placeholder="Participant Name" required />
+            </div>
+            <div class="col-auto">
+                <button type="button" class="btn btn-link text-danger remove-participant"><i class="bi bi-x-lg"></i></button>
+            </div>
+        `;
+        participantContainer.appendChild(row);
+
+        if (participantContainer.querySelectorAll(".participant-row").length >= maxParticipants) {
+            addParticipantBtn.classList.add("d-none");
+        }
+
+        row.querySelector(".remove-participant").addEventListener("click", () => {
+            row.remove();
+            if (participantContainer.querySelectorAll(".participant-row").length < maxParticipants) {
+                addParticipantBtn.classList.remove("d-none");
             }
-
-            const index = currentParticipants;
-            const row = document.createElement("div");
-            row.className = "row g-2 mb-2 participant-row";
-            row.innerHTML = `
-                <div class="col">
-                    <input name="NewRsvp.Participants[${index}]" class="form-control participant-input" placeholder="Participant Name" required />
-                </div>
-                <div class="col-auto">
-                    <button type="button" class="btn btn-link text-danger remove-participant"><i class="bi bi-x-lg"></i></button>
-                </div>
-            `;
-            participantContainer.appendChild(row);
-
-            if (participantContainer.querySelectorAll(".participant-row").length >= maxParticipants) {
-                addParticipantBtn.classList.add("d-none");
-            }
-
-            row.querySelector(".remove-participant").addEventListener("click", () => {
-                row.remove();
-                if (participantContainer.querySelectorAll(".participant-row").length < maxParticipants) {
-                    addParticipantBtn.classList.remove("d-none");
-                }
-                if (window.rsvpShared && window.rsvpShared.updateParticipantSelections) {
-                    window.rsvpShared.updateParticipantSelections(document);
-                }
-            });
+            window.rsvpShared.updateParticipantSelections(document);
         });
-    }
+    });
 
     participantContainer?.addEventListener("click", (e) => {
         if (e.target.closest(".remove-participant")) {
@@ -249,17 +245,13 @@
             if (participantContainer.querySelectorAll(".participant-row").length < maxParticipants) {
                 addParticipantBtn?.classList.remove("d-none");
             }
-            if (window.rsvpShared && window.rsvpShared.updateParticipantSelections) {
-                window.rsvpShared.updateParticipantSelections(document);
-            }
+            window.rsvpShared.updateParticipantSelections(document);
         }
     });
 
     participantContainer?.addEventListener("input", (e) => {
         if (e.target.classList.contains("participant-input")) {
-            if (window.rsvpShared && window.rsvpShared.updateParticipantSelections) {
-                window.rsvpShared.updateParticipantSelections(document);
-            }
+            window.rsvpShared.updateParticipantSelections(document);
         }
     });
 
@@ -315,7 +307,7 @@
     // Removed local updateParticipantSelections as it's now in window.rsvpShared
 
     // Prepare hidden inputs for attendance before submit
-    document.getElementById("rsvpForm")?.addEventListener("submit", function() {
+    document.getElementById("rsvpForm")?.addEventListener("submit", function () {
         window.rsvpShared.prepareAttendanceInputs(this, document.getElementById("participant-attendance"));
     });
 
