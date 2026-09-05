@@ -45,10 +45,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
             .Include(e => e.BookingLinks)
             .FirstAsync(e => e.Id == eventId);
 
-        MaxParticipants = await db.GuestGroups
-            .Where(gg => gg.GuestUserId == userId)
-            .Select(gg => gg.MaxPeople)
-            .FirstOrDefaultAsync();
+        MaxParticipants = user.GuestGroup?.MaxPeople ?? 0;
 
         if (MaxParticipants == 0)
             MaxParticipants = EventData.MaxParticipantsPerRsvp > 0 ? EventData.MaxParticipantsPerRsvp : 2;
@@ -113,29 +110,29 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
     {
         var userId = User.GetId();
 
-        var maxParticipants = await db.GuestGroups
-            .Where(gg => gg.GuestUserId == userId)
-            .Select(gg => gg.MaxPeople)
-            .FirstOrDefaultAsync();
+        var user = await db.Users
+            .Include(u => u.GuestGroup)
+            .FirstAsync(u => u.Id == userId);
 
         var eventMaxParticipants = await db.Events
             .Where(e => e.Id == eventId)
             .Select(e => e.MaxParticipantsPerRsvp)
             .FirstAsync();
 
-        if (maxParticipants == 0 && eventMaxParticipants > 0)
-            maxParticipants = eventMaxParticipants;
-        else maxParticipants = 4;
+        MaxParticipants = user.GuestGroup?.MaxPeople ?? 0;
 
-        if (NewRsvp.Attending && NewRsvp.Participants.Count > maxParticipants)
+        if (MaxParticipants == 0)
+            MaxParticipants = eventMaxParticipants > 0 ? eventMaxParticipants : 2;
+
+        // remove empty entries to avoid false counts and saving of useless values in GuestGroup.Participants
+        NewRsvp.Participants = [.. NewRsvp.Participants.Where(p => p.HasValue())];
+
+        if (NewRsvp.Attending && NewRsvp.Participants.Count > MaxParticipants)
         {
-            toastNotification.AddErrorToastMessage($"Maximum {maxParticipants} participants allowed per RSVP.");
+            toastNotification.AddErrorToastMessage($"Maximum {MaxParticipants} participants allowed per RSVP.");
             return Page();
         }
 
-        var user = await db.Users
-            .Include(u => u.GuestGroup)
-            .FirstAsync(u => u.Id == userId);
         if (user.GuestGroup is not null)
         {
             user.GuestGroup.Participants = NewRsvp.Participants;

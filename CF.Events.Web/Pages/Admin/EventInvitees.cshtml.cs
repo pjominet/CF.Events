@@ -213,10 +213,7 @@ public class EventInviteesModel(
             .Select(e => new { e.EventDuration, e.MaxParticipantsPerRsvp})
             .FirstAsync();
 
-        var maxParticipants = await db.GuestGroups
-            .Where(gg => gg.GuestUserId == userId)
-            .Select(gg => gg.MaxPeople)
-            .FirstOrDefaultAsync();
+        var maxParticipants = user.GuestGroup?.MaxPeople ?? 0;
 
         if (maxParticipants == 0)
             maxParticipants = eventData.MaxParticipantsPerRsvp > 0 ? eventData.MaxParticipantsPerRsvp : 2;
@@ -242,10 +239,33 @@ public class EventInviteesModel(
             return RedirectToPage(new { id });
         }
 
-        if (newRsvp.Attending && newRsvp.Participants.Count > @event.MaxParticipantsPerRsvp)
+        var user = await db.Users
+            .Include(u => u.GuestGroup)
+            .FirstAsync(u => u.Id == userId);
+
+        var eventMaxParticipants = await db.Events
+            .Where(e => e.Id == id)
+            .Select(e => e.MaxParticipantsPerRsvp)
+            .FirstAsync();
+
+        var maxParticipants = user.GuestGroup?.MaxPeople ?? 0;
+
+        if (maxParticipants == 0)
+            maxParticipants = eventMaxParticipants > 0 ? eventMaxParticipants : 2;
+
+        // remove empty entries to avoid false counts and saving of useless values in GuestGroup.Participants
+        newRsvp.Participants = [ .. newRsvp.Participants.Where(p => p.HasValue()) ];
+
+        if (newRsvp.Attending && newRsvp.Participants.Count > maxParticipants)
         {
-            toastNotification.AddErrorToastMessage($"Maximum {@event.MaxParticipantsPerRsvp} participants allowed per RSVP.");
+            toastNotification.AddErrorToastMessage($"Maximum {maxParticipants} participants allowed per RSVP.");
             return RedirectToPage(new { id });
+        }
+
+        if (user.GuestGroup is not null)
+        {
+            user.GuestGroup.Participants = newRsvp.Participants;
+            db.GuestGroups.Update(user.GuestGroup);
         }
 
         var rsvp = await db.Rsvps
@@ -310,7 +330,7 @@ public class EventInviteesModel(
 
         await db.SaveChangesAsync();
 
-        toastNotification.AddSuccessToastMessage($"RSVP updated for guest");
+        toastNotification.AddSuccessToastMessage($"RSVP updated for guest {userId}");
         return RedirectToPage(new { id });
     }
 
