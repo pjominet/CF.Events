@@ -177,9 +177,9 @@ public static class ServiceCollectionExtensions
         var options = new HtmlSanitizerOptions
         {
             AllowedTags = new HashSet<string> { "a" },
-            AllowedAttributes = new HashSet<string> { "href", "target" },
-            UriAttributes = new HashSet<string> { "href", "target" },
-            AllowedSchemes = new HashSet<string> { "https" }
+            AllowedAttributes = new HashSet<string> { "href", "target", "rel" },
+            UriAttributes = new HashSet<string> { "href" },
+            AllowedSchemes = new HashSet<string> { "https", "mailto" }
         };
 
         services.AddSingleton<IHtmlSanitizer>(_ => new HtmlSanitizer(options));
