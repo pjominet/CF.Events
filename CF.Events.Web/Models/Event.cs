@@ -40,7 +40,7 @@ public class Event
 
     public bool EmailWithLink { get; set; } = false;
 
-    public int InviteValidity { get; set; } = 30;
+    public DateOnly? RsvpDeadline { get; set; }
     public int MaxParticipantsPerRsvp { get; set; } = 4;
 
     [StringLength(255)]

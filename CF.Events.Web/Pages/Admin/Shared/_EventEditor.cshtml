@@ -221,32 +221,37 @@
     <!-- Technical Tab -->
     <div class="tab-pane fade" id="technical" role="tabpanel" aria-labelledby="technical-tab">
         <div class="row">
-            <div class="col-12">
+            <div class="col-12 col-md-6">
                 <div class="mb-3">
-                    <label class="form-label fw-bold"><i>Save the Date</i> Email Template ID</label>
+                    <label class="form-label fw-bold"><code class="bg-light px-2 py-1 rounded-2">Save the Date</code> Email Template ID</label>
                     <input asp-for="SaveDateEmailTemplateId" type="text" class="form-control"/>
-                    <div class="form-text">If set, the event will be eligible for 'Save the Date' emails using this template.</div>
+                    <div class="form-text">If set, the event will be eligible for 'Save the Date' emails using the matching template. <strong>Do not change</strong> if you do not know what this does!</div>
                 </div>
                 <div class="mb-3">
                     <div class="form-check mt-2">
                         <input asp-for="SendWithLink" class="form-check-input" type="checkbox">
-                        <label class="form-check-label">Send <i>Save the Date</i> email with link instead of embedded image</label>
+                        <label class="form-check-label">Send <code class="bg-light px-2 py-1 rounded-2">Save the Date</code> email with redirection link instead of embedded image</label>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label fw-bold"><i>Invitation Email</i> Template ID</label>
+                    <label class="form-label fw-bold"><code class="bg-light px-2 py-1 rounded-2">Invitation Email</code> Template ID</label>
                     <input asp-for="InvitationEmailTemplateId" type="text" class="form-control"/>
-                    <div class="form-text">If set, the event will be eligible for 'Invite' emails using this template.</div>
+                    <div class="form-text">If set, the event will be eligible for 'Invitation' emails using the matching template. <strong>Do not change</strong> if you do not know what this does!</div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Max Participants per RSVP</label>
+                    <label class="form-label fw-bold">Participants per RSVP</label>
                     <input asp-for="MaxParticipantsPerRsvp" type="number" class="form-control" min="1" max="10"/>
                     <div class="form-text">The fallback maximum number of people that can be added to a single RSVP, in case the guest group does not set a value.</div>
                 </div>
                 <div class="mb-3">
+                    <label class="form-label fw-bold">RSVP Respond Deadline</label>
+                    <input asp-for="RsvpDeadline" type="date" class="form-control" min="@Model.StartDate.AddDays(1).ToString("yyyy-MM-dd")"/>
+                    <div class="form-text">Deadline date at which people <span class="text-decoration-underline">should</span> have responded to their invitation. (Not hard enforced)</div>
+                </div>
+                <div class="mb-3">
                     <div class="form-check">
                         <input asp-for="IsFinalised" class="form-check-input" type="checkbox" id="eventFinal">
-                        <label class="form-check-label fw-bold" for="eventFinal">Is Finalised?</label>
+                        <label class="form-check-label fw-bold" for="eventFinal">Is Event Information Final?</label>
                     </div>
                     <div class="form-text">Check this if you are sure that the event information will not drastically change anymore. Otherwise the guest will get a warning that any information can still be subject of change.</div>
                 </div>

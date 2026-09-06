@@ -61,18 +61,23 @@ public class AccountController(
 
     [HttpGet("auth-callback")]
     [AllowAnonymous]
-    public async Task<IActionResult> InvitationCallback([FromQuery] string code, [FromQuery] int? eventId)
+    public async Task<IActionResult> AuthCallback([FromQuery] string code, [FromQuery] int? eventId)
     {
         // Prevent leaking the token via Referer header
         Response.Headers.Append("Referrer-Policy", "no-referrer");
 
-        var authCode = await db.AuthCodes
-            .FirstOrDefaultAsync(c => c.Value == code && c.ValidUntil > DateTime.UtcNow);
+        var authCode = await db.AuthCodes.FirstOrDefaultAsync(c => c.Value == code);
 
         if (authCode is null || (eventId.HasValue && authCode.EventId != eventId))
         {
-            logger.LogWarning("Invalid, expired or event-mismatched invite code was used: {Code}", code);
+            logger.LogWarning("Invalid or event-mismatched invite code was used: {Code}", code);
             return BadRequest();
+        }
+
+        if (authCode.ValidUntil > DateTime.UtcNow)
+        {
+            logger.LogWarning("Expired invite code was used: {Code}, user redirected to login", code);
+            return LocalRedirect("/");
         }
 
         var user = await db.Users.FirstOrDefaultAsync(u => u.Id == authCode.UserId);
@@ -85,7 +90,7 @@ public class AccountController(
 
         if (!user.IsActive)
         {
-            logger.LogWarning("User with id {Id} is inactive", user.Id);
+            logger.LogWarning("Inactive user {Id} tried to login", user.Id);
             return BadRequest();
         }
 

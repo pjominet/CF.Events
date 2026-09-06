@@ -9,7 +9,7 @@ namespace CF.Events.Web.Services;
 public interface IAuthEmailService
 {
     Task SendLoginEmailAsync(AppUser user, CancellationToken ctx = default);
-    Task<string> CreateAuthCodeAsync(string userId, int? eventId, int validityDays, CancellationToken ctx = default);
+    Task<string> CreateAuthCodeAsync(string userId, int? eventId, int validityDays = 7, CancellationToken ctx = default);
     string BuildAuthCallbackUrl(string code, int? eventId);
 }
 
@@ -28,7 +28,7 @@ public class AuthEmailService(
         await emailSender.SendLoginLinkAsync(user, user.Email!, callbackUrl);
     }
 
-    public async Task<string> CreateAuthCodeAsync(string userId, int? eventId, int validityDays, CancellationToken ctx = default)
+    public async Task<string> CreateAuthCodeAsync(string userId, int? eventId, int validityDays = 7, CancellationToken ctx = default)
     {
         var code = CodeGenerator.Generate(64);
         await db.AuthCodes.AddAsync(new AuthCode

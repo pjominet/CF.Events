@@ -61,6 +61,7 @@ public class EditEventModel(
                 PhysicalGiftInfo = @event.PhysicalGiftInfo,
                 BookingLinks = [.. @event.BookingLinks.Select(bl => bl.Link)],
                 IsFinalised = @event.IsFinalised,
+                RsvpDeadline = @event.RsvpDeadline,
                 FaqItems =
                 [
                     .. @event.EventFaq.OrderBy(f => f.SortOrder)
@@ -154,6 +155,7 @@ public class EditEventModel(
         @event.EmailWithLink = Event.SendWithLink;
         @event.MaxParticipantsPerRsvp = Event.MaxParticipantsPerRsvp;
         @event.IsFinalised = Event.IsFinalised;
+        @event.RsvpDeadline = Event.RsvpDeadline;
 
         @event.DonationIban = Event.DonationTypes.Contains(DonationType.Iban) ? Event.DonationIban : null;
         @event.DonationLink = Event.DonationTypes.Contains(DonationType.Link) ? Event.DonationLink : null;
@@ -243,6 +245,7 @@ public class EditEventModel(
         public DateTime EndDate { get; set; }
         public string? Location { get; set; }
         public bool IsFinalised { get; set; }
+        public DateOnly? RsvpDeadline { get; set; }
         [Required] public string Description { get; set; } = null!;
         public string? TravelInstructions { get; set; }
 
