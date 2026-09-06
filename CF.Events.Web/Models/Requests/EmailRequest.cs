@@ -13,7 +13,7 @@ public abstract class TemplateEmailRequest
     public required string UserId { get; init; }
     public required string UserName { get; init; }
     public required string UserEmail { get; init; }
-    public int CallbackValidity { get; init; }
+    public DateOnly Deadline { get; init; }
     public string CallBackUrl { get; set; } = string.Empty;
     public IEnumerable<InlineAttachment> InlineAttachments { get; set; } = [];
 
@@ -30,7 +30,7 @@ public class InvitationEmailRequest : TemplateEmailRequest
         { "user_name", UserName },
         { "event_name", EventName },
         { "event_date", EventDate },
-        { "deadline", DateTime.UtcNow.AddDays(CallbackValidity).ToLongDateString() },
+        { "deadline", Deadline.ToLongDateString() },
         { "reply_email", SenderEmail }
     };
 }

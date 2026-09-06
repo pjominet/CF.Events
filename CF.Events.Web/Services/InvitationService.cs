@@ -28,6 +28,7 @@ public class InvitationService(
     ILogger<InvitationService> logger) : IInvitationService
 {
     private readonly AppSettings _appSettings = appOptions.Value;
+    private const int DefaultValidityDays = 30;
 
     public async Task<int> ProcessPendingEmails(CancellationToken ctx = default)
     {
@@ -44,7 +45,7 @@ public class InvitationService(
                 UserName = ue.User.DisplayName!,
                 UserEmail = ue.User.Email!,
                 TemplateId = ue.Event.InvitationTemplateId ?? string.Empty,
-                CallbackValidity = ue.Event.InviteValidity
+                Deadline = ue.Event.RsvpDeadline ?? DateOnly.FromDateTime(DateTime.UtcNow.AddDays(DefaultValidityDays))
             }, ctx);
 
         var sentSaveTheDates = await ProcessPendingType<SaveDateEmailRequest>(
@@ -126,7 +127,7 @@ public class InvitationService(
                 EventDate = ue.Event.StartDate.ToLongDateString(),
                 UserName = ue.User.DisplayName!,
                 UserEmail = ue.User.Email!,
-                CallbackValidity = ue.Event.InviteValidity
+                Deadline = ue.Event.RsvpDeadline ?? DateOnly.FromDateTime(DateTime.UtcNow.AddDays(DefaultValidityDays))
             })
             .ToListAsync(ctx);
 
@@ -155,7 +156,7 @@ public class InvitationService(
 
         var eventData = await db.Events
             .Where(e => e.Id == eventId)
-            .Select(e => new { e.Id, e.Name, e.StartDate, e.InvitationTemplateId, e.InviteValidity })
+            .Select(e => new { e.Id, e.Name, e.StartDate, e.InvitationTemplateId, e.RsvpDeadline })
             .FirstOrDefaultAsync(ctx);
 
         if (eventData is null)
@@ -176,7 +177,7 @@ public class InvitationService(
                 UserName = user.DisplayName!,
                 UserEmail = user.Email!,
                 UserId = user.UserId,
-                CallbackValidity = eventData.InviteValidity
+                Deadline = eventData.RsvpDeadline ?? DateOnly.FromDateTime(DateTime.UtcNow.AddDays(DefaultValidityDays))
             };
 
             await PrepareEmailRequestAsync(request, ctx);
@@ -366,7 +367,7 @@ public class InvitationService(
         switch (request)
         {
             case InvitationEmailRequest inv:
-                var code = await authEmailService.CreateAuthCodeAsync(inv.UserId, inv.EventId, inv.CallbackValidity, ctx);
+                var code = await authEmailService.CreateAuthCodeAsync(inv.UserId, inv.EventId, DefaultValidityDays, ctx);
                 inv.CallBackUrl = authEmailService.BuildAuthCallbackUrl(code, inv.EventId);
                 break;
             case SaveDateEmailRequest std:

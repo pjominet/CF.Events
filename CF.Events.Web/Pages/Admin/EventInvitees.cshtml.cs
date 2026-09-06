@@ -168,20 +168,6 @@ public class EventInviteesModel(
         return RedirectToPage(new { id });
     }
 
-    public async Task<IActionResult> OnPostSetInviteValidity(int id, int inviteValidity)
-    {
-        var count = await db.Events
-            .Where(e => e.Id == id)
-            .ExecuteUpdateAsync(setter => setter
-                .SetProperty(e => e.InviteValidity, inviteValidity));
-
-        if (count == 0)
-            toastNotification.AddErrorToastMessage("Event not found");
-        else toastNotification.AddSuccessToastMessage($"Invitation validity set to {inviteValidity} days");
-
-        return RedirectToPage(new { id });
-    }
-
     public async Task<IActionResult> OnPostUpdateAccommodationCodeAsync(int id, string userId, string? accommodationCode)
     {
         var userEvent = await db.EventUsers.FirstOrDefaultAsync(r => r.EventId == id && r.UserId == userId);

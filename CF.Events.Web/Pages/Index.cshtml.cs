@@ -15,7 +15,7 @@ public class IndexModel : PageModel
         if (User.InitPassword())
             return Redirect("/account/manage/first-login");
 
-        return User.IsInRole(Constants.Roles.Admin)
+        return User.IsAdmin()
             ? Redirect("/admin")
             : Redirect("/invites");
     }
