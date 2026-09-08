@@ -14,18 +14,24 @@ RUN dotnet build "CF.Events.Web.csproj" -c Release -o /app/build
 
 # Publish the application
 FROM build AS publish
-RUN dotnet publish "CF.Events.Web.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "CF.Events.Web.csproj" \
+    -c Release \
+    -o /app/publish \
+    /p:UseAppHost=false \
+    /p:DebugType=None \
+    /p:DebugSymbols=false
 
 # Use the runtime image to run the application
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-# Create directories for keys and logs
-RUN mkdir -p /app/keys /app/logs
+# Install ICU for globalization support and create directories for keys and logs
+RUN apk add --no-cache icu-libs && \
+    mkdir -p /app/keys /app/logs
 
 # Set custom port
-ENV ASPNETCORE_HTTP_PORTS=8082ENV
+ENV ASPNETCORE_HTTP_PORTS=8082
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
 EXPOSE 8082
