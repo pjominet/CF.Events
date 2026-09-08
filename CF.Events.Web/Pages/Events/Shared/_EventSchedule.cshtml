@@ -11,16 +11,19 @@
                 @{
                     var groupedSchedule = Model.Steps.GroupBy(s => s.Day).OrderBy(g => g.Key).ToList();
                     var now = DateTime.Now;
+                    var activeIndex = groupedSchedule.FindIndex(d => Model.EventStartDate.AddDays(d.Key - 1).Date == now.Date);
+                    if (activeIndex == -1)
+                    {
+                        activeIndex = 0;
+                    }
                 }
-
                 @if (groupedSchedule.Any())
                 {
                     <ul class="nav nav-tabs schedule-tabs" id="scheduleTabs" role="tablist">
                         @for (var i = 0; i < groupedSchedule.Count; i++)
                         {
                             var day = groupedSchedule[i];
-                            var dayDate = Model.EventStartDate.AddDays(day.Key - 1);
-                            var isActive = dayDate.Date == now.Date || (i == 0 && now.Date < Model.EventStartDate.Date);
+                            var isActive = i == activeIndex;
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link @(isActive ? "active" : "") fs-5"
                                         id="day-tab-@day.Key"
@@ -37,9 +40,7 @@
                         {
                             var day = groupedSchedule[i];
                             var dayDate = Model.EventStartDate.AddDays(day.Key - 1);
-                            var isToday = dayDate.Date == now.Date;
-                            var isActivePane = isToday || (i == 0 && now.Date < Model.EventStartDate.Date);
-
+                            var isActivePane = i == activeIndex;
                             <div class="tab-pane ps-2 fade @(isActivePane ? "show active" : "")"
                                  id="day-pane-@day.Key"
                                  role="tabpanel"

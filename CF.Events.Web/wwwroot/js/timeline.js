@@ -33,7 +33,7 @@
         const now = new Date();
         const todayStr = now.toISOString().split('T')[0];
 
-        document.querySelectorAll('.tab-pane[data-date]').forEach(pane => {
+        modal.querySelectorAll('.tab-pane[data-date]').forEach(pane => {
             const paneDate = pane.getAttribute('data-date');
             const isToday = paneDate === todayStr;
             const isPast = new Date(paneDate) < new Date(todayStr);
@@ -91,7 +91,7 @@
     document.addEventListener('shown.bs.modal', function (event) {
         if (event.target.id !== 'eventScheduleModal') return;
 
-        // First set the state WITHOUT animation to ensure 'completed' classes are present
+        // First, set the state WITHOUT animation to ensure 'completed' classes are present
         updateTimelineProgress(false);
         // Then run with animation flag - applyAnimations will now know what is completed
         updateTimelineProgress(true);
@@ -100,13 +100,12 @@
             intervalId = setInterval(updateTimelineProgress, 60000);
         }
 
-        const currentStep = document.querySelector('.timeline-item.current');
-        if (currentStep) {
-            currentStep.scrollIntoView({behavior: 'smooth', block: 'center'});
-        } else {
-            const completedSteps = document.querySelectorAll('.timeline-item.completed');
-            if (completedSteps.length > 0) {
-                completedSteps[completedSteps.length - 1].scrollIntoView({behavior: 'smooth', block: 'center'});
+        const modal = event.target;
+        const activePane = modal.querySelector('.tab-pane.active');
+        if (activePane) {
+            const currentStep = activePane.querySelector('.timeline-item.current');
+            if (currentStep) {
+                currentStep.scrollIntoView({behavior: 'smooth', block: 'center'});
             }
         }
     });
@@ -129,6 +128,13 @@
                 marker.style.animationDelay = '';
             }
         });
+    });
+
+    // Also animate when tab is switched
+    document.addEventListener('shown.bs.tab', function (_) {
+        const modal = document.getElementById('eventScheduleModal');
+        if (!modal || !modal.classList.contains('show')) return;
+        updateTimelineProgress(true);
     });
 
     // Handle AJAX-injected content by listening for Bootstrap modal creation or content updates
