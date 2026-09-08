@@ -3,10 +3,15 @@
 
     const SEGMENT_DURATION = 0.3; // seconds
 
-    function applyAnimations(item, index, animate) {
-        if (!animate) return;
-        if (item.classList.contains('animate')) return;
-        if (item.classList.contains('completed') || item.classList.contains('current')) {
+    function triggerAnimations() {
+        const pane = document.querySelector('#eventScheduleModal .tab-pane.active')
+        if (!pane) return;
+
+        const items = pane.querySelectorAll('.timeline-item.completed, .timeline-item.current');
+
+        items.forEach((item, index) => {
+            if (item.classList.contains('animate')) return;
+
             // Add sequential delay for a nice drawing effect
             // Each segment starts slightly before the previous one finishes to create a continuous look
             const delay = index * (SEGMENT_DURATION * 0.7);
@@ -23,24 +28,22 @@
             }
 
             item.classList.add('animate');
-        }
+        });
     }
 
-    function updateTimelineProgress(animate = false) {
+    function updateTimelineProgress() {
         const modal = document.getElementById('eventScheduleModal');
         if (!modal) return;
 
         const now = new Date();
         const todayStr = now.toISOString().split('T')[0];
 
-        document.querySelectorAll('.tab-pane[data-date]').forEach(pane => {
+        modal.querySelectorAll('.tab-pane[data-date]').forEach(pane => {
             const paneDate = pane.getAttribute('data-date');
             const isToday = paneDate === todayStr;
             const isPast = new Date(paneDate) < new Date(todayStr);
 
-            pane.querySelectorAll('.timeline-item').forEach((item, idx) => {
-                applyAnimations(item, idx, animate);
-
+            pane.querySelectorAll('.timeline-item').forEach((item) => {
                 if (!isToday) {
                     item.classList.toggle('completed', isPast);
                     item.classList.remove('current');
@@ -91,22 +94,19 @@
     document.addEventListener('shown.bs.modal', function (event) {
         if (event.target.id !== 'eventScheduleModal') return;
 
-        // First set the state WITHOUT animation to ensure 'completed' classes are present
-        updateTimelineProgress(false);
-        // Then run with animation flag - applyAnimations will now know what is completed
-        updateTimelineProgress(true);
+        updateTimelineProgress();
+        triggerAnimations();
 
         if (!intervalId) {
             intervalId = setInterval(updateTimelineProgress, 60000);
         }
 
-        const currentStep = document.querySelector('.timeline-item.current');
-        if (currentStep) {
-            currentStep.scrollIntoView({behavior: 'smooth', block: 'center'});
-        } else {
-            const completedSteps = document.querySelectorAll('.timeline-item.completed');
-            if (completedSteps.length > 0) {
-                completedSteps[completedSteps.length - 1].scrollIntoView({behavior: 'smooth', block: 'center'});
+        const modal = event.target;
+        const activePane = modal.querySelector('.tab-pane.active');
+        if (activePane) {
+            const currentStep = activePane.querySelector('.timeline-item.current');
+            if (currentStep) {
+                currentStep.scrollIntoView({behavior: 'smooth', block: 'center'});
             }
         }
     });
@@ -129,6 +129,13 @@
                 marker.style.animationDelay = '';
             }
         });
+    });
+
+    // Also animate when tab is switched
+    document.addEventListener('shown.bs.tab', function () {
+        const modal = document.getElementById('eventScheduleModal');
+        if (!modal || !modal.classList.contains('show')) return;
+        triggerAnimations();
     });
 
     // Handle AJAX-injected content by listening for Bootstrap modal creation or content updates
