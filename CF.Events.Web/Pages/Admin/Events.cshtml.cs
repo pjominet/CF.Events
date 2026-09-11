@@ -18,7 +18,7 @@ public class EventsModel(
 {
     public List<Event> AllEvents { get; private set; } = [];
 
-    public Dictionary<int, int> InviteeCounts { get; private set; } = [];
+    public Dictionary<int, (int Count, int MaxPeopleSum)> InviteeCounts { get; private set; } = [];
 
     public async Task OnGetAsync() => await LoadAsync();
 
@@ -66,6 +66,12 @@ public class EventsModel(
 
         InviteeCounts = await db.EventUsers
             .GroupBy(r => r.EventId)
-            .ToDictionaryAsync(g => g.Key, g => g.Count());
+            .Select(g => new
+            {
+                EventId = g.Key,
+                Count = g.Count(),
+                MaxPeopleSum = g.Sum(r => r.User.GuestGroup != null ? r.User.GuestGroup.MaxPeople : 1)
+            })
+            .ToDictionaryAsync(x => x.EventId, x => (x.Count, x.MaxPeopleSum));
     }
 }
