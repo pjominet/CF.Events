@@ -49,7 +49,14 @@
                             </td>
                             <td>
                                 <a href="/admin/events/@eventData.Id/invitees" class="badge bg-info text-decoration-none" title="Manage Invitees">
-                                    @(Model.InviteeCounts.TryGetValue(eventData.Id, out var count) ? count : 0)
+                                    @if (Model.InviteeCounts.TryGetValue(eventData.Id, out var stats))
+                                    {
+                                        <text>@stats.Count (@stats.MaxPeopleSum)</text>
+                                    }
+                                    else
+                                    {
+                                        <text>0 (0)</text>
+                                    }
                                 </a>
                             </td>
                             <td>
