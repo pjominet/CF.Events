@@ -41,6 +41,7 @@ public class SanitizedStringModelBinder(IHtmlSanitizer sanitizer) : IModelBinder
             .Replace("&quot;", "\"")
             .Replace("&#39;", "'")
             .Replace("&apos;", "'")
+            .Replace("&nbsp;", " ")
             .Trim();
 
         if (safeValue.Length == 0)

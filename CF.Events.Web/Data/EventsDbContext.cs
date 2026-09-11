@@ -70,6 +70,10 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
 
         builder.Entity<EventFaqItem>(e =>
         {
+            e.Property(r => r.Question).HasMaxLength(500);
+
+            e.Property(r => r.Answer).HasMaxLength(1000);
+
             e.HasOne(r => r.Event)
                 .WithMany(r => r.EventFaq)
                 .HasForeignKey(r => r.EventId)

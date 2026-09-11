@@ -78,7 +78,7 @@
             <div class="col-12 col-md-7">
                 <div class="mb-3">
                     <label class="form-label fw-bold">Accommodation Details</label>
-                    <textarea asp-for="AccommodationDetails" class="form-control" rows="3" data-max-length="500" data-counter-id="accommodationCounter"></textarea>
+                    <textarea asp-for="AccommodationDetails" class="form-control auto-size" rows="3" data-max-length="500" data-counter-id="accommodationCounter"></textarea>
                     <div class="d-flex justify-content-between mt-2">
                         <div class="form-text">Descriptive text explaining on how to book accommodation.</div>
                         <small id="accommodationCounter" class="text-muted"></small>
@@ -137,7 +137,7 @@
 
         <div id="donationPhysicalWrapper" style="display: @(Model.DonationTypes.Contains(EditEventModel.DonationType.Physical) ? "block" : "none")" class="mb-3">
             <label class="form-label fw-bold">Physical Gift Info</label>
-            <textarea asp-for="PhysicalGiftInfo" class="form-control" rows="3" data-max-length="1000" data-counter-id="giftCounter"></textarea>
+            <textarea asp-for="PhysicalGiftInfo" class="form-control auto-size" rows="3" data-max-length="1000" data-counter-id="giftCounter"></textarea>
             <div class="d-flex justify-content-between mt-2">
                 <div class="form-text">Description of how physical gifts should be handled.</div>
                 <small id="giftCounter" class="text-muted"></small>
@@ -200,7 +200,7 @@
                         <input asp-for="FaqItems[i].Question" type="text" class="form-control" placeholder="Question"/>
                     </div>
                     <div class="mb-2">
-                        <textarea asp-for="FaqItems[i].Answer" class="form-control" placeholder="Answer" data-max-length="1000" data-counter-id="faq-c-@i"></textarea>
+                        <textarea asp-for="FaqItems[i].Answer" class="form-control auto-size" placeholder="Answer" rows="2" data-max-length="1000" data-counter-id="faq-c-@i"></textarea>
                         <div class="d-flex justify-content-end mt-2">
                             <small id="faq-c-@i" class="text-muted"></small>
                         </div>
