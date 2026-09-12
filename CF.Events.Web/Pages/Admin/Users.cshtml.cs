@@ -295,9 +295,20 @@ public class UsersModel(
         }
 
         user.IsActive = !user.IsActive;
+
+        if (!user.IsActive)
+        {
+            var userInvites = await db.EventUsers.Where(eu => eu.UserId == userId).ToListAsync();
+            if (userInvites.Count > 0)
+                db.EventUsers.RemoveRange(userInvites);
+        }
+
         var result = await userManager.UpdateAsync(user);
         if (result.Succeeded)
+        {
+            await db.SaveChangesAsync();
             toastNotification.AddSuccessToastMessage("User toggled successfully");
+        }
         else toastNotification.AddErrorToastMessage("User toggle failed");
 
         return RedirectToPage();

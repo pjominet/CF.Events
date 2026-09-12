@@ -33,7 +33,7 @@ public class InvitationService(
     public async Task<int> ProcessPendingEmails(CancellationToken ctx = default)
     {
         var sentInvitations = await ProcessPendingType<InvitationEmailRequest>(
-            ue => ue.InviteEmailSent == null && ue.ScheduledFor != null && ue.ScheduledFor <= DateTime.UtcNow,
+            ue => ue.InviteEmailSent == null && ue.ScheduledFor != null && ue.ScheduledFor <= DateTime.UtcNow && ue.User.IsActive,
             ue => new InvitationEmailRequest
             {
                 SenderName = _appSettings.EmailProviderSettings.SenderName,
@@ -49,7 +49,7 @@ public class InvitationService(
             }, ctx);
 
         var sentSaveTheDates = await ProcessPendingType<SaveDateEmailRequest>(
-            ue => ue.SaveTheDateEmailSent == null && ue.ScheduledFor != null && ue.ScheduledFor <= DateTime.UtcNow,
+            ue => ue.SaveTheDateEmailSent == null && ue.ScheduledFor != null && ue.ScheduledFor <= DateTime.UtcNow && ue.User.IsActive,
             ue => new SaveDateEmailRequest
             {
                 SenderName = _appSettings.EmailProviderSettings.SenderName,
@@ -80,8 +80,13 @@ public class InvitationService(
             .Select(ue => ue.UserId)
             .ToListAsync(ctx);
 
-        // Filter to only new users (not already invited)
-        var newUserIds = inviteRequest.UserIds
+        // Filter to only new users (not already invited) and check they are active
+        var activeUserIds = await db.Users
+            .Where(u => inviteRequest.UserIds.Contains(u.Id) && u.IsActive)
+            .Select(u => u.Id)
+            .ToListAsync(ctx);
+
+        var newUserIds = activeUserIds
             .Where(userId => !existingUserIds.Contains(userId))
             .ToList();
 
@@ -147,7 +152,7 @@ public class InvitationService(
     {
         var eventUsers = await db.EventUsers
             .Include(eu => eu.User)
-            .Where(eu => eu.EventId == eventId && userIds.Contains(eu.UserId))
+            .Where(eu => eu.EventId == eventId && userIds.Contains(eu.UserId) && eu.User.IsActive)
             .Select(eu => new { eu.UserId, eu.User.Email, eu.User.DisplayName })
             .ToListAsync(ctx);
 
