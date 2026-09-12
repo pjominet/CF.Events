@@ -1,28 +1,26 @@
-(function() {
+(function () {
     "use strict";
 
     // Donation type toggle
     const donationCheckboxes = document.querySelectorAll('input[name="Event.DonationTypes"]');
-    if (donationCheckboxes.length > 0) {
-        donationCheckboxes.forEach(cb => {
-            cb.addEventListener('change', function() {
-                const ibanWrapper = document.getElementById('donationIbanWrapper');
-                const linkWrapper = document.getElementById('donationLinkWrapper');
-                const physicalWrapper = document.getElementById('donationPhysicalWrapper');
-                const ibanCb = document.getElementById('donationTypeIban');
-                const linkCb = document.getElementById('donationTypeLink');
-                const physicalCb = document.getElementById('donationTypePhysical');
-                if (ibanWrapper) ibanWrapper.style.display = (ibanCb && ibanCb.checked) ? 'block' : 'none';
-                if (linkWrapper) linkWrapper.style.display = (linkCb && linkCb.checked) ? 'block' : 'none';
-                if (physicalWrapper) physicalWrapper.style.display = (physicalCb && physicalCb.checked) ? 'block' : 'none';
-            });
+    donationCheckboxes.forEach(cb => {
+        cb.addEventListener('change', function () {
+            const ibanWrapper = document.getElementById('donationIbanWrapper');
+            const linkWrapper = document.getElementById('donationLinkWrapper');
+            const physicalWrapper = document.getElementById('donationPhysicalWrapper');
+            const ibanCb = document.getElementById('donationTypeIban');
+            const linkCb = document.getElementById('donationTypeLink');
+            const physicalCb = document.getElementById('donationTypePhysical');
+            if (ibanWrapper) ibanWrapper.style.display = (ibanCb && ibanCb.checked) ? 'block' : 'none';
+            if (linkWrapper) linkWrapper.style.display = (linkCb && linkCb.checked) ? 'block' : 'none';
+            if (physicalWrapper) physicalWrapper.style.display = (physicalCb && physicalCb.checked) ? 'block' : 'none';
         });
-    }
+    });
 
     // Dynamic rows helper
     function setupRemoveButtons(container) {
         if (!container) return;
-        container.addEventListener('click', function(e) {
+        container.addEventListener('click', function (e) {
             const removeBtn = e.target.closest('.remove-row');
             if (removeBtn) {
                 removeBtn.closest('.schedule-row, .faq-row').remove();
@@ -61,11 +59,10 @@
     setupRemoveButtons(faqContainer);
 
     const addScheduleBtn = document.getElementById('add-schedule');
-    if (addScheduleBtn) {
-        addScheduleBtn.addEventListener('click', function() {
-            const index = scheduleContainer.querySelectorAll('.schedule-row').length;
-            const maxDays = scheduleContainer.getAttribute('data-max-days') || '';
-            const html = `
+    addScheduleBtn?.addEventListener('click', function () {
+        const index = scheduleContainer.querySelectorAll('.schedule-row').length;
+        const maxDays = scheduleContainer.getAttribute('data-max-days') || '';
+        const html = `
                 <div class="row gx-2 mb-2 schedule-row">
                     <div class="col-md-2">
                         <div class="input-group">
@@ -92,15 +89,13 @@
                         <button type="button" class="btn btn-link text-danger remove-row"><i class="bi bi-x-lg"></i></button>
                     </div>
                 </div>`;
-            scheduleContainer.insertAdjacentHTML('beforeend', html);
-        });
-    }
+        scheduleContainer.insertAdjacentHTML('beforeend', html);
+    });
 
     const addFaqBtn = document.getElementById('add-faq');
-    if (addFaqBtn) {
-        addFaqBtn.addEventListener('click', function() {
-            const index = faqContainer.querySelectorAll('.faq-row').length;
-            const html = `
+    addFaqBtn?.addEventListener('click', function () {
+        const index = faqContainer.querySelectorAll('.faq-row').length;
+        const html = `
                 <div class="row gx-2 faq-row align-items-center">
                     <div class="col-auto">
                         <i class="bi bi-list faq-handle" style="cursor: grab;"></i>
@@ -121,10 +116,9 @@
                         <button type="button" class="btn btn-link text-danger remove-row"><i class="bi bi-x-lg"></i></button>
                     </div>
                 </div>`;
-            faqContainer.insertAdjacentHTML('beforeend', html);
-            window.initCharacterCounters(faqContainer);
-        });
-    }
+        faqContainer.insertAdjacentHTML('beforeend', html);
+        window.initCharacterCounters(faqContainer);
+    });
 
     // FAQ Drag and Drop
     if (faqContainer && typeof Sortable !== 'undefined') {
@@ -132,7 +126,7 @@
             handle: '.faq-handle',
             animation: 150,
             ghostClass: 'bg-light',
-            onEnd: function() {
+            onEnd: function () {
                 reindexRows(faqContainer);
                 isDirty = true;
             }
@@ -235,7 +229,7 @@
 
         // Also watch for dynamic links (if any are added later)
         const observer = new MutationObserver(attachNavigationHandlers);
-        observer.observe(eventForm, { childList: true, subtree: true });
+        observer.observe(eventForm, {childList: true, subtree: true});
 
         window.addEventListener('beforeunload', (e) => {
             if (isDirty) {

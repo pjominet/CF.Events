@@ -88,6 +88,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IInvitationService, InvitationService>();
         services.AddScoped<IAuthEmailService, AuthEmailService>();
         services.AddScoped<IExportService, ExportService>();
+        services.AddScoped<IImportService, ImportService>();
         services.AddScoped<IFileService, FileService>();
 
         if (environment.IsDevelopment())

@@ -23,28 +23,26 @@
 
     const refreshBtn = document.getElementById('refreshAuditBtn');
 
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', async () => {
-            window.showLoadingOverlay();
+    refreshBtn?.addEventListener('click', async () => {
+        window.showLoadingOverlay();
 
-            // Reset state
-            page = 0;
-            hasMore = true;
-            tableBody.innerHTML = '';
+        // Reset state
+        page = 0;
+        hasMore = true;
+        tableBody.innerHTML = '';
 
-            // Scroll to top of the container
-            scrollContainer.scrollTop = 0;
+        // Scroll to top of the container
+        scrollContainer.scrollTop = 0;
 
-            // Disable button during load
-            refreshBtn.disabled = true;
+        // Disable button during load
+        refreshBtn.disabled = true;
 
-            await loadMore();
+        await loadMore();
 
-            refreshBtn.disabled = false;
+        refreshBtn.disabled = false;
 
-            window.hideLoadingOverlay();
-        });
-    }
+        window.hideLoadingOverlay();
+    });
 
     function updateObserver() {
         const lastRow = tableBody.lastElementChild;
@@ -72,7 +70,7 @@
                     });
 
                     const methodBadge = audit.authMethod === 'Password' ? 'bg-primary' :
-                                       audit.authMethod === 'EmailToken' ? 'bg-info' : 'bg-secondary';
+                        audit.authMethod === 'EmailToken' ? 'bg-info' : 'bg-secondary';
 
                     const userAgentShort = audit.userAgent.length > 50 ?
                         audit.userAgent.substring(0, 47) + '...' : audit.userAgent;

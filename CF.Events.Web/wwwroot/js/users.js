@@ -5,14 +5,12 @@
     const userCheckboxes = document.querySelectorAll('.user-checkbox:not(:disabled)');
     const bulkActionButtons = document.querySelectorAll('.bulk-action-btn');
 
-    if (selectAllCheckbox) {
-        selectAllCheckbox.addEventListener('change', function () {
-            userCheckboxes.forEach(cb => {
-                cb.checked = this.checked;
-            });
-            updateBulkButtons();
+    selectAllCheckbox?.addEventListener('change', function () {
+        userCheckboxes.forEach(cb => {
+            cb.checked = this.checked;
         });
-    }
+        updateBulkButtons();
+    });
 
     userCheckboxes.forEach(cb => {
         cb.addEventListener('change', function () {
@@ -100,6 +98,16 @@
         form.submit();
     };
 
+    // Export Excel with loading spinner
+    const exportUsersBtn = document.getElementById('exportUsersBtn');
+    exportUsersBtn?.addEventListener('click', function (_) {
+        const modalEl = document.getElementById('exportUsersModal');
+        if (modalEl) {
+            bootstrap.Modal.getInstance(modalEl)?.hide();
+        }
+        window.handleFileDownloadOverlay();
+    });
+
     const roleRadios = document.querySelectorAll('.role-radio');
     const roleGuestRadio = document.getElementById('roleGuest');
     const roleUserRadio = document.getElementById('roleUser');
@@ -124,102 +132,98 @@
     });
 
     const addUserModal = document.getElementById('addUserModal');
-    if (addUserModal) {
-        addUserModal.addEventListener('show.bs.modal', function (event) {
-            const button = event.relatedTarget;
-            const userId = button.getAttribute('data-user-id');
-            const form = document.getElementById('addUserForm');
-            const title = document.getElementById('addUserModalTitle');
-            const submitBtn = document.getElementById('addUserSubmitBtn');
+    addUserModal?.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const userId = button.getAttribute('data-user-id');
+        const form = document.getElementById('addUserForm');
+        const title = document.getElementById('addUserModalTitle');
+        const submitBtn = document.getElementById('addUserSubmitBtn');
 
-            if (userId) {
-                // Edit mode
-                title.textContent = 'Edit User';
-                submitBtn.textContent = 'Save Changes';
-                form.action = '?handler=Edit';
+        if (userId) {
+            // Edit mode
+            title.textContent = 'Edit User';
+            submitBtn.textContent = 'Save Changes';
+            form.action = '?handler=Edit';
 
-                document.getElementById('userEditId').value = userId;
-                document.getElementById('userDisplayName').value = button.getAttribute('data-user-displayname');
-                document.getElementById('userEmail').value = button.getAttribute('data-user-email');
-                document.getElementById('userPhone').value = button.getAttribute('data-user-phone') === 'n/a' ? '' : button.getAttribute('data-user-phone');
+            document.getElementById('userEditId').value = userId;
+            document.getElementById('userDisplayName').value = button.getAttribute('data-user-displayname');
+            document.getElementById('userEmail').value = button.getAttribute('data-user-email');
+            document.getElementById('userPhone').value = button.getAttribute('data-user-phone') === 'n/a' ? '' : button.getAttribute('data-user-phone');
 
-                const guestGroup = button.getAttribute('data-user-guestgroup');
-                guestGroupInput.value = guestGroup === 'n/a' ? '' : guestGroup;
+            const guestGroup = button.getAttribute('data-user-guestgroup');
+            guestGroupInput.value = guestGroup === 'n/a' ? '' : guestGroup;
 
-                const maxPeople = button.getAttribute('data-user-maxpeople');
-                maxPeopleInput.value = maxPeople || 4;
+            const maxPeople = button.getAttribute('data-user-maxpeople');
+            maxPeopleInput.value = maxPeople || 4;
 
-                const roles = button.getAttribute('data-user-roles').split(',');
-                if (roleUserRadio) roleUserRadio.checked = roles.includes('User');
-                if (roleGuestRadio) roleGuestRadio.checked = roles.includes('Guest');
-            } else {
-                // Add mode
-                title.textContent = 'Invite New User';
-                submitBtn.textContent = 'Add';
-                form.action = '?handler=Add';
+            const roles = button.getAttribute('data-user-roles').split(',');
+            if (roleUserRadio) roleUserRadio.checked = roles.includes('User');
+            if (roleGuestRadio) roleGuestRadio.checked = roles.includes('Guest');
+        } else {
+            // Add mode
+            title.textContent = 'Invite New User';
+            submitBtn.textContent = 'Add';
+            form.action = '?handler=Add';
 
-                document.getElementById('userEditId').value = '';
-                document.getElementById('userDisplayName').value = '';
-                document.getElementById('userEmail').value = '';
-                document.getElementById('userPhone').value = '';
-                guestGroupInput.value = '';
-                maxPeopleInput.value = 4;
-                if (roleUserRadio) roleUserRadio.checked = false;
-                if (roleGuestRadio) roleGuestRadio.checked = true;
-            }
-            toggleGuestGroup();
-        });
-    }
+            document.getElementById('userEditId').value = '';
+            document.getElementById('userDisplayName').value = '';
+            document.getElementById('userEmail').value = '';
+            document.getElementById('userPhone').value = '';
+            guestGroupInput.value = '';
+            maxPeopleInput.value = 4;
+            if (roleUserRadio) roleUserRadio.checked = false;
+            if (roleGuestRadio) roleGuestRadio.checked = true;
+        }
+        toggleGuestGroup();
+    });
 
     const viewFeedbackModal = document.getElementById('viewFeedbackModal');
-    if (viewFeedbackModal) {
-        viewFeedbackModal.addEventListener('show.bs.modal', async function (event) {
-            const button = event.relatedTarget;
-            const userId = button.getAttribute('data-user-id');
-            document.getElementById('feedbackUserDisplayName').textContent = button.getAttribute('data-user-displayname');
+    viewFeedbackModal?.addEventListener('show.bs.modal', async function (event) {
+        const button = event.relatedTarget;
+        const userId = button.getAttribute('data-user-id');
+        document.getElementById('feedbackUserDisplayName').textContent = button.getAttribute('data-user-displayname');
 
-            const loading = document.getElementById('feedbackLoading');
-            const content = document.getElementById('feedbackContent');
-            const empty = document.getElementById('feedbackEmpty');
-            const list = document.getElementById('feedbackList');
+        const loading = document.getElementById('feedbackLoading');
+        const content = document.getElementById('feedbackContent');
+        const empty = document.getElementById('feedbackEmpty');
+        const list = document.getElementById('feedbackList');
 
-            loading.classList.remove('d-none');
-            content.classList.add('d-none');
-            empty.classList.add('d-none');
-            list.innerHTML = '';
+        loading.classList.remove('d-none');
+        content.classList.add('d-none');
+        empty.classList.add('d-none');
+        list.innerHTML = '';
 
-            try {
-                const response = await fetch(`?handler=Feedback&userId=${userId}`);
-                if (!response.ok) throw new Error('Failed to load feedback');
+        try {
+            const response = await fetch(`?handler=Feedback&userId=${userId}`);
+            if (!response.ok) throw new Error('Failed to load feedback');
 
-                const feedbacks = await response.json();
+            const feedbacks = await response.json();
 
-                loading.classList.add('d-none');
+            loading.classList.add('d-none');
 
-                if (feedbacks && feedbacks.length > 0) {
-                    feedbacks.forEach(f => {
-                        const item = document.createElement('div');
-                        item.className = 'list-group-item px-0';
-                        item.innerHTML = `
-                            <div class="d-flex w-100 justify-content-between mb-1">
-                                <small class="text-muted">${f.submittedAt}</small>
-                            </div>
-                            <p class="mb-1 text-wrap text-break" style="white-space: pre-wrap;">${f.text}</p>
-                        `;
-                        list.appendChild(item);
-                    });
-                    content.classList.remove('d-none');
-                } else {
-                    empty.classList.remove('d-none');
-                }
-            } catch (error) {
-                console.error('Error fetching feedback:', error);
-                loading.classList.add('d-none');
-                empty.textContent = 'Error loading feedback.';
+            if (feedbacks && feedbacks.length > 0) {
+                feedbacks.forEach(f => {
+                    const item = document.createElement('div');
+                    item.className = 'list-group-item px-0';
+                    item.innerHTML = `
+                        <div class="d-flex w-100 justify-content-between mb-1">
+                            <small class="text-muted">${f.submittedAt}</small>
+                        </div>
+                        <p class="mb-1 text-wrap text-break" style="white-space: pre-wrap;">${f.text}</p>
+                    `;
+                    list.appendChild(item);
+                });
+                content.classList.remove('d-none');
+            } else {
                 empty.classList.remove('d-none');
             }
-        });
-    }
+        } catch (error) {
+            console.error('Error fetching feedback:', error);
+            loading.classList.add('d-none');
+            empty.textContent = 'Error loading feedback.';
+            empty.classList.remove('d-none');
+        }
+    });
 
     // Initial check for non-modal elements if any
     toggleGuestGroup();

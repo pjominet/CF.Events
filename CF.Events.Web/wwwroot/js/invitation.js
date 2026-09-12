@@ -29,27 +29,24 @@
     });
 
     const returnButton = document.getElementById('returnButton');
-    if (returnButton) {
-        returnButton.addEventListener('click', function (e) {
-            if (!bookContainer.classList.contains('open')) return;
+    returnButton?.addEventListener('click', function (e) {
+        if (!bookContainer.classList.contains('open')) return;
 
-            e.preventDefault();
-            const url = this.getAttribute('href');
+        e.preventDefault();
+        const url = this.getAttribute('href');
 
-            const onAnimationEnd = (event) => {
-                if (event.animationName === 'bookClose' || event.animationName === 'mobileUnflip') {
-                    bookContainer.removeEventListener('animationend', onAnimationEnd);
-                    setTimeout(() => {
-                        window.location.href = url;
-                    }, 200);
-                }
-            };
+        const onAnimationEnd = (event) => {
+            if (event.animationName === 'bookClose' || event.animationName === 'mobileUnflip') {
+                bookContainer.removeEventListener('animationend', onAnimationEnd);
+                setTimeout(() => {
+                    window.location.href = url;
+                }, 200);
+            }
+        };
 
-            bookContainer.addEventListener('animationend', onAnimationEnd);
-            closeBook();
-        });
-    }
-
+        bookContainer.addEventListener('animationend', onAnimationEnd);
+        closeBook();
+    });
     const mobileQuery = window.matchMedia('(max-width: 768px)');
 
     function handleMobileChange(e) {

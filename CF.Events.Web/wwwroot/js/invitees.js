@@ -51,14 +51,12 @@
     const inviteeCheckboxes = document.querySelectorAll('.invitee-checkbox');
     const bulkActionButtons = document.querySelectorAll('.bulk-action-btn');
 
-    if (selectAllCheckbox) {
-        selectAllCheckbox.addEventListener('change', function () {
-            inviteeCheckboxes.forEach(cb => {
-                cb.checked = this.checked;
-            });
-            updateBulkButtons();
+    selectAllCheckbox?.addEventListener('change', function () {
+        inviteeCheckboxes.forEach(cb => {
+            cb.checked = this.checked;
         });
-    }
+        updateBulkButtons();
+    });
 
     inviteeCheckboxes.forEach(cb => {
         cb.addEventListener('change', function () {
@@ -247,40 +245,19 @@
 
     // Export Excel with loading spinner
     const exportExcelBtn = document.getElementById('exportExcelBtn');
-    if (exportExcelBtn) {
-        exportExcelBtn.addEventListener('click', function (e) {
-            window.showLoadingOverlay();
-
-            // Check for cookie to hide overlay
-            const checkCookie = setInterval(function () {
-                const cookieName = "fileDownload";
-                if (document.cookie.indexOf(cookieName + "=") !== -1) {
-                    // Delete the cookie
-                    document.cookie = cookieName + '=; Max-Age=-99999999; Path=/;';
-
-                    // Small delay before hiding to ensure the download started
-                    setTimeout(function () {
-                        const overlay = document.getElementById('globalLoadingOverlay');
-                        if (overlay) overlay.classList.remove('active');
-                    }, 1000);
-
-                    clearInterval(checkCookie);
-                }
-            }, 500);
-        });
-    }
+    exportExcelBtn?.addEventListener('click', function (_) {
+        window.handleFileDownloadOverlay();
+    });
 
     // Handle Invite Validity Modal population
     const setInviteValidityModal = document.getElementById('setInviteValidityModal');
-    if (setInviteValidityModal) {
-        setInviteValidityModal.addEventListener('show.bs.modal', function (event) {
-            const button = event.relatedTarget;
-            const eventId = button.getAttribute('data-bs-event-id');
+    setInviteValidityModal?.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const eventId = button.getAttribute('data-bs-event-id');
 
-            const modalEventIdInput = setInviteValidityModal.querySelector('#modalEventId');
-            modalEventIdInput.value = eventId;
-        });
-    }
+        const modalEventIdInput = setInviteValidityModal.querySelector('#modalEventId');
+        modalEventIdInput.value = eventId;
+    });
 
     // Bulk Accommodation Code Updates tracking
     const accommodationSelects = document.querySelectorAll('.accommodation-select');
