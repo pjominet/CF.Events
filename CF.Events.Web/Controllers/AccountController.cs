@@ -74,7 +74,7 @@ public class AccountController(
             return BadRequest();
         }
 
-        if (authCode.ValidUntil > DateTime.UtcNow)
+        if (authCode.ValidUntil <= DateTime.UtcNow)
         {
             logger.LogWarning("Expired invite code was used: {Code}, user redirected to login", code);
             return LocalRedirect("/");
