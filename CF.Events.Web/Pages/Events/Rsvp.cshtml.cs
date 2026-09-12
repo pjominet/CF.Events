@@ -27,6 +27,12 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
     {
         var userId = User.GetId();
         var user = await db.Users.Include(u => u.GuestGroup).FirstAsync(u => u.Id == userId);
+        if (!user.IsActive)
+        {
+            toastNotification.AddErrorToastMessage("Your account has been deactivated.");
+            return Redirect("/");
+        }
+
         GroupParticipants = user.GuestGroup?.Participants ?? (user.DisplayName != null ? [user.DisplayName] : []);
 
         var userEvent = await db.EventUsers.FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
@@ -113,6 +119,12 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
         var user = await db.Users
             .Include(u => u.GuestGroup)
             .FirstAsync(u => u.Id == userId);
+
+        if (!user.IsActive)
+        {
+            toastNotification.AddErrorToastMessage("Your account has been deactivated.");
+            return Redirect("/");
+        }
 
         var eventMaxParticipants = await db.Events
             .Where(e => e.Id == eventId)

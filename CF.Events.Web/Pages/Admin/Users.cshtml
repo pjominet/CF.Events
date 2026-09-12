@@ -21,8 +21,11 @@
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
                     <i class="bi bi-plus me-2"></i>Add User
                 </button>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#importUsersModal">
+                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#importUsersModal">
                     <i class="bi bi-upload me-2"></i>Import Users
+                </button>
+                <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#exportUsersModal">
+                    <i class="bi bi-download me-2"></i>Export Users
                 </button>
             </section>
         </div>
@@ -196,6 +199,7 @@
 
 <partial name="Shared/_AddUserModal" for="NewUser"/>
 <partial name="Shared/_ImportUsersModal"/>
+<partial name="Shared/_ExportUsersModal"/>
 <partial name="Shared/_ViewFeedbackModal"/>
 
 @section Scripts {

@@ -40,6 +40,7 @@ catch (Exception ex) when (ex is not HostAbortedException && ex.Source != "Micro
 }
 finally
 {
+    Log.Information("Application has been stopped");
     Log.Information("Closing and flushing logger in finally block");
     Log.CloseAndFlush();
 }

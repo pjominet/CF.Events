@@ -51,6 +51,13 @@ public class LoginModel(
                 return Page();
 
             var user = await userManager.FindByEmailAsync(Input.Email);
+            if (user is not { IsActive: true })
+            {
+                logger.LogWarning("Inactive user {UserName} attempted login", user?.UserName ?? "<Not Found>");
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                return Page();
+            }
+
             if (user is { MustChangePassword: true })
             {
                 await signInManager.SignInAsync(user, isPersistent: false);
@@ -86,8 +93,12 @@ public class LoginModel(
         if (result.Succeeded)
         {
             var user = await userManager.FindByEmailAsync(Input.Email);
-            if (user is null)
-                return NotFound();
+            if (user is not { IsActive: true })
+            {
+                await signInManager.SignOutAsync();
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                return Page();
+            }
 
             user.LastLogin = DateTime.UtcNow;
             await userManager.UpdateAsync(user);

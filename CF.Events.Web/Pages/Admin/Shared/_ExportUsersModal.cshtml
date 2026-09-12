@@ -1,0 +1,33 @@
+﻿<div class="modal fade" id="exportUsersModal" data-bs-backdrop="static" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="get" asp-action="ExportUsers" asp-controller="User">
+                <div class="modal-header">
+                    <h5 class="modal-title">Export Users</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Roles to Export</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="selectedRoles" value="@Roles.User" id="exportRoleUser">
+                                <label class="form-check-label" for="exportRoleUser">@Roles.User</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="selectedRoles" value="@Roles.Guest" id="exportRoleGuest" checked>
+                                <label class="form-check-label" for="exportRoleGuest">@Roles.Guest</label>
+                            </div>
+                        </div>
+                        <div class="form-text mt-2">Choose which user roles should be included in the export.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success" id="exportUsersBtn">
+                        <i class="bi bi-download me-2"></i>Export
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

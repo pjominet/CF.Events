@@ -1,13 +1,16 @@
 using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure.Extensions;
 using ClosedXML.Excel;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web.Services;
 
 public interface IExportService
 {
     Task<(byte[] Bytes, string FileName)> ExportInviteesToExcelAsync(int eventId);
+    Task<(byte[] Bytes, string FileName)> ExportUsersToExcelAsync(List<string> selectedRoles);
 }
 
 public class ExportService(EventsDbContext db) : IExportService
@@ -106,6 +109,80 @@ public class ExportService(EventsDbContext db) : IExportService
         var content = stream.ToArray();
 
         var fileName = $"{@event.Name.Replace(" ", "_")}_{@event.StartDate.Year}.xlsx";
+        return (content, fileName);
+    }
+
+    public async Task<(byte[] Bytes, string FileName)> ExportUsersToExcelAsync(List<string> selectedRoles)
+    {
+        var excludedRoles = await db.Roles
+            .Where(r => r.Name == Roles.Admin || r.Name == Roles.Sudo)
+            .Select(r => r.Id)
+            .ToListAsync();
+
+        var rolesToInclude = await db.Roles
+            .Where(r => selectedRoles.Contains(r.Name))
+            .Select(r => r.Id)
+            .ToListAsync();
+
+        var users = await db.Users
+            .Include(u => u.GuestGroup)
+            .Where(u => !db.UserRoles.Any(ur => ur.UserId == u.Id && excludedRoles.Contains(ur.RoleId)))
+            .Where(u => db.UserRoles.Any(ur => ur.UserId == u.Id && rolesToInclude.Contains(ur.RoleId)))
+            .OrderBy(u => u.DisplayName)
+            .Select(u => new
+            {
+                u.DisplayName,
+                u.Email,
+                u.PhoneNumber,
+                GuestGroupLabel = u.GuestGroup != null ? u.GuestGroup.Label : "",
+                MaxPeople = u.GuestGroup != null ? u.GuestGroup.MaxPeople : 4
+            })
+            .ToListAsync();
+
+        using var workbook = new XLWorkbook();
+        var worksheet = workbook.Worksheets.Add("Users");
+
+        // Header - matches UserController.ImportUsers expectations
+        var headers = new[] { "Name", "Email", "Phone", "GuestGroupLabel", "MaxPeople" };
+        for (var i = 0; i < headers.Length; i++)
+        {
+            var cell = worksheet.Cell(1, i + 1);
+            cell.Value = headers[i];
+            cell.Style.Font.Bold = true;
+            cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#0D6EFD"); // Bootstrap primary color
+            cell.Style.Font.FontColor = XLColor.White;
+        }
+
+        var row = 2;
+        foreach (var user in users)
+        {
+            worksheet.Cell(row, 1).Value = user.DisplayName;
+            worksheet.Cell(row, 2).Value = user.Email;
+            worksheet.Cell(row, 3).Value = user.PhoneNumber;
+            worksheet.Cell(row, 4).Value = user.GuestGroupLabel;
+            worksheet.Cell(row, 5).Value = user.MaxPeople;
+            row++;
+        }
+
+        // Add total sum of MaxPeople
+        if (users.Count > 0)
+        {
+            var totalMaxPeople = users.Sum(u => u.MaxPeople);
+            var totalRow = worksheet.Row(row);
+            totalRow.Cell(4).Value = "Total";
+            totalRow.Cell(4).Style.Font.Bold = true;
+            totalRow.Cell(5).Value = totalMaxPeople;
+            totalRow.Cell(5).Style.Font.Bold = true;
+        }
+
+        worksheet.Columns().AdjustToContents();
+
+        using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+        var content = stream.ToArray();
+
+        var rolesStr = string.Join("_", selectedRoles);
+        var fileName = $"Users_Export_{rolesStr}_{DateTime.Now:yyyyMMdd}.xlsx";
         return (content, fileName);
     }
 }

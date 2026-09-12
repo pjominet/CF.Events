@@ -344,6 +344,26 @@
         }
     }
 
+    // Handles showing overlay during file download and hiding it via cookie
+    window.handleFileDownloadOverlay = function (cookieName = "fileDownload") {
+        window.showLoadingOverlay();
+
+        // Check for cookie to hide overlay
+        const checkCookie = setInterval(function () {
+            if (document.cookie.indexOf(cookieName + "=") !== -1) {
+                // Delete the cookie
+                document.cookie = cookieName + '=; Max-Age=-99999999; Path=/;';
+
+                // Small delay before hiding to ensure the download started
+                setTimeout(function () {
+                    window.hideLoadingOverlay();
+                }, 1000);
+
+                clearInterval(checkCookie);
+            }
+        }, 500);
+    };
+
     // Hide on page load/complete
     window.addEventListener('load', hideLoadingOverlay);
 
