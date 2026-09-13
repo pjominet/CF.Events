@@ -4,9 +4,13 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Save the Date</title>
+    <meta name="color-scheme" content="light only">
     <style type="text/css">
-        body,
-        .mail-body {
+        :root {
+            color-scheme: light only !important;
+        }
+
+        body, .mail-body {
             margin: 0;
             font-family: Verdana, Helvetica, Arial, sans-serif;
             background-color: #e0e8e0;
@@ -55,21 +59,21 @@
     </style>
 </head>
 
-<body>
-<table class="mail-body">
+<body style="background-color: #e0e8e0 !important;">
+<table class="mail-body" style="background-color: #e0e8e0 !important;">
     <tr>
         <td align="center" valign="top">
             <table class="mail-content-box">
                 <tr>
-                    <td class="mail-content-container">
+                    <td class="mail-content-container" style="background-color: #f9f9f9 !important;">
                         <table>
                             <tr>
                                 <td class="mail-content">
-                                    <p class="mail-intro-text">
+                                    <p class="mail-intro-text" style="color: #7f6d54 !important;">
                                         {{ sender_sig }} have exciting news to share!
                                     </p>
                                     <img alt="save the date details poster" src="cid:save-the-date.png" class="template-email-image" width="600" height="auto" />
-                                    <p class=mail-footer-text>
+                                    <p class="mail-footer-text" style="color: #7f6d54 !important;">
                                         Stay tuned!
                                     </p>
                                 </td>

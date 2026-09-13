@@ -4,8 +4,12 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>Confirm your email</title>
+    <meta name="color-scheme" content="light only">
     <style type="text/css">
-        /* Fonts alignment with webapp */
+        :root {
+            color-scheme: light only !important;
+        }
+
         body, table, td, p, a, span {
             font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
@@ -90,27 +94,27 @@
         }
     </style>
 </head>
-<body>
-<table class="mail-body" width="100%" cellspacing="0" cellpadding="0" border="0">
+<body style="background-color: #e0e8e0 !important;">
+<table class="mail-body" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #e0e8e0 !important;">
     <tr>
         <td class="mail-wrapper" align="center">
             <table class="mail-container" cellspacing="0" cellpadding="0" border="0">
                 <tr>
-                    <td class="mail-logo">
+                    <td class="mail-logo" style="color: #273427 !important;">
                         {{ app_name }}
                     </td>
                 </tr>
                 <tr>
-                    <td class="mail-card">
+                    <td class="mail-card" style="background-color: #dbe2f0 !important;">
                         <table width="100%" cellspacing="0" cellpadding="0" border="0">
                             <tr>
                                 <td>
-                                    <h1 class="mail-title">
+                                    <h1 class="mail-title" style="color: #273427 !important;">
                                         <!--[if mso]><span style="font-family: sans-serif;"><![endif]-->
                                         Welcome, {{ user_name }}!
                                         <!--[if mso]></span><![endif]-->
                                     </h1>
-                                    <p class="mail-text">
+                                    <p class="mail-text" style="color: #2e2e2e !important;">
                                         <!--[if mso]><span style="font-family: sans-serif;"><![endif]-->
                                         Thank you for registering. Please confirm your email address by clicking the button below.
                                         <!--[if mso]></span><![endif]-->
@@ -128,7 +132,7 @@
                                             </center>
                                         </v:roundrect>
                                         <![endif]-->
-                                        <a href="{{ confirm_url }}" class="mail-button">
+                                        <a href="{{ confirm_url }}" class="mail-button" style="background-color: #273427 !important; border-color: #273427 !important; color: #ffffff !important;">
                                             Confirm Email
                                         </a>
                                     </div>
@@ -136,11 +140,11 @@
                             </tr>
                             <tr>
                                 <td>
-                                    <p class="mail-text" style="font-size: 12px; opacity: 0.8;">
+                                    <p class="mail-text" style="color: #2e2e2e !important;">
                                         <!--[if mso]><span style="font-family: sans-serif;"><![endif]-->
                                         If you're having trouble with the button above, copy and paste the URL below into your web browser:
                                         <br/>
-                                        {{ confirm_url }}
+                                        <span style="color: #273427 !important;">{{ confirm_url }}</span>
                                         <!--[if mso]></span><![endif]-->
                                     </p>
                                 </td>
