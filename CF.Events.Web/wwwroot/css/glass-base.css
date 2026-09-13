@@ -30,17 +30,17 @@ body.glass-theme:before {
     left: 0;
     right: 0;
     bottom: 0;
-    background-image: url("/img/bg_floral_edges.png");
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-    z-index: -1;
+    background-image: url("/img/bg_floral_edges.png") !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-attachment: fixed !important;
+    background-repeat: no-repeat !important;
+    z-index: -1 !important;
 }
 
 @media (max-width: 768px) {
     body.glass-theme:before {
-        background-image: url("/img/bg_floral_edges_vertical.png");
+        background-image: url("/img/bg_floral_edges_vertical.png") !important;
     }
 
     .glass-theme footer {
@@ -69,7 +69,6 @@ body.glass-theme:before {
     width: 100%;
     position: relative;
     overflow: hidden;
-
 }
 
 .glass-card-lg {
@@ -179,8 +178,7 @@ hr.glass-divider {
 
 .glass-sidebar .nav-item i,
 .glass-sidebar .nav-item .nav-link {
-    color: #fff;
-!important;
+    color: #fff !important;
 }
 
 .glass-sidebar .nav-link:hover {
@@ -280,7 +278,6 @@ hr.glass-divider {
     cursor: pointer;
     transition: all 0.3s ease;
     text-decoration: none;
-
 }
 
 .btn-glass-light {
