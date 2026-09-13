@@ -60,7 +60,7 @@
     handleMobileChange(mobileQuery);
     mobileQuery.addEventListener('change', handleMobileChange);
 
-    // Auto-open after 15 seconds
+    // Auto-open after 5 seconds
     let autoOpenTimeout = setTimeout(() => {
         if (!bookContainer.classList.contains('open')) {
             openBook();

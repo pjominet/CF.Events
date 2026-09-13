@@ -2,20 +2,19 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>Invitation to {{ event_name }}</title>
+    <meta name="color-scheme" content="light only">
+    <title>Invitation for {{ event_date }}</title>
     <style type="text/css">
-        /* Fonts alignment with webapp */
+        :root {
+            color-scheme: light only !important;
+        }
+
         body, table, td, p, a, span {
             font-family: "Segoe UI", sans-serif;
         }
 
         .serif {
             font-family: "Georgia", serif !important;
-        }
-
-        .cursive {
-            font-family: "Brush Script MT", cursive !important;
         }
 
         .footnote {
@@ -28,11 +27,11 @@
             padding: 0;
             width: 100% !important;
             min-height: 100vh;
-            background-color: #f9f9f9;
+            background-color: #f9f9f9 !important;
         }
 
         .mail-wrapper {
-            background-color: #f9f9f9;
+            background-color: #f9f9f9 !important;
             padding: 40px 0;
             vertical-align: top;
         }
@@ -43,21 +42,21 @@
         }
 
         .mail-card {
-            background: #731616; /* Fallback */
-            background: linear-gradient(155deg, #5a0819 0%, #731616 25%, #8c1c1c 50%, #731616 75%, #5a0819 100%);
+            background: #731616 !important; /* Fallback */
+            background: linear-gradient(155deg, #5a0819 0%, #731616 25%, #8c1c1c 50%, #731616 75%, #5a0819 100%) !important;
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
         }
 
         .mail-card-inner {
-            border: 3px solid #c5b358;
+            border: 3px solid #c5b358 !important;
             border-radius: 4px;
             padding: 40px;
         }
 
         .mail-logo {
-            color: #2e2e2e;
+            color: #2e2e2e !important;
             font-size: 14px;
             font-weight: 700;
             text-align: center;
@@ -70,14 +69,14 @@
             margin: 0 0 20px;
             font-size: 28px;
             font-weight: bold;
-            color: #f5f5f5;
+            color: #f5f5f5 !important;
         }
 
         .mail-text {
             font-style: italic;
             font-size: 18px;
             line-height: 1.6;
-            color: #f5f5f5;
+            color: #f5f5f5 !important;
             margin: 16px 0;
         }
 
@@ -90,8 +89,8 @@
         }
 
         .mail-button {
-            background-color: #c5b358;
-            border: 1px solid #c5b358;
+            background-color: #c5b358 !important;
+            border: 1px solid #c5b358 !important;
             border-radius: 12px;
             color: #731616 !important;
             display: inline-block;
@@ -110,12 +109,12 @@
             padding-top: 20px;
             border-top: 1px solid rgba(197, 179, 88, 0.4);
             font-size: 16px;
-            color: #f5f5f5;
+            color: #f5f5f5 !important;
             text-align: center;
         }
 
         .mail-footer a {
-            color: #c5b358;
+            color: #c5b358 !important;
             text-decoration: underline;
         }
 
@@ -137,35 +136,35 @@
         }
     </style>
 </head>
-<body>
-<table class="mail-body" width="100%" cellspacing="0" cellpadding="0" border="0">
+<body style="background-color: #f9f9f9 !important;">
+<table class="mail-body" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f9f9f9 !important;">
     <tr>
-        <td class="mail-wrapper" align="center">
+        <td class="mail-wrapper" align="center" style="background-color: #f9f9f9 !important;">
             <table class="mail-container" cellspacing="0" cellpadding="0" border="0">
                 <tr>
-                    <td class="mail-logo">
+                    <td class="mail-logo" style="color: #2e2e2e !important;">
                         {{ app_name }}
                     </td>
                 </tr>
                 <tr>
-                    <td class="mail-card">
+                    <td class="mail-card" style="background: #731616 !important; background: linear-gradient(155deg, #5a0819 0%, #731616 25%, #8c1c1c 50%, #731616 75%, #5a0819 100%) !important;">
                         <table width="100%" cellspacing="0" cellpadding="0" border="0">
                             <tr>
-                                <td class="mail-card-inner">
+                                <td class="mail-card-inner" style="border: 3px solid #c5b358 !important;">
                                     <table width="100%" cellspacing="0" cellpadding="0" border="0">
                                         <tr>
                                             <td>
-                                                <h1 class="mail-title">
+                                                <h1 class="mail-title" style="color: #f5f5f5 !important;">
                                                     <!--[if mso]><span style="font-family: sans-serif;"><![endif]-->
                                                     Hi {{ user_name }}!
                                                     <!--[if mso]></span><![endif]-->
                                                 </h1>
-                                                <p class="mail-text serif">
+                                                <p class="mail-text serif" style="color: #f5f5f5 !important;">
                                                     <!--[if mso]><span style="font-family: serif;"><![endif]-->
-                                                    We hope you can join us for our <strong>{{ event_name }}</strong> on {{ event_date }}.
+                                                    We hope you can join us for our <strong style="color: #c5b358 !important;">{{ event_name }}</strong> on {{ event_date }}.
                                                     <!--[if mso]></span><![endif]-->
                                                 </p>
-                                                <p class="mail-text serif">
+                                                <p class="mail-text serif" style="color: #f5f5f5 !important;">
                                                     <!--[if mso]><span style="font-family: serif;"><![endif]-->
                                                     Check out your invitation in detail and send us your response before {{ deadline }}.
                                                     <!--[if mso]></span><![endif]-->
@@ -183,7 +182,7 @@
                                                         </center>
                                                     </v:roundrect>
                                                     <![endif]-->
-                                                    <a href="{{ invite_url }}" class="mail-button">
+                                                    <a href="{{ invite_url }}" class="mail-button" style="background-color: #c5b358 !important; border-color: #c5b358 !important; color: #731616 !important;">
                                                         Access Invitation
                                                     </a>
                                                 </div>
@@ -191,19 +190,19 @@
                                         </tr>
                                         <tr>
                                             <td>
-                                                <p class="mail-text footnote">
+                                                <p class="mail-text footnote" style="color: #f5f5f5 !important;">
                                                     <!--[if mso]><span style="font-family: sans-serif;"><![endif]-->
                                                     If you're having trouble with the button above, copy and paste the URL below into your web browser:
                                                     <br/>
-                                                    <a href="{{ invite_url }}" style="color: #c5b358;">{{ invite_url }}</a>
+                                                    <a href="{{ invite_url }}" style="color: #c5b358 !important;">{{ invite_url }}</a>
                                                     <!--[if mso]></span><![endif]-->
                                                 </p>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td class="mail-footer">
+                                            <td class="mail-footer" style="border-top-color: rgba(197, 179, 88, 0.4) !important; color: #f5f5f5 !important;">
                                                 <!--[if mso]><span style="font-family: sans-serif;"><![endif]-->
-                                                If you have any questions, reply to this email or write an new email to <a href="mailto:{{ reply_email }}?subject=Questions about the Wedding">{{ reply_email }}</a>.
+                                                If you have any questions, reply to this email or write a new email to <a href="mailto:{{ reply_email }}?subject=Questions about the Wedding" style="color: #c5b358 !important;">{{ reply_email }}</a>.
                                                 <!--[if mso]></span><![endif]-->
                                             </td>
                                         </tr>
