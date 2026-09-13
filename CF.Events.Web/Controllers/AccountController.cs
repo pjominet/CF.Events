@@ -74,12 +74,6 @@ public class AccountController(
             return BadRequest();
         }
 
-        if (authCode.ValidUntil <= DateTime.UtcNow)
-        {
-            logger.LogWarning("Expired invite code was used: {Code}, user redirected to login", code);
-            return LocalRedirect("/");
-        }
-
         var user = await db.Users.FirstOrDefaultAsync(u => u.Id == authCode.UserId);
 
         if (user is null)
@@ -92,6 +86,12 @@ public class AccountController(
         {
             logger.LogWarning("Inactive user {Id} tried to login", user.Id);
             return BadRequest();
+        }
+
+        if (authCode.ValidUntil <= DateTime.UtcNow)
+        {
+            logger.LogWarning("Expired invite code was used: {Code}, user redirected to login", code);
+            return RedirectToPage("/account/email-login", new { email = user.Email });
         }
 
         // Invalidate the code immediately after successful retrieval

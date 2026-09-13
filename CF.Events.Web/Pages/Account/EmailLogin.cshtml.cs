@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Models;
 using CF.Events.Web.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -20,6 +21,14 @@ public class EmailLoginModel(
     [BindProperty] public InputModel Input { get; set; } = new();
 
     public bool EmailSent { get; set; }
+
+    public IActionResult OnGet(string? email = null)
+    {
+        if (email.HasValue())
+            Input.Email = email;
+
+        return Page();
+    }
 
     public async Task<IActionResult> OnPostAsync()
     {
