@@ -69,10 +69,7 @@ public class AccountController(
         var authCode = await db.AuthCodes.FirstOrDefaultAsync(c => c.Value == code);
 
         if (authCode is null || (eventId.HasValue && authCode.EventId != eventId))
-        {
-            logger.LogWarning("Invalid or event-mismatched invite code was used: {Code}", code);
-            return BadRequest();
-        }
+            return LocalRedirect(eventId.HasValue ? $"/events/{eventId}/invitation" : "/");
 
         var user = await db.Users.FirstOrDefaultAsync(u => u.Id == authCode.UserId);
 
@@ -90,6 +87,9 @@ public class AccountController(
 
         if (authCode.ValidUntil <= DateTime.UtcNow)
         {
+            if (User.IsAuthenticated())
+                return LocalRedirect(eventId.HasValue ? $"/events/{eventId}/invitation" : "/");
+
             logger.LogWarning("Expired invite code was used: {Code}, user redirected to login", code);
             return RedirectToPage("/account/email-login", new { email = user.Email });
         }
