@@ -27,7 +27,7 @@ public class EventInviteesModel(
     public UsersInviteRequest NewInvite { get; set; } = new();
 
     public List<InviteeRow> Invitees { get; private set; } = [];
-    public (int Count, int MaxPeopleSum) Stats { get; private set; }
+    public Statistics Stats { get; private set; }
 
     public List<SelectListItem> AvailableUsers { get; private set; } = [];
 
@@ -44,10 +44,6 @@ public class EventInviteesModel(
             .Select(ue => new { ue.AssignedAccommodationCode, ue.User, InvitationEmailSent = ue.InviteEmailSent, SaveTheDateSent = ue.SaveTheDateEmailSent, ue.ScheduledFor })
             .ToList();
 
-        Stats = (
-            invitedUsers.Count,
-            invitedUsers.Sum(iu => iu.User.GuestGroup?.MaxPeople ?? 1)
-        );
         var rsvps = db.Rsvps.Where(r => r.EventId == id).ToList();
 
         var unavailableUsers = new HashSet<string>();
@@ -72,6 +68,13 @@ public class EventInviteesModel(
                 })
                 .OrderBy(i => i.DisplayName)
         ];
+
+        Stats = new Statistics(
+            invitedUsers.Count,
+            invitedUsers.Sum(iu => iu.User.GuestGroup?.MaxPeople ?? 1),
+            Invitees.Count(i => i.Status is AttendanceStatus.Attending),
+            Invitees.Count(i => i.Status is AttendanceStatus.Declined)
+        );
 
         AvailableUsers = await (from u in db.Users
                 join ur in db.UserRoles on u.Id equals ur.UserId
@@ -362,6 +365,8 @@ public class EventInviteesModel(
     }
 
     public record InviteeRow(string UserId, string DisplayName, string Email, string? AssignedAccommodationCode, AttendanceStatus Status, DateTime? InvitationEmailSent, DateTime? SaveTheDateSent, DateTime? ScheduledFor);
+
+    public record Statistics(int Count, int MaxPeopleSum, int Attending, int Declined);
 }
 
 public enum AttendanceStatus

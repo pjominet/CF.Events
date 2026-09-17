@@ -30,10 +30,10 @@
     </div>
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body px-3 py-2">
-            <h5 class="card-title">Invite guests</h5>
+            <h5 class="card-title">Add guests to this event</h5>
             @if (Model.AvailableUsers.Count == 0)
             {
-                <p class="text-muted mb-0">All registered <strong>guests</strong> are already invited. Use <a href="/admin/users">Invite New Person</a> to add someone new.</p>
+                <p class="text-muted mb-0 small">All registered and available <strong>guests</strong> were already added. Use <a href="/admin/users">Invite New Person</a> to add someone new.</p>
             }
             else
             {
@@ -97,7 +97,17 @@
                     </div>
                 </form>
             }
-            <div class="mt-2">Current Invitee Count: <strong>@Model.Stats.Count (@Model.Stats.MaxPeopleSum)</strong></div>
+            <div class="mt-2 d-flex gap-4">
+                <span class="invitee-status-filter user-select-none" data-status="" role="button" style="cursor: pointer;" title="Click reset any filters" data-bs-toggle="tooltip">
+                    Current Invitee Count: <strong>@Model.Stats.Count (@Model.Stats.MaxPeopleSum)</strong>
+                </span>
+                <span class="invitee-status-filter user-select-none" data-status="attending" role="button" style="cursor: pointer;" title="Click to filter by Attending" data-bs-toggle="tooltip">
+                    Attending: <strong class="text-success">@Model.Stats.Attending</strong>
+                </span>
+                <span class="invitee-status-filter user-select-none" data-status="declined" role="button" style="cursor: pointer;" title="Click to filter by Declined" data-bs-toggle="tooltip">
+                    Declined: <strong class="text-danger">@Model.Stats.Declined</strong>
+                </span>
+            </div>
         </div>
     </div>
 
@@ -168,7 +178,7 @@
                     <tbody>
                     @foreach (var invitee in Model.Invitees)
                     {
-                        <tr>
+                        <tr data-status="@invitee.Status.ToString().ToLower()">
                             <td>
                                 <input class="form-check-input invitee-checkbox" type="checkbox" value="@invitee.UserId">
                             </td>

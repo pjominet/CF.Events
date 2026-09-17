@@ -53,17 +53,21 @@
 
     selectAllCheckbox?.addEventListener('change', function () {
         inviteeCheckboxes.forEach(cb => {
-            cb.checked = this.checked;
+            const row = cb.closest('tr');
+            if (!row || !row.classList.contains('d-none')) {
+                cb.checked = this.checked;
+            }
         });
         updateBulkButtons();
     });
 
     inviteeCheckboxes.forEach(cb => {
         cb.addEventListener('change', function () {
+            const visibleCheckboxes = Array.from(inviteeCheckboxes).filter(c => !c.closest('tr')?.classList.contains('d-none'));
             if (!this.checked) {
                 selectAllCheckbox.checked = false;
             } else {
-                selectAllCheckbox.checked = Array.from(inviteeCheckboxes).every(c => c.checked);
+                selectAllCheckbox.checked = visibleCheckboxes.length > 0 && visibleCheckboxes.every(c => c.checked);
             }
             updateBulkButtons();
         });
@@ -77,39 +81,80 @@
     }
 
     const searchInput = document.getElementById('inviteeSearchInput');
-    if (searchInput) {
-        const applyFilter = (searchTerm) => {
-            const rows = document.querySelectorAll('table tbody tr');
-            rows.forEach(row => {
-                const displayName = row.querySelector('td:nth-child(2)')?.textContent?.toLowerCase() || '';
-                const email = row.querySelector('td:nth-child(3)')?.textContent?.toLowerCase() || '';
+    const statusFilters = document.querySelectorAll('.invitee-status-filter');
+    const rows = document.querySelectorAll('table tbody tr');
 
-                if (displayName.includes(searchTerm) || email.includes(searchTerm)) {
-                    row.classList.remove('d-none');
-                } else {
-                    row.classList.add('d-none');
-                }
-            });
-        };
+    const searchStorageKey = 'inviteeSearch-' + window.location.pathname;
+    const statusStorageKey = 'inviteeStatus-' + window.location.pathname;
 
-        searchInput.addEventListener('input', function () {
-            const searchTerm = this.value.toLowerCase().trim();
-            applyFilter(searchTerm);
+    let activeStatus = sessionStorage.getItem(statusStorageKey) || '';
 
-            // Save search term to sessionStorage
-            const storageKey = 'inviteeSearch-' + window.location.pathname;
-            sessionStorage.setItem(storageKey, this.value);
+    function applyFilters() {
+        const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+        rows.forEach(row => {
+            const displayName = row.querySelector('td:nth-child(2)')?.textContent?.toLowerCase() || '';
+            const email = row.querySelector('td:nth-child(3)')?.textContent?.toLowerCase() || '';
+            const rowStatus = (row.dataset.status || row.querySelector('td:nth-child(7)')?.textContent || '').toLowerCase().trim();
+
+            const matchesSearch = !searchTerm || displayName.includes(searchTerm) || email.includes(searchTerm);
+            const matchesStatus = !activeStatus || rowStatus === activeStatus;
+
+            if (matchesSearch && matchesStatus) {
+                row.classList.remove('d-none');
+            } else {
+                row.classList.add('d-none');
+            }
         });
 
-        // Re-apply filter on page load from session storage
-        const storageKey = 'inviteeSearch-' + window.location.pathname;
-        const initialSearch = sessionStorage.getItem(storageKey);
+        statusFilters.forEach(btn => {
+            const btnStatus = (btn.dataset.status || '').toLowerCase().trim();
+            if (activeStatus && btnStatus === activeStatus) {
+                btn.classList.add('text-decoration-underline', 'fw-bold');
+                btn.style.opacity = '1';
+            } else if (activeStatus && btnStatus !== activeStatus) {
+                btn.classList.remove('text-decoration-underline', 'fw-bold');
+                btn.style.opacity = '0.6';
+            } else {
+                btn.classList.remove('text-decoration-underline', 'fw-bold');
+                btn.style.opacity = '1';
+            }
+        });
+    }
 
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            applyFilters();
+            sessionStorage.setItem(searchStorageKey, this.value);
+        });
+
+        const initialSearch = sessionStorage.getItem(searchStorageKey);
         if (initialSearch) {
             searchInput.value = initialSearch;
-            applyFilter(initialSearch.toLowerCase().trim());
         }
     }
+
+    if (statusFilters.length > 0) {
+        statusFilters.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const targetStatus = (this.dataset.status || '').toLowerCase().trim();
+                if (activeStatus === targetStatus && targetStatus !== '') {
+                    activeStatus = '';
+                } else {
+                    activeStatus = targetStatus;
+                }
+
+                if (activeStatus) {
+                    sessionStorage.setItem(statusStorageKey, activeStatus);
+                } else {
+                    sessionStorage.removeItem(statusStorageKey);
+                }
+                applyFilters();
+            });
+        });
+    }
+
+    applyFilters();
 
     window.executeBulkAction = async function (actionType) {
         const selectedUserIds = Array.from(inviteeCheckboxes)
