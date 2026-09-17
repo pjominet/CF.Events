@@ -27,7 +27,7 @@ public class EventInviteesModel(
     public UsersInviteRequest NewInvite { get; set; } = new();
 
     public List<InviteeRow> Invitees { get; private set; } = [];
-    public Statistics Stats { get; private set; }
+    public required Statistics Stats { get; set; }
 
     public List<SelectListItem> AvailableUsers { get; private set; } = [];
 
@@ -41,7 +41,7 @@ public class EventInviteesModel(
             .Where(ue => ue.EventId == id)
             .Include(ue => ue.User)
             .ThenInclude(u => u.GuestGroup)
-            .Select(ue => new { ue.AssignedAccommodationCode, ue.User, InvitationEmailSent = ue.InviteEmailSent, SaveTheDateSent = ue.SaveTheDateEmailSent, ue.ScheduledFor })
+            .Select(ue => new { ue.AssignedAccommodationCode, ue.User, InvitationEmailSent = ue.InviteEmailSent, SaveTheDateSent = ue.SaveTheDateEmailSent, ue.ScheduledFor, ue.InvitationPriority })
             .ToList();
 
         var rsvps = db.Rsvps.Where(r => r.EventId == id).ToList();
@@ -64,7 +64,8 @@ public class EventInviteesModel(
                         status,
                         iu.InvitationEmailSent,
                         iu.SaveTheDateSent,
-                        iu.ScheduledFor);
+                        iu.ScheduledFor,
+                        iu.InvitationPriority);
                 })
                 .OrderBy(i => i.DisplayName)
         ];
@@ -330,31 +331,6 @@ public class EventInviteesModel(
         return RedirectToPage(new { id });
     }
 
-    public async Task<IActionResult> OnPostBulkUpdateAccommodationCodesAsync(int id, [ModelBinder(typeof(JsonModelBinder))] Dictionary<string, string?> updates)
-    {
-        if (updates.Count <= 0)
-        {
-            toastNotification.AddWarningToastMessage("No updates to save");
-            return RedirectToPage(new { id });
-        }
-
-        var userIds = updates.Keys;
-        var userEvents = await db.EventUsers
-            .Where(r => r.EventId == id && userIds.Contains(r.UserId))
-            .ToListAsync();
-
-        foreach (var userEvent in userEvents)
-        {
-            if (updates.TryGetValue(userEvent.UserId, out var code))
-                userEvent.AssignedAccommodationCode = !code.HasValue() ? null : code;
-        }
-
-        await db.SaveChangesAsync();
-
-        toastNotification.AddSuccessToastMessage("Accommodation codes updated successfully");
-        return RedirectToPage(new { id });
-    }
-
     public List<SelectListItem> GetAccommodationCodes(string? currentCode)
     {
         var list = EventData.AccommodationCodes
@@ -364,7 +340,7 @@ public class EventInviteesModel(
         return list;
     }
 
-    public record InviteeRow(string UserId, string DisplayName, string Email, string? AssignedAccommodationCode, AttendanceStatus Status, DateTime? InvitationEmailSent, DateTime? SaveTheDateSent, DateTime? ScheduledFor);
+    public record InviteeRow(string UserId, string DisplayName, string Email, string? AssignedAccommodationCode, AttendanceStatus Status, DateTime? InvitationEmailSent, DateTime? SaveTheDateSent, DateTime? ScheduledFor, ushort InvitationPriority = 1);
 
     public record Statistics(int Count, int MaxPeopleSum, int Attending, int Declined);
 }

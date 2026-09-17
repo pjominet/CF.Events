@@ -138,13 +138,6 @@
                         <input type="text" id="inviteeSearchInput" class="form-control" placeholder="Search invitees...">
                     </div>
                 </div>
-                <form id="bulkAccommodationForm" method="post" asp-page-handler="BulkUpdateAccommodationCodes" asp-route-id="@Model.EventData.Id">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="updates" id="bulkAccommodationUpdates"/>
-                    <button type="submit" id="saveAccommodationBtn" class="btn btn-success btn-sm d-none">
-                        <i class="bi bi-save me-1"></i>Update Accommodation Codes
-                    </button>
-                </form>
                 <form id="bulkActionForm" method="post"
                       data-resend-url="@Url.Action("SendInvites", "Event", new { eventId = Model.EventData.Id })"
                       data-remove-url="@Url.Page("", "BulkRemove", new { id = Model.EventData.Id })"
@@ -159,7 +152,7 @@
 
     <div class="card shadow-sm border-0">
         <div class="card-body p-0">
-            <div id="inviteesTableContainer" data-scroll-persist class="table-responsive" style="max-height: 60vh; overflow-y: auto;">
+            <div id="inviteesTableContainer" data-scroll-persist data-event-id="@Model.EventData.Id" class="table-responsive" style="max-height: 60vh; overflow-y: auto;">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-success sticky-top">
                     <tr>
@@ -169,6 +162,7 @@
                         <th>Display Name</th>
                         <th>Email</th>
                         <th>Assigned Accommodation Code</th>
+                        <th>Invitation Priority</th>
                         <th class="text-center">Save Date Sent</th>
                         <th class="text-center">Invitation Sent</th>
                         <th class="text-center">Status</th>
@@ -178,18 +172,27 @@
                     <tbody>
                     @foreach (var invitee in Model.Invitees)
                     {
-                        <tr data-status="@invitee.Status.ToString().ToLower()">
+                        <tr data-status="@invitee.Status.ToString().ToLower()" data-user-id="@invitee.UserId">
                             <td>
                                 <input class="form-check-input invitee-checkbox" type="checkbox" value="@invitee.UserId">
                             </td>
                             <td class="fw-bold">@invitee.DisplayName</td>
                             <td>@invitee.Email</td>
                             <td>
-                                <div class="d-flex align-items-center w-100 gap-2">
-                                    <select name="updates[@invitee.UserId]" class="form-select form-select-sm accommodation-select"
+                                <div class="d-flex align-items-center w-100">
+                                    <select class="form-select form-select-sm accommodation-select"
+                                            data-user-id="@invitee.UserId"
                                             data-original-value="@invitee.AssignedAccommodationCode"
                                             asp-items="@Model.GetAccommodationCodes(invitee.AssignedAccommodationCode)">
                                     </select>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center w-100">
+                                    <input type="number" min="1" max="3" class="form-control form-control-sm priority-input"
+                                           data-user-id="@invitee.UserId"
+                                           value="@invitee.InvitationPriority"
+                                           data-original-value="@invitee.InvitationPriority"/>
                                 </div>
                             </td>
                             <td class="text-center">
@@ -251,7 +254,7 @@
                                             </button>
                                         </form>
                                     }
-                                    @if (Model.EventData.InvitationTemplateId.HasValue(false))
+                                    @if (Model.EventData.InvitationTemplateId.HasValue(false) && invitee.Status is AttendanceStatus.Pending)
                                     {
                                         <form method="post" asp-action="SendInvite" asp-controller="Event" asp-route-eventId="@Model.EventData.Id" class="d-inline">
                                             @Html.AntiForgeryToken()

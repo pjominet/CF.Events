@@ -95,7 +95,7 @@
         rows.forEach(row => {
             const displayName = row.querySelector('td:nth-child(2)')?.textContent?.toLowerCase() || '';
             const email = row.querySelector('td:nth-child(3)')?.textContent?.toLowerCase() || '';
-            const rowStatus = (row.dataset.status || row.querySelector('td:nth-child(7)')?.textContent || '').toLowerCase().trim();
+            const rowStatus = (row.dataset.status || row.querySelector('td:nth-child(8)')?.textContent || '').toLowerCase().trim();
 
             const matchesSearch = !searchTerm || displayName.includes(searchTerm) || email.includes(searchTerm);
             const matchesStatus = !activeStatus || rowStatus === activeStatus;
@@ -304,62 +304,127 @@
         modalEventIdInput.value = eventId;
     });
 
-    // Bulk Accommodation Code Updates tracking
+    // Silent optimistic updates for Accommodation Code and Priority
     const accommodationSelects = document.querySelectorAll('.accommodation-select');
-    const saveAccommodationBtn = document.getElementById('saveAccommodationBtn');
+    const priorityInputs = document.querySelectorAll('.priority-input');
+    const inviteesTableContainer = document.getElementById('inviteesTableContainer');
+    const eventId = inviteesTableContainer?.dataset.eventId || window.location.pathname.match(/\/events\/(\d+)/)?.[1];
 
-    if (accommodationSelects.length > 0 && saveAccommodationBtn) {
-        const bulkAccommodationForm = document.getElementById('bulkAccommodationForm');
-        const updatesInput = document.getElementById('bulkAccommodationUpdates');
+    if ((accommodationSelects.length > 0 || priorityInputs.length > 0) && eventId) {
+        const pendingUpdates = new Map();
+        let debounceTimer = null;
+        const BUNDLE_DELAY_MS = 2000;
 
-        accommodationSelects.forEach(select => {
-            select.addEventListener('change', function () {
-                const originalValue = this.dataset.originalValue || '';
-                const currentValue = this.value;
+        function queueUpdate(userId, changes, element) {
+            if (!userId) return;
 
+            if (debounceTimer) {
+                clearTimeout(debounceTimer);
+            }
+
+            const existing = pendingUpdates.get(userId) || { userId };
+            if (changes.accommodationCode !== undefined) {
+                existing.accommodationCode = changes.accommodationCode;
+            }
+            if (changes.priority !== undefined) {
+                existing.priority = changes.priority;
+            }
+            pendingUpdates.set(userId, existing);
+
+            if (element) {
+                const originalValue = element.dataset.originalValue || '';
+                const currentValue = String(element.value);
                 if (currentValue !== originalValue) {
-                    this.classList.add('border-info');
+                    element.classList.add('border-warning');
                 } else {
-                    this.classList.remove('border-info');
+                    element.classList.remove('border-warning');
                 }
+            }
 
-                updateUpdatesInput();
-                updateSaveButtonVisibility();
-            });
-        });
-
-        if (bulkAccommodationForm) {
-            bulkAccommodationForm.addEventListener('submit', function () {
-                showLoadingOverlay();
-            });
-        }
-
-        function updateUpdatesInput() {
-            if (!updatesInput) return;
-
-            const updates = {};
-            accommodationSelects.forEach(select => {
-                const originalValue = select.dataset.originalValue || '';
-                if (select.value !== originalValue) {
-                    const userId = select.name.match(/\[(.*?)\]/)[1];
-                    updates[userId] = select.value;
-                }
-            });
-
-            updatesInput.value = JSON.stringify(updates);
-        }
-
-        function updateSaveButtonVisibility() {
-            const anyModified = Array.from(accommodationSelects).some(select => {
-                const originalValue = select.dataset.originalValue || '';
-                return select.value !== originalValue;
-            });
-
-            if (anyModified) {
-                saveAccommodationBtn.classList.remove('d-none');
-            } else {
-                saveAccommodationBtn.classList.add('d-none');
+            if (pendingUpdates.size > 0) {
+                debounceTimer = setTimeout(flushUpdates, BUNDLE_DELAY_MS);
             }
         }
+
+        async function flushUpdates() {
+            if (pendingUpdates.size === 0) return;
+
+            const updatesToSend = Array.from(pendingUpdates.values());
+            pendingUpdates.clear();
+
+            try {
+                const response = await fetch(`/events/${eventId}/update-invitees`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(updatesToSend)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    updatesToSend.forEach(update => {
+                        if (update.accommodationCode !== undefined) {
+                            const select = document.querySelector(`.accommodation-select[data-user-id="${update.userId}"]`);
+                            if (select) {
+                                select.dataset.originalValue = update.accommodationCode;
+                                select.classList.remove('border-warning');
+                                select.classList.add('border-success');
+                            }
+                        }
+                        if (update.priority !== undefined) {
+                            const input = document.querySelector(`.priority-input[data-user-id="${update.userId}"]`);
+                            if (input) {
+                                input.dataset.originalValue = update.priority.toString();
+                                input.classList.remove('border-warning');
+                                input.classList.add('border-success');
+                            }
+                        }
+                    });
+
+                    if (typeof toastr !== 'undefined' && result && result.count > 0) {
+                        let message = `Successfully updated ${result.count} invitee`;
+                        if (result.count > 1) {
+                            message += 's';
+                        }
+                        toastr.success(message);
+                    }
+                } else {
+                    console.error('Failed to update invitees:', response.statusText);
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error('Failed to update invitees');
+                    }
+                }
+            } catch (error) {
+                console.error('Error during silent update of invitees:', error);
+                if (typeof toastr !== 'undefined') {
+                    toastr.error('An error occurred while updating invitees');
+                }
+            }
+        }
+
+        accommodationSelects.forEach(select => {
+            function handleAccommodationChange() {
+                const userId = this.dataset.userId;
+                queueUpdate(userId, { accommodationCode: this.value }, this);
+            }
+
+            select.addEventListener('input', handleAccommodationChange);
+            select.addEventListener('change', handleAccommodationChange);
+        });
+
+        priorityInputs.forEach(input => {
+            function handlePriorityChange() {
+                const userId = this.dataset.userId;
+                const priority = parseInt(this.value, 10);
+                if (!isNaN(priority) && priority >= 1 && priority <= 3) {
+                    queueUpdate(userId, { priority: priority }, this);
+                }
+            }
+
+            input.addEventListener('input', handlePriorityChange);
+            input.addEventListener('change', handlePriorityChange);
+        });
     }
 })();
