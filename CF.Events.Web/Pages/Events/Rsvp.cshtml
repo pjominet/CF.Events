@@ -108,25 +108,24 @@
                     <!-- STEP 2: Participants -->
                     <div class="form-step d-none" id="step-2">
                         <h3 class="h5 serif">Who is joining us?</h3>
+                        <p class="text-muted small">Tell us who is coming</p>
                         <partial name="Shared/_RsvpParticipants" model="(Model.NewRsvp.Participants, Model.MaxParticipants)"/>
                     </div>
 
                     <!-- STEP 3: Attendance Schedule & Accommodation -->
                     <div class="form-step d-none" id="step-3">
                         <h3 class="h5 serif">Attendance</h3>
-                        <section class="row mb-3">
-                            <div class="col-12 mt-0">
-                                <partial name="Shared/_RsvpAttendanceSchedule" model="(Model.EventData.EventDuration, Model.NewRsvp.Participants, Model.NewRsvp.ParticipantsAttendance)"/>
-                            </div>
-                        </section>
+                        <p class="text-muted small">Tell us who attends for which day(s)</p>
+                        <partial name="Shared/_RsvpAttendanceSchedule" model="(Model.EventData.EventDuration, Model.NewRsvp.Participants, Model.NewRsvp.ParticipantsAttendance)"/>
                     </div>
 
                     <!-- STEP 4: Dietary Options -->
                     <div class="form-step d-none" id="step-4">
                         <section>
                             <h3 class="h5 serif">Dietary Requirements</h3>
+                            <p class="text-muted small">Tell us if you have any special dietary requirements or intolerances</p>
                             <partial name="Shared/_RsvpDietaryOptions" model="(Model.NewRsvp.Participants, Model.NewRsvp.ParticipantsDiets)"/>
-                            <p class="text-muted mb-0 mt-2 fst-italic">
+                            <p class="text-muted mb-0 mt-2 fst-italic small">
                                 <i class="bi bi-info-circle text-info me-2"></i>Leave all empty, if none apply.
                             </p>
                         </section>
@@ -135,8 +134,9 @@
                     <!-- STEP 5: Comments & Donation -->
                     <div class="form-step d-none" id="step-5">
                         <section class="commentSection">
-                            <h3 class="h5 serif">Comments</h3>
-                            <textarea asp-for="NewRsvp.Comments" class="form-control" maxlength="500" placeholder="Add a comment... (optional)" rows="3" data-max-length="500" data-counter-id="feedback-counter"></textarea>
+                            <h3 class="h5 serif">Optional Comments</h3>
+                            <p class="text-muted small">Anything you wish to add?</p>
+                            <textarea asp-for="NewRsvp.Comments" class="form-control" maxlength="500" rows="4" data-max-length="500" data-counter-id="feedback-counter"></textarea>
                             <div class="d-flex justify-content-end mt-2">
                                 <small id="feedback-counter" class="text-muted"></small>
                             </div>
