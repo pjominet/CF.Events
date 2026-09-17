@@ -14,9 +14,11 @@
     }
 
     function initTooltips(container = document) {
-        container.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
-            // eslint-disable-next-line no-undef
-            new bootstrap.Tooltip(el);
+        container.addEventListener('mouseover', function (e) {
+            const target = e.target.closest('[data-bs-toggle="tooltip"]');
+            if (target && !bootstrap.Tooltip.getInstance(target)) {
+                new bootstrap.Tooltip(target).show();
+            }
         });
     }
 

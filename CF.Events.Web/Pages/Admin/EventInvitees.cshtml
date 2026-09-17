@@ -179,7 +179,7 @@
                             <td class="fw-bold">@invitee.DisplayName</td>
                             <td>@invitee.Email</td>
                             <td>
-                                <div class="d-flex align-items-center w-100">
+                                <div class="w-100">
                                     <select class="form-select form-select-sm accommodation-select"
                                             data-user-id="@invitee.UserId"
                                             data-original-value="@invitee.AssignedAccommodationCode"
@@ -187,13 +187,15 @@
                                     </select>
                                 </div>
                             </td>
-                            <td>
-                                <div class="d-flex align-items-center w-100">
-                                    <input type="number" min="1" max="3" class="form-control form-control-sm priority-input"
-                                           data-user-id="@invitee.UserId"
-                                           value="@invitee.InvitationPriority"
-                                           data-original-value="@invitee.InvitationPriority"/>
+                            <td class="priority-cell" data-user-id="@invitee.UserId">
+                                <div class="priority-display form-control form-control-sm">
+                                    @invitee.InvitationPriority
                                 </div>
+                                <input type="number" min="1" max="3"
+                                       class="form-control form-control-sm priority-input d-none"
+                                       value="@invitee.InvitationPriority"
+                                       data-user-id="@invitee.UserId"
+                                       data-original-value="@invitee.InvitationPriority" />
                             </td>
                             <td class="text-center">
                                 @if (invitee.SaveTheDateSent.HasValue)

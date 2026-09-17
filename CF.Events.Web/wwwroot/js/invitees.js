@@ -48,10 +48,11 @@
     }*/
 
     const selectAllCheckbox = document.getElementById('selectAllInvitees');
-    const inviteeCheckboxes = document.querySelectorAll('.invitee-checkbox');
+    const inviteesTableBody = document.querySelector('table tbody');
     const bulkActionButtons = document.querySelectorAll('.bulk-action-btn');
 
     selectAllCheckbox?.addEventListener('change', function () {
+        const inviteeCheckboxes = document.querySelectorAll('.invitee-checkbox');
         inviteeCheckboxes.forEach(cb => {
             const row = cb.closest('tr');
             if (!row || !row.classList.contains('d-none')) {
@@ -61,19 +62,22 @@
         updateBulkButtons();
     });
 
-    inviteeCheckboxes.forEach(cb => {
-        cb.addEventListener('change', function () {
+    inviteesTableBody?.addEventListener('change', function (e) {
+        if (e.target.classList.contains('invitee-checkbox')) {
+            const selectAllCheckbox = document.getElementById('selectAllInvitees');
+            const inviteeCheckboxes = document.querySelectorAll('.invitee-checkbox');
             const visibleCheckboxes = Array.from(inviteeCheckboxes).filter(c => !c.closest('tr')?.classList.contains('d-none'));
-            if (!this.checked) {
-                selectAllCheckbox.checked = false;
+            if (!e.target.checked) {
+                if (selectAllCheckbox) selectAllCheckbox.checked = false;
             } else {
-                selectAllCheckbox.checked = visibleCheckboxes.length > 0 && visibleCheckboxes.every(c => c.checked);
+                if (selectAllCheckbox) selectAllCheckbox.checked = visibleCheckboxes.length > 0 && visibleCheckboxes.every(c => c.checked);
             }
             updateBulkButtons();
-        });
+        }
     });
 
     function updateBulkButtons() {
+        const inviteeCheckboxes = document.querySelectorAll('.invitee-checkbox');
         const anyChecked = Array.from(inviteeCheckboxes).some(cb => cb.checked);
         bulkActionButtons.forEach(btn => {
             btn.disabled = !anyChecked;
@@ -82,7 +86,7 @@
 
     const searchInput = document.getElementById('inviteeSearchInput');
     const statusFilters = document.querySelectorAll('.invitee-status-filter');
-    const rows = document.querySelectorAll('table tbody tr');
+    const tableBody = inviteesTableBody;
 
     const searchStorageKey = 'inviteeSearch-' + window.location.pathname;
     const statusStorageKey = 'inviteeStatus-' + window.location.pathname;
@@ -91,6 +95,7 @@
 
     function applyFilters() {
         const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        const rows = tableBody ? tableBody.querySelectorAll('tr') : [];
 
         rows.forEach(row => {
             const displayName = row.querySelector('td:nth-child(2)')?.textContent?.toLowerCase() || '';
@@ -122,9 +127,15 @@
         });
     }
 
+    let filterDebounceTimer = null;
+    function debouncedApplyFilters() {
+        if (filterDebounceTimer) clearTimeout(filterDebounceTimer);
+        filterDebounceTimer = setTimeout(applyFilters, 250);
+    }
+
     if (searchInput) {
         searchInput.addEventListener('input', function () {
-            applyFilters();
+            debouncedApplyFilters();
             sessionStorage.setItem(searchStorageKey, this.value);
         });
 
@@ -157,6 +168,7 @@
     applyFilters();
 
     window.executeBulkAction = async function (actionType) {
+        const inviteeCheckboxes = document.querySelectorAll('.invitee-checkbox');
         const selectedUserIds = Array.from(inviteeCheckboxes)
             .filter(cb => cb.checked)
             .map(cb => cb.value);
@@ -305,12 +317,10 @@
     });
 
     // Silent optimistic updates for Accommodation Code and Priority
-    const accommodationSelects = document.querySelectorAll('.accommodation-select');
-    const priorityInputs = document.querySelectorAll('.priority-input');
     const inviteesTableContainer = document.getElementById('inviteesTableContainer');
     const eventId = inviteesTableContainer?.dataset.eventId || window.location.pathname.match(/\/events\/(\d+)/)?.[1];
 
-    if ((accommodationSelects.length > 0 || priorityInputs.length > 0) && eventId) {
+    if (inviteesTableContainer && eventId) {
         const pendingUpdates = new Map();
         let debounceTimer = null;
         const BUNDLE_DELAY_MS = 2000;
@@ -375,10 +385,15 @@
                         }
                         if (update.priority !== undefined) {
                             const input = document.querySelector(`.priority-input[data-user-id="${update.userId}"]`);
+                            const display = input?.closest('.priority-cell')?.querySelector('.priority-display');
                             if (input) {
                                 input.dataset.originalValue = update.priority.toString();
                                 input.classList.remove('border-warning');
                                 input.classList.add('border-success');
+                            }
+                            if (display) {
+                                display.classList.remove('border-warning');
+                                display.classList.add('border-success');
                             }
                         }
                     });
@@ -404,27 +419,61 @@
             }
         }
 
-        accommodationSelects.forEach(select => {
-            function handleAccommodationChange() {
-                const userId = this.dataset.userId;
-                queueUpdate(userId, { accommodationCode: this.value }, this);
-            }
+        // Priority click-to-edit delegation
+        inviteesTableBody.addEventListener('click', function (e) {
+            const display = e.target.closest('.priority-display');
+            if (display) {
+                const container = display.closest('.priority-cell');
+                const input = container.querySelector('.priority-input');
 
-            select.addEventListener('input', handleAccommodationChange);
-            select.addEventListener('change', handleAccommodationChange);
-        });
-
-        priorityInputs.forEach(input => {
-            function handlePriorityChange() {
-                const userId = this.dataset.userId;
-                const priority = parseInt(this.value, 10);
-                if (!isNaN(priority) && priority >= 1 && priority <= 3) {
-                    queueUpdate(userId, { priority: priority }, this);
+                display.classList.add('d-none');
+                input.classList.remove('d-none');
+                input.focus();
+                // Select text if it's a text input
+                if (input.tagName === 'INPUT') {
+                    input.select();
                 }
             }
+        });
 
-            input.addEventListener('input', handlePriorityChange);
-            input.addEventListener('change', handlePriorityChange);
+        inviteesTableBody.addEventListener('focusout', function (e) {
+            if (e.target.classList.contains('priority-input')) {
+                const input = e.target;
+                const container = input.closest('.priority-cell');
+                const display = container.querySelector('.priority-display');
+
+                display.textContent = input.value;
+                display.classList.remove('d-none');
+                input.classList.add('d-none');
+
+                // Sync border colors from input to display
+                display.classList.remove('border-warning', 'border-success', 'border-danger');
+                if (input.classList.contains('border-warning')) display.classList.add('border-warning');
+                if (input.classList.contains('border-success')) display.classList.add('border-success');
+                if (input.classList.contains('border-danger')) display.classList.add('border-danger');
+            }
+        }, true);
+
+        inviteesTableBody.addEventListener('input', function (e) {
+            if (e.target.classList.contains('accommodation-select')) {
+                const userId = e.target.dataset.userId;
+                queueUpdate(userId, { accommodationCode: e.target.value }, e.target);
+            }
+
+            if (e.target.classList.contains('priority-input')) {
+                const userId = e.target.dataset.userId;
+                const priority = parseInt(e.target.value, 10);
+                if (!isNaN(priority) && priority >= 1 && priority <= 3) {
+                    queueUpdate(userId, { priority: priority }, e.target);
+                }
+            }
+        });
+
+        inviteesTableBody.addEventListener('change', function (e) {
+            if (e.target.classList.contains('accommodation-select')) {
+                const userId = e.target.dataset.userId;
+                queueUpdate(userId, { accommodationCode: e.target.value }, e.target);
+            }
         });
     }
 })();

@@ -111,8 +111,12 @@
     }
 
     function initTooltips(container) {
-        const tooltipTriggerList = container.querySelectorAll('[data-bs-toggle="tooltip"]');
-        [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+        container.addEventListener('mouseover', function (e) {
+            const target = e.target.closest('[data-bs-toggle="tooltip"]');
+            if (target && !bootstrap.Tooltip.getInstance(target)) {
+                new bootstrap.Tooltip(target).show();
+            }
+        });
     }
 
     function escapeHtml(text) {
