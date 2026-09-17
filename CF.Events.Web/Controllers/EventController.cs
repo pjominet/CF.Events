@@ -419,4 +419,49 @@ public class EventController(
 
         return LocalRedirect($"/admin/events/{eventId}/invitees");
     }
+
+    [HttpPost("{eventId:int}/update-invitees")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> UpdateInvitees([FromRoute] int eventId, [FromBody] List<InviteeUpdateRequest> updates)
+    {
+        if (updates.Count == 0)
+            return Ok(new { count = 0 });
+
+        var userIds = updates
+            .Select(u => u.UserId)
+            .Where(id => !string.IsNullOrEmpty(id))
+            .Distinct()
+            .ToList();
+
+        if (userIds.Count == 0)
+            return Ok(new { count = 0 });
+
+        var eventUsers = await db.EventUsers
+            .Where(r => r.EventId == eventId && userIds.Contains(r.UserId))
+            .ToListAsync();
+
+        var userUpdatesGroups = updates
+            .Where(u => !string.IsNullOrEmpty(u.UserId))
+            .GroupBy(u => u.UserId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        foreach (var eventUser in eventUsers)
+        {
+            if (!userUpdatesGroups.TryGetValue(eventUser.UserId, out var userUpdates))
+                continue;
+
+            foreach (var update in userUpdates)
+            {
+                if (update.AccommodationCode.HasValue())
+                    eventUser.AssignedAccommodationCode = update.AccommodationCode;
+
+                if (update.Priority.HasValue)
+                    eventUser.InvitationPriority = update.Priority.Value;
+            }
+        }
+
+        await db.SaveChangesAsync();
+
+        return Ok(new { count = eventUsers.Count });
+    }
 }
