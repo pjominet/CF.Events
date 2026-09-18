@@ -1,5 +1,5 @@
-﻿@using CF.Events.Web.Pages.Events
-@model (int MaxParticipants, int EventDuration, string UserId, RsvpModel.InputModel NewRsvp)
+﻿@using CF.Events.Web.Models.Requests
+@model (int EventId, int MaxParticipants, int EventDuration, string UserId, RsvpRequest NewRsvp)
 
 <div class="modal fade" id="adminRsvpModal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="adminRsvpModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -7,8 +7,7 @@
             <div class="modal-header">
                 <h5 class="modal-title" id="adminRsvpModalLabel">RSVP on behalf of guest</h5>
             </div>
-            <form method="post" asp-page-handler="AdminRsvp" id="adminRsvpForm">
-                <input type="hidden" name="userId" value="@Model.UserId" />
+            <form method="post" asp-action="AdminRsvp" asp-controller="AdminEvent" asp-route-eventId="@Model.EventId" asp-route-userId="@Model.UserId" id="adminRsvpForm">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label d-block">Will they be attending?</label>

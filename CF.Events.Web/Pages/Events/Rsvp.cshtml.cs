@@ -1,7 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
-using CF.Events.Web.Data;
+﻿using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Models;
+using CF.Events.Web.Models.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -20,8 +20,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
     public string? AssignedAccommodationCode { get; private set; }
     public List<string> GroupParticipants { get; private set; } = [];
 
-    [BindProperty]
-    public InputModel NewRsvp { get; set; } = new();
+    [BindProperty] public RsvpRequest NewRsvp { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync(int eventId)
     {
@@ -62,7 +61,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
 
         if (rsvp is not null)
         {
-            NewRsvp = new InputModel
+            NewRsvp = new RsvpRequest
             {
                 Participants = user.GuestGroup?.Participants ?? (user.DisplayName is not null ? [user.DisplayName] : []),
                 Attending = rsvp.Attending,
@@ -236,15 +235,5 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
         return AssignedAccommodationCode.HasValue()
                || EventData.AccommodationDetails.HasValue()
                || EventData.AccommodationCodes.Count > 0;
-    }
-
-    public sealed class InputModel
-    {
-        public List<string> Participants { get; set; } = [];
-        public bool Attending { get; set; } = true;
-        public List<ParticipantAttendance> ParticipantsAttendance { get; set; } = [];
-        public List<ParticipantDiet> ParticipantsDiets { get; set; } = [];
-        [StringLength(500)]
-        public string? Comments { get; set; }
     }
 }

@@ -128,6 +128,7 @@
     }
 
     let filterDebounceTimer = null;
+
     function debouncedApplyFilters() {
         if (filterDebounceTimer) clearTimeout(filterDebounceTimer);
         filterDebounceTimer = setTimeout(applyFilters, 250);
@@ -180,6 +181,13 @@
             if (!confirmed) return;
         }
 
+        if (actionType === 'resend') {
+            const confirmed = await window.customConfirm(`Resend invitation email to ${selectedUserIds.length} selected invitees?`, {
+                confirmClass: 'btn-info'
+            });
+            if (!confirmed) return;
+        }
+
         if (actionType === 'save-date') {
             const confirmed = await window.customConfirm(`Send Save the Date email to ${selectedUserIds.length} selected invitees?`, {
                 confirmClass: 'btn-primary'
@@ -211,7 +219,7 @@
     if (adminRsvpContainer) {
         document.addEventListener('click', async function (e) {
             // View RSVP Details
-            const viewBtn = e.target.closest('button[data-admin-rsvp-user-id]');
+            const viewBtn = e.target.closest('button[data-admin-rsvp-user-id][data-admin-rsvp-view-only="true"]');
             if (viewBtn) {
                 const userId = viewBtn.dataset.adminRsvpUserId;
                 const eventId = viewBtn.dataset.adminRsvpEventId;
@@ -219,7 +227,7 @@
 
                 try {
                     viewBtn.disabled = true;
-                    const response = await fetch(`/events/${eventId}/rsvp-responses/${userId}`, {
+                    const response = await fetch(`/admin/events/${eventId}/rsvp-responses/${userId}`, {
                         headers: {'X-Requested-With': 'XMLHttpRequest'}
                     });
 
@@ -241,15 +249,15 @@
             }
 
             // RSVP on behalf
-            const behalfBtn = e.target.closest('button[data-admin-rsvp-behalf-user-id]');
-            if (behalfBtn) {
-                const userId = behalfBtn.dataset.adminRsvpBehalfUserId;
-                const eventId = behalfBtn.dataset.adminRsvpBehalfEventId;
+            const onBehalfBtn = e.target.closest('button[data-admin-rsvp-user-id]:not([data-admin-rsvp-view-only="true"])');
+            if (onBehalfBtn) {
+                const userId = onBehalfBtn.dataset.adminRsvpUserId;
+                const eventId = onBehalfBtn.dataset.adminRsvpEventId;
                 if (!userId || !eventId) return;
 
                 try {
-                    behalfBtn.disabled = true;
-                    const response = await fetch(`${window.location.pathname}?handler=AdminRsvpForm&id=${eventId}&userId=${userId}`, {
+                    onBehalfBtn.disabled = true;
+                    const response = await fetch(`/admin/events/${eventId}/admin-rsvp/${userId}`, {
                         headers: {'X-Requested-With': 'XMLHttpRequest'}
                     });
 
@@ -265,7 +273,7 @@
                 } catch (error) {
                     console.error('Error fetching admin RSVP form:', error);
                 } finally {
-                    behalfBtn.disabled = false;
+                    onBehalfBtn.disabled = false;
                 }
             }
         });
@@ -323,7 +331,7 @@
     if (inviteesTableContainer && eventId) {
         const pendingUpdates = new Map();
         let debounceTimer = null;
-        const BUNDLE_DELAY_MS = 2000;
+        const BUNDLE_DELAY_MS = 1500;
 
         function queueUpdate(userId, changes, element) {
             if (!userId) return;
@@ -332,7 +340,7 @@
                 clearTimeout(debounceTimer);
             }
 
-            const existing = pendingUpdates.get(userId) || { userId };
+            const existing = pendingUpdates.get(userId) || {userId};
             if (changes.accommodationCode !== undefined) {
                 existing.accommodationCode = changes.accommodationCode;
             }
@@ -363,7 +371,7 @@
             pendingUpdates.clear();
 
             try {
-                const response = await fetch(`/events/${eventId}/update-invitees`, {
+                const response = await fetch(`/admin/events/${eventId}/update-invitees`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -384,16 +392,11 @@
                             }
                         }
                         if (update.priority !== undefined) {
-                            const input = document.querySelector(`.priority-input[data-user-id="${update.userId}"]`);
-                            const display = input?.closest('.priority-cell')?.querySelector('.priority-display');
-                            if (input) {
-                                input.dataset.originalValue = update.priority.toString();
-                                input.classList.remove('border-warning');
-                                input.classList.add('border-success');
-                            }
-                            if (display) {
-                                display.classList.remove('border-warning');
-                                display.classList.add('border-success');
+                            const select = document.querySelector(`.priority-select[data-user-id="${update.userId}"]`);
+                            if (select) {
+                                select.dataset.originalValue = update.priority.toString();
+                                select.classList.remove('border-warning');
+                                select.classList.add('border-success');
                             }
                         }
                     });
@@ -419,61 +422,22 @@
             }
         }
 
-        // Priority click-to-edit delegation
-        inviteesTableBody.addEventListener('click', function (e) {
-            const display = e.target.closest('.priority-display');
-            if (display) {
-                const container = display.closest('.priority-cell');
-                const input = container.querySelector('.priority-input');
-
-                display.classList.add('d-none');
-                input.classList.remove('d-none');
-                input.focus();
-                // Select text if it's a text input
-                if (input.tagName === 'INPUT') {
-                    input.select();
-                }
+        function handleSelectChanges(e) {
+            if (e.target.classList.contains('accommodation-select')) {
+                queueUpdate(e.target.dataset.userId, {accommodationCode: e.target.value}, e.target);
             }
-        });
 
-        inviteesTableBody.addEventListener('focusout', function (e) {
-            if (e.target.classList.contains('priority-input')) {
-                const input = e.target;
-                const container = input.closest('.priority-cell');
-                const display = container.querySelector('.priority-display');
-
-                display.textContent = input.value;
-                display.classList.remove('d-none');
-                input.classList.add('d-none');
-
-                // Sync border colors from input to display
-                display.classList.remove('border-warning', 'border-success', 'border-danger');
-                if (input.classList.contains('border-warning')) display.classList.add('border-warning');
-                if (input.classList.contains('border-success')) display.classList.add('border-success');
-                if (input.classList.contains('border-danger')) display.classList.add('border-danger');
+            if (e.target.classList.contains('priority-select')) {
+                queueUpdate(e.target.dataset.userId, {priority: e.target.value}, e.target);
             }
-        }, true);
+        }
 
         inviteesTableBody.addEventListener('input', function (e) {
-            if (e.target.classList.contains('accommodation-select')) {
-                const userId = e.target.dataset.userId;
-                queueUpdate(userId, { accommodationCode: e.target.value }, e.target);
-            }
-
-            if (e.target.classList.contains('priority-input')) {
-                const userId = e.target.dataset.userId;
-                const priority = parseInt(e.target.value, 10);
-                if (!isNaN(priority) && priority >= 1 && priority <= 3) {
-                    queueUpdate(userId, { priority: priority }, e.target);
-                }
-            }
+            handleSelectChanges(e);
         });
 
         inviteesTableBody.addEventListener('change', function (e) {
-            if (e.target.classList.contains('accommodation-select')) {
-                const userId = e.target.dataset.userId;
-                queueUpdate(userId, { accommodationCode: e.target.value }, e.target);
-            }
+            handleSelectChanges(e);
         });
     }
 })();
