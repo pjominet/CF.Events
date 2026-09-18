@@ -146,13 +146,69 @@
                 if (confirmed) {
                     el.dataset.confirming = "true";
                     if (tagName === 'form') {
+                        const submitBtn = el.querySelector('[type="submit"]');
+                        if (submitBtn) window.showButtonLoading(submitBtn);
                         el.submit();
                     } else {
+                        window.showButtonLoading(el);
                         el.click();
                     }
                     delete el.dataset.confirming;
                 }
             });
+        });
+    }
+
+    // Generic button loading state
+    window.showButtonLoading = function (btn) {
+        if (!btn || btn.classList.contains('disabled') || btn.disabled) return;
+
+        btn.disabled = true;
+        btn.classList.add('disabled', 'btn-loading');
+        btn.dataset.originalHtml = btn.innerHTML;
+
+        const isBulk = btn.classList.contains('bulk-action-btn');
+        if (!isBulk) {
+            const icon = btn.querySelector('i.bi');
+            if (icon) {
+                const spinner = document.createElement('span');
+                spinner.className = 'spinner-border spinner-border-sm';
+                spinner.setAttribute('role', 'status');
+
+                // Copy all bi-* and me-* / ms-* / m-* classes to preserve look and spacing
+                icon.classList.forEach(cls => {
+                    if (cls.startsWith('me-') || cls.startsWith('ms-') || cls.startsWith('m-') || cls.startsWith('bi-')) {
+                        spinner.classList.add(cls);
+                    }
+                });
+                spinner.classList.remove('bi'); // Remove base icon class if present
+
+                icon.replaceWith(spinner);
+            } else {
+                btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status"></span>${btn.innerHTML}`;
+            }
+        }
+    };
+
+    window.hideButtonLoading = function (btn) {
+        if (!btn) return;
+        btn.disabled = false;
+        btn.classList.remove('disabled', 'btn-loading');
+        if (btn.dataset.originalHtml) {
+            btn.innerHTML = btn.dataset.originalHtml;
+            delete btn.dataset.originalHtml;
+        }
+    };
+
+    function initFormDoubleSubmitProtection() {
+        document.addEventListener('submit', function (e) {
+            const form = e.target;
+            if (form.dataset.confirming) return; // Handled by initConfirms
+
+            const submitBtn = form.querySelector('[type="submit"]:not(.no-loading)');
+            if (submitBtn) {
+                window.showButtonLoading(submitBtn);
+            }
         });
     }
 
@@ -347,8 +403,9 @@
     }
 
     // Handles showing overlay during file download and hiding it via cookie
-    window.handleFileDownloadOverlay = function (cookieName = "fileDownload") {
+    window.handleFileDownloadOverlay = function (cookieName = "fileDownload", btn = null) {
         window.showLoadingOverlay();
+        if (btn) window.showButtonLoading(btn);
 
         // Check for cookie to hide overlay
         const checkCookie = setInterval(function () {
@@ -359,6 +416,7 @@
                 // Small delay before hiding to ensure the download started
                 setTimeout(function () {
                     window.hideLoadingOverlay();
+                    if (btn) window.hideButtonLoading(btn);
                 }, 1000);
 
                 clearInterval(checkCookie);
@@ -419,6 +477,7 @@
         initPopovers();
         initAutoShowModals();
         initConfirms();
+        initFormDoubleSubmitProtection();
         initMultiSelects();
         initTagSelects();
         initTabPersistence();
