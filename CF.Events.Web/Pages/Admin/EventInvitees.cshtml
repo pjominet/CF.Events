@@ -21,7 +21,7 @@
             </div>
             <div class="mt-auto mb-0">
                 <div class="d-flex gap-2">
-                    <a href="@Url.Action("ExportInvitees", "Event", new { eventId = Model.EventData.Id })" class="btn btn-outline-success" id="exportExcelBtn">
+                    <a href="@Url.Action("ExportInvitees", "AdminEvent", new { eventId = Model.EventData.Id })" class="btn btn-outline-success" id="exportExcelBtn">
                         <i class="bi bi-file-earmark-spreadsheet me-1"></i>Export to Excel
                     </a>
                 </div>
@@ -37,7 +37,7 @@
             }
             else
             {
-                <form method="post" asp-action="InviteUsers" asp-controller="Event" asp-route-eventId="@Model.EventData.Id" onsubmit="showLoadingOverlay()">
+                <form method="post" asp-action="InviteUsers" asp-controller="AdminEvent" asp-route-eventId="@Model.EventData.Id" onsubmit="showLoadingOverlay()">
                     @Html.AntiForgeryToken()
                     <section class="row mb-3">
                         <div class="col-12">
@@ -97,24 +97,12 @@
                     </div>
                 </form>
             }
-            <div class="mt-2 d-flex gap-4">
-                <span class="invitee-status-filter user-select-none" data-status="" role="button" style="cursor: pointer;" title="Click reset any filters" data-bs-toggle="tooltip">
-                    Current Invitee Count: <strong>@Model.Stats.Count (@Model.Stats.MaxPeopleSum)</strong>
-                </span>
-                <span class="invitee-status-filter user-select-none" data-status="attending" role="button" style="cursor: pointer;" title="Click to filter by Attending" data-bs-toggle="tooltip">
-                    Attending: <strong class="text-success">@Model.Stats.Attending</strong>
-                </span>
-                <span class="invitee-status-filter user-select-none" data-status="declined" role="button" style="cursor: pointer;" title="Click to filter by Declined" data-bs-toggle="tooltip">
-                    Declined: <strong class="text-danger">@Model.Stats.Declined</strong>
-                </span>
-            </div>
         </div>
     </div>
 
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body d-flex justify-content-between align-items-center py-2">
-            <div>
-                <span class="text-muted me-2">Bulk actions:</span>
+            <div id="bulkActions">
                 @if (Model.EventData.SaveDateTemplateId.HasValue(false))
                 {
                     <button type="button" class="btn btn-primary btn-sm bulk-action-btn" disabled onclick="executeBulkAction('save-date')">
@@ -130,6 +118,25 @@
                 <button type="button" class="btn btn-danger btn-sm bulk-action-btn" disabled onclick="executeBulkAction('remove')">
                     <i class="bi bi-x-lg me-1"></i>Remove selected
                 </button>
+                <form id="bulkActionForm" method="post"
+                      data-resend-url="@Url.Action("SendInvites", "AdminEvent", new { eventId = Model.EventData.Id })"
+                      data-remove-url="@Url.Action("RemoveInvitees", "AdminEvent", new { eventId = Model.EventData.Id })"
+                      data-save-date-url="@Url.Action("SendSaveTheDates", "AdminEvent", new { eventId = Model.EventData.Id })">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="userIds" id="bulkActionUserIds"/>
+                    <input type="hidden" name="actionType" id="bulkActionType"/>
+                </form>
+            </div>
+            <div class="d-flex gap-4">
+                <span class="invitee-status-filter user-select-none" data-status="" role="button" style="cursor: pointer;" title="Click reset any filters" data-bs-toggle="tooltip">
+                    Current Invitee Count: <strong>@Model.Stats.Count (@Model.Stats.MaxPeopleSum)</strong>
+                </span>
+                <span class="invitee-status-filter user-select-none" data-status="attending" role="button" style="cursor: pointer;" title="Click to filter by Attending" data-bs-toggle="tooltip">
+                    Attending: <strong class="text-success">@Model.Stats.Attending</strong>
+                </span>
+                <span class="invitee-status-filter user-select-none" data-status="declined" role="button" style="cursor: pointer;" title="Click to filter by Declined" data-bs-toggle="tooltip">
+                    Declined: <strong class="text-danger">@Model.Stats.Declined</strong>
+                </span>
             </div>
             <div class="d-flex align-items-center gap-2">
                 <div class="flex-grow-1" style="max-width: 300px;">
@@ -138,14 +145,6 @@
                         <input type="text" id="inviteeSearchInput" class="form-control" placeholder="Search invitees...">
                     </div>
                 </div>
-                <form id="bulkActionForm" method="post"
-                      data-resend-url="@Url.Action("SendInvites", "Event", new { eventId = Model.EventData.Id })"
-                      data-remove-url="@Url.Page("", "BulkRemove", new { id = Model.EventData.Id })"
-                      data-save-date-url="@Url.Page("", "BulkSaveTheDate", new { id = Model.EventData.Id })">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="userIds" id="bulkActionUserIds"/>
-                    <input type="hidden" name="actionType" id="bulkActionType"/>
-                </form>
             </div>
         </div>
     </div>
@@ -187,16 +186,16 @@
                                     </select>
                                 </div>
                             </td>
-                            <td class="priority-cell" data-user-id="@invitee.UserId">
-                                <div class="priority-display form-control form-control-sm">
-                                    @invitee.InvitationPriority
-                                </div>
-                                <input type="number" min="1" max="3"
-                                       class="form-control form-control-sm priority-input d-none"
-                                       value="@invitee.InvitationPriority"
-                                       data-user-id="@invitee.UserId"
-                                       data-original-value="@invitee.InvitationPriority"
-                                       autocomplete="off" />
+                            <td>
+                                <select class="form-select form-select-sm priority-select"
+                                        data-user-id="@invitee.UserId"
+                                        data-original-value="@invitee.InvitationPriority"
+                                        data-bitwarden-no-fill="true"
+                                        autocomplete="off">
+                                    <option value="1" selected="@(invitee.InvitationPriority == 1)">1 - High</option>
+                                    <option value="2" selected="@(invitee.InvitationPriority == 2)">2 - Medium</option>
+                                    <option value="3" selected="@(invitee.InvitationPriority == 3)">3 - Low</option>
+                                </select>
                             </td>
                             <td class="text-center">
                                 @if (invitee.SaveTheDateSent.HasValue)
@@ -243,14 +242,16 @@
                                     {
                                         <button type="button" class="btn btn-sm btn-outline-success"
                                                 title="View RSVP Details" data-bs-toggle="tooltip"
-                                                data-admin-rsvp-user-id="@invitee.UserId" data-admin-rsvp-event-id="@Model.EventData.Id">
+                                                data-admin-rsvp-user-id="@invitee.UserId" data-admin-rsvp-event-id="@Model.EventData.Id"
+                                                data-admin-rsvp-view-only="true">
                                             <i class="bi bi-eye"></i>
                                         </button>
                                     }
                                     @if (Model.EventData.SaveDateTemplateId.HasValue(false) && invitee.Status is AttendanceStatus.Pending)
                                     {
-                                        <form method="post" asp-page-handler="SaveTheDate" asp-route-id="@Model.EventData.Id" asp-route-userId="@invitee.UserId"
-                                              class="d-flex align-items-center justify-content-center">
+                                        <form method="post" asp-action="SendSaveTheDate" asp-controller="AdminEvent" asp-route-eventId="@Model.EventData.Id" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="userId" value="@invitee.UserId"/>
                                             <button class="btn btn-sm btn-primary" type="submit"
                                                     data-bs-toggle="tooltip" data-bs-title="Send Save the Date">
                                                 <i class="bi bi-calendar-check"></i>
@@ -259,7 +260,7 @@
                                     }
                                     @if (Model.EventData.InvitationTemplateId.HasValue(false) && invitee.Status is AttendanceStatus.Pending)
                                     {
-                                        <form method="post" asp-action="SendInvite" asp-controller="Event" asp-route-eventId="@Model.EventData.Id" class="d-inline">
+                                        <form method="post" asp-action="SendInvite" asp-controller="AdminEvent" asp-route-eventId="@Model.EventData.Id" class="d-inline">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="userId" value="@invitee.UserId"/>
                                             <button type="submit" class="btn btn-info btn-sm" title="Send invite" data-bs-toggle="tooltip">
@@ -269,11 +270,12 @@
                                     }
                                     <button type="button" class="btn btn-sm btn-outline-primary"
                                             title="RSVP on behalf" data-bs-toggle="tooltip"
-                                            data-admin-rsvp-behalf-user-id="@invitee.UserId" data-admin-rsvp-behalf-event-id="@Model.EventData.Id">
+                                            data-admin-rsvp-user-id="@invitee.UserId" data-admin-rsvp-event-id="@Model.EventData.Id">
                                         <i class="bi bi-person-check"></i>
                                     </button>
-                                    <form method="post" asp-page-handler="Remove" asp-route-id="@Model.EventData.Id" class="d-inline"
+                                    <form method="post" asp-action="RemoveInvitee" asp-controller="AdminEvent" asp-route-eventId="@Model.EventData.Id" class="d-inline"
                                           data-confirm="Remove @invitee.DisplayName from this event?">
+                                        @Html.AntiForgeryToken()
                                         <input type="hidden" name="userId" value="@invitee.UserId"/>
                                         <button type="submit" class="btn btn-danger btn-sm" title="Remove invitee" data-bs-toggle="tooltip">
                                             <i class="bi bi-x-lg"></i>

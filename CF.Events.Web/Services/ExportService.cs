@@ -1,7 +1,6 @@
 using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure.Extensions;
 using ClosedXML.Excel;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using static CF.Events.Web.Infrastructure.Constants;
 
@@ -120,7 +119,7 @@ public class ExportService(EventsDbContext db) : IExportService
             .ToListAsync();
 
         var rolesToInclude = await db.Roles
-            .Where(r => selectedRoles.Contains(r.Name))
+            .Where(r => selectedRoles.Contains(r.Name!))
             .Select(r => r.Id)
             .ToListAsync();
 
