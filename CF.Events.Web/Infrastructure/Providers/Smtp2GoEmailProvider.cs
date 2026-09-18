@@ -11,7 +11,7 @@ public class Smtp2GoEmailProvider(ISmtp2GoClient smtp2GoClient, IOptions<AppSett
 {
     private readonly EmailProviderSettings _emailSettings = settings.Value.EmailProviderSettings;
 
-    public async Task SendTemplatedEmailAsync(EmailEntry emailEntry, CancellationToken ctx = default)
+    public async Task<bool> SendTemplatedEmailAsync(EmailEntry emailEntry, CancellationToken ctx = default)
     {
         var request = new Smtp2GoEmailRequest
         {
@@ -30,8 +30,8 @@ public class Smtp2GoEmailProvider(ISmtp2GoClient smtp2GoClient, IOptions<AppSett
 
         try
         {
-            var response = await smtp2GoClient.SendTemplatedEmailAsync(request, ctx);
-            ProcessApiResponse(response);
+            await smtp2GoClient.SendTemplatedEmailAsync(request, ctx);
+            return true;
         }
         catch (Exception ex)
         {
@@ -39,7 +39,7 @@ public class Smtp2GoEmailProvider(ISmtp2GoClient smtp2GoClient, IOptions<AppSett
         }
     }
 
-    public async Task SendTemplatedEmailsBulkAsync(IEnumerable<EmailEntry> emailEntries, CancellationToken ctx = default)
+    public async Task<bool> SendTemplatedEmailsBulkAsync(IEnumerable<EmailEntry> emailEntries, CancellationToken ctx = default)
     {
         var bulkRequest = new Smtp2GoBulkEmailRequest
         {
@@ -64,28 +64,12 @@ public class Smtp2GoEmailProvider(ISmtp2GoClient smtp2GoClient, IOptions<AppSett
 
         try
         {
-            var response = await smtp2GoClient.SendBulkTemplatedEmailsAsync(bulkRequest, ctx);
-            ProcessApiResponse(response);
+            await smtp2GoClient.SendBulkTemplatedEmailsAsync(bulkRequest, ctx);
+            return true;
         }
         catch (Exception ex)
         {
             throw new Exception("Failed to send bulk emails via Smtp2go", ex);
         }
-    }
-
-    private static void ProcessApiResponse(Smtp2GoApiResponse response)
-    {
-        // Success is determined by HTTP status code in Smtp2GoClient.
-        // Verify that the data is not empty and doesn't contain hidden errors.
-        if (response.Data.ValueKind is not JsonValueKind.Object) return;
-
-        if (!response.Data.TryGetProperty("failed", out var failedProp) || !failedProp.TryGetInt32(out var failedCount) || failedCount <= 0)
-            return;
-
-        var errorMessage = "Some emails failed to send.";
-        if (response.Data.TryGetProperty("failures", out var failuresProp) && failuresProp.ValueKind is JsonValueKind.Array)
-            errorMessage += $" Failures: {failuresProp}";
-
-        throw new Exception($"Smtp2go partial success: {errorMessage} (Request ID: {response.RequestId})");
     }
 }

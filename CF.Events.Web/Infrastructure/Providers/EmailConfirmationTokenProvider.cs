@@ -7,7 +7,7 @@ namespace CF.Events.Web.Infrastructure.Providers;
 public class EmailConfirmationTokenProvider<TUser>(
     IDataProtectionProvider dataProtectionProvider,
     IOptions<EmailConfirmationTokenProviderOptions> options,
-    ILogger<DataProtectorTokenProvider<TUser>> logger) : DataProtectorTokenProvider<TUser>(dataProtectionProvider, options, logger)
+    ILogger<EmailConfirmationTokenProvider<TUser>> logger) : DataProtectorTokenProvider<TUser>(dataProtectionProvider, options, logger)
     where TUser : class;
 
 public class EmailConfirmationTokenProviderOptions : DataProtectionTokenProviderOptions;

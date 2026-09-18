@@ -2,7 +2,7 @@ namespace CF.Events.Web.Models.Requests;
 
 public abstract class TemplateEmailRequest
 {
-    protected const string AppName = "P&E Wedding";
+    protected const string AppName = "E&P Wedding";
     public required string TemplateId { get; init; }
     public required string SenderName { get; set; }
     public required string SenderEmail { get; set; }
@@ -46,12 +46,11 @@ public class SaveDateEmailRequest : TemplateEmailRequest
             { "event_date", EventDate }
         };
 
-        if (SendWithLink)
-        {
-            variables["user_name"] = UserName;
-            variables["invite_url"] = CallBackUrl;
-            variables["event_name"] = EventName;
-        }
+        if (!SendWithLink) return variables;
+
+        variables["user_name"] = UserName;
+        variables["invite_url"] = CallBackUrl;
+        variables["event_name"] = EventName;
 
         return variables;
     }

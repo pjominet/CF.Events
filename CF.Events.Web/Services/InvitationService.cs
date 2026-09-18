@@ -28,7 +28,7 @@ public class InvitationService(
     ILogger<InvitationService> logger) : IInvitationService
 {
     private readonly AppSettings _appSettings = appOptions.Value;
-    private const int DefaultValidityDays = 30 * 6;
+    private const int DefaultValidityDays = 30;
 
     public async Task<int> ProcessPendingEmails(CancellationToken ctx = default)
     {

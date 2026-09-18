@@ -40,24 +40,29 @@ public class Smtp2GoClient(HttpClient httpClient) : ISmtp2GoClient
             402 => "The parameters were valid but the request failed.",
             403 => "The API key doesn't have permission to perform the request.",
             404 => "The requested resource doesn't exist.",
-            _ => $"HTTP Error {statusCode}"
+            _ => HandleErrorResponse(result)
         };
 
+        throw new Exception($"Smtp2go API error: {errorDetail} (Request ID: {result.RequestId})");
+    }
+
+    private static string HandleErrorResponse(Smtp2GoApiResponse result)
+    {
         var apiErrorMessage = ExtractErrorMessage(result.Data);
-        var fullMessage = !string.IsNullOrEmpty(apiErrorMessage)
-            ? $"{errorDetail} Details: {apiErrorMessage}"
-            : errorDetail;
 
-        if (fullMessage.Contains("rendering template", StringComparison.OrdinalIgnoreCase))
-            fullMessage += " The Template ID is invalid or the template contains syntax errors.";
+        if (!apiErrorMessage.HasValue())
+            apiErrorMessage = "Unknown Smtp2Go API Error";
 
-        throw new Exception($"Smtp2go API error: {fullMessage} (Request ID: {result.RequestId})");
+        if (apiErrorMessage.Contains("rendering template", StringComparison.OrdinalIgnoreCase))
+            apiErrorMessage = "The Template ID is invalid or the template contains syntax errors.";
+
+        return apiErrorMessage;
     }
 
     private static string? ExtractErrorMessage(JsonElement data)
     {
         if (data.ValueKind is not JsonValueKind.Object)
-            return data.ValueKind == JsonValueKind.String ? data.GetString() : null;
+            return data.ValueKind is JsonValueKind.String ? data.GetString() : null;
 
         data.TryGetProperty("error", out var errorProp);
         data.TryGetProperty("error_code", out var errorCodeProp);
