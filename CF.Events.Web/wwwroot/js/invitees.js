@@ -1,7 +1,7 @@
 ﻿(function () {
     "use strict";
 
-    /*const scheduleRadios = document.querySelectorAll('input[name="SendEmailsOnInvite"]');
+    const scheduleRadios = document.querySelectorAll('input[name="SendEmailsOnInvite"]');
     const scheduleOption = document.getElementById('scheduleRadio');
     const scheduleInput = document.querySelector('input[name="ScheduledFor"]');
 
@@ -45,7 +45,7 @@
     // Initialize on page load
     if (scheduleOption) {
         updateScheduleInput();
-    }*/
+    }
 
     const selectAllCheckbox = document.getElementById('selectAllInvitees');
     const inviteesTableBody = document.querySelector('table tbody');
@@ -98,11 +98,16 @@
         const rows = tableBody ? tableBody.querySelectorAll('tr') : [];
 
         rows.forEach(row => {
-            const displayName = row.querySelector('td:nth-child(2)')?.textContent?.toLowerCase() || '';
-            const email = row.querySelector('td:nth-child(3)')?.textContent?.toLowerCase() || '';
+            const displayNameCell = row.querySelector('td:nth-child(2)');
+            const displayName = displayNameCell?.textContent?.toLowerCase() || '';
+            const email = displayNameCell?.querySelector('strong')?.getAttribute('title')?.toLowerCase() || '';
+            const guestGroup = row.querySelector('td:nth-child(3)')?.textContent?.toLowerCase() || '';
             const rowStatus = (row.dataset.status || row.querySelector('td:nth-child(8)')?.textContent || '').toLowerCase().trim();
 
-            const matchesSearch = !searchTerm || displayName.includes(searchTerm) || email.includes(searchTerm);
+            const matchesSearch = !searchTerm ||
+                displayName.includes(searchTerm) ||
+                email.includes(searchTerm) ||
+                guestGroup.includes(searchTerm);
             const matchesStatus = !activeStatus || rowStatus === activeStatus;
 
             if (matchesSearch && matchesStatus) {
@@ -146,25 +151,23 @@
         }
     }
 
-    if (statusFilters.length > 0) {
-        statusFilters.forEach(btn => {
-            btn.addEventListener('click', function () {
-                const targetStatus = (this.dataset.status || '').toLowerCase().trim();
-                if (activeStatus === targetStatus && targetStatus !== '') {
-                    activeStatus = '';
-                } else {
-                    activeStatus = targetStatus;
-                }
+    statusFilters.forEach(btn => {
+        btn.addEventListener('click', function () {
+            const targetStatus = (this.dataset.status || '').toLowerCase().trim();
+            if (activeStatus === targetStatus && targetStatus !== '') {
+                activeStatus = '';
+            } else {
+                activeStatus = targetStatus;
+            }
 
-                if (activeStatus) {
-                    sessionStorage.setItem(statusStorageKey, activeStatus);
-                } else {
-                    sessionStorage.removeItem(statusStorageKey);
-                }
-                applyFilters();
-            });
+            if (activeStatus) {
+                sessionStorage.setItem(statusStorageKey, activeStatus);
+            } else {
+                sessionStorage.removeItem(statusStorageKey);
+            }
+            applyFilters();
         });
-    }
+    });
 
     applyFilters();
 
@@ -323,6 +326,32 @@
         const modalEventIdInput = setInviteValidityModal.querySelector('#modalEventId');
         modalEventIdInput.value = eventId;
     });
+
+    // Handle Add Guests collapse state persistence
+    const collapseAddGuests = document.getElementById('collapseAddGuests');
+    if (collapseAddGuests) {
+        const storageKey = 'collapseAddGuestsState-' + window.location.pathname;
+
+        // Restore state without animation
+        const savedState = sessionStorage.getItem(storageKey);
+        if (savedState === 'shown') {
+            collapseAddGuests.classList.add('show');
+            // Update the toggle button's aria-expanded attribute
+            const toggleBtn = document.querySelector(`[data-bs-target="#${collapseAddGuests.id}"]`);
+            if (toggleBtn) {
+                toggleBtn.classList.remove('collapsed');
+            }
+        }
+
+        // Listen for changes
+        collapseAddGuests.addEventListener('shown.bs.collapse', function () {
+            sessionStorage.setItem(storageKey, 'shown');
+        });
+
+        collapseAddGuests.addEventListener('hidden.bs.collapse', function () {
+            sessionStorage.setItem(storageKey, 'hidden');
+        });
+    }
 
     // Silent optimistic updates for Accommodation Code and Priority
     const inviteesTableContainer = document.getElementById('inviteesTableContainer');
