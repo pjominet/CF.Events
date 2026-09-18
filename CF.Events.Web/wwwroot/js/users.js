@@ -94,6 +94,9 @@
             form.action = form.dataset.deleteUrl;
         }
 
+        const triggeredBtn = document.querySelector(`.bulk-action-btn[onclick*="'${actionType}'"]`);
+        if (triggeredBtn) window.showButtonLoading(triggeredBtn);
+
         window.showLoadingOverlay();
         form.submit();
     };
@@ -105,7 +108,7 @@
         if (modalEl) {
             bootstrap.Modal.getInstance(modalEl)?.hide();
         }
-        window.handleFileDownloadOverlay();
+        window.handleFileDownloadOverlay("fileDownload", this);
     });
 
     const roleRadios = document.querySelectorAll('.role-radio');
@@ -180,6 +183,7 @@
     const viewFeedbackModal = document.getElementById('viewFeedbackModal');
     viewFeedbackModal?.addEventListener('show.bs.modal', async function (event) {
         const button = event.relatedTarget;
+        if (button) window.showButtonLoading(button);
         const userId = button.getAttribute('data-user-id');
         document.getElementById('feedbackUserDisplayName').textContent = button.getAttribute('data-user-displayname');
 
@@ -199,8 +203,6 @@
 
             const feedbacks = await response.json();
 
-            loading.classList.add('d-none');
-
             if (feedbacks && feedbacks.length > 0) {
                 feedbacks.forEach(f => {
                     const item = document.createElement('div');
@@ -219,9 +221,12 @@
             }
         } catch (error) {
             console.error('Error fetching feedback:', error);
-            loading.classList.add('d-none');
             empty.textContent = 'Error loading feedback.';
             empty.classList.remove('d-none');
+        } finally {
+            loading.classList.add('d-none');
+            const button = event.relatedTarget;
+            if (button) window.hideButtonLoading(button);
         }
     });
 

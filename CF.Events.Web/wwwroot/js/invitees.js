@@ -213,6 +213,9 @@
             form.action = form.dataset.saveDateUrl;
         }
 
+        const triggeredBtn = document.querySelector(`.bulk-action-btn[onclick*="'${actionType}'"]`);
+        if (triggeredBtn) window.showButtonLoading(triggeredBtn);
+
         showLoadingOverlay();
         form.submit();
     };
@@ -229,7 +232,7 @@
                 if (!userId || !eventId) return;
 
                 try {
-                    viewBtn.disabled = true;
+                    window.showButtonLoading(viewBtn);
                     const response = await fetch(`/admin/events/${eventId}/rsvp-responses/${userId}`, {
                         headers: {'X-Requested-With': 'XMLHttpRequest'}
                     });
@@ -246,7 +249,7 @@
                 } catch (error) {
                     console.error('Error fetching admin RSVP details:', error);
                 } finally {
-                    viewBtn.disabled = false;
+                    window.hideButtonLoading(viewBtn);
                 }
                 return;
             }
@@ -259,7 +262,7 @@
                 if (!userId || !eventId) return;
 
                 try {
-                    onBehalfBtn.disabled = true;
+                    window.showButtonLoading(onBehalfBtn);
                     const response = await fetch(`/admin/events/${eventId}/admin-rsvp/${userId}`, {
                         headers: {'X-Requested-With': 'XMLHttpRequest'}
                     });
@@ -276,7 +279,7 @@
                 } catch (error) {
                     console.error('Error fetching admin RSVP form:', error);
                 } finally {
-                    onBehalfBtn.disabled = false;
+                    window.hideButtonLoading(onBehalfBtn);
                 }
             }
         });
@@ -314,7 +317,7 @@
     // Export Excel with loading spinner
     const exportExcelBtn = document.getElementById('exportExcelBtn');
     exportExcelBtn?.addEventListener('click', function (_) {
-        window.handleFileDownloadOverlay();
+        window.handleFileDownloadOverlay("fileDownload", this);
     });
 
     // Handle Invite Validity Modal population
