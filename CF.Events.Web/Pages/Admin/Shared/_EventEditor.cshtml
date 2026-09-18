@@ -245,7 +245,7 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-bold">RSVP Respond Deadline</label>
-                    <input asp-for="RsvpDeadline" type="date" class="form-control" min="@Model.StartDate.AddDays(1).ToString("yyyy-MM-dd")"/>
+                    <input asp-for="RsvpDeadline" type="date" class="form-control" min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" max="@Model.StartDate.ToString("yyyy-MM-dd")"/>
                     <div class="form-text">Deadline date at which people <span class="text-decoration-underline">should</span> have responded to their invitation. (Not hard enforced)</div>
                 </div>
                 <div class="mb-3">
