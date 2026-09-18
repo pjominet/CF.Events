@@ -86,6 +86,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IHtmlParser, HtmlParser>();
         services.AddHostedService<InvitationEmailWorker>();
         services.AddScoped<IInvitationService, InvitationService>();
+        services.AddScoped<IEventService, EventService>();
         services.AddScoped<IAuthEmailService, AuthEmailService>();
         services.AddScoped<IExportService, ExportService>();
         services.AddScoped<IImportService, ImportService>();
