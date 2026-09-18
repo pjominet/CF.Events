@@ -5,6 +5,7 @@ using Ganss.Xss;
 using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure.Exceptions;
 using CF.Events.Web.Infrastructure.Factories;
+using CF.Events.Web.Infrastructure.HttpClients;
 using CF.Events.Web.Infrastructure.Providers;
 using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Models;

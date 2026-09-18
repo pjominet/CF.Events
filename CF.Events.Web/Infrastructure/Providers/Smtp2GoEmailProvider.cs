@@ -1,9 +1,11 @@
 using System.Text.Json;
-using CF.Events.Web.Models;
+using CF.Events.Web.Infrastructure.HttpClients;
 using CF.Events.Web.Infrastructure.Settings;
+using CF.Events.Web.Models;
+using CF.Events.Web.Services;
 using Microsoft.Extensions.Options;
 
-namespace CF.Events.Web.Services;
+namespace CF.Events.Web.Infrastructure.Providers;
 
 public class Smtp2GoEmailProvider(ISmtp2GoClient smtp2GoClient, IOptions<AppSettings> settings) : IEmailProvider
 {

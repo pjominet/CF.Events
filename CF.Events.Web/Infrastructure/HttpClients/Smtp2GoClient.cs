@@ -1,9 +1,8 @@
-﻿using System.Net.Http.Json;
-using System.Text.Json;
+﻿using System.Text.Json;
 using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Models;
 
-namespace CF.Events.Web.Services;
+namespace CF.Events.Web.Infrastructure.HttpClients;
 
 public interface ISmtp2GoClient
 {
@@ -53,7 +52,6 @@ public class Smtp2GoClient(HttpClient httpClient) : ISmtp2GoClient
             fullMessage += " The Template ID is invalid or the template contains syntax errors.";
 
         throw new Exception($"Smtp2go API error: {fullMessage} (Request ID: {result.RequestId})");
-
     }
 
     private static string? ExtractErrorMessage(JsonElement data)
