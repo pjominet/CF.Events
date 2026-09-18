@@ -15,7 +15,6 @@ namespace CF.Events.Web.Pages.Admin;
 public class EventInviteesModel(EventsDbContext db) : PageModel
 {
     public required Event EventData { get; set; }
-    public List<SelectListItem> AccommodationCodes { get; private set; } = [];
 
     public UsersInviteRequest NewInvite { get; set; } = new();
 
@@ -27,8 +26,6 @@ public class EventInviteesModel(EventsDbContext db) : PageModel
     public async Task<IActionResult> OnGetAsync(int id)
     {
         EventData = await db.Events.FirstAsync(e => e.Id == id);
-
-        AccommodationCodes = [.. EventData.AccommodationCodes.Select(ac => new SelectListItem(ac, ac))];
 
         var invitedUsers = db.EventUsers
             .Where(ue => ue.EventId == id)
@@ -52,6 +49,7 @@ public class EventInviteesModel(EventsDbContext db) : PageModel
                     return new InviteeRow(
                         user.Id,
                         user.DisplayName!,
+                        $"{user.GuestGroup!.Label} ({user.GuestGroup!.MaxPeople})",
                         user.Email!,
                         iu.AssignedAccommodationCode,
                         status,
@@ -81,7 +79,7 @@ public class EventInviteesModel(EventsDbContext db) : PageModel
         return Page();
     }
 
-    public List<SelectListItem> GetAccommodationCodes(string? currentCode)
+    public List<SelectListItem> GetAccommodationCodes(string? currentCode = null)
     {
         var list = EventData.AccommodationCodes
             .Select(ac => new SelectListItem(ac, ac, ac == currentCode))
@@ -90,7 +88,7 @@ public class EventInviteesModel(EventsDbContext db) : PageModel
         return list;
     }
 
-    public record InviteeRow(string UserId, string DisplayName, string Email, string? AssignedAccommodationCode, AttendanceStatus Status, DateTime? InvitationEmailSent, DateTime? SaveTheDateSent, DateTime? ScheduledFor, ushort InvitationPriority = 1);
+    public record InviteeRow(string UserId, string DisplayName, string GuestGroup, string Email, string? AssignedAccommodationCode, AttendanceStatus Status, DateTime? InvitationEmailSent, DateTime? SaveTheDateSent, DateTime? ScheduledFor, ushort InvitationPriority = 1);
 
     public record Statistics(int Count, int MaxPeopleSum, int Attending, int Declined);
 }

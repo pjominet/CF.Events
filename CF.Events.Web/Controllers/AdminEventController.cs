@@ -307,7 +307,7 @@ public class AdminEventController(
             maxParticipants = eventMaxParticipants > 0 ? eventMaxParticipants : 2;
 
         // remove empty entries to avoid false counts and saving of useless values in GuestGroup.Participants
-        newRsvp.Participants = newRsvp.Participants.Where(p => p.HasValue()).ToList();
+        newRsvp.Participants = [.. newRsvp.Participants.Where(p => p.HasValue())];
 
         if (newRsvp.Attending && newRsvp.Participants.Count > maxParticipants)
         {
