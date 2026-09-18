@@ -23,7 +23,6 @@
         <PackageReference Include="NToastNotify" Version="8.0.0" />
         <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
         <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
-        <PackageReference Include="Smtp2Go.ApiClient" Version="0.0.5" />
         <!-- Newtonsoft is unfortunately needed as Microsoft.EntityFrameworkCore.Design seems to rely on it for proper complilation... WTF MS -->
         <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     </ItemGroup>

@@ -85,13 +85,16 @@
     }
 
     const searchInput = document.getElementById('inviteeSearchInput');
+    const priorityFilterSelect = document.getElementById('priorityFilterSelect');
     const statusFilters = document.querySelectorAll('.invitee-status-filter');
     const tableBody = inviteesTableBody;
 
     const searchStorageKey = 'inviteeSearch-' + window.location.pathname;
     const statusStorageKey = 'inviteeStatus-' + window.location.pathname;
+    const priorityStorageKey = 'inviteePriority-' + window.location.pathname;
 
     let activeStatus = sessionStorage.getItem(statusStorageKey) || '';
+    let activePriority = sessionStorage.getItem(priorityStorageKey) || '';
 
     function applyFilters() {
         const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
@@ -103,14 +106,16 @@
             const email = displayNameCell?.querySelector('strong')?.getAttribute('title')?.toLowerCase() || '';
             const guestGroup = row.querySelector('td:nth-child(3)')?.textContent?.toLowerCase() || '';
             const rowStatus = (row.dataset.status || row.querySelector('td:nth-child(8)')?.textContent || '').toLowerCase().trim();
+            const rowPriority = (row.dataset.priority || row.querySelector('.priority-select')?.value || '').trim();
 
             const matchesSearch = !searchTerm ||
                 displayName.includes(searchTerm) ||
                 email.includes(searchTerm) ||
                 guestGroup.includes(searchTerm);
             const matchesStatus = !activeStatus || rowStatus === activeStatus;
+            const matchesPriority = !activePriority || rowPriority === activePriority;
 
-            if (matchesSearch && matchesStatus) {
+            if (matchesSearch && matchesStatus && matchesPriority) {
                 row.classList.remove('d-none');
             } else {
                 row.classList.add('d-none');
@@ -149,6 +154,21 @@
         if (initialSearch) {
             searchInput.value = initialSearch;
         }
+    }
+    priorityFilterSelect?.addEventListener('change', function () {
+        activePriority = this.value;
+        if (activePriority) {
+            sessionStorage.setItem(priorityStorageKey, activePriority);
+        } else {
+            sessionStorage.removeItem(priorityStorageKey);
+        }
+        applyFilters();
+    });
+
+    const initialPriority = sessionStorage.getItem(priorityStorageKey);
+    if (initialPriority) {
+        priorityFilterSelect.value = initialPriority;
+        activePriority = initialPriority;
     }
 
     statusFilters.forEach(btn => {
@@ -460,7 +480,13 @@
             }
 
             if (e.target.classList.contains('priority-select')) {
-                queueUpdate(e.target.dataset.userId, {priority: e.target.value}, e.target);
+                const priorityValue = e.target.value;
+                const row = e.target.closest('tr');
+                if (row) {
+                    row.dataset.priority = priorityValue;
+                    applyFilters();
+                }
+                queueUpdate(e.target.dataset.userId, {priority: priorityValue}, e.target);
             }
         }
 

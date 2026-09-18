@@ -4,5 +4,8 @@ namespace CF.Events.Web.Services;
 
 public interface IEmailProvider
 {
-    Task SendTemplatedEmailAsync(string templateId, string to, IDictionary<string, string> variables, IEnumerable<InlineAttachment>? inlineAttachments = null, CancellationToken ctx = default);
+    Task SendTemplatedEmailAsync(EmailEntry emailEntry, CancellationToken ctx = default);
+    Task SendTemplatedEmailsBulkAsync(IEnumerable<EmailEntry> emailEntries, CancellationToken ctx = default);
 }
+
+public record EmailEntry(string TemplateId, string To, IDictionary<string, string> Variables, IEnumerable<InlineAttachment>? InlineAttachments = null);

@@ -14,7 +14,7 @@ public class IdentityEmailSender(IEmailProvider emailProvider) : IIdentityEmailS
             { "user_name", user.DisplayName! }
         };
 
-        await emailProvider.SendTemplatedEmailAsync("0838936", email, variables);
+        await emailProvider.SendTemplatedEmailAsync(new EmailEntry("0838936", email, variables));
     }
 
     public async Task SendPasswordResetLinkAsync(AppUser user, string email, string resetLink)
@@ -25,7 +25,7 @@ public class IdentityEmailSender(IEmailProvider emailProvider) : IIdentityEmailS
             { "reset_url", resetLink }
         };
 
-        await emailProvider.SendTemplatedEmailAsync("0670355", email, variables);
+        await emailProvider.SendTemplatedEmailAsync(new EmailEntry("0670355", email, variables));
     }
 
     public async Task SendPasswordResetCodeAsync(AppUser user, string email, string resetCode) => throw new NotImplementedException();
@@ -40,6 +40,6 @@ public class IdentityEmailSender(IEmailProvider emailProvider) : IIdentityEmailS
             { "login_url", loginLink }
         };
 
-        await emailProvider.SendTemplatedEmailAsync("0214257", email, variables);
+        await emailProvider.SendTemplatedEmailAsync(new EmailEntry("0214257", email, variables));
     }
 }

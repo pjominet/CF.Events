@@ -12,7 +12,6 @@ using CF.Events.Web.Services;
 using CF.Events.Web.Services.BackgroundWorkers;
 using EditorJsonToHtmlConverter;
 using Microsoft.AspNetCore.DataProtection;
-using Smtp2Go.Api;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
@@ -165,12 +164,9 @@ public static class ServiceCollectionExtensions
 
     public static void AddHttpClients(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddSingleton<IApiService, Smtp2GoApiService>(_ =>
+        services.AddHttpClient<ISmtp2GoClient, Smtp2GoClient>(client =>
         {
-            var apiKey = configuration["AppSettings:EmailProviderSettings:Smtp2Go:ApiKey"];
-            return !apiKey.HasValue(false)
-                ? throw new BootstrappingException("Missing Smtp2Go API key")
-                : new Smtp2GoApiService(apiKey);
+            client.BaseAddress = new Uri("https://api.smtp2go.com/v3/");
         });
     }
 

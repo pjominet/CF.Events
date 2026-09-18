@@ -15,6 +15,9 @@ public class AppSettingsValidator : IValidateOptions<AppSettings>
             || (uriResult.Scheme != Uri.UriSchemeHttp && uriResult.Scheme != Uri.UriSchemeHttps))
             return ValidateOptionsResult.Fail($"AppSettings:BaseUrl '{options.BaseUrl}' is not a valid HTTP/HTTPS URL.");
 
+        if (string.IsNullOrWhiteSpace(options.EmailProviderSettings.Smtp2Go.ApiKey))
+            return ValidateOptionsResult.Fail("AppSettings:EmailProviderSettings:Smtp2Go:ApiKey is required.");
+
         return ValidateOptionsResult.Success;
     }
 }

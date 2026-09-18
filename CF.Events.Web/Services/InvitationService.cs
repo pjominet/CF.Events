@@ -28,7 +28,7 @@ public class InvitationService(
     ILogger<InvitationService> logger) : IInvitationService
 {
     private readonly AppSettings _appSettings = appOptions.Value;
-    private const int DefaultValidityDays = 30;
+    private const int DefaultValidityDays = 30 * 6;
 
     public async Task<int> ProcessPendingEmails(CancellationToken ctx = default)
     {
@@ -292,20 +292,49 @@ public class InvitationService(
 
             var remainingRequests = requests.Skip(batchSize).Select(r => new { r.EventId, r.UserId }).ToList();
 
-            foreach (var request in remainingRequests)
+            // Optimize: Update all remaining requests in one go
+            foreach (var chunk in remainingRequests.Chunk(100))
             {
+                var eventId = chunk.First().EventId; // Assuming same event, but let's be safe
+                var userIds = chunk.Select(c => c.UserId).ToList();
                 await db.EventUsers
-                    .Where(ue => ue.EventId == request.EventId && ue.UserId == request.UserId)
+                    .Where(ue => ue.EventId == eventId && userIds.Contains(ue.UserId))
                     .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.ScheduledFor, DateTime.UtcNow), ctx);
             }
 
             toSendImmediately = [.. requests.Take(batchSize)];
         }
 
-        foreach (var request in toSendImmediately)
+        try
         {
-            if (ctx.IsCancellationRequested) break;
-            await SendEmail(request, ctx);
+            if (toSendImmediately.Count > 0)
+            {
+                await mailService.SendTemplatedEmailsBulkAsync(toSendImmediately, ctx);
+
+                // Update database in bulk after successful send
+                var userIds = toSendImmediately.Select(r => r.UserId).ToList();
+                var eventId = toSendImmediately.First().EventId;
+
+                if (typeof(T) == typeof(InvitationEmailRequest))
+                {
+                    await db.EventUsers
+                        .Where(ue => ue.EventId == eventId && userIds.Contains(ue.UserId))
+                        .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.InviteEmailSent, DateTime.UtcNow), ctx);
+                }
+                else if (typeof(T) == typeof(SaveDateEmailRequest))
+                {
+                    await db.EventUsers
+                        .Where(ue => ue.EventId == eventId && userIds.Contains(ue.UserId))
+                        .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.SaveTheDateEmailSent, DateTime.UtcNow), ctx);
+                }
+
+                logger.LogInformation("Sent {Count} {Type} emails in bulk for event {EventId}", toSendImmediately.Count, typeof(T).Name, eventId);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to send bulk {Type} emails", typeof(T).Name);
+            throw; // Re-throw to allow callers to handle/display error
         }
     }
 
@@ -340,6 +369,7 @@ public class InvitationService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to send {Type} email to {Email}", typeof(T).Name, request.UserEmail);
+            throw; // Re-throw to allow callers to handle/display error
         }
     }
 

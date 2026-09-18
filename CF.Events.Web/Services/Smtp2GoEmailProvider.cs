@@ -1,44 +1,89 @@
+using System.Text.Json;
+using CF.Events.Web.Models;
 using CF.Events.Web.Infrastructure.Settings;
-using CF.Events.Web.Models.Requests;
 using Microsoft.Extensions.Options;
-using Smtp2Go.Api;
-using Smtp2Go.Api.Models.Emails;
 
 namespace CF.Events.Web.Services;
 
-public class Smtp2GoEmailProvider(IApiService smtp2GoClient, IOptions<AppSettings> settings) : IEmailProvider
+public class Smtp2GoEmailProvider(ISmtp2GoClient smtp2GoClient, IOptions<AppSettings> settings) : IEmailProvider
 {
-    private readonly EmailProviderSettings _settings = settings.Value.EmailProviderSettings;
+    private readonly EmailProviderSettings _emailSettings = settings.Value.EmailProviderSettings;
 
-    public async Task SendTemplatedEmailAsync(string templateId, string to, IDictionary<string, string> variables, IEnumerable<InlineAttachment>? inlineAttachments = null, CancellationToken ctx = default)
+    public async Task SendTemplatedEmailAsync(EmailEntry emailEntry, CancellationToken ctx = default)
     {
-        var message = new TemplatedEmailMessage(templateId, _settings.SenderEmail, to);
-
-        foreach (var variable in variables)
-            message.AddTemplateVariable(variable.Key, variable.Value);
-
-        if (inlineAttachments is not null)
+        var request = new Smtp2GoEmailRequest
         {
-            foreach (var attachment in inlineAttachments)
-                message.AddInlineImage(attachment.FileName, Convert.ToBase64String(attachment.Content), attachment.ContentType);
-        }
+            ApiKey = _emailSettings.Smtp2Go.ApiKey,
+            TemplateId = emailEntry.TemplateId,
+            Sender = _emailSettings.SenderEmail,
+            To = [emailEntry.To],
+            TemplateData = emailEntry.Variables,
+            Inlines = emailEntry.InlineAttachments?.Select(a => new Smtp2GoInlineAttachment
+            {
+                FileName = a.FileName,
+                FileBlob = Convert.ToBase64String(a.Content),
+                MimeType = a.ContentType
+            }).ToList()
+        };
 
         try
         {
-            var response = await smtp2GoClient.SendTemplatedEmail(message).ConfigureAwait(false);
-
-            if (response.ResponseStatus != "OK")
-            {
-                if (response.Data is null || response.Data.Succeeded == 0)
-                    throw new Exception("Smtp2go API error: No data returned");
-
-                var errors = response.Data.Failures != null ? string.Join(", ", response.Data.Failures) : response.Data.Error ?? "Unknown error";
-                throw new Exception($"Smtp2go API error: {errors}");
-            }
+            var response = await smtp2GoClient.SendTemplatedEmailAsync(request, ctx);
+            ProcessApiResponse(response);
         }
         catch (Exception ex)
         {
             throw new Exception("Failed to send email via Smtp2go", ex);
         }
+    }
+
+    public async Task SendTemplatedEmailsBulkAsync(IEnumerable<EmailEntry> emailEntries, CancellationToken ctx = default)
+    {
+        var bulkRequest = new Smtp2GoBulkEmailRequest
+        {
+            ApiKey = _emailSettings.Smtp2Go.ApiKey,
+            Emails =
+            [
+                .. emailEntries.Select(entry => new Smtp2GoEmailRequestItem
+                {
+                    TemplateId = entry.TemplateId,
+                    Sender = _emailSettings.SenderEmail,
+                    To = [entry.To],
+                    TemplateData = entry.Variables,
+                    Inlines = entry.InlineAttachments?.Select(a => new Smtp2GoInlineAttachment
+                    {
+                        FileName = a.FileName,
+                        FileBlob = Convert.ToBase64String(a.Content),
+                        MimeType = a.ContentType
+                    }).ToList()
+                })
+            ]
+        };
+
+        try
+        {
+            var response = await smtp2GoClient.SendBulkTemplatedEmailsAsync(bulkRequest, ctx);
+            ProcessApiResponse(response);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Failed to send bulk emails via Smtp2go", ex);
+        }
+    }
+
+    private static void ProcessApiResponse(Smtp2GoApiResponse response)
+    {
+        // Success is determined by HTTP status code in Smtp2GoClient.
+        // Verify that the data is not empty and doesn't contain hidden errors.
+        if (response.Data.ValueKind is not JsonValueKind.Object) return;
+
+        if (!response.Data.TryGetProperty("failed", out var failedProp) || !failedProp.TryGetInt32(out var failedCount) || failedCount <= 0)
+            return;
+
+        var errorMessage = "Some emails failed to send.";
+        if (response.Data.TryGetProperty("failures", out var failuresProp) && failuresProp.ValueKind is JsonValueKind.Array)
+            errorMessage += $" Failures: {failuresProp}";
+
+        throw new Exception($"Smtp2go partial success: {errorMessage} (Request ID: {response.RequestId})");
     }
 }
