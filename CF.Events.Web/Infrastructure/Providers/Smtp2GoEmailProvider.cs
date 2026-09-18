@@ -1,4 +1,3 @@
-using System.Text.Json;
 using CF.Events.Web.Infrastructure.HttpClients;
 using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Models;
