@@ -2,6 +2,7 @@
 using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Infrastructure.ModelBinders;
+using CF.Events.Web.Infrastructure.Validators;
 using CF.Events.Web.Models;
 using CF.Events.Web.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -57,6 +58,8 @@ public class EditEventModel(
                 SendWithLink = @event.EmailWithLink,
                 DonationTypes = GetDonationTypes(@event),
                 DonationIban = @event.DonationIban,
+                AccountOwner = @event.IbanAccountOwner,
+                TransactionReference = @event.IbanTransferReference,
                 DonationLink = @event.DonationLink,
                 PhysicalGiftInfo = @event.PhysicalGiftInfo,
                 BookingLinks = [.. @event.BookingLinks.Select(bl => bl.Link)],
@@ -113,9 +116,18 @@ public class EditEventModel(
         if (Event.EndDate < Event.StartDate)
             ModelState.AddModelError("Event.EndDate", "End Date cannot be earlier than Start Date");
 
+        if (Event.DonationTypes.Contains(DonationType.Iban))
+        {
+            if (Event.DonationIban.HasValue() && !IbanValidator.IsValid(Event.DonationIban))
+                ModelState.AddModelError("Event.DonationIban", "Invalid Iban");
+
+            if (!Event.AccountOwner.HasValue())
+                ModelState.AddModelError("Event.AccountOwner", "Account Owner is required");
+        }
+
         if (!ModelState.IsValid)
         {
-            toastNotification.AddWarningToastMessage($"Failed to save: Found {ModelState.ErrorCount} from errors");
+            toastNotification.AddWarningToastMessage($"There are {ModelState.ErrorCount} form issues");
             return Page();
         }
 
@@ -157,7 +169,13 @@ public class EditEventModel(
         @event.IsFinalised = Event.IsFinalised;
         @event.RsvpDeadline = Event.RsvpDeadline;
 
-        @event.DonationIban = Event.DonationTypes.Contains(DonationType.Iban) ? Event.DonationIban : null;
+        if (Event.DonationTypes.Contains(DonationType.Iban))
+        {
+            @event.DonationIban = Event.DonationIban;
+            @event.IbanAccountOwner = Event.AccountOwner;
+            @event.IbanTransferReference = Event.TransactionReference.HasValue() ? Event.TransactionReference : @event.GetDonationReference();
+        }
+
         @event.DonationLink = Event.DonationTypes.Contains(DonationType.Link) ? Event.DonationLink : null;
         @event.PhysicalGiftInfo = Event.DonationTypes.Contains(DonationType.Physical) ? Event.PhysicalGiftInfo : null;
 
@@ -213,18 +231,16 @@ public class EditEventModel(
 
         toastNotification.AddSuccessToastMessage($"Event {(isNew ? "created" : "updated")} successfully!");
 
-        if (RedirectAfterSave.HasValue() && (Url.IsLocalUrl(RedirectAfterSave) || RedirectAfterSave.StartsWith('/')))
-        {
-            var redirectUrl = RedirectAfterSave;
-            if (!ActiveTab.HasValue())
-                return Redirect(redirectUrl);
+        if (!RedirectAfterSave.HasValue() || (!Url.IsLocalUrl(RedirectAfterSave) && !RedirectAfterSave.StartsWith('/')))
+            return RedirectToPage(new { id = @event.Id, tab = ActiveTab });
 
-            var separator = redirectUrl.Contains('?') ? "&" : "?";
-            redirectUrl += $"{separator}tab={ActiveTab}";
+        var redirectUrl = RedirectAfterSave;
+        if (!ActiveTab.HasValue())
             return Redirect(redirectUrl);
-        }
 
-        return RedirectToPage(new { id = @event.Id, tab = ActiveTab });
+        var separator = redirectUrl.Contains('?') ? "&" : "?";
+        redirectUrl += $"{separator}tab={ActiveTab}";
+        return Redirect(redirectUrl);
     }
 
     private static List<DonationType> GetDonationTypes(Event @event)
@@ -259,6 +275,8 @@ public class EditEventModel(
         public int MaxParticipantsPerRsvp { get; set; } = 4;
         public List<DonationType> DonationTypes { get; set; } = [];
         public string? DonationIban { get; set; }
+        public string? AccountOwner { get; set; }
+        public string? TransactionReference { get; set; }
         public string? DonationLink { get; set; }
         public string? PhysicalGiftInfo { get; set; }
 
