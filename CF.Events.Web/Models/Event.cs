@@ -29,6 +29,12 @@ public class Event
     [StringLength(64)]
     public string? DonationIban { get; set; }
 
+    [StringLength(64)]
+    public string? IbanAccountOwner { get; set; }
+
+    [StringLength(16)]
+    public string? IbanTransferReference { get; set; }
+
     [StringLength(250)]
     public string? DonationLink { get; set; }
 
