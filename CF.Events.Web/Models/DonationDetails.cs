@@ -7,4 +7,5 @@ public class DonationDetails
     public string? Iban { get; set; }
     public string? Link { get; set; }
     public string? Reference { get; set; }
+    public string? AccountOwner { get; set; }
 }

@@ -142,9 +142,10 @@ public class EventController(
             {
                 EventName = @event.Name,
                 Iban = @event.DonationIban,
+                AccountOwner = @event.IbanAccountOwner,
+                Reference = @event.IbanTransferReference,
                 Link = @event.DonationLink,
-                PhysicalGiftInfo = @event.PhysicalGiftInfo,
-                Reference = @event.GetDonationReference()
+                PhysicalGiftInfo = @event.PhysicalGiftInfo
             };
 
             return PartialView("~/Pages/Events/Shared/_EventDonations.cshtml", adminModel);
@@ -161,9 +162,10 @@ public class EventController(
         {
             EventName = @event.Name,
             Iban = @event.DonationIban,
+            AccountOwner = @event.IbanAccountOwner,
+            Reference = @event.IbanTransferReference,
             Link = @event.DonationLink,
-            PhysicalGiftInfo = @event.PhysicalGiftInfo,
-            Reference = @event.GetDonationReference()
+            PhysicalGiftInfo = @event.PhysicalGiftInfo
         };
 
         return PartialView("~/Pages/Events/Shared/_EventDonations.cshtml", model);
