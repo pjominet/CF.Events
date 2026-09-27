@@ -79,6 +79,7 @@
                 <div class="mb-3">
                     <label class="form-label fw-bold">Accommodation Details</label>
                     <textarea asp-for="AccommodationDetails" class="form-control auto-size" rows="3" data-max-length="500" data-counter-id="accommodationCounter"></textarea>
+                    <span asp-validation-for="AccommodationDetails" class="text-danger"></span>
                     <div class="d-flex justify-content-between mt-2">
                         <div class="form-text">Descriptive text explaining on how to book accommodation.</div>
                         <small id="accommodationCounter" class="text-muted"></small>
@@ -120,23 +121,18 @@
         <div id="donationIbanWrapper" style="display: @(Model.DonationTypes.Contains(EditEventModel.DonationType.Iban) ? "block" : "none")" class="mb-4">
             <label class="form-label fw-bold">Donation IBAN</label>
             <input asp-for="DonationIban" type="text" class="form-control" data-max-length="64" data-counter-id="ibanCounter"/>
+            <span asp-validation-for="DonationIban" class="text-danger"></span>
             <div class="d-flex justify-content-between mb-2">
                 <div class="form-text">If set, the event will be eligible for donations via IBAN transfers.</div>
                 <small id="ibanCounter" class="text-muted"></small>
             </div>
-            <div>
-                <span asp-validation-for="DonationIban" class="text-danger"></span>
-            </div>
-
 
             <label class="form-label fw-bold">Account Owner</label>
             <input asp-for="AccountOwner" type="text" class="form-control" data-max-length="64" data-counter-id="accountCounter"/>
+            <span asp-validation-for="AccountOwner" class="text-danger"></span>
             <div class="d-flex justify-content-between mb-2">
                 <div class="form-text">Set to make sure the IBAN can be cross referenced via the account holder name.</div>
                 <small id="accountCounter" class="text-muted"></small>
-            </div>
-            <div>
-                <span asp-validation-for="AccountOwner" class="text-danger"></span>
             </div>
 
             <label class="form-label fw-bold">Reference</label>
@@ -150,6 +146,7 @@
         <div id="donationLinkWrapper" style="display: @(Model.DonationTypes.Contains(EditEventModel.DonationType.Link) ? "block" : "none")" class="mb-4">
             <label class="form-label fw-bold">Service Link</label>
             <input asp-for="DonationLink" type="text" class="form-control" data-max-length="250" data-counter-id="linkCounter"/>
+            <span asp-validation-for="DonationLink" class="text-danger"></span>
             <div class="d-flex justify-content-between">
                 <div class="form-text">If set, the event will be eligible for donations via an external service.</div>
                 <small id="linkCounter" class="text-muted"></small>
@@ -159,6 +156,7 @@
         <div id="donationPhysicalWrapper" style="display: @(Model.DonationTypes.Contains(EditEventModel.DonationType.Physical) ? "block" : "none")">
             <label class="form-label fw-bold">Physical Gift Info</label>
             <textarea asp-for="PhysicalGiftInfo" class="form-control auto-size" rows="3" data-max-length="1000" data-counter-id="giftCounter"></textarea>
+            <span asp-validation-for="PhysicalGiftInfo" class="text-danger"></span>
             <div class="d-flex justify-content-between">
                 <div class="form-text">Description of how physical gifts should be handled.</div>
                 <small id="giftCounter" class="text-muted"></small>

@@ -175,6 +175,12 @@ public class EditEventModel(
             @event.IbanAccountOwner = Event.AccountOwner;
             @event.IbanTransferReference = Event.TransactionReference.HasValue() ? Event.TransactionReference : @event.GetDonationReference();
         }
+        else
+        {
+            @event.DonationIban = null;
+            @event.IbanAccountOwner = null;
+            @event.IbanTransferReference = null;
+        }
 
         @event.DonationLink = Event.DonationTypes.Contains(DonationType.Link) ? Event.DonationLink : null;
         @event.PhysicalGiftInfo = Event.DonationTypes.Contains(DonationType.Physical) ? Event.PhysicalGiftInfo : null;
