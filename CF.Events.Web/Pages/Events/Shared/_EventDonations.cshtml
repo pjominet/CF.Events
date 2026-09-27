@@ -51,9 +51,9 @@
                             onclick="copyToClipboardAndShowFeedback(this)">
                         @Model.Iban.FormatAsIban()<i class="bi bi-copy ms-2"></i>
                     </button>
-                    <div class="form-text text-muted mb-3">
+                    <div class="text-muted mb-3">
                         <p class="mb-0">
-                            <i class="bi bi-info-square text-danger me-2"></i>For cross reference, the account name is <strong>@Model.AccountOwner</strong>.
+                            <i class="bi bi-check-square text-success me-2"></i>For cross reference, the account name is <strong>@Model.AccountOwner</strong>.
                             <br/>
                             <i class="bi bi-exclamation-diamond text-danger me-2"></i>Add the reference <strong>@($"{Model.Reference}")</strong> to your transaction.
                         </p>

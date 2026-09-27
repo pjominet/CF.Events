@@ -2,7 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CF.Events.Web", "CF.Events.Web\CF.Events.Web.csproj", "{CE2E53BB-A447-4E7E-9D31-7801733F5802}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CF.Events.UnitTests", "CF.Events.UnitTests\CF.Events.UnitTests.csproj", "{2413ABAD-D934-47B5-B7F4-2EB041C3A7D5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CF.Events.Tests", "CF.Events.Tests\CF.Events.Tests.csproj", "{2413ABAD-D934-47B5-B7F4-2EB041C3A7D5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
