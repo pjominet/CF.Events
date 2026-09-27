@@ -350,3 +350,12 @@ h1:focus {
 .container-stretch {
     max-width: 1600px !important;
 }
+
+.copyable {
+    cursor: pointer;
+    transition: color 0.2s ease-in-out;
+}
+
+.copyable:hover {
+    color: var(--bs-primary);
+}
