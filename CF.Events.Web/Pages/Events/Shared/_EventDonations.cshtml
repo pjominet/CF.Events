@@ -53,9 +53,9 @@
                     </button>
                     <div class="text-muted mb-3">
                         <p class="mb-0">
-                            <i class="bi bi-check-square text-success me-2"></i>For cross reference, the account name is <strong>@Model.AccountOwner</strong>.
+                            <i class="bi bi-check-square text-success me-2"></i>For cross reference, the account name is <strong class="copyable" role="button" title="Click to copy!" data-bs-toggle="tooltip" onclick="copyToClipboardAndShowFeedback(this)">@Model.AccountOwner <i class="bi bi-copy small text-muted"></i></strong>.
                             <br/>
-                            <i class="bi bi-exclamation-diamond text-danger me-2"></i>Add the reference <strong>@($"{Model.Reference}")</strong> to your transaction.
+                            <i class="bi bi-exclamation-diamond text-danger me-2"></i>Add the reference <strong class="copyable" role="button" title="Click to copy!" data-bs-toggle="tooltip" onclick="copyToClipboardAndShowFeedback(this)">@($"{Model.Reference}") <i class="bi bi-copy small text-muted"></i></strong> to your transaction.
                         </p>
                     </div>
                 }

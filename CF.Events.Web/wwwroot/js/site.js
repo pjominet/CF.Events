@@ -347,43 +347,57 @@
     }
     window.initCharacterCounters = initCharacterCounters;
 
-    window.copyToClipboardAndShowFeedback = function (elementOrId, buttonOrDuration, duration = 750) {
+    window.copyToClipboardAndShowFeedback = function (source, feedbackTarget = null, duration = 750) {
         let textToCopy = '';
-        let button = null;
-        let finalDuration = duration;
+        let targetElement = feedbackTarget;
 
-        if (typeof elementOrId === 'string') {
-            const source = document.getElementById(elementOrId);
-            if (!source) {
-                console.error(`Element with ID '${elementOrId}' not found`);
+        if (typeof source === 'string') {
+            const sourceEl = document.getElementById(source);
+            if (!sourceEl) {
+                console.error(`Source element with ID '${source}' not found`);
                 return;
             }
+            textToCopy = sourceEl.value || sourceEl.textContent || '';
+        } else if (source instanceof HTMLElement) {
             textToCopy = source.value || source.textContent || '';
-            button = buttonOrDuration;
-            finalDuration = duration;
-        } else {
-            textToCopy = elementOrId.textContent;
-            button = elementOrId;
-            finalDuration = typeof buttonOrDuration === 'number' ? buttonOrDuration : 750;
+            if (!targetElement) {
+                targetElement = source;
+            }
         }
 
-        if (!textToCopy.trim()) {
-            console.error('No text to copy');
+        if (!textToCopy) {
+            console.error('No text found to copy');
             return;
         }
 
-        const originalText = button.textContent;
-        button.textContent = 'Copied!';
+        if (!targetElement) {
+            console.error('No feedback target element provided');
+            return;
+        }
 
-        navigator.clipboard.writeText(textToCopy)
+        navigator.clipboard.writeText(textToCopy.trim())
+            .then(() => {
+                const tooltip = bootstrap.Tooltip.getInstance(targetElement);
+                if (tooltip) {
+                    const originalTitle = targetElement.getAttribute('data-bs-original-title') || targetElement.getAttribute('title');
+                    tooltip.setContent({ '.tooltip-inner': 'Copied!' });
+                    setTimeout(() => {
+                        tooltip.setContent({ '.tooltip-inner': originalTitle });
+                        tooltip.hide();
+                    }, duration);
+                } else if (targetElement.tagName === 'BUTTON' || targetElement.tagName === 'A') {
+                    const originalText = targetElement.textContent;
+                    const icon = targetElement.querySelector('i');
+                    targetElement.textContent = 'Copied!';
+                    setTimeout(() => {
+                        targetElement.textContent = originalText;
+                        if (icon) targetElement.appendChild(icon);
+                    }, duration);
+                }
+            })
             .catch(err => {
                 console.error('Failed to copy:', err);
-                button.textContent = originalText;
             });
-
-        setTimeout(() => {
-            button.textContent = originalText;
-        }, finalDuration);
     }
 
     // Show loading overlay
