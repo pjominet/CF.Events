@@ -251,4 +251,12 @@ public class AdminEventController(
 
         return Ok(new { count });
     }
+
+    [HttpPost("notes")]
+    public async Task<IActionResult> UpdateInviteeNotes([FromRoute] int eventId, [FromBody] InviteeNotesRequest request)
+    {
+        var isSuccess = await eventService.UpdateInviteeNotesAsync(eventId, request.UserId, request.Notes);
+
+        return isSuccess ? NoContent() : BadRequest();
+    }
 }

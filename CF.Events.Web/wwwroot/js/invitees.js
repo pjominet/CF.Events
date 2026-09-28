@@ -84,17 +84,24 @@
         });
     }
 
+    const inviteesTableContainer = document.getElementById('inviteesTableContainer');
+    const eventId = inviteesTableContainer?.dataset.eventId || window.location.pathname.match(/\/events\/(\d+)/)?.[1];
+
     const searchInput = document.getElementById('inviteeSearchInput');
     const priorityFilterSelect = document.getElementById('priorityFilterSelect');
+    const notesFilterSelect = document.getElementById('notesFilterSelect');
     const statusFilters = document.querySelectorAll('.invitee-status-filter');
     const tableBody = inviteesTableBody;
 
-    const searchStorageKey = 'inviteeSearch-' + window.location.pathname;
-    const statusStorageKey = 'inviteeStatus-' + window.location.pathname;
-    const priorityStorageKey = 'inviteePriority-' + window.location.pathname;
+    const searchStorageKey = `activeInviteeSearchValue-${window.location.pathname}`;
+    const statusStorageKey = `activeInviteeStatusFilter-${window.location.pathname}`;
+    const priorityStorageKey = `activeInviteePriorityFilter-${window.location.pathname}`;
+    const notesStorageKey = `activeInviteeNotesFilter-${window.location.pathname}`;
 
+    let activeSearchValue = sessionStorage.getItem(searchStorageKey) || '';
     let activeStatus = sessionStorage.getItem(statusStorageKey) || '';
-    let activePriority = sessionStorage.getItem(priorityStorageKey) || '';
+    let activePriorityFilter = sessionStorage.getItem(priorityStorageKey) || '';
+    let activeNotesFilter = sessionStorage.getItem(notesStorageKey) || '';
 
     function applyFilters() {
         const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
@@ -107,21 +114,30 @@
             const guestGroup = row.querySelector('td:nth-child(3)')?.textContent?.toLowerCase() || '';
             const rowStatus = (row.dataset.status || row.querySelector('td:nth-child(8)')?.textContent || '').toLowerCase().trim();
             const rowPriority = (row.dataset.priority || row.querySelector('.priority-select')?.value || '').trim();
+            const hasNotes = (row.dataset.notes || '').trim().length > 0;
 
             const matchesSearch = !searchTerm ||
                 displayName.includes(searchTerm) ||
                 email.includes(searchTerm) ||
                 guestGroup.includes(searchTerm);
             const matchesStatus = !activeStatus || rowStatus === activeStatus;
-            const matchesPriority = !activePriority || rowPriority === activePriority;
+            const matchesPriority = !activePriorityFilter || rowPriority === activePriorityFilter;
 
-            if (matchesSearch && matchesStatus && matchesPriority) {
+            let matchesNotes = true;
+            if (activeNotesFilter === '1') {
+                matchesNotes = hasNotes;
+            } else if (activeNotesFilter === '0') {
+                matchesNotes = !hasNotes;
+            }
+
+            if (matchesSearch && matchesStatus && matchesPriority && matchesNotes) {
                 row.classList.remove('d-none');
             } else {
                 row.classList.add('d-none');
             }
         });
 
+        // highlight active filter 'span button'
         statusFilters.forEach(btn => {
             const btnStatus = (btn.dataset.status || '').toLowerCase().trim();
             if (activeStatus && btnStatus === activeStatus) {
@@ -144,31 +160,52 @@
         filterDebounceTimer = setTimeout(applyFilters, 250);
     }
 
-    if (searchInput) {
-        searchInput.addEventListener('input', function () {
-            debouncedApplyFilters();
-            sessionStorage.setItem(searchStorageKey, this.value);
-        });
-
-        const initialSearch = sessionStorage.getItem(searchStorageKey);
-        if (initialSearch) {
-            searchInput.value = initialSearch;
+    searchInput?.addEventListener('input', function () {
+        activeSearchValue = this.value;
+        if (activeSearchValue) {
+            sessionStorage.setItem(searchStorageKey, activeSearchValue);
+        } else {
+            sessionStorage.removeItem(searchStorageKey);
         }
+        debouncedApplyFilters();
+    });
+
+    const initialSearchValue = sessionStorage.getItem(searchStorageKey);
+    if (initialSearchValue) {
+        searchInput.value = initialSearchValue;
+        activeSearchValue = initialSearchValue;
     }
+
     priorityFilterSelect?.addEventListener('change', function () {
-        activePriority = this.value;
-        if (activePriority) {
-            sessionStorage.setItem(priorityStorageKey, activePriority);
+        activePriorityFilter = this.value;
+        if (activePriorityFilter && priorityFilterSelect) {
+            sessionStorage.setItem(priorityStorageKey, activePriorityFilter);
         } else {
             sessionStorage.removeItem(priorityStorageKey);
         }
         applyFilters();
     });
 
-    const initialPriority = sessionStorage.getItem(priorityStorageKey);
-    if (initialPriority) {
-        priorityFilterSelect.value = initialPriority;
-        activePriority = initialPriority;
+    const initialPriorityFilter = sessionStorage.getItem(priorityStorageKey);
+    if (initialPriorityFilter && priorityFilterSelect) {
+        priorityFilterSelect.value = initialPriorityFilter;
+        activePriorityFilter = initialPriorityFilter;
+    }
+
+    notesFilterSelect?.addEventListener('change', function () {
+        activeNotesFilter = this.value;
+        if (activeNotesFilter) {
+            sessionStorage.setItem(notesStorageKey, activeNotesFilter);
+        } else {
+            sessionStorage.removeItem(notesStorageKey);
+        }
+        applyFilters();
+    });
+
+    const initialNotesFilter = sessionStorage.getItem(notesStorageKey);
+    if (initialNotesFilter && notesFilterSelect) {
+        notesFilterSelect.value = initialNotesFilter;
+        activeNotesFilter = initialNotesFilter;
     }
 
     statusFilters.forEach(btn => {
@@ -376,10 +413,85 @@
         });
     }
 
-    // Silent optimistic updates for Accommodation Code and Priority
-    const inviteesTableContainer = document.getElementById('inviteesTableContainer');
-    const eventId = inviteesTableContainer?.dataset.eventId || window.location.pathname.match(/\/events\/(\d+)/)?.[1];
+    // Admin Invitee Notes Modal handling
+    const notesModelEl = document.getElementById('inviteeNotesModal');
+    if (notesModelEl) {
+        const notesInviteeName = document.getElementById('notesInvitee');
+        const notesTextarea = document.getElementById('notesText');
+        let originalNotes = '';
+        let currentUserId = '';
 
+        document.addEventListener('click', function (e) {
+            const notesBtn = e.target.closest('.invitee-notes-btn');
+            if (!notesBtn) return;
+
+            currentUserId = notesBtn.dataset.userId || '';
+            const currentDisplayName = notesBtn.dataset.displayName || '';
+            const row = notesBtn.closest('tr');
+            originalNotes = row ? (row.dataset.notes || '') : (notesBtn.dataset.notes || '');
+
+            if (notesInviteeName) notesInviteeName.textContent = currentDisplayName;
+            if (notesTextarea) {
+                notesTextarea.value = originalNotes;
+            }
+
+            const modal = bootstrap.Modal.getOrCreateInstance(notesModelEl);
+            modal.show();
+            setTimeout(() => notesTextarea?.focus(), 300);
+        });
+
+        document.getElementById('notesSaveBtn').addEventListener('click', async function () {
+            if (!currentUserId || !eventId) return;
+
+            const newNotes = notesTextarea ? notesTextarea.value.trim() : '';
+            if (newNotes === originalNotes.trim()) return;
+
+            try {
+                const response = await fetch(`/admin/events/${eventId}/notes`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        userId : currentUserId,
+                        notes : newNotes
+                    })
+                });
+
+                if (response.ok) {
+                    const row = document.querySelector(`tr[data-user-id="${currentUserId}"]`);
+                    const notesBtn = row
+                        ? row.querySelector('.invitee-notes-btn')
+                        : document.querySelector(`.invitee-notes-btn[data-user-id="${currentUserId}"]`);
+
+                    if (row) {
+                        row.dataset.notes = newNotes;
+                    }
+
+                    if (notesBtn) {
+                        notesBtn.dataset.notes = newNotes;
+                        const icon = notesBtn.querySelector('i');
+                        const hasNotes = Boolean(newNotes && newNotes.trim().length > 0);
+
+                        icon.className = hasNotes ? 'bi bi-chat-left-text-fill' : 'bi bi-chat-left';
+                    }
+
+                    applyFilters();
+
+                    toastr.success('Notes updated');
+                } else {
+                    console.error('Failed to update notes:', response.statusText);
+                    toastr.error('Failed to update notes');
+                }
+            } catch (error) {
+                console.error('Error updating invitee notes:', error);
+                toastr.error('An error occurred while updating notes');
+            }
+        });
+    }
+
+    // Silent optimistic updates for Accommodation Code and Priority
     if (inviteesTableContainer && eventId) {
         const pendingUpdates = new Map();
         let debounceTimer = null;
@@ -453,7 +565,7 @@
                         }
                     });
 
-                    if (typeof toastr !== 'undefined' && result && result.count > 0) {
+                    if (result && result.count > 0) {
                         let message = `Successfully updated ${result.count} invitee`;
                         if (result.count > 1) {
                             message += 's';
@@ -462,15 +574,11 @@
                     }
                 } else {
                     console.error('Failed to update invitees:', response.statusText);
-                    if (typeof toastr !== 'undefined') {
-                        toastr.error('Failed to update invitees');
-                    }
+                    toastr.error('Failed to update invitees');
                 }
             } catch (error) {
                 console.error('Error during silent update of invitees:', error);
-                if (typeof toastr !== 'undefined') {
-                    toastr.error('An error occurred while updating invitees');
-                }
+                toastr.error('An error occurred while updating invitees');
             }
         }
 

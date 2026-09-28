@@ -218,4 +218,18 @@ public class EventService(EventsDbContext db) : IEventService
         await db.SaveChangesAsync();
         return eventUsers.Count;
     }
+
+    public async Task<bool> UpdateInviteeNotesAsync(int eventId, string userId, string? notes)
+    {
+        if (notes == string.Empty)
+            notes = null;
+
+        var result = await db.EventUsers
+            .Where(eu => eu.EventId == eventId && eu.UserId == userId)
+            .ExecuteUpdateAsync(setters => setters
+            .SetProperty(eu => eu.Notes, notes?.Trim())
+        );
+
+        return result == 1;
+    }
 }
