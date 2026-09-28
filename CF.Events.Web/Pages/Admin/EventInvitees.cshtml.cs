@@ -1,4 +1,5 @@
-﻿using CF.Events.Web.Data;
+﻿using System.Diagnostics;
+using CF.Events.Web.Data;
 using CF.Events.Web.Models;
 using CF.Events.Web.Models.Requests;
 using Microsoft.AspNetCore.Authorization;
@@ -34,7 +35,10 @@ public class EventInviteesModel(EventsDbContext db) : PageModel
             .Select(ue => new { ue.AssignedAccommodationCode, ue.User, InvitationEmailSent = ue.InviteEmailSent, SaveTheDateSent = ue.SaveTheDateEmailSent, ue.ScheduledFor, ue.InvitationPriority })
             .ToList();
 
-        var rsvps = db.Rsvps.Where(r => r.EventId == id).ToList();
+        var rsvps = db.Rsvps
+            .Where(r => r.EventId == id)
+            .Include(r => r.ParticipantsAttendance)
+            .ToList();
 
         var unavailableUsers = new HashSet<string>();
         Invitees =
@@ -45,6 +49,33 @@ public class EventInviteesModel(EventsDbContext db) : PageModel
                     var rsvp = rsvps.FirstOrDefault(r => r.UserId == user.Id);
                     var responded = rsvp?.SubmittedAt > DateTime.MinValue.AddDays(1);
                     var status = responded ? (rsvp?.Attending == true ? AttendanceStatus.Attending : AttendanceStatus.Declined) : AttendanceStatus.Pending;
+                    var respondedCount = 0;
+                    if (rsvp is not null)
+                    {
+                        switch (status)
+                        {
+                            case AttendanceStatus.Attending:
+                            {
+                                var days = rsvp.ParticipantsAttendance
+                                    .SelectMany(pa => pa.AttendingDays)
+                                    .Distinct()
+                                    .ToList();
+                                respondedCount = days.Count > 0
+                                    ? days.Max(day => rsvp.ParticipantsAttendance.Count(pa => pa.AttendingDays.Contains(day)))
+                                    : (rsvp.ParticipantsAttendance.Count > 0 ? rsvp.ParticipantsAttendance.Count : 1);
+                                break;
+                            }
+                            case AttendanceStatus.Declined:
+                                respondedCount = user.GuestGroup?.MaxPeople ?? 1;
+                                break;
+                            case AttendanceStatus.Pending:
+                                respondedCount = 0;
+                                break;
+                            default:
+                                throw new UnreachableException();
+                        }
+                    }
+
                     unavailableUsers.Add(user.Id);
                     return new InviteeRow(
                         user.Id,
@@ -56,7 +87,8 @@ public class EventInviteesModel(EventsDbContext db) : PageModel
                         iu.InvitationEmailSent,
                         iu.SaveTheDateSent,
                         iu.ScheduledFor,
-                        iu.InvitationPriority);
+                        iu.InvitationPriority,
+                        (ushort)respondedCount);
                 })
                 .OrderBy(i => i.DisplayName)
         ];
@@ -65,7 +97,13 @@ public class EventInviteesModel(EventsDbContext db) : PageModel
             invitedUsers.Count,
             invitedUsers.Sum(iu => iu.User.GuestGroup?.MaxPeople ?? 1),
             Invitees.Count(i => i.Status is AttendanceStatus.Attending),
-            Invitees.Count(i => i.Status is AttendanceStatus.Declined)
+            Invitees
+                .Where(i => i.Status is AttendanceStatus.Attending)
+                .Sum(i => i.RespondedCount),
+            Invitees.Count(i => i.Status is AttendanceStatus.Declined),
+            Invitees
+                .Where(i => i.Status is AttendanceStatus.Declined)
+                .Sum(i => i.RespondedCount)
         );
 
         AvailableUsers = await (from u in db.Users
@@ -88,9 +126,9 @@ public class EventInviteesModel(EventsDbContext db) : PageModel
         return list;
     }
 
-    public record InviteeRow(string UserId, string DisplayName, string GuestGroup, string Email, string? AssignedAccommodationCode, AttendanceStatus Status, DateTime? InvitationEmailSent, DateTime? SaveTheDateSent, DateTime? ScheduledFor, ushort InvitationPriority = 1);
+    public record InviteeRow(string UserId, string DisplayName, string GuestGroup, string Email, string? AssignedAccommodationCode, AttendanceStatus Status, DateTime? InvitationEmailSent, DateTime? SaveTheDateSent, DateTime? ScheduledFor, ushort InvitationPriority = 1, ushort RespondedCount = 0);
 
-    public record Statistics(int Count, int MaxPeopleSum, int Attending, int Declined);
+    public record Statistics(int InviteeCount, int InviteeMaxCount, int Attending, int AttendingReal, int Declined, int DeclinedReal);
 }
 
 public enum AttendanceStatus

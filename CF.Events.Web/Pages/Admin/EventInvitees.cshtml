@@ -133,13 +133,13 @@
             </div>
             <div class="d-flex gap-4">
                 <span class="invitee-status-filter user-select-none" data-status="" role="button" style="cursor: pointer;" title="Click reset any filters" data-bs-toggle="tooltip">
-                    Current Invitee Count: <strong>@Model.Stats.Count (@Model.Stats.MaxPeopleSum)</strong>
+                    Current Invitee Count: <strong>@Model.Stats.InviteeCount (@Model.Stats.InviteeMaxCount)</strong>
                 </span>
                 <span class="invitee-status-filter user-select-none" data-status="attending" role="button" style="cursor: pointer;" title="Click to filter by Attending" data-bs-toggle="tooltip">
-                    Attending: <strong class="text-success">@Model.Stats.Attending</strong>
+                    Attending: <strong class="text-success">@Model.Stats.Attending (@Model.Stats.AttendingReal)</strong>
                 </span>
                 <span class="invitee-status-filter user-select-none" data-status="declined" role="button" style="cursor: pointer;" title="Click to filter by Declined" data-bs-toggle="tooltip">
-                    Declined: <strong class="text-danger">@Model.Stats.Declined</strong>
+                    Declined: <strong class="text-danger">@Model.Stats.Declined (@Model.Stats.DeclinedReal)</strong>
                 </span>
             </div>
             <div class="d-flex align-items-center gap-2">
@@ -257,7 +257,9 @@
                                         _ => "bg-secondary"
                                     };
                                 }
-                                <span class="badge @badge">@invitee.Status.ToString()</span>
+                                <span class="badge @badge">
+                                    @invitee.Status.ToString()@(invitee.Status is AttendanceStatus.Attending or AttendanceStatus.Declined ? $" ({invitee.RespondedCount})" : "")
+                                </span>
                             </td>
                             <td class="text-end">
                                 <div class="d-flex justify-content-end align-items-center gap-2">
