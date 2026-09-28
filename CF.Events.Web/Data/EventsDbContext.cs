@@ -94,6 +94,8 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
         {
             e.HasKey(r => new { r.EventId, r.UserId });
 
+            e.Property(r => r.Notes).HasMaxLength(1000);
+
             e.HasOne(r => r.User)
                 .WithMany(r => r.UserEvents)
                 .HasForeignKey(r => r.UserId)

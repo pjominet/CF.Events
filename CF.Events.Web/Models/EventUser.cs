@@ -10,6 +10,9 @@ public class EventUser
     [StringLength(100)]
     public string? AssignedAccommodationCode { get; set; }
 
+    [StringLength(1000)]
+    public string? Notes { get; set; }
+
     public ushort InvitationPriority { get; set; } = 1;
     public DateTime? InviteEmailSent { get; set; }
     public DateTime? SaveTheDateEmailSent { get; set; }

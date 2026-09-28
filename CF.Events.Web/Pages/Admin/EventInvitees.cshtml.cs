@@ -28,17 +28,27 @@ public class EventInviteesModel(EventsDbContext db) : PageModel
     {
         EventData = await db.Events.FirstAsync(e => e.Id == id);
 
-        var invitedUsers = db.EventUsers
+        var invitedUsers = await db.EventUsers
             .Where(ue => ue.EventId == id)
             .Include(ue => ue.User)
             .ThenInclude(u => u.GuestGroup)
-            .Select(ue => new { ue.AssignedAccommodationCode, ue.User, InvitationEmailSent = ue.InviteEmailSent, SaveTheDateSent = ue.SaveTheDateEmailSent, ue.ScheduledFor, ue.InvitationPriority })
-            .ToList();
+            .Select(ue => new
+            {
+                ue.AssignedAccommodationCode,
+                ue.User,
+                InvitationEmailSent = ue.InviteEmailSent,
+                SaveTheDateSent = ue.SaveTheDateEmailSent,
+                ue.ScheduledFor,
+                ue.InvitationPriority,
+                ue.Notes
+            })
+            .AsSplitQuery()
+            .ToListAsync();
 
-        var rsvps = db.Rsvps
+        var rsvps = await db.Rsvps
             .Where(r => r.EventId == id)
             .Include(r => r.ParticipantsAttendance)
-            .ToList();
+            .ToListAsync();
 
         var unavailableUsers = new HashSet<string>();
         Invitees =
@@ -88,7 +98,8 @@ public class EventInviteesModel(EventsDbContext db) : PageModel
                         iu.SaveTheDateSent,
                         iu.ScheduledFor,
                         iu.InvitationPriority,
-                        (ushort)respondedCount);
+                        (ushort)respondedCount,
+                        iu.Notes);
                 })
                 .OrderBy(i => i.DisplayName)
         ];
@@ -126,7 +137,7 @@ public class EventInviteesModel(EventsDbContext db) : PageModel
         return list;
     }
 
-    public record InviteeRow(string UserId, string DisplayName, string GuestGroup, string Email, string? AssignedAccommodationCode, AttendanceStatus Status, DateTime? InvitationEmailSent, DateTime? SaveTheDateSent, DateTime? ScheduledFor, ushort InvitationPriority = 1, ushort RespondedCount = 0);
+    public record InviteeRow(string UserId, string DisplayName, string GuestGroup, string Email, string? AssignedAccommodationCode, AttendanceStatus Status, DateTime? InvitationEmailSent, DateTime? SaveTheDateSent, DateTime? ScheduledFor, ushort InvitationPriority = 1, ushort RespondedCount = 0, string? Notes = null);
 
     public record Statistics(int InviteeCount, int InviteeMaxCount, int Attending, int AttendingReal, int Declined, int DeclinedReal);
 }
