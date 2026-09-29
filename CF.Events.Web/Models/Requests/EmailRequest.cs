@@ -1,3 +1,5 @@
+using CF.Events.Web.Infrastructure.Providers.Interfaces;
+
 namespace CF.Events.Web.Models.Requests;
 
 public abstract class TemplateEmailRequest
@@ -15,7 +17,7 @@ public abstract class TemplateEmailRequest
     public required string UserEmail { get; init; }
     public DateOnly Deadline { get; init; }
     public string CallBackUrl { get; set; } = string.Empty;
-    public IEnumerable<InlineAttachment> InlineAttachments { get; set; } = [];
+    public IEnumerable<EmailAttachment> EmailAttachments { get; set; } = [];
 
     public abstract Dictionary<string, string> BuildTemplateVariables();
 }

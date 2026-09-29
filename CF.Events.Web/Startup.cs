@@ -26,7 +26,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         services.AddAppDataProtection(environment);
         services.AddAppLocalization();
         services.AddAppRateLimiting();
-        services.AddHttpClients(configuration);
+        services.AddHttpClients(environment, configuration);
         services.AddAppSanitization();
 
         services.AddRazorPages(options =>

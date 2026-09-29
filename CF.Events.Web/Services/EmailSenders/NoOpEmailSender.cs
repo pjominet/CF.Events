@@ -1,8 +1,9 @@
 ﻿using CF.Events.Web.Models.Requests;
+using CF.Events.Web.Services.Interfaces;
 
-namespace CF.Events.Web.Services;
+namespace CF.Events.Web.Services.EmailSenders;
 
-public class NoOpMailService(ILogger<NoOpMailService> logger) : IMailService
+public class NoOpEmailSender(ILogger<NoOpEmailSender> logger) : IEmailSender
 {
     public Task SendTemplatedEmailAsync(TemplateEmailRequest request, CancellationToken ctx = default)
     {
@@ -10,12 +11,9 @@ public class NoOpMailService(ILogger<NoOpMailService> logger) : IMailService
         return Task.CompletedTask;
     }
 
-    public Task SendTemplatedEmailsBulkAsync(IEnumerable<TemplateEmailRequest> requests, CancellationToken ctx = default)
+    public Task SendTemplatedEmailsAsync(IEnumerable<TemplateEmailRequest> requests, CancellationToken ctx = default)
     {
-        foreach (var request in requests)
-        {
-            LogRequest(request);
-        }
+        foreach (var request in requests) LogRequest(request);
         return Task.CompletedTask;
     }
 
@@ -33,6 +31,6 @@ public class NoOpMailService(ILogger<NoOpMailService> logger) : IMailService
                 Callback URL: {CallBackUrl}
                 Inlines: {InlineCount}
             """,
-            request.GetType().Name, request.TemplateId, request.SendWithLink, request.EventName, request.UserName, request.UserEmail, request.Deadline, request.CallBackUrl, request.InlineAttachments.Count());
+            request.GetType().Name, request.TemplateId, request.SendWithLink, request.EventName, request.UserName, request.UserEmail, request.Deadline, request.CallBackUrl, request.EmailAttachments.Count());
     }
 }

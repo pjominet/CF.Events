@@ -1,6 +1,7 @@
 ﻿using CF.Events.Web.Models;
+using CF.Events.Web.Services.Interfaces;
 
-namespace CF.Events.Web.Services;
+namespace CF.Events.Web.Services.EmailSenders;
 
 // No-op email sender. The application is self-contained and does not send emails;
 // confirmation/reset links are surfaced in the UI instead.

@@ -9,6 +9,7 @@ public interface ISmtp2GoClient
     Task<Smtp2GoApiResponse> SendTemplatedEmailAsync(Smtp2GoEmailRequest request, CancellationToken ctx = default);
     Task<Smtp2GoApiResponse> SendBulkTemplatedEmailsAsync(Smtp2GoBulkEmailRequest request, CancellationToken ctx = default);
     Task<Smtp2GoApiResponse> SearchActivityAsync(Smtp2GoActivitySearchRequest request, CancellationToken ctx = default);
+    Task<Smtp2GoApiResponse> SearchTemplatesAsync(Smtp2GoTemplateSearchRequest request, CancellationToken ctx = default);
 }
 
 public class Smtp2GoClient(HttpClient httpClient) : ISmtp2GoClient
@@ -28,6 +29,12 @@ public class Smtp2GoClient(HttpClient httpClient) : ISmtp2GoClient
     public async Task<Smtp2GoApiResponse> SearchActivityAsync(Smtp2GoActivitySearchRequest request, CancellationToken ctx = default)
     {
         var response = await httpClient.PostAsJsonAsync("activity/search", request, ctx);
+        return await ProcessResponse(response, ctx);
+    }
+
+    public async Task<Smtp2GoApiResponse> SearchTemplatesAsync(Smtp2GoTemplateSearchRequest request, CancellationToken ctx = default)
+    {
+        var response = await httpClient.PostAsJsonAsync("template/search", request, ctx);
         return await ProcessResponse(response, ctx);
     }
 

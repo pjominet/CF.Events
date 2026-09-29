@@ -5,9 +5,6 @@ namespace CF.Events.Web.Models;
 
 public class Smtp2GoEmailRequest
 {
-    [JsonPropertyName("api_key")]
-    public string? ApiKey { get; set; }
-
     [JsonPropertyName("template_id")]
     public string? TemplateId { get; set; }
 
@@ -26,9 +23,6 @@ public class Smtp2GoEmailRequest
 
 public class Smtp2GoBulkEmailRequest
 {
-    [JsonPropertyName("api_key")]
-    public string? ApiKey { get; set; }
-
     [JsonPropertyName("emails")]
     public List<Smtp2GoEmailRequestItem> Emails { get; set; } = [];
 }
@@ -74,9 +68,6 @@ public class Smtp2GoApiResponse
 
 public class Smtp2GoActivitySearchRequest
 {
-    [JsonPropertyName("api_key")]
-    public string? ApiKey { get; set; }
-
     [JsonPropertyName("start_date")]
     public string? StartDate { get; set; }
 
@@ -214,4 +205,55 @@ public class Smtp2GoActivityEventItem
 
     [JsonIgnore]
     public string? EffectiveUrl => Url ?? LinkUrl;
+}
+
+public class Smtp2GoTemplateSearchRequest
+{
+    [JsonPropertyName("search")]
+    public string? Search { get; set; }
+
+    [JsonPropertyName("tags")]
+    public List<string>? Tags { get; set; }
+
+    [JsonPropertyName("exact_match")]
+    public bool? ExactMatch { get; set; }
+
+    [JsonPropertyName("sort_direction")]
+    public string? SortDirection { get; set; }
+
+    [JsonPropertyName("limit")]
+    public int? Limit { get; set; }
+
+    [JsonPropertyName("continue_token")]
+    public string? ContinueToken { get; set; }
+}
+
+public class Smtp2GoTemplateSearchData
+{
+    [JsonPropertyName("continue_token")]
+    public string? ContinueToken { get; set; }
+
+    [JsonPropertyName("templates")]
+    public List<Smtp2GoTemplateItem> Templates { get; set; } = [];
+
+    [JsonPropertyName("total_count")]
+    public int? TotalCount { get; set; }
+}
+
+public class Smtp2GoTemplateItem
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = string.Empty;
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("subject")]
+    public string? Subject { get; set; }
+
+    [JsonPropertyName("tags")]
+    public List<string>? Tags { get; set; }
+
+    [JsonPropertyName("last_updated")]
+    public string? LastUpdated { get; set; }
 }

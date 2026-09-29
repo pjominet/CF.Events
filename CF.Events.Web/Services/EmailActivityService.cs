@@ -10,10 +10,18 @@ using Microsoft.Extensions.Options;
 
 namespace CF.Events.Web.Services;
 
+public interface IEmailActivityService
+{
+    Task<EmailActivitySyncResult> FetchAndSaveActivityAsync(int hours = 24, CancellationToken ctx = default);
+    Task<EmailActivitySyncResult> FetchAndSaveActivityAsync(EmailActivityFetchRequest request, CancellationToken ctx = default);
+    Task<List<EmailActivity>> GetRecentActivitiesAsync(int limit = 100, CancellationToken ctx = default);
+    Task<EmailActivity?> GetActivityByEmailIdAsync(string emailId, CancellationToken ctx = default);
+    Task<List<EmailActivityEvent>> GetTimelineForEmailAsync(string emailId, CancellationToken ctx = default);
+}
+
 public class EmailActivityService(
     ISmtp2GoClient smtp2GoClient,
     EventsDbContext db,
-    IOptions<AppSettings> settings,
     ILogger<EmailActivityService> logger) : IEmailActivityService
 {
     private static readonly HashSet<string> ErrorEvents = new(StringComparer.OrdinalIgnoreCase)
@@ -39,7 +47,6 @@ public class EmailActivityService(
 
     public async Task<EmailActivitySyncResult> FetchAndSaveActivityAsync(EmailActivityFetchRequest request, CancellationToken ctx = default)
     {
-        var apiKey = settings.Value.EmailProviderSettings.Smtp2Go.ApiKey;
         var startDate = request.StartDate ?? (request.Hours.HasValue ? DateTime.UtcNow.AddHours(-request.Hours.Value) : DateTime.UtcNow.AddHours(-24));
         var endDate = request.EndDate ?? DateTime.UtcNow;
 
@@ -52,7 +59,6 @@ public class EmailActivityService(
         {
             var searchRequest = new Smtp2GoActivitySearchRequest
             {
-                ApiKey = apiKey,
                 StartDate = startDate.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture),
                 EndDate = endDate.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture),
                 Search = request.Search,

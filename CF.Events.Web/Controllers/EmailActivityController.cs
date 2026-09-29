@@ -6,8 +6,7 @@ using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web.Controllers;
 
-[ApiController]
-[Route("api/email-activity")]
+[Route("admin/email/activity")]
 [Authorize(Roles = Roles.Admin)]
 public class EmailActivityController(
     IEmailActivityService emailActivityService,
@@ -15,18 +14,16 @@ public class EmailActivityController(
 {
     /// <summary>
     /// Fetches email activity from SMTP2GO for the last 24 hours (or specified number of hours),
-    /// persists the sent email info, open/click statuses, error messages, and entire event timeline to the database,
-    /// and returns the synced activities.
+    /// persists sent email details to the database, and returns the synced activities.
     /// </summary>
     /// <param name="hours">Number of hours to look back (default: 24)</param>
     /// <param name="ctx">Cancellation token</param>
-    [HttpPost("fetch-recent")]
     [HttpGet("fetch-recent")]
     public async Task<IActionResult> FetchRecentActivity([FromQuery] int hours = 24, CancellationToken ctx = default)
     {
         try
         {
-            if (hours <= 0 || hours > 720) hours = 24;
+            if (hours is <= 0 or > 720) hours = 24;
             var result = await emailActivityService.FetchAndSaveActivityAsync(hours, ctx);
             return Ok(result);
         }

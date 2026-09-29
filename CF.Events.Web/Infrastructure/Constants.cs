@@ -45,4 +45,9 @@ public static class Constants
     {
         public const string EmailLogin = "EmailLogin";
     }
+
+    public static class CacheKeys
+    {
+        public const string EmailTemplates = "Smtp2Go_EmailTemplates";
+    }
 }

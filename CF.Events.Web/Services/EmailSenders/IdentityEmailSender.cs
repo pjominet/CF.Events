@@ -1,5 +1,8 @@
+using CF.Events.Web.Infrastructure.Providers.Interfaces;
 using CF.Events.Web.Models;
-namespace CF.Events.Web.Services;
+using CF.Events.Web.Services.Interfaces;
+
+namespace CF.Events.Web.Services.EmailSenders;
 using static Infrastructure.Constants.Email;
 
 public class IdentityEmailSender(IEmailProvider emailProvider) : IIdentityEmailSender
@@ -13,7 +16,7 @@ public class IdentityEmailSender(IEmailProvider emailProvider) : IIdentityEmailS
             { "user_name", user.DisplayName! }
         };
 
-        await emailProvider.SendTemplatedEmailAsync(new EmailEntry(IdentityEmailTemplates.EmailConfirmationLink, email, variables));
+        await emailProvider.SendTemplatedEmailAsync(new TemplatedEmailEntry(IdentityEmailTemplates.EmailConfirmationLink, email, variables));
     }
 
     public async Task SendPasswordResetLinkAsync(AppUser user, string email, string resetLink)
@@ -24,7 +27,7 @@ public class IdentityEmailSender(IEmailProvider emailProvider) : IIdentityEmailS
             { "reset_url", resetLink }
         };
 
-        await emailProvider.SendTemplatedEmailAsync(new EmailEntry(IdentityEmailTemplates.PasswordRestLink, email, variables));
+        await emailProvider.SendTemplatedEmailAsync(new TemplatedEmailEntry(IdentityEmailTemplates.PasswordRestLink, email, variables));
     }
 
     public async Task SendPasswordResetCodeAsync(AppUser user, string email, string resetCode) => throw new NotImplementedException();
@@ -39,6 +42,6 @@ public class IdentityEmailSender(IEmailProvider emailProvider) : IIdentityEmailS
             { "login_url", loginLink }
         };
 
-        await emailProvider.SendTemplatedEmailAsync(new EmailEntry(IdentityEmailTemplates.EmailLoginLink, email, variables));
+        await emailProvider.SendTemplatedEmailAsync(new TemplatedEmailEntry(IdentityEmailTemplates.EmailLoginLink, email, variables));
     }
 }

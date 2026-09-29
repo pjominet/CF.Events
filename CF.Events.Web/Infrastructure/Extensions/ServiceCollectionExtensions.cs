@@ -7,10 +7,13 @@ using CF.Events.Web.Infrastructure.Exceptions;
 using CF.Events.Web.Infrastructure.Factories;
 using CF.Events.Web.Infrastructure.HttpClients;
 using CF.Events.Web.Infrastructure.Providers;
+using CF.Events.Web.Infrastructure.Providers.Interfaces;
 using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Models;
 using CF.Events.Web.Services;
 using CF.Events.Web.Services.BackgroundWorkers;
+using CF.Events.Web.Services.EmailSenders;
+using CF.Events.Web.Services.Interfaces;
 using EditorJsonToHtmlConverter;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
@@ -83,6 +86,7 @@ public static class ServiceCollectionExtensions
 
     public static void AddAppServices(this IServiceCollection services, IWebHostEnvironment environment, IConfiguration configuration)
     {
+        services.AddMemoryCache();
         services.AddScopedEditorJsonProcessorServices();
         services.AddScoped<IHtmlParser, HtmlParser>();
 
@@ -96,6 +100,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IImportService, ImportService>();
         services.AddScoped<IFileService, FileService>();
         services.AddScoped<IEmailActivityService, EmailActivityService>();
+        services.AddScoped<IEmailTemplateService, EmailTemplateService>();
 
         var hasEmailProviderApiKey = configuration.GetSection("AppSettings:EmailProviderSettings:Smtp2Go:ApiKey").Get<string>().HasValue();
         if (environment.IsDevelopment() && !hasEmailProviderApiKey)
@@ -103,7 +108,7 @@ public static class ServiceCollectionExtensions
             Log.Information("Using mock email service!");
             services.AddScoped<IIdentityEmailSender, NoOpIdentitySender>();
             services.AddScoped<IEmailSender<AppUser>>(sp => sp.GetRequiredService<IIdentityEmailSender>());
-            services.AddScoped<IMailService, NoOpMailService>();
+            services.AddScoped<IEmailSender, NoOpEmailSender>();
         }
         else
         {
@@ -114,7 +119,7 @@ public static class ServiceCollectionExtensions
             services.AddScoped<IEmailProvider, Smtp2GoEmailProvider>();
             services.AddScoped<IIdentityEmailSender, IdentityEmailSender>();
             services.AddScoped<IEmailSender<AppUser>>(sp => sp.GetRequiredService<IIdentityEmailSender>());
-            services.AddScoped<IMailService, MailService>();
+            services.AddScoped<IEmailSender, EmailSender>();
         }
     }
 
@@ -144,7 +149,7 @@ public static class ServiceCollectionExtensions
     public static void AddAppDataProtection(this IServiceCollection services, IWebHostEnvironment environment)
     {
         var keysPath = Path.Combine(environment.ContentRootPath, "keys");
-        if (environment.IsProduction() && Directory.Exists("/app"))
+        if (!environment.IsDevelopment() && Directory.Exists("/app"))
             keysPath = "/app/keys";
 
         if (!Directory.Exists(keysPath))
@@ -174,10 +179,18 @@ public static class ServiceCollectionExtensions
         });
     }
 
-    public static void AddHttpClients(this IServiceCollection services, IConfiguration configuration)
+    public static void AddHttpClients(this IServiceCollection services, IWebHostEnvironment environment, IConfiguration configuration)
     {
+        var apiKey = configuration.GetSection("AppSettings:EmailProviderSettings:Smtp2Go:ApiKey").Get<string>();
+        if (!apiKey.HasValue() && !environment.IsDevelopment())
+            throw new BootstrappingException("Email provider API key is not configured");
+
         services.AddHttpClient<ISmtp2GoClient, Smtp2GoClient>(client =>
         {
+            client.DefaultRequestHeaders.Clear();
+            client.DefaultRequestHeaders.Add("accept", "application/json");
+            client.DefaultRequestHeaders.Add("Content-Type", "application/json");
+            client.DefaultRequestHeaders.Add("X-Smtp2go-Api-Key", apiKey);
             client.BaseAddress = new Uri("https://api.smtp2go.com/v3/");
         });
     }

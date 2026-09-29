@@ -4,6 +4,7 @@ using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Models;
 using CF.Events.Web.Models.Requests;
+using CF.Events.Web.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using static CF.Events.Web.Infrastructure.Constants;
@@ -21,7 +22,7 @@ public interface IInvitationService
 
 public class InvitationService(
     EventsDbContext db,
-    IMailService mailService,
+    IEmailSender emailSender,
     IAuthEmailService authEmailService,
     IFileService fileService,
     IOptions<AppSettings> appOptions,
@@ -309,7 +310,7 @@ public class InvitationService(
         {
             if (toSendImmediately.Count > 0)
             {
-                await mailService.SendTemplatedEmailsBulkAsync(toSendImmediately, ctx);
+                await emailSender.SendTemplatedEmailsAsync(toSendImmediately, ctx);
 
                 // Update database in bulk after successful send
                 var userIds = toSendImmediately.Select(r => r.UserId).ToList();
@@ -348,7 +349,7 @@ public class InvitationService(
                 return;
             }
 
-            await mailService.SendTemplatedEmailAsync(request, ctx);
+            await emailSender.SendTemplatedEmailAsync(request, ctx);
 
             switch (request)
             {
@@ -392,7 +393,7 @@ public class InvitationService(
 
         if (request.SendWithLink)
             request.CallBackUrl = BuildSaveDateCallbackUrl(request.EventId, request.UserId);
-        else request.InlineAttachments = [fileService.GetAssetAttachment("save-the-date.png")];
+        else request.EmailAttachments = [fileService.GetAssetAttachment("save-the-date.png")];
 
         return request;
     }
@@ -408,7 +409,7 @@ public class InvitationService(
             case SaveDateEmailRequest std:
                 if (std.SendWithLink)
                     std.CallBackUrl = BuildSaveDateCallbackUrl(std.EventId, std.UserId);
-                else std.InlineAttachments = [fileService.GetAssetAttachment("save-the-date.png")];
+                else std.EmailAttachments = [fileService.GetAssetAttachment("save-the-date.png")];
                 break;
         }
     }
