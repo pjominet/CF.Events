@@ -12,62 +12,60 @@ document.addEventListener('DOMContentLoaded', function () {
     const antiForgeryForm = document.getElementById('antiForgeryForm');
 
     // Manual Sync action
-    if (syncBtn) {
-        syncBtn.addEventListener('click', async function () {
-            const syncUrl = syncBtn.getAttribute('data-sync-url');
-            if (!syncUrl) return;
+    syncBtn?.addEventListener('click', async function () {
+        const syncUrl = syncBtn.getAttribute('data-sync-url');
+        if (!syncUrl) return;
 
-            syncBtn.disabled = true;
-            syncSpinner.classList.remove('d-none');
-            syncBtnText.textContent = 'Syncing...';
-            alertContainer.innerHTML = '';
+        syncBtn.disabled = true;
+        syncSpinner.classList.remove('d-none');
+        syncBtnText.textContent = 'Syncing...';
+        alertContainer.innerHTML = '';
 
-            try {
-                const tokenInput = antiForgeryForm ? antiForgeryForm.querySelector('input[name="__RequestVerificationToken"]') : null;
-                const token = tokenInput ? tokenInput.value : '';
+        try {
+            const tokenInput = antiForgeryForm ? antiForgeryForm.querySelector('input[name="__RequestVerificationToken"]') : null;
+            const token = tokenInput ? tokenInput.value : '';
 
-                const response = await fetch(syncUrl, {
-                    method: 'POST',
-                    headers: {
-                        'RequestVerificationToken': token,
-                        'Content-Type': 'application/json'
-                    }
-                });
+            const response = await fetch(syncUrl, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': token,
+                    'Content-Type': 'application/json'
+                }
+            });
 
-                const result = await response.json();
+            const result = await response.json();
 
-                if (response.ok && result.success) {
-                    alertContainer.innerHTML = `
+            if (response.ok && result.success) {
+                alertContainer.innerHTML = `
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
                             <i class="bi bi-check-circle-fill me-2"></i> ${result.message || 'Email activity synced successfully!'}
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     `;
-                    // Reload page after a brief moment to show fresh data
-                    setTimeout(() => window.location.reload(), 1500);
-                } else {
-                    alertContainer.innerHTML = `
+                // Reload page after a brief moment to show fresh data
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                alertContainer.innerHTML = `
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             <i class="bi bi-exclamation-triangle-fill me-2"></i> ${result.message || 'Failed to sync email activity.'}
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     `;
-                }
-            } catch (err) {
-                console.error('Error syncing email activity:', err);
-                alertContainer.innerHTML = `
+            }
+        } catch (err) {
+            console.error('Error syncing email activity:', err);
+            alertContainer.innerHTML = `
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         <i class="bi bi-exclamation-triangle-fill me-2"></i> An unexpected network error occurred while syncing.
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 `;
-            } finally {
-                syncBtn.disabled = false;
-                syncSpinner.classList.add('d-none');
-                syncBtnText.textContent = 'Sync from SMTP2GO';
-            }
-        });
-    }
+        } finally {
+            syncBtn.disabled = false;
+            syncSpinner.classList.add('d-none');
+            syncBtnText.textContent = 'Sync from SMTP2GO';
+        }
+    });
 
     // Timeline Modal logic
     const timelineModalEl = document.getElementById('emailTimelineModal');
@@ -125,6 +123,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function getEventBadgeClass(eventName) {
         const lower = (eventName || '').toLowerCase();
+        if (lower === 'sandboxed' || lower.includes('sandbox')) return 'bg-warning text-dark';
         if (lower === 'delivered') return 'bg-success';
         if (lower === 'open' || lower === 'opened') return 'bg-info text-dark';
         if (lower === 'click' || lower === 'clicked') return 'bg-primary';
@@ -135,6 +134,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function getEventIcon(eventName) {
         const lower = (eventName || '').toLowerCase();
+        if (lower === 'sandboxed' || lower.includes('sandbox')) return 'bi-box-seam text-warning';
         if (lower === 'delivered') return 'bi-check-circle-fill text-success';
         if (lower === 'open' || lower === 'opened') return 'bi-envelope-open-fill text-info';
         if (lower === 'click' || lower === 'clicked') return 'bi-cursor-fill text-primary';
@@ -165,10 +165,11 @@ document.addEventListener('DOMContentLoaded', function () {
         timelineSentAt.textContent = data.sentAt || '-';
 
         let badges = [];
+        if (data.isSandboxed) badges.push('<span class="badge bg-warning text-dark me-1"><i class="bi bi-box-seam me-1"></i>Sandboxed</span>');
         if (data.isDelivered) badges.push('<span class="badge bg-success me-1"><i class="bi bi-check-circle me-1"></i>Delivered</span>');
         if (data.isOpened) badges.push(`<span class="badge bg-info text-dark me-1"><i class="bi bi-envelope-open me-1"></i>Opened (${data.openCount}x)</span>`);
         if (data.isClicked) badges.push(`<span class="badge bg-primary me-1"><i class="bi bi-cursor-fill me-1"></i>Clicked (${data.clickCount}x)</span>`);
-        if (data.hasError) badges.push('<span class="badge bg-danger me-1"><i class="bi bi-exclamation-circle me-1"></i>Error / Bounced</span>');
+        if (data.hasError && !data.isSandboxed) badges.push('<span class="badge bg-danger me-1"><i class="bi bi-exclamation-circle me-1"></i>Error / Bounced</span>');
         timelineSummaryBadges.innerHTML = badges.join(' ');
 
         if (!data.events || data.events.length === 0) {
@@ -184,6 +185,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const iconClass = getEventIcon(evt.event);
             const isClick = (evt.event || '').toLowerCase() === 'click';
             const errorMsg = evt.errorMessage || evt.smtpResponse;
+            const isSandboxedEvt = (evt.event || '').toLowerCase() === 'sandboxed' ||
+                                   (evt.event || '').toLowerCase().includes('sandbox') ||
+                                   (errorMsg || '').toLowerCase() === 'sandboxed' ||
+                                   (errorMsg || '').toLowerCase().includes('sandbox');
 
             html += `
                 <div class="list-group-item px-2 py-3 border-bottom">
@@ -224,10 +229,17 @@ document.addEventListener('DOMContentLoaded', function () {
                         </div>
                     ` : ''}
 
-                    ${errorMsg && (evt.event.toLowerCase().includes('bounce') || evt.event.toLowerCase() === 'spam' || evt.event.toLowerCase() === 'rejected') ? `
+                    ${errorMsg && !isSandboxedEvt && (evt.event.toLowerCase().includes('bounce') || evt.event.toLowerCase() === 'spam' || evt.event.toLowerCase() === 'rejected') ? `
                         <div class="alert alert-danger py-2 px-3 mt-2 mb-0 small">
                             <strong><i class="bi bi-exclamation-triangle-fill me-1"></i> Diagnostic Message:</strong>
                             <div class="text-break mt-1 font-monospace" style="font-size: 0.8rem;">${escapeHtml(errorMsg)}</div>
+                        </div>
+                    ` : ''}
+
+                    ${errorMsg && isSandboxedEvt ? `
+                        <div class="alert alert-warning py-2 px-3 mt-2 mb-0 small text-dark">
+                            <strong><i class="bi bi-box-seam me-1"></i> Sandboxed:</strong>
+                            <div class="text-break mt-1 font-monospace" style="font-size: 0.8rem;">${escapeHtml(errorMsg)} (Sent using Sandbox API Key)</div>
                         </div>
                     ` : ''}
                 </div>

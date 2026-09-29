@@ -1,12 +1,11 @@
 using System.Globalization;
 using System.Text.Json;
 using CF.Events.Web.Data;
+using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Infrastructure.HttpClients;
-using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Models;
 using CF.Events.Web.Models.Requests;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 
 namespace CF.Events.Web.Services;
 
@@ -275,15 +274,18 @@ public class EmailActivityService(
         activity.IsSpam = activity.Timeline.Any(t =>
             t.Event.Equals("spam", StringComparison.OrdinalIgnoreCase));
 
-        // Error detection
+        // Sandboxed status (separated from email provider error values)
+        var isSandboxed = activity.LastErrorMessage?.Contains("sandboxed", StringComparison.OrdinalIgnoreCase) ?? false;
+        activity.IsSandboxed = isSandboxed;
+
+        // Error detection (exclude Sandboxed from error state)
         var errorEvent = orderedTimeline.LastOrDefault(t =>
             ErrorEvents.Contains(t.Event) ||
-            !string.IsNullOrEmpty(t.ErrorMessage) ||
-            (!string.IsNullOrEmpty(t.SmtpResponse) && (t.SmtpResponse.StartsWith('4') || t.SmtpResponse.StartsWith('5'))));
+            (t.ErrorMessage.HasValue() && !t.ErrorMessage.Contains("sandboxed", StringComparison.OrdinalIgnoreCase)));
 
         activity.HasError = errorEvent is not null;
-        activity.LastErrorMessage = errorEvent?.ErrorMessage ?? errorEvent?.SmtpResponse;
-        activity.LastSmtpResponse = orderedTimeline.LastOrDefault(t => !string.IsNullOrEmpty(t.SmtpResponse))?.SmtpResponse;
+        activity.LastErrorMessage = errorEvent?.ErrorMessage;
+        activity.LastSmtpResponse = orderedTimeline.LastOrDefault(t => t.SmtpResponse.HasValue())?.SmtpResponse;
 
         activity.UpdatedAt = DateTime.UtcNow;
     }

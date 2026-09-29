@@ -112,6 +112,7 @@
                     <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
                         <option value="all" selected="@(string.IsNullOrEmpty(Model.Status) || Model.Status == "all")">All Statuses</option>
                         <option value="delivered" selected="@(Model.Status == "delivered")">Delivered</option>
+                        <option value="sandboxed" selected="@(Model.Status == "sandboxed")">Sandboxed</option>
                         <option value="opened" selected="@(Model.Status == "opened")">Opened</option>
                         <option value="clicked" selected="@(Model.Status == "clicked")">Clicked</option>
                         <option value="bounced" selected="@(Model.Status == "bounced")">Bounced</option>
@@ -178,9 +179,15 @@
                                 @(string.IsNullOrWhiteSpace(item.Subject) ? "(No Subject)" : item.Subject)
                             </td>
                             <td>
-                                @if (item.IsBounced)
+                                @if (item.IsSandboxed)
                                 {
-                                    <span class="badge bg-danger" title="@(item.LastErrorMessage ?? item.LastSmtpResponse ?? "Bounced")" data-bs-toggle="tooltip">
+                                    <span class="badge bg-warning text-dark" data-bs-toggle="tooltip">
+                                        <i class="bi bi-box-seam me-1"></i>Sandboxed
+                                    </span>
+                                }
+                                else if (item.IsBounced)
+                                {
+                                    <span class="badge bg-danger" title="@(item.LastErrorMessage ?? item.LastSmtpResponse)" data-bs-toggle="tooltip">
                                         <i class="bi bi-x-circle me-1"></i>Bounced
                                     </span>
                                 }
@@ -192,7 +199,7 @@
                                 }
                                 else if (item.HasError)
                                 {
-                                    <span class="badge bg-danger" title="@(item.LastErrorMessage ?? item.LastSmtpResponse ?? "Error")" data-bs-toggle="tooltip">
+                                    <span class="badge bg-danger" title="@(item.LastErrorMessage ?? item.LastSmtpResponse)" data-bs-toggle="tooltip">
                                         <i class="bi bi-exclamation-circle me-1"></i>Error
                                     </span>
                                 }
@@ -276,7 +283,7 @@
                             <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : "")">
                                 <a class="page-link" href="@Url.Page("", new { pageNumber = Model.PageNumber - 1, timeRange = Model.TimeRange, status = Model.Status, search = Model.Search })">Previous</a>
                             </li>
-                            @for (int i = startPage; i <= endPage; i++)
+                            @for (var i = startPage; i <= endPage; i++)
                             {
                                 <li class="page-item @(i == Model.PageNumber ? "active" : "")">
                                     <a class="page-link" href="@Url.Page("", new { pageNumber = i, timeRange = Model.TimeRange, status = Model.Status, search = Model.Search })">@i</a>

@@ -42,6 +42,8 @@ public class EmailActivity
 
     public bool HasError { get; set; }
 
+    public bool IsSandboxed { get; set; }
+
     public string? LastErrorMessage { get; set; }
 
     public string? LastSmtpResponse { get; set; }

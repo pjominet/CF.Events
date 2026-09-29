@@ -56,7 +56,7 @@ public class EmailActivityModel(
         DeliveredCount = await baseQuery.CountAsync(a => a.IsDelivered);
         OpenedCount = await baseQuery.CountAsync(a => a.WasOpened);
         ClickedCount = await baseQuery.CountAsync(a => a.WasClicked);
-        FailedCount = await baseQuery.CountAsync(a => a.HasError || a.IsBounced || a.IsSpam);
+        FailedCount = await baseQuery.CountAsync(a => a.HasError || a.IsBounced || a.IsSpam || a.IsSandboxed);
 
         // Filtered query for the table
         var filteredQuery = baseQuery;
@@ -76,10 +76,16 @@ public class EmailActivityModel(
             filteredQuery = Status.ToLowerInvariant() switch
             {
                 "delivered" => filteredQuery.Where(a => a.IsDelivered),
+                "sandboxed" => filteredQuery.Where(a => a.IsSandboxed ||
+                    (a.LastErrorMessage != null && a.LastErrorMessage.Contains("Sandboxed")) ||
+                    (a.LastSmtpResponse != null && a.LastSmtpResponse.Contains("Sandboxed"))),
                 "opened" => filteredQuery.Where(a => a.WasOpened),
                 "clicked" => filteredQuery.Where(a => a.WasClicked),
                 "bounced" => filteredQuery.Where(a => a.IsBounced),
-                "failed" => filteredQuery.Where(a => a.HasError || a.IsBounced || a.IsSpam),
+                "failed" => filteredQuery.Where(a => (a.HasError || a.IsBounced || a.IsSpam) &&
+                    !a.IsSandboxed &&
+                    (a.LastErrorMessage == null || !a.LastErrorMessage.Contains("Sandboxed")) &&
+                    (a.LastSmtpResponse == null || !a.LastSmtpResponse.Contains("Sandboxed"))),
                 _ => filteredQuery
             };
         }
@@ -142,6 +148,12 @@ public class EmailActivityModel(
         if (activity is null)
             return NotFound(new { success = false, message = "Email activity not found." });
 
+        var isSandboxed = activity.IsSandboxed ||
+                          string.Equals(activity.LastErrorMessage, "Sandboxed", StringComparison.OrdinalIgnoreCase) ||
+                          string.Equals(activity.LastSmtpResponse, "Sandboxed", StringComparison.OrdinalIgnoreCase) ||
+                          (activity.LastErrorMessage != null && activity.LastErrorMessage.Contains("Sandboxed", StringComparison.OrdinalIgnoreCase)) ||
+                          (activity.LastSmtpResponse != null && activity.LastSmtpResponse.Contains("Sandboxed", StringComparison.OrdinalIgnoreCase));
+
         return new JsonResult(new
         {
             success = true,
@@ -153,13 +165,14 @@ public class EmailActivityModel(
             latestEvent = activity.LatestEvent,
             latestEventAt = activity.LatestEventAt.ToString("yyyy-MM-dd HH:mm:ss"),
             isDelivered = activity.IsDelivered,
+            isSandboxed = isSandboxed,
             isOpened = activity.WasOpened,
             openCount = activity.OpenCount,
             firstOpenedAt = activity.FirstOpenedAt?.ToString("yyyy-MM-dd HH:mm:ss"),
             isClicked = activity.WasClicked,
             clickCount = activity.ClickCount,
             firstClickedAt = activity.FirstClickedAt?.ToString("yyyy-MM-dd HH:mm:ss"),
-            hasError = activity.HasError,
+            hasError = activity.HasError && !isSandboxed,
             errorMessage = activity.LastErrorMessage,
             smtpResponse = activity.LastSmtpResponse,
             events = activity.Timeline.Select(e => new

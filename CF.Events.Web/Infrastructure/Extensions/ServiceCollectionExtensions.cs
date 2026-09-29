@@ -189,7 +189,6 @@ public static class ServiceCollectionExtensions
         {
             client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Add("accept", "application/json");
-            client.DefaultRequestHeaders.Add("Content-Type", "application/json");
             client.DefaultRequestHeaders.Add("X-Smtp2go-Api-Key", apiKey);
             client.BaseAddress = new Uri("https://api.smtp2go.com/v3/");
         });
