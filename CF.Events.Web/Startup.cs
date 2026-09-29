@@ -21,7 +21,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
     {
         services.AddAppSettings(configuration);
         services.AddAppDatabases(configuration);
-        services.AddAppServices(environment);
+        services.AddAppServices(environment, configuration);
         services.AddAppAuthentication(environment, configuration);
         services.AddAppDataProtection(environment);
         services.AddAppLocalization();
@@ -122,7 +122,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         }
         catch (Exception ex)
         {
-            Log.Error("Database initialization attempt failed: {Message}", ex.Message);
+            Log.Error(ex, "Database initialization attempt failed:");
             throw;
         }
     }

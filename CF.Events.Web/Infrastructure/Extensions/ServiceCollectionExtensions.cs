@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Serilog;
 using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web.Infrastructure.Extensions;
@@ -80,7 +81,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IValidateOptions<AppSettings>, AppSettingsValidator>();
     }
 
-    public static void AddAppServices(this IServiceCollection services, IWebHostEnvironment environment)
+    public static void AddAppServices(this IServiceCollection services, IWebHostEnvironment environment, IConfiguration configuration)
     {
         services.AddScopedEditorJsonProcessorServices();
         services.AddScoped<IHtmlParser, HtmlParser>();
@@ -92,14 +93,20 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IImportService, ImportService>();
         services.AddScoped<IFileService, FileService>();
 
-        if (environment.IsDevelopment())
+        var hasEmailProviderApiKey = configuration.GetSection("AppSettings:EmailProviderSettings:Smtp2Go:ApiKey").Get<string>().HasValue();
+        if (environment.IsDevelopment() && !hasEmailProviderApiKey)
         {
+            Log.Information("Using mock email service!");
             services.AddScoped<IIdentityEmailSender, NoOpIdentitySender>();
             services.AddScoped<IEmailSender<AppUser>>(sp => sp.GetRequiredService<IIdentityEmailSender>());
             services.AddScoped<IMailService, NoOpMailService>();
         }
         else
         {
+            if (environment.IsDevelopment())
+                Log.Information("Using sandboxed Smtp2Go email provider!");
+            else Log.Information("Using Smtp2Go email provider!");
+
             services.AddScoped<IEmailProvider, Smtp2GoEmailProvider>();
             services.AddScoped<IIdentityEmailSender, IdentityEmailSender>();
             services.AddScoped<IEmailSender<AppUser>>(sp => sp.GetRequiredService<IIdentityEmailSender>());
