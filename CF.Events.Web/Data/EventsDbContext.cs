@@ -20,6 +20,8 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
     public DbSet<EventImage> EventImages => Set<EventImage>();
     public DbSet<LoginAudit> LoginAudits => Set<LoginAudit>();
     public DbSet<Feedback> Feedbacks => Set<Feedback>();
+    public DbSet<EmailActivity> EmailActivities => Set<EmailActivity>();
+    public DbSet<EmailActivityEvent> EmailActivityEvents => Set<EmailActivityEvent>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -138,7 +140,7 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
 
         builder.Entity<LoginAudit>(e =>
         {
-            e.ToTable("LoginAudits", "identity");
+            e.ToTable("LoginAudits", "audit");
 
             e.Property(r => r.IpAddress).HasMaxLength(50);
             e.Property(r => r.UserAgent).HasMaxLength(500);
@@ -189,6 +191,42 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
+        });
+
+        builder.Entity<EmailActivity>(e =>
+        {
+            e.ToTable("EmailActivities", "audit");
+
+            e.HasKey(a => a.EmailId);
+
+            e.Property(a => a.EmailId).IsRequired().HasMaxLength(100);
+            e.Property(a => a.FromEmail).IsRequired().HasMaxLength(256);
+            e.Property(a => a.RecipientEmail).IsRequired().HasMaxLength(256);
+            e.Property(a => a.Subject).HasMaxLength(500);
+            e.Property(a => a.LatestEvent).IsRequired().HasMaxLength(100);
+            e.Property(a => a.LastErrorMessage).HasMaxLength(2000);
+            e.Property(a => a.LastSmtpResponse).HasMaxLength(2000);
+        });
+
+        builder.Entity<EmailActivityEvent>(e =>
+        {
+            e.ToTable("EmailActivityEvents", "audit");
+
+            e.HasKey(t => t.EmailActivityId);
+            e.HasIndex(t => new { t.EmailActivityId, t.Event, t.EventAt });
+
+            e.Property(t => t.EmailId).IsRequired().HasMaxLength(100);
+            e.Property(t => t.Event).IsRequired().HasMaxLength(100);
+            e.Property(t => t.SmtpResponse).HasMaxLength(2000);
+            e.Property(t => t.ErrorMessage).HasMaxLength(2000);
+            e.Property(t => t.Host).HasMaxLength(256);
+            e.Property(t => t.UserAgent).HasMaxLength(1000);
+            e.Property(t => t.ClickUrl).HasMaxLength(2048);
+
+            e.HasOne(a => a.EmailActivity)
+                .WithMany(t => t.Timeline)
+                .HasForeignKey(t => t.EmailId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

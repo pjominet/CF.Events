@@ -85,13 +85,17 @@ public static class ServiceCollectionExtensions
     {
         services.AddScopedEditorJsonProcessorServices();
         services.AddScoped<IHtmlParser, HtmlParser>();
+
         services.AddHostedService<InvitationEmailWorker>();
+        services.AddHostedService<EmailActivityWorker>();
+
         services.AddScoped<IInvitationService, InvitationService>();
         services.AddScoped<IEventService, EventService>();
         services.AddScoped<IAuthEmailService, AuthEmailService>();
         services.AddScoped<IExportService, ExportService>();
         services.AddScoped<IImportService, ImportService>();
         services.AddScoped<IFileService, FileService>();
+        services.AddScoped<IEmailActivityService, EmailActivityService>();
 
         var hasEmailProviderApiKey = configuration.GetSection("AppSettings:EmailProviderSettings:Smtp2Go:ApiKey").Get<string>().HasValue();
         if (environment.IsDevelopment() && !hasEmailProviderApiKey)
