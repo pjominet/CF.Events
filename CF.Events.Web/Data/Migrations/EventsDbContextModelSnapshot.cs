@@ -172,6 +172,140 @@ namespace CF.Events.Web.Data.Migrations
                     b.ToTable("BookingLinks", "app");
                 });
 
+            modelBuilder.Entity("CF.Events.Web.Models.EmailActivity", b =>
+                {
+                    b.Property<string>("EmailId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("ClickCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FirstClickedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FirstOpenedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FromEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("HasError")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsBounced")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDelivered")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsSandboxed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsSpam")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastClickedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LastErrorMessage")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime?>("LastOpenedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LastSmtpResponse")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("OpenCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RecipientEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Subject")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("WasClicked")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("WasOpened")
+                        .HasColumnType("bit");
+
+                    b.HasKey("EmailId");
+
+                    b.ToTable("EmailActivities", "audit");
+                });
+
+            modelBuilder.Entity("CF.Events.Web.Models.EmailActivityEvent", b =>
+                {
+                    b.Property<int>("EmailActivityId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EmailActivityId"));
+
+                    b.Property<string>("ClickUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EmailId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Event")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("EventAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Host")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("SmtpResponse")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.HasKey("EmailActivityId");
+
+                    b.HasIndex("EmailId");
+
+                    b.HasIndex("EmailActivityId", "Event", "EventAt");
+
+                    b.ToTable("EmailActivityEvents", "audit");
+                });
+
             modelBuilder.Entity("CF.Events.Web.Models.Event", b =>
                 {
                     b.Property<int>("Id")
@@ -481,7 +615,7 @@ namespace CF.Events.Web.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("LoginAudits", "identity");
+                    b.ToTable("LoginAudits", "audit");
                 });
 
             modelBuilder.Entity("CF.Events.Web.Models.ParticipantAttendance", b =>
@@ -740,6 +874,17 @@ namespace CF.Events.Web.Data.Migrations
                     b.Navigation("Event");
                 });
 
+            modelBuilder.Entity("CF.Events.Web.Models.EmailActivityEvent", b =>
+                {
+                    b.HasOne("CF.Events.Web.Models.EmailActivity", "EmailActivity")
+                        .WithMany("TimelineEvents")
+                        .HasForeignKey("EmailId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EmailActivity");
+                });
+
             modelBuilder.Entity("CF.Events.Web.Models.EventFaqItem", b =>
                 {
                     b.HasOne("CF.Events.Web.Models.Event", "Event")
@@ -920,6 +1065,11 @@ namespace CF.Events.Web.Data.Migrations
                     b.Navigation("LoginAudits");
 
                     b.Navigation("UserEvents");
+                });
+
+            modelBuilder.Entity("CF.Events.Web.Models.EmailActivity", b =>
+                {
+                    b.Navigation("TimelineEvents");
                 });
 
             modelBuilder.Entity("CF.Events.Web.Models.Event", b =>

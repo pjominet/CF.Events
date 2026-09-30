@@ -4,13 +4,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using NToastNotify;
+using AspNetCoreHero.ToastNotification.Abstractions;
 using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web.Pages.Admin;
 
 [Authorize(Roles = Roles.Admin)]
-public class EventPreviewModel(EventsDbContext db, IToastNotification toastNotification) : PageModel
+public class EventPreviewModel(EventsDbContext db, INotyfService toastNotification) : PageModel
 {
     public Event Event { get; set; } = null!;
 
@@ -24,7 +24,7 @@ public class EventPreviewModel(EventsDbContext db, IToastNotification toastNotif
 
         if (@event is null)
         {
-            toastNotification.AddErrorToastMessage("Event not found");
+            toastNotification.Error("Event not found");
             return RedirectToPage("/Admin/Events");
         }
 

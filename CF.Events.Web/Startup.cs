@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using AspNetCoreHero.ToastNotification;
 using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Infrastructure.Extensions;
@@ -9,7 +10,6 @@ using CF.Events.Web.Infrastructure.Providers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.EntityFrameworkCore;
-using NToastNotify;
 using Serilog;
 using static CF.Events.Web.Infrastructure.Constants;
 
@@ -21,12 +21,12 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
     {
         services.AddAppSettings(configuration);
         services.AddAppDatabases(configuration);
-        services.AddAppServices(environment);
+        services.AddAppServices(environment, configuration);
         services.AddAppAuthentication(environment, configuration);
         services.AddAppDataProtection(environment);
         services.AddAppLocalization();
         services.AddAppRateLimiting();
-        services.AddHttpClients(configuration);
+        services.AddHttpClients(environment, configuration);
         services.AddAppSanitization();
 
         services.AddRazorPages(options =>
@@ -42,16 +42,6 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
             {
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
                 options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-            })
-            .AddNToastNotifyToastr(new ToastrOptions
-            {
-                ProgressBar = true,
-                PositionClass = ToastPositions.TopRight,
-                TapToDismiss = true,
-                TimeOut = 5000,
-                ExtendedTimeOut = 750,
-                ShowMethod = "fadeIn",
-                HideMethod = "fadeOut"
             });
 
         services.AddControllers(options =>
@@ -63,17 +53,16 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
             {
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
                 options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-            })
-            .AddNToastNotifyToastr(new ToastrOptions
-            {
-                ProgressBar = true,
-                PositionClass = ToastPositions.TopRight,
-                TapToDismiss = true,
-                TimeOut = 5000,
-                ExtendedTimeOut = 750,
-                ShowMethod = "fadeIn",
-                HideMethod = "fadeOut"
             });
+
+        services.AddNotyf(config =>
+        {
+            config.DurationInSeconds = 5;
+            config.Position = NotyfPosition.TopRight;
+            config.IsDismissable = true;
+            config.IncludeFontAwesome = false;
+            config.AutoHandleAjax = true;
+        });
 
         services.AddSession(options =>
         {
@@ -122,7 +111,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         }
         catch (Exception ex)
         {
-            Log.Error("Database initialization attempt failed: {Message}", ex.Message);
+            Log.Error(ex, "Database initialization attempt failed:");
             throw;
         }
     }
@@ -140,6 +129,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment environme
         app.UseSecurityHeaders();
         app.UseRateLimiter();
         app.UseStaticFiles();
+        app.UseNotyf();
 
         app.UseRequestLocalization();
         app.UseRouting();

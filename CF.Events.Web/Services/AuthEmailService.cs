@@ -2,6 +2,7 @@
 using CF.Events.Web.Infrastructure;
 using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Models;
+using CF.Events.Web.Services.Interfaces;
 using Microsoft.Extensions.Options;
 
 namespace CF.Events.Web.Services;

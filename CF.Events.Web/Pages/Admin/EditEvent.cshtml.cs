@@ -8,8 +8,9 @@ using CF.Events.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using NToastNotify;
+using AspNetCoreHero.ToastNotification.Abstractions;
 using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web.Pages.Admin;
@@ -18,7 +19,8 @@ namespace CF.Events.Web.Pages.Admin;
 public class EditEventModel(
     EventsDbContext db,
     IFileService fileService,
-    IToastNotification toastNotification) : PageModel
+    INotyfService toastNotification,
+    IEmailTemplateService emailTemplateService) : PageModel
 {
     [BindProperty] public EventModel Event { get; set; } = null!;
 
@@ -37,7 +39,7 @@ public class EditEventModel(
 
             if (@event is null)
             {
-                toastNotification.AddErrorToastMessage("Event not found");
+                toastNotification.Error("Event not found");
                 return RedirectToPage("/Admin/Events");
             }
 
@@ -69,11 +71,11 @@ public class EditEventModel(
                 [
                     .. @event.EventFaq.OrderBy(f => f.SortOrder)
                         .Select(f => new FaqInputModel
-                    {
-                        Question = f.Question,
-                        Answer = f.Answer,
-                        SortOrder = f.SortOrder
-                    })
+                        {
+                            Question = f.Question,
+                            Answer = f.Answer,
+                            SortOrder = f.SortOrder
+                        })
                 ],
                 ScheduleSteps =
                 [
@@ -81,14 +83,16 @@ public class EditEventModel(
                         .ThenBy(s => s.StartTime.Hour < 6 ? 1 : 0)
                         .ThenBy(s => s.StartTime)
                         .Select(s => new ScheduleInputModel
-                    {
-                        Day = s.Day,
-                        StartTime = s.StartTime,
-                        EndTime = s.EndTime,
-                        Label = s.Label
-                    })
+                        {
+                            Day = s.Day,
+                            StartTime = s.StartTime,
+                            EndTime = s.EndTime,
+                            Label = s.Label
+                        })
                 ]
             };
+
+            Event.TemplateOptions = await GetEmailTemplateOptions([Event.SaveDateEmailTemplateId, Event.InvitationEmailTemplateId]);
         }
         else
         {
@@ -97,7 +101,8 @@ public class EditEventModel(
                 StartDate = DateTime.Today.AddDays(1),
                 EndDate = DateTime.Today.AddDays(1),
                 DonationTypes = [],
-                UploadSessionId = Guid.NewGuid().ToString()
+                UploadSessionId = Guid.NewGuid().ToString(),
+                TemplateOptions = await GetEmailTemplateOptions([Event.SaveDateEmailTemplateId, Event.InvitationEmailTemplateId])
             };
         }
 
@@ -127,7 +132,8 @@ public class EditEventModel(
 
         if (!ModelState.IsValid)
         {
-            toastNotification.AddWarningToastMessage($"There are {ModelState.ErrorCount} form issues");
+            Event.TemplateOptions = await GetEmailTemplateOptions([Event.SaveDateEmailTemplateId, Event.InvitationEmailTemplateId]);
+            toastNotification.Warning($"There are {ModelState.ErrorCount} form issues");
             return Page();
         }
 
@@ -149,7 +155,7 @@ public class EditEventModel(
 
             if (@event is null)
             {
-                toastNotification.AddErrorToastMessage("Event not found");
+                toastNotification.Error("Event not found");
                 return RedirectToPage("/Admin/Events");
             }
         }
@@ -235,7 +241,7 @@ public class EditEventModel(
         var currentEventImages = @event.ExtractEventImageFileNames();
         await fileService.SyncEventImagesAsync(@event.Id, currentEventImages);
 
-        toastNotification.AddSuccessToastMessage($"Event {(isNew ? "created" : "updated")} successfully!");
+        toastNotification.Success($"Event {(isNew ? "created" : "updated")} successfully!");
 
         if (!RedirectAfterSave.HasValue() || (!Url.IsLocalUrl(RedirectAfterSave) && !RedirectAfterSave.StartsWith('/')))
             return RedirectToPage(new { id = @event.Id, tab = ActiveTab });
@@ -258,6 +264,33 @@ public class EditEventModel(
         return types;
     }
 
+    private async Task<List<SelectListItem>> GetEmailTemplateOptions(string?[] selectedTemplateIds)
+    {
+        var eventEmailTemplates = await emailTemplateService.GetEmailTemplatesAsync(["event"]);
+        var options = eventEmailTemplates.Select(t => new SelectListItem
+        {
+            Value = t.Id,
+            Text = t.Label,
+            Selected = selectedTemplateIds.Contains(t.Id)
+        }).ToList();
+
+        // Ensure currently selected templates are always in the list to avoid data loss on connection issues
+        foreach (var selectedId in selectedTemplateIds)
+        {
+            if (selectedId.HasValue() && options.All(o => o.Value != selectedId))
+            {
+                options.Add(new SelectListItem
+                {
+                    Value = selectedId,
+                    Text = $"Template {selectedId}",
+                    Selected = true
+                });
+            }
+        }
+
+        return options;
+    }
+
     public class EventModel
     {
         public int Id { get; set; }
@@ -278,6 +311,7 @@ public class EditEventModel(
         public string? SaveDateEmailTemplateId { get; set; }
         public bool SendWithLink { get; set; }
         public string? InvitationEmailTemplateId { get; set; }
+        public List<SelectListItem> TemplateOptions { get; set; } = [];
         public int MaxParticipantsPerRsvp { get; set; } = 4;
         public List<DonationType> DonationTypes { get; set; } = [];
         public string? DonationIban { get; set; }

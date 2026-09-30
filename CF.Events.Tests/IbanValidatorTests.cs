@@ -13,7 +13,7 @@ public class IbanValidatorTests
     [InlineData("IT60 X054 2811 1010 0000 0123 456")] // Italy valid
     [InlineData("NL91 ABNA 0417 1643 00")] // Netherlands valid
     [InlineData("BE71 0961 2345 6769")] // Belgium valid
-    public void IsValid_ShouldReturnTrue_ForValidIbans(string iban)
+    public void IsValid_ShouldReturnTrue_ForValidIban(string iban)
     {
         var result = IbanValidator.IsValid(iban);
         Assert.True(result, $"Expected IBAN {iban} to be valid.");
@@ -32,7 +32,7 @@ public class IbanValidatorTests
     [InlineData("NL91 ABNA 0417 1643 0")] // Netherlands invalid length (too short)
     [InlineData("FR76 3000 6000 0112 3456 7890 18")] // France invalid length (too short)
     [InlineData("XX12 3456 7890 1234 5678 90")] // Unknown country code (fallback to format check)
-    public void IsValid_ShouldReturnFalse_ForInvalidIbans(string? iban)
+    public void IsValid_ShouldReturnFalse_ForInvalidIban(string? iban)
     {
         var result = IbanValidator.IsValid(iban);
         Assert.False(result, $"Expected IBAN {iban} to be invalid.");

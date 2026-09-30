@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using NToastNotify;
+using AspNetCoreHero.ToastNotification.Abstractions;
 
 namespace CF.Events.Web.Controllers;
 
@@ -18,7 +18,7 @@ public class AccountController(
     EventsDbContext db,
     SignInManager<AppUser> signInManager,
     UserManager<AppUser> userManager,
-    IToastNotification toastNotification,
+    INotyfService toastNotification,
     IOptions<AppSettings> appOptions,
     ILogger<AccountController> logger) : Controller
 {
@@ -55,7 +55,7 @@ public class AccountController(
 
         await signInManager.SignInAsync(user, isPersistent: true);
 
-        toastNotification.AddSuccessToastMessage("Email successfully confirmed");
+        toastNotification.Success("Email successfully confirmed");
         return LocalRedirect("/");
     }
 

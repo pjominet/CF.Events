@@ -32,10 +32,22 @@ public static class Constants
     public static class Email
     {
         public const string NonSendableEmail = "no-send.tech";
+
+        public static class IdentityEmailTemplates
+        {
+            public const string EmailConfirmationLink = "0838936";
+            public const string PasswordRestLink = "0670355";
+            public const string EmailLoginLink = "0214257";
+        }
     }
 
     public static class RateLimitingPolicy
     {
         public const string EmailLogin = "EmailLogin";
+    }
+
+    public static class CacheKeys
+    {
+        public const string EmailTemplates = "Smtp2Go_EmailTemplates";
     }
 }

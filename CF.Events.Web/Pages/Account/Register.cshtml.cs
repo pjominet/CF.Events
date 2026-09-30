@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using NToastNotify;
+using AspNetCoreHero.ToastNotification.Abstractions;
 using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web.Pages.Account;
@@ -15,7 +15,7 @@ public class RegisterModel(
     UserManager<AppUser> userManager,
     SignInManager<AppUser> signInManager,
     IEmailSender<AppUser> emailSender,
-    IToastNotification toastNotification,
+    INotyfService toastNotification,
     IWebHostEnvironment environment,
     ILogger<RegisterModel> logger) : PageModel
 {
@@ -75,7 +75,7 @@ public class RegisterModel(
             TempData["RegistrationLink"] = callbackUrl;
         else await emailSender.SendConfirmationLinkAsync(user, Input.Email, callbackUrl);
 
-        toastNotification.AddSuccessToastMessage("Initial registration successful.");
+        toastNotification.Success("Initial registration successful.");
         return RedirectToPage("./RegisterConfirmation");
     }
 

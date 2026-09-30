@@ -6,12 +6,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using NToastNotify;
+using AspNetCoreHero.ToastNotification.Abstractions;
 
 namespace CF.Events.Web.Pages.Events;
 
 [Authorize]
-public class RsvpModel(EventsDbContext db, IToastNotification toastNotification) : PageModel
+public class RsvpModel(EventsDbContext db, INotyfService toastNotification) : PageModel
 {
     public required Event EventData { get; set; }
     public int MaxParticipants { get; set; }
@@ -28,7 +28,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
         var user = await db.Users.Include(u => u.GuestGroup).FirstAsync(u => u.Id == userId);
         if (!user.IsActive)
         {
-            toastNotification.AddErrorToastMessage("Your account has been deactivated.");
+            toastNotification.Error("Your account has been deactivated.");
             return Redirect("/");
         }
 
@@ -37,7 +37,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
         var userEvent = await db.EventUsers.FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
         if (userEvent is null && !User.IsAdmin())
         {
-            toastNotification.AddWarningToastMessage("You are not invited to this event");
+            toastNotification.Warning("You are not invited to this event");
             return Redirect("/");
         }
 
@@ -121,7 +121,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
 
         if (!user.IsActive)
         {
-            toastNotification.AddErrorToastMessage("Your account has been deactivated.");
+            toastNotification.Error("Your account has been deactivated.");
             return Redirect("/");
         }
 
@@ -140,7 +140,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
 
         if (NewRsvp.Attending && NewRsvp.Participants.Count > MaxParticipants)
         {
-            toastNotification.AddErrorToastMessage($"Maximum {MaxParticipants} participants allowed per RSVP.");
+            toastNotification.Error($"Maximum {MaxParticipants} participants allowed per RSVP.");
             return Page();
         }
 
@@ -204,7 +204,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
 
         await db.SaveChangesAsync();
 
-        toastNotification.AddSuccessToastMessage("Thank you for your response!");
+        toastNotification.Success("Thank you for your response!");
         return Redirect("/");
     }
 
@@ -218,7 +218,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
             .FirstOrDefaultAsync(r => r.EventId == eventId && r.UserId == userId);
         if (rsvp is null)
         {
-            toastNotification.AddWarningToastMessage("You are not invited to this event");
+            toastNotification.Warning("You are not invited to this event");
             return Redirect("/");
         }
 
@@ -226,7 +226,7 @@ public class RsvpModel(EventsDbContext db, IToastNotification toastNotification)
 
         await db.SaveChangesAsync();
 
-        toastNotification.AddSuccessToastMessage("Your RSVP has been cancelled. You can submit a new response.");
+        toastNotification.Success("Your RSVP has been cancelled. You can submit a new response.");
         return RedirectToPage(new { eventId });
     }
 

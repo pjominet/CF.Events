@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using NToastNotify;
+using AspNetCoreHero.ToastNotification.Abstractions;
 using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web.Pages.Admin;
@@ -15,7 +15,7 @@ namespace CF.Events.Web.Pages.Admin;
 [Authorize(Roles = Roles.Admin)]
 public class UsersModel(
     UserManager<AppUser> userManager,
-    IToastNotification toastNotification,
+    INotyfService toastNotification,
     EventsDbContext db) : PageModel
 {
     public List<UserRow> AllUsers { get; private set; } = [];
@@ -110,10 +110,10 @@ public class UsersModel(
                 await userManager.UpdateAsync(user);
             }
 
-            toastNotification.AddSuccessToastMessage($"Added user {NewUser.Email}");
+            toastNotification.Success($"Added user {NewUser.Email}");
         }
         else
-            toastNotification.AddErrorToastMessage($"Failed to add roles for user {NewUser.Email}");
+            toastNotification.Error($"Failed to add roles for user {NewUser.Email}");
 
         return RedirectToPage();
     }
@@ -133,13 +133,13 @@ public class UsersModel(
         var user = await userManager.FindByIdAsync(NewUser.Id!);
         if (user is null)
         {
-            toastNotification.AddErrorToastMessage("User not found");
+            toastNotification.Error("User not found");
             return RedirectToPage();
         }
 
         if (await userManager.IsInRoleAsync(user, Roles.Sudo) && !User.IsSudo())
         {
-            toastNotification.AddErrorToastMessage("You cannot modify a Sudo user");
+            toastNotification.Error("You cannot modify a Sudo user");
             return RedirectToPage();
         }
 
@@ -209,7 +209,7 @@ public class UsersModel(
             }
         }
 
-        toastNotification.AddSuccessToastMessage($"Updated user {NewUser.Email}");
+        toastNotification.Success($"Updated user {NewUser.Email}");
         return RedirectToPage();
     }
 
@@ -244,14 +244,14 @@ public class UsersModel(
         var user = await userManager.FindByIdAsync(userId);
         if (user is null)
         {
-            toastNotification.AddWarningToastMessage("User not found");
+            toastNotification.Warning("User not found");
             return RedirectToPage();
         }
 
         var result = await userManager.AddToRoleAsync(user, Roles.Admin);
         if (result.Succeeded)
-            toastNotification.AddSuccessToastMessage("User promotion successfully");
-        else toastNotification.AddErrorToastMessage("User promotion failed");
+            toastNotification.Success("User promotion successfully");
+        else toastNotification.Error("User promotion failed");
 
         return RedirectToPage();
     }
@@ -261,20 +261,20 @@ public class UsersModel(
         var user = await userManager.FindByIdAsync(userId);
         if (user is null)
         {
-            toastNotification.AddWarningToastMessage("User not found");
+            toastNotification.Warning("User not found");
             return RedirectToPage();
         }
 
         if (await userManager.IsInRoleAsync(user, Roles.Sudo) && !User.IsSudo())
         {
-            toastNotification.AddErrorToastMessage("You cannot demote a Sudo user");
+            toastNotification.Error("You cannot demote a Sudo user");
             return RedirectToPage();
         }
 
         var result = await userManager.RemoveFromRoleAsync(user, Roles.Admin);
         if (result.Succeeded)
-            toastNotification.AddSuccessToastMessage("User demotion successfully");
-        else toastNotification.AddErrorToastMessage("User demotion failed");
+            toastNotification.Success("User demotion successfully");
+        else toastNotification.Error("User demotion failed");
 
         return RedirectToPage();
     }
@@ -284,13 +284,13 @@ public class UsersModel(
         var user = await userManager.FindByIdAsync(userId);
         if (user is null)
         {
-            toastNotification.AddWarningToastMessage("User not found");
+            toastNotification.Warning("User not found");
             return RedirectToPage();
         }
 
         if (await userManager.IsInRoleAsync(user, Roles.Sudo) && !User.IsSudo())
         {
-            toastNotification.AddErrorToastMessage("You cannot deactivate a Sudo user");
+            toastNotification.Error("You cannot deactivate a Sudo user");
             return RedirectToPage();
         }
 
@@ -307,9 +307,9 @@ public class UsersModel(
         if (result.Succeeded)
         {
             await db.SaveChangesAsync();
-            toastNotification.AddSuccessToastMessage("User toggled successfully");
+            toastNotification.Success("User toggled successfully");
         }
-        else toastNotification.AddErrorToastMessage("User toggle failed");
+        else toastNotification.Error("User toggle failed");
 
         return RedirectToPage();
     }
@@ -319,26 +319,26 @@ public class UsersModel(
         var user = await userManager.FindByIdAsync(userId);
         if (user is null)
         {
-            toastNotification.AddWarningToastMessage("User not found");
+            toastNotification.Warning("User not found");
             return RedirectToPage();
         }
 
         if (await userManager.IsInRoleAsync(user, Roles.Sudo) && !User.IsSudo())
         {
-            toastNotification.AddErrorToastMessage("You cannot delete a Sudo user");
+            toastNotification.Error("You cannot delete a Sudo user");
             return RedirectToPage();
         }
 
         if (user.IsActive)
         {
-            toastNotification.AddErrorToastMessage("Only deactivated users can be deleted");
+            toastNotification.Error("Only deactivated users can be deleted");
             return RedirectToPage();
         }
 
         var result = await userManager.DeleteAsync(user);
         if (result.Succeeded)
-            toastNotification.AddSuccessToastMessage($"Deleted user {user.Email}");
-        else toastNotification.AddErrorToastMessage($"Failed to delete user {user.Email}");
+            toastNotification.Success($"Deleted user {user.Email}");
+        else toastNotification.Error($"Failed to delete user {user.Email}");
 
         return RedirectToPage();
     }
@@ -369,10 +369,10 @@ public class UsersModel(
         }
 
         if (count > 0)
-            toastNotification.AddSuccessToastMessage($"Successfully deleted {count} users");
+            toastNotification.Success($"Successfully deleted {count} users");
 
         if (failed > 0)
-            toastNotification.AddErrorToastMessage($"Failed to delete {failed} users (they might be active or system protected)");
+            toastNotification.Error($"Failed to delete {failed} users (they might be active or system protected)");
 
         return RedirectToPage();
     }

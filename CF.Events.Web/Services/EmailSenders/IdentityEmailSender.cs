@@ -1,7 +1,9 @@
+using CF.Events.Web.Infrastructure.Providers.Interfaces;
 using CF.Events.Web.Models;
-using Microsoft.AspNetCore.Identity;
+using CF.Events.Web.Services.Interfaces;
 
-namespace CF.Events.Web.Services;
+namespace CF.Events.Web.Services.EmailSenders;
+using static Infrastructure.Constants.Email;
 
 public class IdentityEmailSender(IEmailProvider emailProvider) : IIdentityEmailSender
 {
@@ -9,23 +11,23 @@ public class IdentityEmailSender(IEmailProvider emailProvider) : IIdentityEmailS
     {
         var variables = new Dictionary<string, string>
         {
-            { "app_name", "P&E Wedding" },
+            { "app_name", "E&P Wedding" },
             { "confirm_url", confirmationLink },
             { "user_name", user.DisplayName! }
         };
 
-        await emailProvider.SendTemplatedEmailAsync("0838936", email, variables);
+        await emailProvider.SendTemplatedEmailAsync(new TemplatedEmailEntry(IdentityEmailTemplates.EmailConfirmationLink, email, variables));
     }
 
     public async Task SendPasswordResetLinkAsync(AppUser user, string email, string resetLink)
     {
         var variables = new Dictionary<string, string>
         {
-            { "app_name", "P&E Wedding" },
+            { "app_name", "E&P Wedding" },
             { "reset_url", resetLink }
         };
 
-        await emailProvider.SendTemplatedEmailAsync("0670355", email, variables);
+        await emailProvider.SendTemplatedEmailAsync(new TemplatedEmailEntry(IdentityEmailTemplates.PasswordRestLink, email, variables));
     }
 
     public async Task SendPasswordResetCodeAsync(AppUser user, string email, string resetCode) => throw new NotImplementedException();
@@ -34,12 +36,12 @@ public class IdentityEmailSender(IEmailProvider emailProvider) : IIdentityEmailS
     {
         var variables = new Dictionary<string, string>
         {
-            { "sender_sig", "Patrick & Éadaoin" },
-            { "app_name", "P&E Wedding" },
+            { "sender_sig", "Éadaoin & Patrick" },
+            { "app_name", "E&P Wedding" },
             { "user_name", user.DisplayName ?? user.UserName ?? string.Empty },
             { "login_url", loginLink }
         };
 
-        await emailProvider.SendTemplatedEmailAsync("0214257", email, variables);
+        await emailProvider.SendTemplatedEmailAsync(new TemplatedEmailEntry(IdentityEmailTemplates.EmailLoginLink, email, variables));
     }
 }

@@ -167,26 +167,23 @@
         btn.classList.add('disabled', 'btn-loading');
         btn.dataset.originalHtml = btn.innerHTML;
 
-        const isBulk = btn.classList.contains('bulk-action-btn');
-        if (!isBulk) {
-            const icon = btn.querySelector('i.bi');
-            if (icon) {
-                const spinner = document.createElement('span');
-                spinner.className = 'spinner-border spinner-border-sm';
-                spinner.setAttribute('role', 'status');
+        const isBulkActionBtn = btn.classList.contains('bulk-action-btn');
+        const icon = btn.querySelector('i.bi');
+        if (icon) {
+            const spinner = document.createElement('span');
+            spinner.className = 'spinner-border spinner-border-sm';
+            spinner.setAttribute('role', 'status');
 
-                // Copy all bi-* and me-* / ms-* / m-* classes to preserve look and spacing
-                icon.classList.forEach(cls => {
-                    if (cls.startsWith('me-') || cls.startsWith('ms-') || cls.startsWith('m-') || cls.startsWith('bi-')) {
-                        spinner.classList.add(cls);
-                    }
-                });
-                spinner.classList.remove('bi'); // Remove base icon class if present
+            // Copy all classes except bi and bi-* classes which are icon-specific
+            icon.classList.forEach(cls => {
+                if (cls !== 'bi' && !cls.startsWith('bi-')) {
+                    spinner.classList.add(cls);
+                }
+            });
 
-                icon.replaceWith(spinner);
-            } else {
-                btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status"></span>${btn.innerHTML}`;
-            }
+            icon.replaceWith(spinner);
+        } else if (!isBulkActionBtn) {
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status"></span>${btn.innerHTML}`;
         }
     };
 
@@ -455,7 +452,11 @@
 
         // If there is a tab ID in the URL, try to activate it
         if (activeTabId) {
-            const tabToActivate = document.getElementById(activeTabId + '-tab');
+            let tabToActivate = document.querySelector(`button[data-bs-target="#${activeTabId}"]`);
+            if (!tabToActivate) {
+                tabToActivate = document.getElementById(activeTabId + '-tab');
+            }
+
             if (tabToActivate) {
                 // Remove 'active' class from all tabs and panes
                 tabElements.forEach(tab => {
@@ -480,7 +481,8 @@
         // Listen for tab changes and update the URL
         tabElements.forEach(tab => {
             tab.addEventListener('shown.bs.tab', (event) => {
-                const targetId = event.target.id.replace('-tab', '');
+                const target = event.target.getAttribute('data-bs-target');
+                const targetId = (target && target.startsWith('#')) ? target.substring(1) : event.target.id.replace('-tab', '');
                 updateUrlWithTab(targetId);
             });
         });

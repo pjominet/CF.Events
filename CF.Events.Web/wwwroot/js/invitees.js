@@ -208,6 +208,22 @@
         activeNotesFilter = initialNotesFilter;
     }
 
+    priorityFilterSelect?.addEventListener('change', function () {
+        activePriorityFilter = this.value;
+        if (activePriorityFilter) {
+            sessionStorage.setItem(priorityStorageKey, activePriorityFilter);
+        } else {
+            sessionStorage.removeItem(priorityStorageKey);
+        }
+        applyFilters();
+    });
+
+    const initialPriority = sessionStorage.getItem(priorityStorageKey);
+    if (initialPriority) {
+        priorityFilterSelect.value = initialPriority;
+        activePriorityFilter = initialPriority;
+    }
+
     statusFilters.forEach(btn => {
         btn.addEventListener('click', function () {
             const targetStatus = (this.dataset.status || '').toLowerCase().trim();
@@ -437,7 +453,6 @@
 
             const modal = bootstrap.Modal.getOrCreateInstance(notesModelEl);
             modal.show();
-            setTimeout(() => notesTextarea?.focus(), 300);
         });
 
         document.getElementById('notesSaveBtn').addEventListener('click', async function () {
@@ -478,15 +493,11 @@
                     }
 
                     applyFilters();
-
-                    toastr.success('Notes updated');
                 } else {
                     console.error('Failed to update notes:', response.statusText);
-                    toastr.error('Failed to update notes');
                 }
             } catch (error) {
                 console.error('Error updating invitee notes:', error);
-                toastr.error('An error occurred while updating notes');
             }
         });
     }
@@ -545,7 +556,6 @@
                 });
 
                 if (response.ok) {
-                    const result = await response.json();
                     updatesToSend.forEach(update => {
                         if (update.accommodationCode !== undefined) {
                             const select = document.querySelector(`.accommodation-select[data-user-id="${update.userId}"]`);
@@ -564,21 +574,11 @@
                             }
                         }
                     });
-
-                    if (result && result.count > 0) {
-                        let message = `Successfully updated ${result.count} invitee`;
-                        if (result.count > 1) {
-                            message += 's';
-                        }
-                        toastr.success(message);
-                    }
                 } else {
                     console.error('Failed to update invitees:', response.statusText);
-                    toastr.error('Failed to update invitees');
                 }
             } catch (error) {
                 console.error('Error during silent update of invitees:', error);
-                toastr.error('An error occurred while updating invitees');
             }
         }
 
