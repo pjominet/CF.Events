@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using NToastNotify;
+using AspNetCoreHero.ToastNotification.Abstractions;
 using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web.Pages.Admin;
@@ -19,7 +19,7 @@ namespace CF.Events.Web.Pages.Admin;
 public class EditEventModel(
     EventsDbContext db,
     IFileService fileService,
-    IToastNotification toastNotification,
+    INotyfService toastNotification,
     IEmailTemplateService emailTemplateService) : PageModel
 {
     [BindProperty] public EventModel Event { get; set; } = null!;
@@ -39,7 +39,7 @@ public class EditEventModel(
 
             if (@event is null)
             {
-                toastNotification.AddErrorToastMessage("Event not found");
+                toastNotification.Error("Event not found");
                 return RedirectToPage("/Admin/Events");
             }
 
@@ -133,7 +133,7 @@ public class EditEventModel(
         if (!ModelState.IsValid)
         {
             Event.TemplateOptions = await GetEmailTemplateOptions([Event.SaveDateEmailTemplateId, Event.InvitationEmailTemplateId]);
-            toastNotification.AddWarningToastMessage($"There are {ModelState.ErrorCount} form issues");
+            toastNotification.Warning($"There are {ModelState.ErrorCount} form issues");
             return Page();
         }
 
@@ -155,7 +155,7 @@ public class EditEventModel(
 
             if (@event is null)
             {
-                toastNotification.AddErrorToastMessage("Event not found");
+                toastNotification.Error("Event not found");
                 return RedirectToPage("/Admin/Events");
             }
         }
@@ -241,7 +241,7 @@ public class EditEventModel(
         var currentEventImages = @event.ExtractEventImageFileNames();
         await fileService.SyncEventImagesAsync(@event.Id, currentEventImages);
 
-        toastNotification.AddSuccessToastMessage($"Event {(isNew ? "created" : "updated")} successfully!");
+        toastNotification.Success($"Event {(isNew ? "created" : "updated")} successfully!");
 
         if (!RedirectAfterSave.HasValue() || (!Url.IsLocalUrl(RedirectAfterSave) && !RedirectAfterSave.StartsWith('/')))
             return RedirectToPage(new { id = @event.Id, tab = ActiveTab });

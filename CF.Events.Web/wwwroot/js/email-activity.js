@@ -30,18 +30,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
 
-            const result = await response.json();
-
-            if (response.ok && result.message) {
-                toastr?.success(result.message || 'Email activity synced successfully!');
+            if (response.ok) {
                 // Reload page after a brief moment to show fresh data
                 setTimeout(() => window.location.reload(), 1000);
-            } else {
-                toastr?.error(result.message || 'Failed to sync email activity.');
             }
         } catch (err) {
             console.error('Error syncing email activity:', err);
-            toastr?.error('An unexpected network error occurred while syncing.');
         } finally {
             syncBtn.disabled = false;
             syncSpinner.classList.add('d-none');

@@ -151,9 +151,21 @@
 
         // RTE-specific: Since RTE updates the textarea and triggers 'change',
         // the event listener above should already catch it.
-
         eventForm.addEventListener('submit', (e) => {
             if (!eventForm.checkValidity()) {
+                // Find first invalid input and its parent tab
+                const firstInvalid = eventForm.querySelector(':invalid');
+                if (firstInvalid) {
+                    const tabPane = firstInvalid.closest('.tab-pane');
+                    if (tabPane) {
+                        const tabId = tabPane.getAttribute('id');
+                        const tabButton = document.querySelector(`#eventEditorTabs button[data-bs-target="#${tabId}"]`);
+                        if (tabButton) {
+                            const tab = new bootstrap.Tab(tabButton)
+                            tab.show();
+                        }
+                    }
+                }
                 return;
             }
 
@@ -307,11 +319,10 @@
     const urlParams = new URLSearchParams(window.location.search);
     const tabId = urlParams.get('tab');
     if (tabId) {
-        const tabButton = document.getElementById(tabId);
+        const tabButton = document.querySelector(`#eventEditorTabs button[data-bs-target="#${tabId}"]`);
         if (tabButton) {
             const tab = new bootstrap.Tab(tabButton);
             tab.show();
         }
     }
-
 })();

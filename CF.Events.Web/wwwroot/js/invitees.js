@@ -207,10 +207,11 @@
         notesFilterSelect.value = initialNotesFilter;
         activeNotesFilter = initialNotesFilter;
     }
+
     priorityFilterSelect?.addEventListener('change', function () {
-        activePriority = this.value;
-        if (activePriority) {
-            sessionStorage.setItem(priorityStorageKey, activePriority);
+        activePriorityFilter = this.value;
+        if (activePriorityFilter) {
+            sessionStorage.setItem(priorityStorageKey, activePriorityFilter);
         } else {
             sessionStorage.removeItem(priorityStorageKey);
         }
@@ -220,7 +221,7 @@
     const initialPriority = sessionStorage.getItem(priorityStorageKey);
     if (initialPriority) {
         priorityFilterSelect.value = initialPriority;
-        activePriority = initialPriority;
+        activePriorityFilter = initialPriority;
     }
 
     statusFilters.forEach(btn => {
@@ -493,15 +494,11 @@
                     }
 
                     applyFilters();
-
-                    toastr.success('Notes updated');
                 } else {
                     console.error('Failed to update notes:', response.statusText);
-                    toastr.error('Failed to update notes');
                 }
             } catch (error) {
                 console.error('Error updating invitee notes:', error);
-                toastr.error('An error occurred while updating notes');
             }
         });
     }
@@ -579,21 +576,11 @@
                             }
                         }
                     });
-
-                    if (result && result.count > 0) {
-                        let message = `Successfully updated ${result.count} invitee`;
-                        if (result.count > 1) {
-                            message += 's';
-                        }
-                        toastr.success(message);
-                    }
                 } else {
                     console.error('Failed to update invitees:', response.statusText);
-                    toastr.error('Failed to update invitees');
                 }
             } catch (error) {
                 console.error('Error during silent update of invitees:', error);
-                toastr.error('An error occurred while updating invitees');
             }
         }
 

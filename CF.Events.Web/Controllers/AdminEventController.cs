@@ -3,7 +3,7 @@ using CF.Events.Web.Models.Requests;
 using CF.Events.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NToastNotify;
+using AspNetCoreHero.ToastNotification.Abstractions;
 using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web.Controllers;
@@ -14,7 +14,7 @@ public class AdminEventController(
     IEventService eventService,
     IInvitationService invitationService,
     IExportService exportService,
-    IToastNotification toastNotification,
+    INotyfService toastNotification,
     ILogger<AdminEventController> logger) : Controller
 {
     [HttpGet("export-invitees")]
@@ -28,13 +28,13 @@ public class AdminEventController(
         }
         catch (ArgumentException ex)
         {
-            toastNotification.AddErrorToastMessage(ex.Message);
+            toastNotification.Error(ex.Message);
             return RedirectToPage("/Admin/Events");
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error exporting invitees for event {EventId}", eventId);
-            toastNotification.AddErrorToastMessage("An error occurred while exporting invitees.");
+            toastNotification.Error("An error occurred while exporting invitees.");
             return RedirectToPage("/Admin/Events");
         }
     }
@@ -54,7 +54,7 @@ public class AdminEventController(
     {
         if (inviteRequest.ScheduledFor.HasValue && inviteRequest.ScheduledFor.Value.ToUniversalTime() <= DateTime.UtcNow)
         {
-            toastNotification.AddWarningToastMessage("Scheduled time must be in the future");
+            toastNotification.Warning("Scheduled time must be in the future");
             return LocalRedirect($"/admin/events/{eventId}/invitees");
         }
 
@@ -63,20 +63,20 @@ public class AdminEventController(
             var count = await invitationService.InviteUsersAsync(eventId, inviteRequest);
 
             if (count == 0)
-                toastNotification.AddWarningToastMessage("All selected users are already invited to this event");
-            else toastNotification.AddSuccessToastMessage($"Successfully created {count} invitations");
+                toastNotification.Warning("All selected users are already invited to this event");
+            else toastNotification.Success($"Successfully created {count} invitations");
 
             return LocalRedirect($"/admin/events/{eventId}/invitees");
         }
         catch (ArgumentException ex)
         {
-            toastNotification.AddWarningToastMessage(ex.Message);
+            toastNotification.Warning(ex.Message);
             return LocalRedirect($"/admin/events/{eventId}/invitees");
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error inviting users for event {EventId}", eventId);
-            toastNotification.AddErrorToastMessage("An error occurred while inviting users.");
+            toastNotification.Error("An error occurred while inviting users.");
             return LocalRedirect($"/admin/events/{eventId}/invitees");
         }
     }
@@ -87,16 +87,16 @@ public class AdminEventController(
         try
         {
             await invitationService.SendInvitesAsync(eventId, [userId]);
-            toastNotification.AddSuccessToastMessage("Successfully resent invitation");
+            toastNotification.Success("Successfully resent invitation");
         }
         catch (ArgumentException ex)
         {
-            toastNotification.AddWarningToastMessage(ex.Message);
+            toastNotification.Warning(ex.Message);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error resending invitation to {UserId} for event {EventId}", userId, eventId);
-            toastNotification.AddErrorToastMessage("Invitation could not be resent");
+            toastNotification.Error("Invitation could not be resent");
         }
 
         return LocalRedirect($"/admin/events/{eventId}/invitees");
@@ -107,7 +107,7 @@ public class AdminEventController(
     {
         if (!userIds.HasValue())
         {
-            toastNotification.AddWarningToastMessage("No users selected");
+            toastNotification.Warning("No users selected");
             return LocalRedirect($"/admin/events/{eventId}/invitees");
         }
 
@@ -116,16 +116,16 @@ public class AdminEventController(
         try
         {
             await invitationService.SendInvitesAsync(eventId, ids);
-            toastNotification.AddSuccessToastMessage($"Successfully resent {ids.Count} invitations");
+            toastNotification.Success($"Successfully resent {ids.Count} invitations");
         }
         catch (ArgumentException ex)
         {
-            toastNotification.AddWarningToastMessage(ex.Message);
+            toastNotification.Warning(ex.Message);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error bulk resending invitations for event {EventId}", eventId);
-            toastNotification.AddErrorToastMessage("Invitations could not be resent");
+            toastNotification.Error("Invitations could not be resent");
         }
 
         return LocalRedirect($"/admin/events/{eventId}/invitees");
@@ -136,7 +136,7 @@ public class AdminEventController(
     {
         await eventService.RemoveInviteeAsync(eventId, userId);
 
-        toastNotification.AddSuccessToastMessage("Invitee successfully removed");
+        toastNotification.Success("Invitee successfully removed");
         return LocalRedirect($"/admin/events/{eventId}/invitees");
     }
 
@@ -145,7 +145,7 @@ public class AdminEventController(
     {
         if (!userIds.HasValue())
         {
-            toastNotification.AddWarningToastMessage("No users selected");
+            toastNotification.Warning("No users selected");
             return LocalRedirect($"/admin/events/{eventId}/invitees");
         }
 
@@ -154,11 +154,11 @@ public class AdminEventController(
 
         if (count == 0)
         {
-            toastNotification.AddWarningToastMessage("No invitees found to remove");
+            toastNotification.Warning("No invitees found to remove");
             return LocalRedirect($"/admin/events/{eventId}/invitees");
         }
 
-        toastNotification.AddSuccessToastMessage($"Successfully removed {count} invitees");
+        toastNotification.Success($"Successfully removed {count} invitees");
         return LocalRedirect($"/admin/events/{eventId}/invitees");
     }
 
@@ -170,16 +170,16 @@ public class AdminEventController(
         switch (result.Status)
         {
             case EmailSendResultStatus.Success:
-                toastNotification.AddSuccessToastMessage($"Save the Date email sent to {result.Message}");
+                toastNotification.Success($"Save the Date email sent to {result.Message}");
                 break;
             case EmailSendResultStatus.EventNotFound:
-                toastNotification.AddErrorToastMessage(result.Message!);
+                toastNotification.Error(result.Message!);
                 break;
             case EmailSendResultStatus.TemplateMissing:
             case EmailSendResultStatus.UserNotFound:
             case EmailSendResultStatus.Failed:
             default:
-                toastNotification.AddWarningToastMessage(result.Message!);
+                toastNotification.Warning(result.Message!);
                 break;
         }
 
@@ -191,7 +191,7 @@ public class AdminEventController(
     {
         if (!userIds.HasValue())
         {
-            toastNotification.AddWarningToastMessage("No users selected");
+            toastNotification.Warning("No users selected");
             return LocalRedirect($"/admin/events/{eventId}/invitees");
         }
 
@@ -201,14 +201,14 @@ public class AdminEventController(
         switch (result.Status)
         {
             case EmailSendResultStatus.Success:
-                toastNotification.AddSuccessToastMessage($"Successfully sent {result.SentCount} Save the Date emails");
+                toastNotification.Success($"Successfully sent {result.SentCount} Save the Date emails");
                 break;
             case EmailSendResultStatus.TemplateMissing:
             case EmailSendResultStatus.UserNotFound:
             case EmailSendResultStatus.EventNotFound:
             case EmailSendResultStatus.Failed:
             default:
-                toastNotification.AddErrorToastMessage(result.Message!);
+                toastNotification.Error(result.Message!);
                 break;
         }
 
@@ -229,16 +229,16 @@ public class AdminEventController(
         try
         {
             await eventService.UpdateAdminRsvpAsync(eventId, userId, newRsvp);
-            toastNotification.AddSuccessToastMessage($"RSVP updated for guest {userId}");
+            toastNotification.Success($"RSVP updated for guest {userId}");
         }
         catch (ArgumentException ex)
         {
-            toastNotification.AddErrorToastMessage(ex.Message);
+            toastNotification.Error(ex.Message);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error updating RSVP for user {UserId} and event {EventId}", userId, eventId);
-            toastNotification.AddErrorToastMessage("An error occurred while updating RSVP.");
+            toastNotification.Error("An error occurred while updating RSVP.");
         }
 
         return LocalRedirect($"/admin/events/{eventId}/invitees");
@@ -249,6 +249,12 @@ public class AdminEventController(
     {
         var count = await eventService.UpdateInviteesAsync(eventId, updates);
 
+        if (count > 0)
+        {
+            var message = $"Successfully updated {count} invitee{(count > 1 ? "s" : "")}";
+            toastNotification.Success(message);
+        }
+
         return Ok(new { count });
     }
 
@@ -257,6 +263,13 @@ public class AdminEventController(
     {
         var isSuccess = await eventService.UpdateInviteeNotesAsync(eventId, request.UserId, request.Notes);
 
-        return isSuccess ? NoContent() : BadRequest();
+        if (isSuccess)
+        {
+            toastNotification.Success("Notes updated");
+            return NoContent();
+        }
+
+        toastNotification.Error("Failed to update notes");
+        return BadRequest();
     }
 }

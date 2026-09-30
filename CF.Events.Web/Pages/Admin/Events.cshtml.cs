@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using NToastNotify;
+using AspNetCoreHero.ToastNotification.Abstractions;
 using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web.Pages.Admin;
@@ -14,7 +14,7 @@ namespace CF.Events.Web.Pages.Admin;
 public class EventsModel(
     EventsDbContext db,
     IFileService fileService,
-    IToastNotification toastNotification) : PageModel
+    INotyfService toastNotification) : PageModel
 {
     public List<Event> AllEvents { get; private set; } = [];
 
@@ -27,13 +27,13 @@ public class EventsModel(
         var @event = await db.Events.FindAsync(id);
         if (@event is null)
         {
-            toastNotification.AddWarningToastMessage("Event not found");
+            toastNotification.Warning("Event not found");
             return RedirectToPage();
         }
 
         @event.IsActive = !@event.IsActive;
         await db.SaveChangesAsync();
-        toastNotification.AddSuccessToastMessage($"Event {(@event.IsActive ? "activated" : "deactivated")} successfully");
+        toastNotification.Success($"Event {(@event.IsActive ? "activated" : "deactivated")} successfully");
         return RedirectToPage();
     }
 
@@ -42,7 +42,7 @@ public class EventsModel(
         var @event = await db.Events.FindAsync(id);
         if (@event is null)
         {
-            toastNotification.AddWarningToastMessage("Event not found");
+            toastNotification.Warning("Event not found");
             return RedirectToPage();
         }
 
@@ -53,7 +53,7 @@ public class EventsModel(
 
         await fileService.DeleteEventImagesAsync(@event.Id);
 
-        toastNotification.AddSuccessToastMessage("Event deleted successfully");
+        toastNotification.Success("Event deleted successfully");
         return RedirectToPage();
     }
 

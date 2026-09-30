@@ -2,7 +2,7 @@ using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NToastNotify;
+using AspNetCoreHero.ToastNotification.Abstractions;
 using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web.Controllers;
@@ -10,7 +10,7 @@ namespace CF.Events.Web.Controllers;
 [Route("users")]
 [Authorize(Roles = Roles.Admin)]
 public class UserController(
-    IToastNotification toastNotification,
+    INotyfService toastNotification,
     IExportService exportService,
     IImportService importService) : Controller
 {
@@ -28,7 +28,7 @@ public class UserController(
         }
         catch (Exception)
         {
-            toastNotification.AddErrorToastMessage("An error occurred while exporting users.");
+            toastNotification.Error("An error occurred while exporting users.");
             return RedirectToPage("/Admin/Users");
         }
     }
@@ -68,8 +68,8 @@ public class UserController(
         }
 
         if (importErrors.Count == 0)
-            toastNotification.AddSuccessToastMessage($"{importedCount} users imported successfully");
-        else toastNotification.AddWarningToastMessage($"Import completed with issues:{Environment.NewLine}{string.Join(Environment.NewLine, importErrors)}");
+            toastNotification.Success($"{importedCount} users imported successfully");
+        else toastNotification.Warning($"Import completed with issues:{Environment.NewLine}{string.Join(Environment.NewLine, importErrors)}");
 
         TempData[ViewDataKeys.ImportErrors] = importErrors;
         return RedirectToPage("/admin/users", new { search });

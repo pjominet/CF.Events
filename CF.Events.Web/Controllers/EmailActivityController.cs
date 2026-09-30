@@ -1,3 +1,4 @@
+using AspNetCoreHero.ToastNotification.Abstractions;
 using CF.Events.Web.Data;
 using CF.Events.Web.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -12,6 +13,7 @@ namespace CF.Events.Web.Controllers;
 public class EmailActivityController(
     EventsDbContext db,
     IEmailActivityService emailActivityService,
+    INotyfService toastNotification,
     ILogger<EmailActivityController> logger) : Controller
 {
     [HttpPost("sync")]
@@ -23,14 +25,14 @@ public class EmailActivityController(
             if (hours <= 0) hours = 24;
             var result = await emailActivityService.FetchAndSaveActivityAsync(hours);
 
-            var message = $"Successfully synced email activity! Processed {result.EmailsProcessed} emails ({result.NewEventsAdded} new events, {result.TotalEventsFetched} fetched).";
-
-            return Ok(new { message });
+            toastNotification.Success($"Successfully synced email activity! Processed {result.EmailsProcessed} emails ({result.NewEventsAdded} new events, {result.TotalEventsFetched} fetched).");
+            return NoContent();
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to manually sync email activity");
-            return StatusCode(500, new { success = false, message = $"Sync failed: {ex.Message}" });
+            toastNotification.Error($"Sync failed: {ex.Message}");
+            return StatusCode(500);
         }
     }
 

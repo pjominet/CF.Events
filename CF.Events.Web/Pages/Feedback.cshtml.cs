@@ -5,13 +5,13 @@ using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using NToastNotify;
+using AspNetCoreHero.ToastNotification.Abstractions;
 
 namespace CF.Events.Web.Pages;
 
 public class FeedbackModel(
     EventsDbContext db,
-    IToastNotification toastNotification) : PageModel
+    INotyfService toastNotification) : PageModel
 {
     [BindProperty]
     public FeedbackInput Feedback { get; set; } = null!;
@@ -29,7 +29,7 @@ public class FeedbackModel(
         var isActive = await db.Users.AnyAsync(u => u.Id == userId && u.IsActive);
         if (!isActive)
         {
-            toastNotification.AddErrorToastMessage("Your account is inactive.");
+            toastNotification.Error("Your account is inactive.");
             return Redirect("/");
         }
 
@@ -42,11 +42,11 @@ public class FeedbackModel(
 
         if (result > 0)
         {
-            toastNotification.AddSuccessToastMessage("Thank you for submitting your feedback!");
+            toastNotification.Success("Thank you for submitting your feedback!");
             return Redirect("/");
         }
 
-        toastNotification.AddErrorToastMessage("Something went wrong!");
+        toastNotification.Error("Something went wrong!");
         return Page();
     }
 
