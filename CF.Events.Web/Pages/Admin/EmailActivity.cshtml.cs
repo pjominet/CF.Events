@@ -11,10 +11,7 @@ using static CF.Events.Web.Infrastructure.Constants;
 namespace CF.Events.Web.Pages.Admin;
 
 [Authorize(Roles = Roles.Admin)]
-public class EmailActivityModel(
-    EventsDbContext db,
-    IEmailActivityService emailActivityService,
-    ILogger<EmailActivityModel> logger) : PageModel
+public class EmailActivityModel(EventsDbContext db) : PageModel
 {
     public const int DefaultPageSize = 25;
 
