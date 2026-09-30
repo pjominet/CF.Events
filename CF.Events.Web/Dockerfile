@@ -5,9 +5,11 @@ WORKDIR /src
 
 # Copy the project files and restore dependencies
 COPY ["CF.Events.Web/CF.Events.Web.csproj", "CF.Events.Web/"]
+COPY ["CF.Smtp2Go.Net/CF.Smtp2Go.Net.csproj", "CF.Smtp2Go.Net/"]
 RUN dotnet restore "CF.Events.Web/CF.Events.Web.csproj"
 
 # Copy the rest of the code and build the application
+COPY CF.Smtp2Go.Net/ CF.Smtp2Go.Net/
 COPY CF.Events.Web/ CF.Events.Web/
 WORKDIR "/src/CF.Events.Web"
 RUN dotnet build "CF.Events.Web.csproj" -c Release -o /app/build
