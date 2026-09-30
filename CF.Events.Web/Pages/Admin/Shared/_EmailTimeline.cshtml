@@ -10,9 +10,6 @@
         <div class="col-md-6">
             <strong>Sender:</strong> <span>@Model.FromEmail</span>
         </div>
-        <div class="col-md-12">
-            <strong>Subject:</strong> <span>@(Model.Subject.HasValue() ? Model.Subject : "(No Subject)")</span>
-        </div>
         <div class="col-md-6">
             <strong>Sent At:</strong> <span>@Model.SentAt.ToString("yyyy-MM-dd HH:mm:ss")</span>
         </div>
@@ -27,19 +24,18 @@
                 {
                     <span class="badge bg-success me-1"><i class="bi bi-check-circle me-1"></i>Delivered</span>
                 }
-                @if (Model.WasOpened)
-                {
-                    <span class="badge bg-info text-dark me-1"><i class="bi bi-envelope-open me-1"></i>Opened (@Model.OpenCount x)</span>
-                }
                 @if (Model.WasClicked)
                 {
-                    <span class="badge bg-primary me-1"><i class="bi bi-cursor-fill me-1"></i>Clicked (@Model.ClickCount x)</span>
+                    <span class="badge bg-primary me-1"><i class="bi bi-box-arrow-up-right me-1"></i>Clicked (@Model.ClickCount)</span>
                 }
                 @if (Model is { HasError: true, IsSandboxed: false })
                 {
                     <span class="badge bg-danger me-1"><i class="bi bi-exclamation-circle me-1"></i>Error / Bounced</span>
                 }
             </span>
+        </div>
+        <div class="col-md-12">
+            <strong>Subject:</strong> <span>@(Model.Subject.HasValue() ? Model.Subject : "(No Subject)")</span>
         </div>
     </div>
 </div>
@@ -73,7 +69,7 @@ else
                         "sandboxed" => "bi-box-seam text-warning",
                         "delivered" => "bi-check-circle-fill text-success",
                         "open" or "opened" => "bi-envelope-open-fill text-info",
-                        "click" or "clicked" => "bi-cursor-fill text-primary",
+                        "click" or "clicked" => "bi-box-arrow-up-right text-primary",
                         "rejected" => "bi-x-circle-fill text-danger",
                         "spam" => "bi-exclamation-triangle-fill text-danger",
                         _ => "bi-send-fill text-secondary"
@@ -131,7 +127,7 @@ else
                         {
                             <div class="alert alert-warning py-2 px-3 mt-2 mb-0 small text-dark">
                                 <strong><i class="bi bi-box-seam me-1"></i> Sandboxed:</strong>
-                                <div class="text-break mt-1 font-monospace" style="font-size: 0.8rem;">@errorMsg (Sent using Sandbox API Key)</div>
+                                <div class="text-break mt-1 font-monospace" style="font-size: 0.8rem;">@errorMsg (Sent using <i>Test</i> API Key)</div>
                             </div>
                         }
                     </div>

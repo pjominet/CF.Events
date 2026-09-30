@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     const syncBtn = document.getElementById('syncActivityBtn');
+    const syncForm = document.getElementById('syncActivityForm');
     const syncBtnText = document.getElementById('syncBtnText');
     const syncSpinner = document.getElementById('syncSpinner');
 
@@ -13,6 +14,8 @@ document.addEventListener('DOMContentLoaded', function () {
     syncBtn?.addEventListener('click', async function () {
         const syncUrl = syncBtn.getAttribute('data-sync-url');
         if (!syncUrl) return;
+
+        const token = syncForm.querySelector('input[name="__RequestVerificationToken"]').value;
 
         syncBtn.disabled = true;
         syncSpinner.classList.remove('d-none');
@@ -22,13 +25,14 @@ document.addEventListener('DOMContentLoaded', function () {
             const response = await fetch(syncUrl, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
                 }
             });
 
             const result = await response.json();
 
-            if (response.ok && result.success) {
+            if (response.ok && result.message) {
                 toastr?.success(result.message || 'Email activity synced successfully!');
                 // Reload page after a brief moment to show fresh data
                 setTimeout(() => window.location.reload(), 1000);

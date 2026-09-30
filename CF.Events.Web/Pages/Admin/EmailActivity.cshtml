@@ -18,11 +18,13 @@
                 <h1 class="fs-1">@ViewData["Title"]</h1>
             </section>
             <section class="d-flex gap-2">
-                <button id="syncActivityBtn" class="btn btn-warning" data-sync-url="/admin/email/activity/sync">
-                    <i class="bi bi-arrow-repeat me-1"></i>
-                    <span id="syncBtnText">Sync from SMTP2GO</span>
-                    <span id="syncSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                </button>
+                <form id="syncActivityForm" method="post" asp-antiforgery="true">
+                    <button id="syncActivityBtn" type="button" class="btn btn-warning" data-sync-url="/admin/email/activity/sync">
+                        <i class="bi bi-arrow-repeat me-1"></i>
+                        <span id="syncBtnText">Sync from SMTP2GO</span>
+                        <span id="syncSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                    </button>
+                </form>
             </section>
         </div>
     </div>
@@ -140,9 +142,8 @@
                         <th>Sent Date</th>
                         <th>Recipient</th>
                         <th>Subject</th>
-                        <th>Status</th>
-                        <th>Opened</th>
-                        <th>Clicked</th>
+                        <th>Current Status</th>
+                        <th>Link Clicked</th>
                         <th class="text-end">Actions</th>
                     </tr>
                     </thead>
@@ -153,7 +154,7 @@
                             <td class="text-nowrap small">
                                 <div>@item.SentAt.ToString("dd/MM/yyyy HH:mm")</div>
                                 <code class="text-muted" style="font-size: 0.75rem;" title="@item.EmailId">
-                                    @(item.EmailId.Length > 18 ? item.EmailId[..15] + "..." : item.EmailId)
+                                    @item.EmailId
                                 </code>
                             </td>
                             <td>
@@ -206,23 +207,9 @@
                                 }
                             </td>
                             <td>
-                                @if (item.WasOpened)
-                                {
-                                    <span class="badge bg-info text-dark" title="First opened: @(item.FirstOpenedAt?.ToString("g")) | Last opened: @(item.LastOpenedAt?.ToString("g"))" data-bs-toggle="tooltip">
-                                        <i class="bi bi-envelope-open me-1"></i>@item.OpenCount @(item.OpenCount == 1 ? "time" : "times")
-                                    </span>
-                                }
-                                else
-                                {
-                                    <span class="text-muted small">-</span>
-                                }
-                            </td>
-                            <td>
                                 @if (item.WasClicked)
                                 {
-                                    <span class="badge bg-primary" title="First clicked: @(item.FirstClickedAt?.ToString("g")) | Last clicked: @(item.LastClickedAt?.ToString("g"))" data-bs-toggle="tooltip">
-                                        <i class="bi bi-cursor-fill me-1"></i>@item.ClickCount @(item.ClickCount == 1 ? "click" : "clicks")
-                                    </span>
+                                    <span class="small">@item.LastClickedAt?.ToString("g")</span>
                                 }
                                 else
                                 {
@@ -286,7 +273,7 @@
 </div>
 
 <!-- Modal for Timeline & Detailed Events -->
-<div class="modal fade" id="emailTimelineModal" tabindex="-1" aria-labelledby="emailTimelineModalLabel" aria-hidden="true">
+<div class="modal fade" id="emailTimelineModal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="emailTimelineModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
         <div class="modal-content shadow">
             <div class="modal-header bg-light">
