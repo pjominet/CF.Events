@@ -90,6 +90,8 @@
     const searchInput = document.getElementById('inviteeSearchInput');
     const priorityFilterSelect = document.getElementById('priorityFilterSelect');
     const notesFilterSelect = document.getElementById('notesFilterSelect');
+    const saveDateFilterSelect = document.getElementById('saveDateFilterSelect');
+    const inviteSentFilterSelect = document.getElementById('inviteSentFilterSelect');
     const statusFilters = document.querySelectorAll('.invitee-status-filter');
     const tableBody = inviteesTableBody;
 
@@ -97,11 +99,15 @@
     const statusStorageKey = `activeInviteeStatusFilter-${window.location.pathname}`;
     const priorityStorageKey = `activeInviteePriorityFilter-${window.location.pathname}`;
     const notesStorageKey = `activeInviteeNotesFilter-${window.location.pathname}`;
+    const saveDateStorageKey = `activeInviteeSaveDateFilter-${window.location.pathname}`;
+    const inviteSentStorageKey = `activeInviteeInviteSentFilter-${window.location.pathname}`;
 
     let activeSearchValue = sessionStorage.getItem(searchStorageKey) || '';
     let activeStatus = sessionStorage.getItem(statusStorageKey) || '';
     let activePriorityFilter = sessionStorage.getItem(priorityStorageKey) || '';
     let activeNotesFilter = sessionStorage.getItem(notesStorageKey) || '';
+    let activeSaveDateFilter = sessionStorage.getItem(saveDateStorageKey) || '';
+    let activeInviteSentFilter = sessionStorage.getItem(inviteSentStorageKey) || '';
 
     function applyFilters() {
         const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
@@ -115,6 +121,8 @@
             const rowStatus = (row.dataset.status || row.querySelector('td:nth-child(8)')?.textContent || '').toLowerCase().trim();
             const rowPriority = (row.dataset.priority || row.querySelector('.priority-select')?.value || '').trim();
             const hasNotes = (row.dataset.notes || '').trim().length > 0;
+            const saveDateSent = row.querySelector('td[data-save-date-sent]')?.dataset.saveDateSent;
+            const inviteSent = row.querySelector('td[data-invite-sent]')?.dataset.inviteSent;
 
             const matchesSearch = !searchTerm ||
                 displayName.includes(searchTerm) ||
@@ -130,7 +138,21 @@
                 matchesNotes = !hasNotes;
             }
 
-            if (matchesSearch && matchesStatus && matchesPriority && matchesNotes) {
+            let matchesSaveDate = true;
+            if (activeSaveDateFilter === '1') {
+                matchesSaveDate = saveDateSent === '1';
+            } else if (activeSaveDateFilter === '0') {
+                matchesSaveDate = saveDateSent === '0';
+            }
+
+            let matchesInviteSent = true;
+            if (activeInviteSentFilter === '1') {
+                matchesInviteSent = inviteSent === '1';
+            } else if (activeInviteSentFilter === '0') {
+                matchesInviteSent = inviteSent === '0';
+            }
+
+            if (matchesSearch && matchesStatus && matchesPriority && matchesNotes && matchesSaveDate && matchesInviteSent) {
                 row.classList.remove('d-none');
             } else {
                 row.classList.add('d-none');
@@ -206,6 +228,38 @@
     if (initialNotesFilter && notesFilterSelect) {
         notesFilterSelect.value = initialNotesFilter;
         activeNotesFilter = initialNotesFilter;
+    }
+
+    saveDateFilterSelect?.addEventListener('change', function () {
+        activeSaveDateFilter = this.value;
+        if (activeSaveDateFilter) {
+            sessionStorage.setItem(saveDateStorageKey, activeSaveDateFilter);
+        } else {
+            sessionStorage.removeItem(saveDateStorageKey);
+        }
+        applyFilters();
+    });
+
+    const initialSaveDateFilter = sessionStorage.getItem(saveDateStorageKey);
+    if (initialSaveDateFilter && saveDateFilterSelect) {
+        saveDateFilterSelect.value = initialSaveDateFilter;
+        activeSaveDateFilter = initialSaveDateFilter;
+    }
+
+    inviteSentFilterSelect?.addEventListener('change', function () {
+        activeInviteSentFilter = this.value;
+        if (activeInviteSentFilter) {
+            sessionStorage.setItem(inviteSentStorageKey, activeInviteSentFilter);
+        } else {
+            sessionStorage.removeItem(inviteSentStorageKey);
+        }
+        applyFilters();
+    });
+
+    const initialInviteSentFilter = sessionStorage.getItem(inviteSentStorageKey);
+    if (initialInviteSentFilter && inviteSentFilterSelect) {
+        inviteSentFilterSelect.value = initialInviteSentFilter;
+        activeInviteSentFilter = initialInviteSentFilter;
     }
 
     priorityFilterSelect?.addEventListener('change', function () {
