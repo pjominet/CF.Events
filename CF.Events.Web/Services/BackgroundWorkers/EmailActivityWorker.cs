@@ -1,5 +1,3 @@
-using CF.Events.Web.Services;
-
 namespace CF.Events.Web.Services.BackgroundWorkers;
 
 public class EmailActivityWorker(
@@ -29,8 +27,7 @@ public class EmailActivityWorker(
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
-                // Graceful shutdown
-                break;
+                break; // Graceful shutdown
             }
             catch (Exception ex)
             {
@@ -43,7 +40,7 @@ public class EmailActivityWorker(
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
-                break;
+                break; // Graceful shutdown
             }
         }
 

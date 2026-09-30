@@ -1,4 +1,5 @@
 using CF.Events.Web.Data;
+using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Models;
 using CF.Events.Web.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -71,21 +72,16 @@ public class EmailActivityModel(
                 a.EmailId.ToLower().Contains(search));
         }
 
-        if (!string.IsNullOrWhiteSpace(Status) && !Status.Equals("all", StringComparison.OrdinalIgnoreCase))
+        if (Status.HasValue() && !Status.Equals("all", StringComparison.OrdinalIgnoreCase))
         {
             filteredQuery = Status.ToLowerInvariant() switch
             {
                 "delivered" => filteredQuery.Where(a => a.IsDelivered),
-                "sandboxed" => filteredQuery.Where(a => a.IsSandboxed ||
-                    (a.LastErrorMessage != null && a.LastErrorMessage.Contains("Sandboxed")) ||
-                    (a.LastSmtpResponse != null && a.LastSmtpResponse.Contains("Sandboxed"))),
+                "sandboxed" => filteredQuery.Where(a => a.IsSandboxed),
                 "opened" => filteredQuery.Where(a => a.WasOpened),
                 "clicked" => filteredQuery.Where(a => a.WasClicked),
                 "bounced" => filteredQuery.Where(a => a.IsBounced),
-                "failed" => filteredQuery.Where(a => (a.HasError || a.IsBounced || a.IsSpam) &&
-                    !a.IsSandboxed &&
-                    (a.LastErrorMessage == null || !a.LastErrorMessage.Contains("Sandboxed")) &&
-                    (a.LastSmtpResponse == null || !a.LastSmtpResponse.Contains("Sandboxed"))),
+                "failed" => filteredQuery.Where(a => (a.HasError || a.IsBounced || a.IsSpam)&& !a.IsSandboxed),
                 _ => filteredQuery
             };
         }
@@ -103,91 +99,6 @@ public class EmailActivityModel(
             .Skip((PageNumber - 1) * DefaultPageSize)
             .Take(DefaultPageSize)
             .ToListAsync();
-    }
-
-    public async Task<IActionResult> OnPostSyncNowAsync(int hours = 24)
-    {
-        try
-        {
-            if (hours <= 0) hours = 24;
-            var result = await emailActivityService.FetchAndSaveActivityAsync(hours);
-            return new JsonResult(new
-            {
-                success = true,
-                message = $"Successfully synced email activity! Processed {result.EmailsProcessed} emails ({result.NewEventsAdded} new events, {result.TotalEventsFetched} fetched).",
-                data = new
-                {
-                    result.TotalEventsFetched,
-                    result.EmailsProcessed,
-                    result.NewEventsAdded,
-                    result.UpdatedEmailsCount
-                }
-            });
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to manually sync email activity");
-            return new JsonResult(new
-            {
-                success = false,
-                message = $"Sync failed: {ex.Message}"
-            }) { StatusCode = 500 };
-        }
-    }
-
-    public async Task<IActionResult> OnGetTimelineAsync(string emailId)
-    {
-        if (string.IsNullOrWhiteSpace(emailId))
-            return BadRequest(new { success = false, message = "Email ID is required." });
-
-        var activity = await db.EmailActivities
-            .AsNoTracking()
-            .Include(a => a.Timeline.OrderBy(t => t.EventAt))
-            .FirstOrDefaultAsync(a => a.EmailId == emailId);
-
-        if (activity is null)
-            return NotFound(new { success = false, message = "Email activity not found." });
-
-        var isSandboxed = activity.IsSandboxed ||
-                          string.Equals(activity.LastErrorMessage, "Sandboxed", StringComparison.OrdinalIgnoreCase) ||
-                          string.Equals(activity.LastSmtpResponse, "Sandboxed", StringComparison.OrdinalIgnoreCase) ||
-                          (activity.LastErrorMessage != null && activity.LastErrorMessage.Contains("Sandboxed", StringComparison.OrdinalIgnoreCase)) ||
-                          (activity.LastSmtpResponse != null && activity.LastSmtpResponse.Contains("Sandboxed", StringComparison.OrdinalIgnoreCase));
-
-        return new JsonResult(new
-        {
-            success = true,
-            emailId = activity.EmailId,
-            from = activity.FromEmail,
-            recipient = activity.RecipientEmail,
-            subject = activity.Subject,
-            sentAt = activity.SentAt.ToString("yyyy-MM-dd HH:mm:ss"),
-            latestEvent = activity.LatestEvent,
-            latestEventAt = activity.LatestEventAt.ToString("yyyy-MM-dd HH:mm:ss"),
-            isDelivered = activity.IsDelivered,
-            isSandboxed = isSandboxed,
-            isOpened = activity.WasOpened,
-            openCount = activity.OpenCount,
-            firstOpenedAt = activity.FirstOpenedAt?.ToString("yyyy-MM-dd HH:mm:ss"),
-            isClicked = activity.WasClicked,
-            clickCount = activity.ClickCount,
-            firstClickedAt = activity.FirstClickedAt?.ToString("yyyy-MM-dd HH:mm:ss"),
-            hasError = activity.HasError && !isSandboxed,
-            errorMessage = activity.LastErrorMessage,
-            smtpResponse = activity.LastSmtpResponse,
-            events = activity.Timeline.Select(e => new
-            {
-                emailActivityId = e.EmailActivityId,
-                emailId = e.EmailId,
-                @event = e.Event,
-                eventAt = e.EventAt.ToString("yyyy-MM-dd HH:mm:ss"),
-                smtpResponse = e.SmtpResponse,
-                errorMessage = e.ErrorMessage,
-                host = e.Host,
-                userAgent = e.UserAgent,
-                clickUrl = e.ClickUrl
-            }).ToList()
-        });
     }
 
     private static (DateTime? StartDate, DateTime? EndDate) GetDateRange(string? range)

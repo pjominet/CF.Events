@@ -1,0 +1,142 @@
+﻿@using CF.Events.Web.Infrastructure.Extensions
+@model CF.Events.Web.Models.EmailActivity
+
+<!-- Overview Header -->
+<div id="timelineOverview" class="card bg-light border-0 p-3 mb-3">
+    <div class="row g-2 small">
+        <div class="col-md-6">
+            <strong>Recipient:</strong> <span>@Model.RecipientEmail</span>
+        </div>
+        <div class="col-md-6">
+            <strong>Sender:</strong> <span>@Model.FromEmail</span>
+        </div>
+        <div class="col-md-12">
+            <strong>Subject:</strong> <span>@(Model.Subject.HasValue() ? Model.Subject : "(No Subject)")</span>
+        </div>
+        <div class="col-md-6">
+            <strong>Sent At:</strong> <span>@Model.SentAt.ToString("yyyy-MM-dd HH:mm:ss")</span>
+        </div>
+        <div class="col-md-6">
+            <strong>Summary:</strong>
+            <span id="timelineSummaryBadges">
+                @if (Model.IsSandboxed)
+                {
+                    <span class="badge bg-warning text-dark me-1"><i class="bi bi-box-seam me-1"></i>Sandboxed</span>
+                }
+                @if (Model.IsDelivered)
+                {
+                    <span class="badge bg-success me-1"><i class="bi bi-check-circle me-1"></i>Delivered</span>
+                }
+                @if (Model.WasOpened)
+                {
+                    <span class="badge bg-info text-dark me-1"><i class="bi bi-envelope-open me-1"></i>Opened (@Model.OpenCount x)</span>
+                }
+                @if (Model.WasClicked)
+                {
+                    <span class="badge bg-primary me-1"><i class="bi bi-cursor-fill me-1"></i>Clicked (@Model.ClickCount x)</span>
+                }
+                @if (Model is { HasError: true, IsSandboxed: false })
+                {
+                    <span class="badge bg-danger me-1"><i class="bi bi-exclamation-circle me-1"></i>Error / Bounced</span>
+                }
+            </span>
+        </div>
+    </div>
+</div>
+
+@if (!Model.Timeline.Any())
+{
+    <div id="timelineEmpty" class="text-center py-4 text-muted">
+        No discrete timeline events recorded for this email.
+    </div>
+}
+else
+{
+    <div id="timelineContainer">
+        <div id="timelineItems" class="timeline-list">
+            <div class="list-group list-group-flush">
+                @foreach (var (evt, idx) in Model.Timeline.OrderBy(t => t.EventAt).Select((e, i) => (e, i)))
+                {
+                    var lowerEvent = evt.Event.ToLowerInvariant();
+                    var badgeClass = lowerEvent switch
+                    {
+                        "sandboxed" => "bg-warning text-dark",
+                        "delivered" => "bg-success",
+                        "open" or "opened" => "bg-info text-dark",
+                        "click" or "clicked" => "bg-primary",
+                        "spam" or "rejected" => "bg-danger",
+                        _ => "bg-secondary"
+                    };
+
+                    var iconClass = lowerEvent switch
+                    {
+                        "sandboxed" => "bi-box-seam text-warning",
+                        "delivered" => "bi-check-circle-fill text-success",
+                        "open" or "opened" => "bi-envelope-open-fill text-info",
+                        "click" or "clicked" => "bi-cursor-fill text-primary",
+                        "rejected" => "bi-x-circle-fill text-danger",
+                        "spam" => "bi-exclamation-triangle-fill text-danger",
+                        _ => "bi-send-fill text-secondary"
+                    };
+
+                    var isClick = lowerEvent == "click";
+                    var errorMsg = evt.ErrorMessage ?? evt.SmtpResponse;
+                    var isSandboxedEvt = lowerEvent == "sandboxed" || (errorMsg?.ToLowerInvariant().Contains("sandbox") ?? false);
+
+                    <div class="list-group-item px-2 py-3 border-bottom">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi @iconClass fs-5"></i>
+                                <span class="badge @badgeClass text-uppercase px-2 py-1">@evt.Event</span>
+                                <span class="fw-semibold small">@evt.EventAt.ToString("yyyy-MM-dd HH:mm:ss")</span>
+                            </div>
+                            <span class="text-muted small">#@(idx + 1)</span>
+                        </div>
+
+                        @if (isClick && evt.ClickUrl.HasValue())
+                        {
+                            <div class="mt-2 p-2 bg-light rounded border">
+                                <span class="fw-bold small text-primary"><i class="bi bi-link-45deg"></i> Clicked Target:</span>
+                                <a href="@evt.ClickUrl" target="_blank" rel="noopener noreferrer" class="text-break small d-block">
+                                    @evt.ClickUrl
+                                </a>
+                            </div>
+                        }
+
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            @if (evt.Host.HasValue())
+                            {
+                                <span class="badge bg-light text-dark border small fw-normal">
+                                    <i class="bi bi-server me-1 text-secondary"></i>Host: @evt.Host
+                                </span>
+                            }
+                        </div>
+
+                        @if (evt.UserAgent.HasValue())
+                        {
+                            <div class="small text-muted mt-2 text-truncate" title="@evt.UserAgent">
+                                <i class="bi bi-laptop me-1"></i> @evt.UserAgent
+                            </div>
+                        }
+
+                        @if (errorMsg.HasValue() && !isSandboxedEvt && (lowerEvent.Contains("bounce") || lowerEvent == "spam" || lowerEvent == "rejected"))
+                        {
+                            <div class="alert alert-danger py-2 px-3 mt-2 mb-0 small">
+                                <strong><i class="bi bi-exclamation-triangle-fill me-1"></i> Diagnostic Message:</strong>
+                                <div class="text-break mt-1 font-monospace" style="font-size: 0.8rem;">@errorMsg</div>
+                            </div>
+                        }
+
+                        @if (errorMsg.HasValue() && isSandboxedEvt)
+                        {
+                            <div class="alert alert-warning py-2 px-3 mt-2 mb-0 small text-dark">
+                                <strong><i class="bi bi-box-seam me-1"></i> Sandboxed:</strong>
+                                <div class="text-break mt-1 font-monospace" style="font-size: 0.8rem;">@errorMsg (Sent using Sandbox API Key)</div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}

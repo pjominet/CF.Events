@@ -1,7 +1,8 @@
-using CF.Events.Web.Models.Requests;
+using CF.Events.Web.Data;
 using CF.Events.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using static CF.Events.Web.Infrastructure.Constants;
 
 namespace CF.Events.Web.Controllers;
@@ -9,104 +10,44 @@ namespace CF.Events.Web.Controllers;
 [Route("admin/email/activity")]
 [Authorize(Roles = Roles.Admin)]
 public class EmailActivityController(
+    EventsDbContext db,
     IEmailActivityService emailActivityService,
-    ILogger<EmailActivityController> logger) : ControllerBase
+    ILogger<EmailActivityController> logger) : Controller
 {
-    /// <summary>
-    /// Fetches email activity from SMTP2GO for the last 24 hours (or specified number of hours),
-    /// persists sent email details to the database, and returns the synced activities.
-    /// </summary>
-    /// <param name="hours">Number of hours to look back (default: 24)</param>
-    /// <param name="ctx">Cancellation token</param>
-    [HttpGet("fetch-recent")]
-    public async Task<IActionResult> FetchRecentActivity([FromQuery] int hours = 24, CancellationToken ctx = default)
+    [HttpPost("sync")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SyncNow([FromQuery] int hours = 24)
     {
         try
         {
-            if (hours is <= 0 or > 720) hours = 24;
-            var result = await emailActivityService.FetchAndSaveActivityAsync(hours, ctx);
-            return Ok(result);
+            if (hours <= 0) hours = 24;
+            var result = await emailActivityService.FetchAndSaveActivityAsync(hours);
+
+            var message = $"Successfully synced email activity! Processed {result.EmailsProcessed} emails ({result.NewEventsAdded} new events, {result.TotalEventsFetched} fetched).";
+
+            return Ok(new { message });
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error fetching email activity from SMTP2GO for the last {Hours} hours", hours);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { error = ex.Message });
+            logger.LogError(ex, "Failed to manually sync email activity");
+            return StatusCode(500, new { success = false, message = $"Sync failed: {ex.Message}" });
         }
     }
 
-    /// <summary>
-    /// Searches email activity from SMTP2GO based on the provided criteria (date range, sender, recipient, subject, event types),
-    /// saves the events and timelines to the database, and returns the result.
-    /// </summary>
-    [HttpPost("search")]
-    public async Task<IActionResult> SearchAndSaveActivity([FromBody] EmailActivityFetchRequest request, CancellationToken ctx = default)
+    [HttpGet("timeline/{emailId}")]
+    public async Task<IActionResult> GetTimeline([FromRoute] string emailId)
     {
-        try
-        {
-            var result = await emailActivityService.FetchAndSaveActivityAsync(request, ctx);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error searching email activity from SMTP2GO");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { error = ex.Message });
-        }
-    }
+        if (string.IsNullOrEmpty(emailId))
+            return BadRequest("Email ID is required.");
 
-    /// <summary>
-    /// Gets all saved email activities from the database with their current status and timeline.
-    /// </summary>
-    [HttpGet]
-    public async Task<IActionResult> GetActivities([FromQuery] int limit = 100, CancellationToken ctx = default)
-    {
-        try
-        {
-            var activities = await emailActivityService.GetRecentActivitiesAsync(limit, ctx);
-            return Ok(activities);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error retrieving email activities");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { error = ex.Message });
-        }
-    }
+        var activity = await db.EmailActivities
+            .AsNoTracking()
+            .Include(a => a.Timeline)
+            .FirstOrDefaultAsync(a => a.EmailId == emailId);
 
-    /// <summary>
-    /// Gets a specific email activity and its timeline by SMTP2GO email ID.
-    /// </summary>
-    [HttpGet("{emailId}")]
-    public async Task<IActionResult> GetActivityByEmailId([FromRoute] string emailId, CancellationToken ctx = default)
-    {
-        try
-        {
-            var activity = await emailActivityService.GetActivityByEmailIdAsync(emailId, ctx);
-            if (activity is null)
-                return NotFound(new { error = $"Email activity with ID '{emailId}' was not found." });
+        if (activity is null)
+            return NotFound("Email activity not found.");
 
-            return Ok(activity);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error retrieving email activity for {EmailId}", emailId);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { error = ex.Message });
-        }
-    }
-
-    /// <summary>
-    /// Gets the timeline of events for a specific email by SMTP2GO email ID.
-    /// </summary>
-    [HttpGet("{emailId}/timeline")]
-    public async Task<IActionResult> GetTimelineByEmailId([FromRoute] string emailId, CancellationToken ctx = default)
-    {
-        try
-        {
-            var timeline = await emailActivityService.GetTimelineForEmailAsync(emailId, ctx);
-            return Ok(timeline);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error retrieving timeline for {EmailId}", emailId);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { error = ex.Message });
-        }
+        return PartialView("~/Pages/Admin/Shared/_EmailTimeline.cshtml", activity);
     }
 }

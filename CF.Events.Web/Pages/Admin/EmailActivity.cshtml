@@ -1,4 +1,5 @@
 @page "/admin/email-activity"
+@using CF.Events.Web.Infrastructure.Extensions
 @model CF.Events.Web.Pages.Admin.EmailActivityModel
 @{
     ViewData["Title"] = "Email Activity";
@@ -17,14 +18,11 @@
                 <h1 class="fs-1">@ViewData["Title"]</h1>
             </section>
             <section class="d-flex gap-2">
-                <button id="syncActivityBtn" class="btn btn-warning" data-sync-url="@Url.Page("", "SyncNow")">
+                <button id="syncActivityBtn" class="btn btn-warning" data-sync-url="/admin/email/activity/sync">
                     <i class="bi bi-arrow-repeat me-1"></i>
                     <span id="syncBtnText">Sync from SMTP2GO</span>
                     <span id="syncSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                 </button>
-                <a href="@Url.Page("", new { timeRange = Model.TimeRange, status = Model.Status, search = Model.Search })" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-clockwise me-1"></i>Refresh
-                </a>
             </section>
         </div>
     </div>
@@ -102,13 +100,14 @@
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body py-3">
             <form method="get" class="row g-2 align-items-center">
-                <div class="col-md-4">
+                @Html.AntiForgeryToken()
+                <div class="col-4">
                     <div class="input-group input-group-sm">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
-                        <input type="text" name="search" value="@Model.Search" class="form-control" placeholder="Search recipient, sender, subject, email ID..." />
+                        <input type="text" id="emailSearchInput" name="search" value="@Model.Search" class="form-control" placeholder="Search recipient, sender, subject, email ID..."/>
                     </div>
                 </div>
-                <div class="col-sm-6 col-md-3">
+                <div class="col-4">
                     <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
                         <option value="all" selected="@(string.IsNullOrEmpty(Model.Status) || Model.Status == "all")">All Statuses</option>
                         <option value="delivered" selected="@(Model.Status == "delivered")">Delivered</option>
@@ -119,22 +118,13 @@
                         <option value="failed" selected="@(Model.Status == "failed")">Failed / Errors</option>
                     </select>
                 </div>
-                <div class="col-sm-6 col-md-3">
+                <div class="col-4">
                     <select name="timeRange" class="form-select form-select-sm" onchange="this.form.submit()">
                         <option value="24h" selected="@(Model.TimeRange == "24h")">Last 24 Hours</option>
                         <option value="7d" selected="@(Model.TimeRange == "7d" || string.IsNullOrEmpty(Model.TimeRange))">Last 7 Days</option>
                         <option value="30d" selected="@(Model.TimeRange == "30d")">Last 30 Days</option>
                         <option value="all" selected="@(Model.TimeRange == "all")">All Time</option>
                     </select>
-                </div>
-                <div class="col-md-2 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1">Filter</button>
-                    @if (!string.IsNullOrEmpty(Model.Search) || (!string.IsNullOrEmpty(Model.Status) && Model.Status != "all") || Model.TimeRange != "7d")
-                    {
-                        <a href="/admin/email-activity" class="btn btn-outline-secondary btn-sm" title="Clear filters">
-                            <i class="bi bi-x-circle"></i>
-                        </a>
-                    }
                 </div>
             </form>
         </div>
@@ -176,7 +166,7 @@
                                 </div>
                             </td>
                             <td class="text-truncate" style="max-width: 250px;" title="@item.Subject">
-                                @(string.IsNullOrWhiteSpace(item.Subject) ? "(No Subject)" : item.Subject)
+                                @(!item.Subject.HasValue() ? "(No Subject)" : item.Subject)
                             </td>
                             <td>
                                 @if (item.IsSandboxed)
@@ -245,7 +235,7 @@
                                 <div class="text-muted" style="font-size: 0.75rem;">@item.LatestEventAt.ToString("dd/MM HH:mm")</div>
                             </td>
                             <td class="text-end">
-                                <button type="button" class="btn btn-outline-primary btn-sm view-timeline-btn" data-email-id="@item.EmailId" data-timeline-url="@Url.Page("", "Timeline", new { emailId = item.EmailId })">
+                                <button type="button" class="btn btn-outline-primary btn-sm view-timeline-btn" data-email-id="@item.EmailId" data-timeline-url="/admin/email/activity/timeline/@item.EmailId">
                                     <i class="bi bi-clock-history me-1"></i>Timeline
                                 </button>
                             </td>
@@ -309,30 +299,8 @@
                     <h5 class="modal-title mb-0" id="emailTimelineModalLabel">Email Activity Timeline</h5>
                     <small class="text-muted" id="timelineEmailId"></small>
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <!-- Overview Header -->
-                <div id="timelineOverview" class="card bg-light border-0 p-3 mb-3 d-none">
-                    <div class="row g-2 small">
-                        <div class="col-md-6">
-                            <strong>Recipient:</strong> <span id="timelineRecipient"></span>
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Sender:</strong> <span id="timelineSender"></span>
-                        </div>
-                        <div class="col-md-12">
-                            <strong>Subject:</strong> <span id="timelineSubject"></span>
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Sent At:</strong> <span id="timelineSentAt"></span>
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Summary:</strong> <span id="timelineSummaryBadges"></span>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Loading Spinner -->
                 <div id="timelineLoading" class="text-center py-5">
                     <div class="spinner-border text-primary" role="status">
@@ -342,13 +310,7 @@
                 </div>
 
                 <!-- Timeline Event List -->
-                <div id="timelineContainer" class="d-none">
-                    <div id="timelineItems" class="timeline-list">
-                    </div>
-                </div>
-
-                <div id="timelineEmpty" class="d-none text-center py-4 text-muted">
-                    No discrete timeline events recorded for this email.
+                <div id="timelineContainer">
                 </div>
             </div>
             <div class="modal-footer bg-light">
@@ -357,10 +319,6 @@
         </div>
     </div>
 </div>
-
-<form id="antiForgeryForm" method="post" style="display: none;">
-    @Html.AntiForgeryToken()
-</form>
 
 @section Scripts {
     <script src="~/js/email-activity.js" asp-append-version="true"></script>
