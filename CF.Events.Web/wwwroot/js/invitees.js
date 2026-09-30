@@ -207,6 +207,21 @@
         notesFilterSelect.value = initialNotesFilter;
         activeNotesFilter = initialNotesFilter;
     }
+    priorityFilterSelect?.addEventListener('change', function () {
+        activePriority = this.value;
+        if (activePriority) {
+            sessionStorage.setItem(priorityStorageKey, activePriority);
+        } else {
+            sessionStorage.removeItem(priorityStorageKey);
+        }
+        applyFilters();
+    });
+
+    const initialPriority = sessionStorage.getItem(priorityStorageKey);
+    if (initialPriority) {
+        priorityFilterSelect.value = initialPriority;
+        activePriority = initialPriority;
+    }
 
     statusFilters.forEach(btn => {
         btn.addEventListener('click', function () {

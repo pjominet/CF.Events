@@ -4,6 +4,7 @@ using CF.Events.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,14 +12,16 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CF.Events.Web.Data.Migrations
 {
     [DbContext(typeof(EventsDbContext))]
-    partial class EventsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260929100243_AddEmailActivities")]
+    partial class AddEmailActivities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("app")
-                .HasAnnotation("ProductVersion", "10.0.12")
+                .HasAnnotation("ProductVersion", "10.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -198,13 +201,13 @@ namespace CF.Events.Web.Data.Migrations
                     b.Property<bool>("HasError")
                         .HasColumnType("bit");
 
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
                     b.Property<bool>("IsBounced")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsDelivered")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsSandboxed")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsSpam")
@@ -223,6 +226,14 @@ namespace CF.Events.Web.Data.Migrations
                     b.Property<string>("LastSmtpResponse")
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("LatestEvent")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("LatestEventAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("OpenCount")
                         .HasColumnType("int");
@@ -343,14 +354,6 @@ namespace CF.Events.Web.Data.Migrations
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("IbanAccountOwner")
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<string>("IbanTransferReference")
-                        .HasMaxLength(16)
-                        .HasColumnType("nvarchar(16)");
 
                     b.Property<string>("InvitationTemplateId")
                         .HasMaxLength(255)
@@ -504,10 +507,6 @@ namespace CF.Events.Web.Data.Migrations
 
                     b.Property<DateTime?>("InviteEmailSent")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<DateTime?>("SaveTheDateEmailSent")
                         .HasColumnType("datetime2");
@@ -877,7 +876,7 @@ namespace CF.Events.Web.Data.Migrations
             modelBuilder.Entity("CF.Events.Web.Models.EmailActivityEvent", b =>
                 {
                     b.HasOne("CF.Events.Web.Models.EmailActivity", "EmailActivity")
-                        .WithMany("TimelineEvents")
+                        .WithMany("Timeline")
                         .HasForeignKey("EmailId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1069,7 +1068,7 @@ namespace CF.Events.Web.Data.Migrations
 
             modelBuilder.Entity("CF.Events.Web.Models.EmailActivity", b =>
                 {
-                    b.Navigation("TimelineEvents");
+                    b.Navigation("Timeline");
                 });
 
             modelBuilder.Entity("CF.Events.Web.Models.Event", b =>

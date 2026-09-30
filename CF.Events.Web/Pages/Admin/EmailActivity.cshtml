@@ -1,0 +1,307 @@
+@page "/admin/email-activity"
+@using CF.Events.Web.Infrastructure.Extensions
+@model CF.Events.Web.Pages.Admin.EmailActivityModel
+@{
+    ViewData["Title"] = "Email Activity";
+}
+
+<div class="container container-stretch py-4">
+    <div class="row mb-4">
+        <div class="col d-flex justify-content-between align-items-center">
+            <section>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="/admin">Admin</a></li>
+                        <li class="breadcrumb-item active">Email Activity</li>
+                    </ol>
+                </nav>
+                <h1 class="fs-1">@ViewData["Title"]</h1>
+            </section>
+            <section class="d-flex gap-2">
+                <form id="syncActivityForm" method="post" asp-antiforgery="true">
+                    <button id="syncActivityBtn" type="button" class="btn btn-warning" data-sync-url="/admin/email/activity/sync">
+                        <i class="bi bi-arrow-repeat me-1"></i>
+                        <span id="syncBtnText">Sync from SMTP2GO</span>
+                        <span id="syncSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                    </button>
+                </form>
+            </section>
+        </div>
+    </div>
+
+    <!-- Alert placeholder for dynamic feedback -->
+    <div id="syncAlertContainer"></div>
+
+    <!-- Summary KPI cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-md-4 col-lg-2">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body p-3 text-center">
+                    <div class="text-muted small text-uppercase fw-semibold">Total Sent</div>
+                    <div class="fs-3 fw-bold text-dark mt-1">@Model.TotalCount</div>
+                    <div class="small text-muted mt-1">in selected period</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-4 col-lg-2">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body p-3 text-center">
+                    <div class="text-muted small text-uppercase fw-semibold">Delivered</div>
+                    <div class="fs-3 fw-bold text-success mt-1">@Model.DeliveredCount</div>
+                    <div class="small text-muted mt-1">
+                        @(Model.TotalCount > 0 ? $"{(Model.DeliveredCount * 100.0 / Model.TotalCount):F1}%" : "0%")
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-4 col-lg-2">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body p-3 text-center">
+                    <div class="text-muted small text-uppercase fw-semibold">Opened</div>
+                    <div class="fs-3 fw-bold text-info mt-1">@Model.OpenedCount</div>
+                    <div class="small text-muted mt-1">
+                        @(Model.TotalCount > 0 ? $"{(Model.OpenedCount * 100.0 / Model.TotalCount):F1}% rate" : "0% rate")
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-4 col-lg-2">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body p-3 text-center">
+                    <div class="text-muted small text-uppercase fw-semibold">Clicked</div>
+                    <div class="fs-3 fw-bold text-primary mt-1">@Model.ClickedCount</div>
+                    <div class="small text-muted mt-1">
+                        @(Model.TotalCount > 0 ? $"{(Model.ClickedCount * 100.0 / Model.TotalCount):F1}% rate" : "0% rate")
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-4 col-lg-2">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body p-3 text-center">
+                    <div class="text-muted small text-uppercase fw-semibold">Bounces / Errors</div>
+                    <div class="fs-3 fw-bold text-danger mt-1">@Model.FailedCount</div>
+                    <div class="small text-muted mt-1">
+                        @(Model.TotalCount > 0 ? $"{(Model.FailedCount * 100.0 / Model.TotalCount):F1}%" : "0%")
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-4 col-lg-2">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body p-3 text-center">
+                    <div class="text-muted small text-uppercase fw-semibold">Sync Interval</div>
+                    <div class="fs-5 fw-bold text-secondary mt-1">Every 24h</div>
+                    <div class="small text-muted mt-1">Auto background service</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter and Search Bar -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body py-3">
+            <form method="get" class="row g-2 align-items-center">
+                @Html.AntiForgeryToken()
+                <div class="col-4">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" id="emailSearchInput" name="search" value="@Model.Search" class="form-control" placeholder="Search recipient, sender, subject, email ID..."/>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="all" selected="@(string.IsNullOrEmpty(Model.Status) || Model.Status == "all")">All Statuses</option>
+                        <option value="delivered" selected="@(Model.Status == "delivered")">Delivered</option>
+                        <option value="sandboxed" selected="@(Model.Status == "sandboxed")">Sandboxed</option>
+                        <option value="opened" selected="@(Model.Status == "opened")">Opened</option>
+                        <option value="clicked" selected="@(Model.Status == "clicked")">Clicked</option>
+                        <option value="bounced" selected="@(Model.Status == "bounced")">Bounced</option>
+                        <option value="failed" selected="@(Model.Status == "failed")">Failed / Errors</option>
+                    </select>
+                </div>
+                <div class="col-4">
+                    <select name="timeRange" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="24h" selected="@(Model.TimeRange == "24h")">Last 24 Hours</option>
+                        <option value="7d" selected="@(Model.TimeRange == "7d" || string.IsNullOrEmpty(Model.TimeRange))">Last 7 Days</option>
+                        <option value="30d" selected="@(Model.TimeRange == "30d")">Last 30 Days</option>
+                        <option value="all" selected="@(Model.TimeRange == "all")">All Time</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Activity Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive" style="max-height: 70vh; overflow-y: auto;">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-warning sticky-top">
+                    <tr>
+                        <th>Sent Date</th>
+                        <th>Recipient</th>
+                        <th>Subject</th>
+                        <th>Current Status</th>
+                        <th>Link Clicked</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.Activities)
+                    {
+                        <tr>
+                            <td class="text-nowrap small">
+                                <div>@item.SentAt.ToString("dd/MM/yyyy HH:mm")</div>
+                                <code class="text-muted" style="font-size: 0.75rem;" title="@item.EmailId">
+                                    @item.EmailId
+                                </code>
+                            </td>
+                            <td>
+                                <div class="fw-semibold text-truncate" style="max-width: 200px;" title="@item.RecipientEmail">
+                                    @item.RecipientEmail
+                                </div>
+                                <div class="small text-muted text-truncate" style="max-width: 200px;" title="From: @item.FromEmail">
+                                    From: @item.FromEmail
+                                </div>
+                            </td>
+                            <td class="text-truncate" style="max-width: 250px;" title="@item.Subject">
+                                @(!item.Subject.HasValue() ? "(No Subject)" : item.Subject)
+                            </td>
+                            <td>
+                                @if (item.IsSandboxed)
+                                {
+                                    <span class="badge bg-warning text-dark" data-bs-toggle="tooltip">
+                                        <i class="bi bi-box-seam me-1"></i>Sandboxed
+                                    </span>
+                                }
+                                else if (item.IsBounced)
+                                {
+                                    <span class="badge bg-danger" title="@(item.LastErrorMessage ?? item.LastSmtpResponse)" data-bs-toggle="tooltip">
+                                        <i class="bi bi-x-circle me-1"></i>Bounced
+                                    </span>
+                                }
+                                else if (item.IsSpam)
+                                {
+                                    <span class="badge bg-danger" title="Marked as spam" data-bs-toggle="tooltip">
+                                        <i class="bi bi-exclamation-triangle me-1"></i>Spam
+                                    </span>
+                                }
+                                else if (item.HasError)
+                                {
+                                    <span class="badge bg-danger" title="@(item.LastErrorMessage ?? item.LastSmtpResponse)" data-bs-toggle="tooltip">
+                                        <i class="bi bi-exclamation-circle me-1"></i>Error
+                                    </span>
+                                }
+                                else if (item.IsDelivered)
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle me-1"></i>Delivered
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        <i class="bi bi-clock me-1"></i>Sent
+                                    </span>
+                                }
+                            </td>
+                            <td>
+                                @if (item.WasClicked)
+                                {
+                                    <span class="small">@item.LastClickedAt?.ToString("g")</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">-</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-outline-primary btn-sm view-timeline-btn" data-email-id="@item.EmailId" data-timeline-url="/admin/email/activity/timeline/@item.EmailId">
+                                    <i class="bi bi-clock-history me-1"></i>Timeline
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (Model.Activities.Count == 0)
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                    No email activity found matching your criteria.
+                    <div class="mt-2">
+                        <button type="button" class="btn btn-outline-warning btn-sm" onclick="document.getElementById('syncActivityBtn').click()">
+                            <i class="bi bi-arrow-repeat me-1"></i>Sync Now from SMTP2GO
+                        </button>
+                    </div>
+                </div>
+            }
+
+            <!-- Pagination -->
+            @if (Model.TotalPages > 1)
+            {
+                var endItem = Model.PageNumber * 25 < Model.TotalMatchingItems ? Model.PageNumber * 25 : Model.TotalMatchingItems;
+                var startPage = Model.PageNumber - 2 > 1 ? Model.PageNumber - 2 : 1;
+                var endPage = Model.PageNumber + 2 < Model.TotalPages ? Model.PageNumber + 2 : Model.TotalPages;
+                <div class="d-flex justify-content-between align-items-center p-3 border-top">
+                    <div class="small text-muted">
+                        Showing @(((Model.PageNumber - 1) * 25) + 1) to @endItem of @Model.TotalMatchingItems emails
+                    </div>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : "")">
+                                <a class="page-link" href="@Url.Page("", new { pageNumber = Model.PageNumber - 1, timeRange = Model.TimeRange, status = Model.Status, search = Model.Search })">Previous</a>
+                            </li>
+                            @for (var i = startPage; i <= endPage; i++)
+                            {
+                                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                    <a class="page-link" href="@Url.Page("", new { pageNumber = i, timeRange = Model.TimeRange, status = Model.Status, search = Model.Search })">@i</a>
+                                </li>
+                            }
+                            <li class="page-item @(Model.PageNumber >= Model.TotalPages ? "disabled" : "")">
+                                <a class="page-link" href="@Url.Page("", new { pageNumber = Model.PageNumber + 1, timeRange = Model.TimeRange, status = Model.Status, search = Model.Search })">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Timeline & Detailed Events -->
+<div class="modal fade" id="emailTimelineModal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="emailTimelineModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content shadow">
+            <div class="modal-header bg-light">
+                <div>
+                    <h5 class="modal-title mb-0" id="emailTimelineModalLabel">Email Activity Timeline</h5>
+                    <small class="text-muted" id="timelineEmailId"></small>
+                </div>
+            </div>
+            <div class="modal-body">
+                <!-- Loading Spinner -->
+                <div id="timelineLoading" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading timeline...</span>
+                    </div>
+                    <p class="text-muted small mt-2">Loading event timeline...</p>
+                </div>
+
+                <!-- Timeline Event List -->
+                <div id="timelineContainer">
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/email-activity.js" asp-append-version="true"></script>
+}

@@ -4,6 +4,7 @@ using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Infrastructure.Settings;
 using CF.Events.Web.Models;
 using CF.Events.Web.Models.Requests;
+using CF.Events.Web.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using static CF.Events.Web.Infrastructure.Constants;
@@ -21,7 +22,7 @@ public interface IInvitationService
 
 public class InvitationService(
     EventsDbContext db,
-    IMailService mailService,
+    IEmailSender emailSender,
     IAuthEmailService authEmailService,
     IFileService fileService,
     IOptions<AppSettings> appOptions,
@@ -292,20 +293,49 @@ public class InvitationService(
 
             var remainingRequests = requests.Skip(batchSize).Select(r => new { r.EventId, r.UserId }).ToList();
 
-            foreach (var request in remainingRequests)
+            // Optimize: Update all remaining requests in one go
+            foreach (var chunk in remainingRequests.Chunk(100))
             {
+                var eventId = chunk.First().EventId; // Assuming same event, but let's be safe
+                var userIds = chunk.Select(c => c.UserId).ToList();
                 await db.EventUsers
-                    .Where(ue => ue.EventId == request.EventId && ue.UserId == request.UserId)
+                    .Where(ue => ue.EventId == eventId && userIds.Contains(ue.UserId))
                     .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.ScheduledFor, DateTime.UtcNow), ctx);
             }
 
             toSendImmediately = [.. requests.Take(batchSize)];
         }
 
-        foreach (var request in toSendImmediately)
+        try
         {
-            if (ctx.IsCancellationRequested) break;
-            await SendEmail(request, ctx);
+            if (toSendImmediately.Count > 0)
+            {
+                await emailSender.SendTemplatedEmailsAsync(toSendImmediately, ctx);
+
+                // Update database in bulk after successful send
+                var userIds = toSendImmediately.Select(r => r.UserId).ToList();
+                var eventId = toSendImmediately.First().EventId;
+
+                if (typeof(T) == typeof(InvitationEmailRequest))
+                {
+                    await db.EventUsers
+                        .Where(ue => ue.EventId == eventId && userIds.Contains(ue.UserId))
+                        .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.InviteEmailSent, DateTime.UtcNow), ctx);
+                }
+                else if (typeof(T) == typeof(SaveDateEmailRequest))
+                {
+                    await db.EventUsers
+                        .Where(ue => ue.EventId == eventId && userIds.Contains(ue.UserId))
+                        .ExecuteUpdateAsync(s => s.SetProperty(ue => ue.SaveTheDateEmailSent, DateTime.UtcNow), ctx);
+                }
+
+                logger.LogInformation("Sent {Count} {Type} emails in bulk for event {EventId}", toSendImmediately.Count, typeof(T).Name, eventId);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to send bulk {Type} emails", typeof(T).Name);
+            throw; // Re-throw to allow callers to handle/display error
         }
     }
 
@@ -319,7 +349,7 @@ public class InvitationService(
                 return;
             }
 
-            await mailService.SendTemplatedEmailAsync(request, ctx);
+            await emailSender.SendTemplatedEmailAsync(request, ctx);
 
             switch (request)
             {
@@ -340,6 +370,7 @@ public class InvitationService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to send {Type} email to {Email}", typeof(T).Name, request.UserEmail);
+            throw; // Re-throw to allow callers to handle/display error
         }
     }
 
@@ -362,7 +393,7 @@ public class InvitationService(
 
         if (request.SendWithLink)
             request.CallBackUrl = BuildSaveDateCallbackUrl(request.EventId, request.UserId);
-        else request.InlineAttachments = [fileService.GetAssetAttachment("save-the-date.png")];
+        else request.EmailAttachments = [fileService.GetAssetAttachment("save-the-date.png")];
 
         return request;
     }
@@ -378,7 +409,7 @@ public class InvitationService(
             case SaveDateEmailRequest std:
                 if (std.SendWithLink)
                     std.CallBackUrl = BuildSaveDateCallbackUrl(std.EventId, std.UserId);
-                else std.InlineAttachments = [fileService.GetAssetAttachment("save-the-date.png")];
+                else std.EmailAttachments = [fileService.GetAssetAttachment("save-the-date.png")];
                 break;
         }
     }

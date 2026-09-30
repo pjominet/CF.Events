@@ -15,4 +15,10 @@ public class EmailProviderSettings
 {
     public required string SenderEmail { get; init; }
     public required string SenderName { get; init; }
+    public required Smtp2GoSettings Smtp2Go { get; init; }
+}
+
+public class Smtp2GoSettings
+{
+    public required string ApiKey { get; init; }
 }

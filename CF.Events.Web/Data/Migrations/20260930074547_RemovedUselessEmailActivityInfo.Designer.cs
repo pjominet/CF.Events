@@ -4,6 +4,7 @@ using CF.Events.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,14 +12,16 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CF.Events.Web.Data.Migrations
 {
     [DbContext(typeof(EventsDbContext))]
-    partial class EventsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260930074547_RemovedUselessEmailActivityInfo")]
+    partial class RemovedUselessEmailActivityInfo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("app")
-                .HasAnnotation("ProductVersion", "10.0.12")
+                .HasAnnotation("ProductVersion", "10.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -344,14 +347,6 @@ namespace CF.Events.Web.Data.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("IbanAccountOwner")
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<string>("IbanTransferReference")
-                        .HasMaxLength(16)
-                        .HasColumnType("nvarchar(16)");
-
                     b.Property<string>("InvitationTemplateId")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
@@ -504,10 +499,6 @@ namespace CF.Events.Web.Data.Migrations
 
                     b.Property<DateTime?>("InviteEmailSent")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<DateTime?>("SaveTheDateEmailSent")
                         .HasColumnType("datetime2");

@@ -8,6 +8,7 @@ using CF.Events.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using NToastNotify;
 using static CF.Events.Web.Infrastructure.Constants;
@@ -18,7 +19,8 @@ namespace CF.Events.Web.Pages.Admin;
 public class EditEventModel(
     EventsDbContext db,
     IFileService fileService,
-    IToastNotification toastNotification) : PageModel
+    IToastNotification toastNotification,
+    IEmailTemplateService emailTemplateService) : PageModel
 {
     [BindProperty] public EventModel Event { get; set; } = null!;
 
@@ -69,11 +71,11 @@ public class EditEventModel(
                 [
                     .. @event.EventFaq.OrderBy(f => f.SortOrder)
                         .Select(f => new FaqInputModel
-                    {
-                        Question = f.Question,
-                        Answer = f.Answer,
-                        SortOrder = f.SortOrder
-                    })
+                        {
+                            Question = f.Question,
+                            Answer = f.Answer,
+                            SortOrder = f.SortOrder
+                        })
                 ],
                 ScheduleSteps =
                 [
@@ -81,14 +83,16 @@ public class EditEventModel(
                         .ThenBy(s => s.StartTime.Hour < 6 ? 1 : 0)
                         .ThenBy(s => s.StartTime)
                         .Select(s => new ScheduleInputModel
-                    {
-                        Day = s.Day,
-                        StartTime = s.StartTime,
-                        EndTime = s.EndTime,
-                        Label = s.Label
-                    })
+                        {
+                            Day = s.Day,
+                            StartTime = s.StartTime,
+                            EndTime = s.EndTime,
+                            Label = s.Label
+                        })
                 ]
             };
+
+            Event.TemplateOptions = await GetEmailTemplateOptions([Event.SaveDateEmailTemplateId, Event.InvitationEmailTemplateId]);
         }
         else
         {
@@ -97,7 +101,8 @@ public class EditEventModel(
                 StartDate = DateTime.Today.AddDays(1),
                 EndDate = DateTime.Today.AddDays(1),
                 DonationTypes = [],
-                UploadSessionId = Guid.NewGuid().ToString()
+                UploadSessionId = Guid.NewGuid().ToString(),
+                TemplateOptions = await GetEmailTemplateOptions([Event.SaveDateEmailTemplateId, Event.InvitationEmailTemplateId])
             };
         }
 
@@ -127,6 +132,7 @@ public class EditEventModel(
 
         if (!ModelState.IsValid)
         {
+            Event.TemplateOptions = await GetEmailTemplateOptions([Event.SaveDateEmailTemplateId, Event.InvitationEmailTemplateId]);
             toastNotification.AddWarningToastMessage($"There are {ModelState.ErrorCount} form issues");
             return Page();
         }
@@ -258,6 +264,20 @@ public class EditEventModel(
         return types;
     }
 
+    private async Task<List<SelectListItem>> GetEmailTemplateOptions(string?[] selectedTemplateIds)
+    {
+        var eventEmailTemplates = await emailTemplateService.GetEmailTemplatesAsync(["event"]);
+        return
+        [
+            .. eventEmailTemplates.Select(t => new SelectListItem
+            {
+                Value = t.Id,
+                Text = t.Label,
+                Selected = selectedTemplateIds.Contains(t.Id)
+            })
+        ];
+    }
+
     public class EventModel
     {
         public int Id { get; set; }
@@ -278,6 +298,7 @@ public class EditEventModel(
         public string? SaveDateEmailTemplateId { get; set; }
         public bool SendWithLink { get; set; }
         public string? InvitationEmailTemplateId { get; set; }
+        public List<SelectListItem> TemplateOptions { get; set; } = [];
         public int MaxParticipantsPerRsvp { get; set; } = 4;
         public List<DonationType> DonationTypes { get; set; } = [];
         public string? DonationIban { get; set; }

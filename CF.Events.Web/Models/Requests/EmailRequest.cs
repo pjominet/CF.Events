@@ -1,8 +1,10 @@
+using CF.Events.Web.Infrastructure.Providers.Interfaces;
+
 namespace CF.Events.Web.Models.Requests;
 
 public abstract class TemplateEmailRequest
 {
-    protected const string AppName = "P&E Wedding";
+    protected const string AppName = "E&P Wedding";
     public required string TemplateId { get; init; }
     public required string SenderName { get; set; }
     public required string SenderEmail { get; set; }
@@ -15,7 +17,7 @@ public abstract class TemplateEmailRequest
     public required string UserEmail { get; init; }
     public DateOnly Deadline { get; init; }
     public string CallBackUrl { get; set; } = string.Empty;
-    public IEnumerable<InlineAttachment> InlineAttachments { get; set; } = [];
+    public IEnumerable<EmailAttachment> EmailAttachments { get; set; } = [];
 
     public abstract Dictionary<string, string> BuildTemplateVariables();
 }
@@ -46,12 +48,11 @@ public class SaveDateEmailRequest : TemplateEmailRequest
             { "event_date", EventDate }
         };
 
-        if (SendWithLink)
-        {
-            variables["user_name"] = UserName;
-            variables["invite_url"] = CallBackUrl;
-            variables["event_name"] = EventName;
-        }
+        if (!SendWithLink) return variables;
+
+        variables["user_name"] = UserName;
+        variables["invite_url"] = CallBackUrl;
+        variables["event_name"] = EventName;
 
         return variables;
     }
