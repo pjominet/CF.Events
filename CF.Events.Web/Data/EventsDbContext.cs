@@ -203,7 +203,6 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
             e.Property(a => a.FromEmail).IsRequired().HasMaxLength(256);
             e.Property(a => a.RecipientEmail).IsRequired().HasMaxLength(256);
             e.Property(a => a.Subject).HasMaxLength(500);
-            e.Property(a => a.LatestEvent).IsRequired().HasMaxLength(100);
             e.Property(a => a.LastErrorMessage).HasMaxLength(2000);
             e.Property(a => a.LastSmtpResponse).HasMaxLength(2000);
         });
@@ -224,7 +223,7 @@ public class EventsDbContext(DbContextOptions<EventsDbContext> options) : Identi
             e.Property(t => t.ClickUrl).HasMaxLength(2048);
 
             e.HasOne(a => a.EmailActivity)
-                .WithMany(t => t.Timeline)
+                .WithMany(t => t.TimelineEvents)
                 .HasForeignKey(t => t.EmailId)
                 .OnDelete(DeleteBehavior.Cascade);
         });

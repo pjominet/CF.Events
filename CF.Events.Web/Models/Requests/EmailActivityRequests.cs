@@ -16,6 +16,5 @@ public record EmailActivitySyncResult(
     int TotalEventsFetched,
     int EmailsProcessed,
     int NewEventsAdded,
-    int UpdatedEmailsCount,
-    List<EmailActivity> Activities
+    int UpdatedEmailsCount
 );

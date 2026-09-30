@@ -225,7 +225,7 @@
                 <div class="mb-3">
                     <label class="form-label fw-bold"><code class="bg-light px-2 py-1 rounded-2">Save the Date</code> Email Template</label>
                     <select asp-for="SaveDateEmailTemplateId" asp-items="Model.TemplateOptions" class="form-select">
-                        <option value="">-- None / Select a template --</option>
+                        <option value="">None</option>
                     </select>
                     <div class="form-text">If set, the event will be eligible for 'Save the Date' emails using the matching template. <strong>Do not change</strong> if you do not know what this does!</div>
                 </div>
@@ -238,7 +238,7 @@
                 <div class="mb-3">
                     <label class="form-label fw-bold"><code class="bg-light px-2 py-1 rounded-2">Invitation Email</code> Template</label>
                     <select asp-for="InvitationEmailTemplateId" asp-items="Model.TemplateOptions" class="form-select">
-                        <option value="">-- None / Select a template --</option>
+                        <option value="">None</option>
                     </select>
                     <div class="form-text">If set, the event will be eligible for 'Invitation' emails using the matching template. <strong>Do not change</strong> if you do not know what this does!</div>
                 </div>

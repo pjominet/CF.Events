@@ -140,10 +140,9 @@
                         <th>Sent Date</th>
                         <th>Recipient</th>
                         <th>Subject</th>
-                        <th>Delivery</th>
-                        <th>Opens</th>
-                        <th>Clicks</th>
-                        <th>Latest Event</th>
+                        <th>Status</th>
+                        <th>Opened</th>
+                        <th>Clicked</th>
                         <th class="text-end">Actions</th>
                     </tr>
                     </thead>
@@ -229,10 +228,6 @@
                                 {
                                     <span class="text-muted small">-</span>
                                 }
-                            </td>
-                            <td class="small">
-                                <span class="badge bg-light text-dark border">@item.LatestEvent</span>
-                                <div class="text-muted" style="font-size: 0.75rem;">@item.LatestEventAt.ToString("dd/MM HH:mm")</div>
                             </td>
                             <td class="text-end">
                                 <button type="button" class="btn btn-outline-primary btn-sm view-timeline-btn" data-email-id="@item.EmailId" data-timeline-url="/admin/email/activity/timeline/@item.EmailId">

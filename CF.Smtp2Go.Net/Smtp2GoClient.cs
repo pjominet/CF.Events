@@ -1,8 +1,9 @@
-﻿using System.Text.Json;
-using CF.Events.Web.Infrastructure.Extensions;
-using CF.Events.Web.Models;
+﻿using System.Net.Http.Json;
+using System.Text.Json;
+using CF.Smtp2Go.Net.Models.Requests;
+using CF.Smtp2Go.Net.Models.Responses;
 
-namespace CF.Events.Web.Infrastructure.HttpClients;
+namespace CF.Smtp2Go.Net;
 
 public interface ISmtp2GoClient
 {
@@ -12,7 +13,7 @@ public interface ISmtp2GoClient
     Task<Smtp2GoApiResponse> SearchTemplatesAsync(Smtp2GoTemplateSearchRequest request, CancellationToken ctx = default);
 }
 
-public class Smtp2GoClient(HttpClient httpClient) : ISmtp2GoClient
+public sealed class Smtp2GoClient(HttpClient httpClient) : ISmtp2GoClient
 {
     public async Task<Smtp2GoApiResponse> SendTemplatedEmailAsync(Smtp2GoEmailRequest request, CancellationToken ctx = default)
     {
@@ -64,7 +65,7 @@ public class Smtp2GoClient(HttpClient httpClient) : ISmtp2GoClient
     {
         var apiErrorMessage = ExtractErrorMessage(result.Data);
 
-        if (!apiErrorMessage.HasValue())
+        if (string.IsNullOrWhiteSpace(apiErrorMessage))
             apiErrorMessage = "Unknown Smtp2Go API Error";
 
         if (apiErrorMessage.Contains("rendering template", StringComparison.OrdinalIgnoreCase))
@@ -84,7 +85,7 @@ public class Smtp2GoClient(HttpClient httpClient) : ISmtp2GoClient
         var error = errorProp.GetString();
         var errorCode = errorCodeProp.GetString();
 
-        if (error.HasValue() && errorCode.HasValue())
+        if (!string.IsNullOrWhiteSpace(error) && !string.IsNullOrWhiteSpace(errorCode))
             return $"{errorCode}: {error}";
 
         return error ?? errorCode;

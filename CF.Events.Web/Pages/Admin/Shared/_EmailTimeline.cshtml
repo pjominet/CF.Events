@@ -44,7 +44,7 @@
     </div>
 </div>
 
-@if (!Model.Timeline.Any())
+@if (!Model.TimelineEvents.Any())
 {
     <div id="timelineEmpty" class="text-center py-4 text-muted">
         No discrete timeline events recorded for this email.
@@ -55,7 +55,7 @@ else
     <div id="timelineContainer">
         <div id="timelineItems" class="timeline-list">
             <div class="list-group list-group-flush">
-                @foreach (var (evt, idx) in Model.Timeline.OrderBy(t => t.EventAt).Select((e, i) => (e, i)))
+                @foreach (var (evt, idx) in Model.TimelineEvents.OrderBy(t => t.EventAt).Select((e, i) => (e, i)))
                 {
                     var lowerEvent = evt.Event.ToLowerInvariant();
                     var badgeClass = lowerEvent switch

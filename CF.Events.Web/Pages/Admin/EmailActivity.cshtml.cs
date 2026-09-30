@@ -50,7 +50,7 @@ public class EmailActivityModel(
 
         var (startDate, _) = GetDateRange(TimeRange);
         if (startDate.HasValue)
-            baseQuery = baseQuery.Where(a => a.SentAt >= startDate.Value || a.LatestEventAt >= startDate.Value);
+            baseQuery = baseQuery.Where(a => a.SentAt >= startDate.Value);
 
         // Summary KPI counts for the selected time range
         TotalCount = await baseQuery.CountAsync();
@@ -95,7 +95,6 @@ public class EmailActivityModel(
 
         Activities = await filteredQuery
             .OrderByDescending(a => a.SentAt)
-            .ThenByDescending(a => a.LatestEventAt)
             .Skip((PageNumber - 1) * DefaultPageSize)
             .Take(DefaultPageSize)
             .ToListAsync();

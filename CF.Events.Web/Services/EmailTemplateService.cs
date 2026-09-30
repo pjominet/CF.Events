@@ -1,6 +1,9 @@
 using System.Text.Json;
-using CF.Events.Web.Infrastructure.HttpClients;
+using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Models;
+using CF.Smtp2Go.Net;
+using CF.Smtp2Go.Net.Models.Requests;
+using CF.Smtp2Go.Net.Models.Responses;
 using Microsoft.Extensions.Caching.Memory;
 using static CF.Events.Web.Infrastructure.Constants;
 
@@ -8,7 +11,7 @@ namespace CF.Events.Web.Services;
 
 public interface IEmailTemplateService
 {
-    Task<IReadOnlyList<EmailTemplate>> GetEmailTemplatesAsync(bool forceRefresh = false, CancellationToken ctx = default);
+    Task<IReadOnlyList<EmailTemplate>> GetEmailTemplatesAsync(string[] allowedTags, bool forceRefresh = false, CancellationToken ctx = default);
 }
 
 public class EmailTemplateService(
@@ -18,16 +21,16 @@ public class EmailTemplateService(
 {
     private static readonly TimeSpan DefaultCacheDuration = TimeSpan.FromHours(1);
 
-    public async Task<IReadOnlyList<EmailTemplate>> GetEmailTemplatesAsync(bool forceRefresh = false, CancellationToken ctx = default)
+    public async Task<IReadOnlyList<EmailTemplate>> GetEmailTemplatesAsync(string[] allowedTags, bool forceRefresh = false, CancellationToken ctx = default)
     {
-        var templates = await GetTemplatesAsync(forceRefresh, ctx);
+        var templates = await GetTemplatesAsync(allowedTags ,forceRefresh, ctx);
         return templates
             .Select(t => new EmailTemplate(t.Id, $"{t.Name} ({t.Id})"))
             .ToList()
             .AsReadOnly();
     }
 
-    private async Task<IReadOnlyList<Smtp2GoTemplateItem>> GetTemplatesAsync(bool forceRefresh = false, CancellationToken ctx = default)
+    private async Task<IReadOnlyList<Smtp2GoTemplateItem>> GetTemplatesAsync(string[] allowedTags, bool forceRefresh = false, CancellationToken ctx = default)
     {
         if (!forceRefresh && memoryCache.TryGetValue<IReadOnlyList<Smtp2GoTemplateItem>>(CacheKeys.EmailTemplates, out var cached) && cached is not null)
             return cached;
@@ -52,17 +55,16 @@ public class EmailTemplateService(
                 var searchData = DeserializeTemplateData(response.Data);
 
                 if (searchData?.Templates is { Count: > 0 })
-                {
                     allTemplates.AddRange(searchData.Templates);
-                }
 
                 continueToken = searchData?.ContinueToken;
                 page++;
-            } while (!string.IsNullOrEmpty(continueToken) && page < maxPages);
+            } while (continueToken.HasValue() && page < maxPages);
 
             var result = allTemplates
                 .OrderBy(t => t.Name)
                 .ThenBy(t => t.Id)
+                .Where(t => t.Tags?.Any(tag => allowedTags.Contains(tag)) ?? true)
                 .ToList()
                 .AsReadOnly();
 

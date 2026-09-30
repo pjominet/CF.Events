@@ -1,7 +1,7 @@
-using CF.Events.Web.Infrastructure.HttpClients;
 using CF.Events.Web.Infrastructure.Providers.Interfaces;
 using CF.Events.Web.Infrastructure.Settings;
-using CF.Events.Web.Models;
+using CF.Smtp2Go.Net;
+using CF.Smtp2Go.Net.Models.Requests;
 using Microsoft.Extensions.Options;
 
 namespace CF.Events.Web.Infrastructure.Providers;

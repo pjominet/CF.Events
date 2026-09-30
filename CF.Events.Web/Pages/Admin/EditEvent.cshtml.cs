@@ -244,10 +244,10 @@ public class EditEventModel(
 
     private async Task<List<SelectListItem>> GetEmailTemplateOptions(string?[] selectedTemplateIds)
     {
-        var templates = await emailTemplateService.GetEmailTemplatesAsync();
+        var eventEmailTemplates = await emailTemplateService.GetEmailTemplatesAsync(["event"]);
         return
         [
-            .. templates.Select(t => new SelectListItem
+            .. eventEmailTemplates.Select(t => new SelectListItem
             {
                 Value = t.Id,
                 Text = t.Label,

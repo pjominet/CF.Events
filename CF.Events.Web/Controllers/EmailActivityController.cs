@@ -42,7 +42,7 @@ public class EmailActivityController(
 
         var activity = await db.EmailActivities
             .AsNoTracking()
-            .Include(a => a.Timeline)
+            .Include(a => a.TimelineEvents)
             .FirstOrDefaultAsync(a => a.EmailId == emailId);
 
         if (activity is null)

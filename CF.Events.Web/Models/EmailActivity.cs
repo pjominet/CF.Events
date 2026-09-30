@@ -2,8 +2,6 @@ namespace CF.Events.Web.Models;
 
 public class EmailActivity
 {
-    public int Id { get; set; }
-
     public required string EmailId { get; set; }
 
     public required string FromEmail { get; set; }
@@ -11,10 +9,6 @@ public class EmailActivity
     public required string RecipientEmail { get; set; }
 
     public string? Subject { get; set; }
-
-    public string LatestEvent { get; set; } = string.Empty;
-
-    public DateTime LatestEventAt { get; set; }
 
     public DateTime SentAt { get; set; }
 
@@ -53,5 +47,5 @@ public class EmailActivity
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     // Timeline navigation property
-    public List<EmailActivityEvent> Timeline { get; set; } = [];
+    public List<EmailActivityEvent> TimelineEvents { get; set; } = [];
 }

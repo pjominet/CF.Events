@@ -2,9 +2,11 @@ using System.Globalization;
 using System.Text.Json;
 using CF.Events.Web.Data;
 using CF.Events.Web.Infrastructure.Extensions;
-using CF.Events.Web.Infrastructure.HttpClients;
 using CF.Events.Web.Models;
 using CF.Events.Web.Models.Requests;
+using CF.Smtp2Go.Net;
+using CF.Smtp2Go.Net.Models.Requests;
+using CF.Smtp2Go.Net.Models.Responses;
 using Microsoft.EntityFrameworkCore;
 
 namespace CF.Events.Web.Services;
@@ -12,10 +14,6 @@ namespace CF.Events.Web.Services;
 public interface IEmailActivityService
 {
     Task<EmailActivitySyncResult> FetchAndSaveActivityAsync(int hours = 24, CancellationToken ctx = default);
-    Task<EmailActivitySyncResult> FetchAndSaveActivityAsync(EmailActivityFetchRequest request, CancellationToken ctx = default);
-    Task<List<EmailActivity>> GetRecentActivitiesAsync(int limit = 100, CancellationToken ctx = default);
-    Task<EmailActivity?> GetActivityByEmailIdAsync(string emailId, CancellationToken ctx = default);
-    Task<List<EmailActivityEvent>> GetTimelineForEmailAsync(string emailId, CancellationToken ctx = default);
 }
 
 public class EmailActivityService(
@@ -44,7 +42,7 @@ public class EmailActivityService(
         }, ctx);
     }
 
-    public async Task<EmailActivitySyncResult> FetchAndSaveActivityAsync(EmailActivityFetchRequest request, CancellationToken ctx = default)
+    private async Task<EmailActivitySyncResult> FetchAndSaveActivityAsync(EmailActivityFetchRequest request, CancellationToken ctx = default)
     {
         var startDate = request.StartDate ?? (request.Hours.HasValue ? DateTime.UtcNow.AddHours(-request.Hours.Value) : DateTime.UtcNow.AddHours(-24));
         var endDate = request.EndDate ?? DateTime.UtcNow;
@@ -73,18 +71,16 @@ public class EmailActivityService(
             var searchData = DeserializeActivityData(apiResponse.Data);
 
             if (searchData?.Events is { Count: > 0 })
-            {
                 allEvents.AddRange(searchData.Events);
-            }
 
             continueToken = searchData?.ContinueToken;
             page++;
-        } while (!string.IsNullOrEmpty(continueToken) && page < maxPages);
+        } while (continueToken.HasValue() && page < maxPages);
 
         logger.LogInformation("Fetched {Count} email activity events from SMTP2GO", allEvents.Count);
 
         var validEvents = allEvents
-            .Where(e => !string.IsNullOrWhiteSpace(e.EmailId))
+            .Where(e => e.EmailId.HasValue())
             .ToList();
 
         var groupedEvents = validEvents
@@ -94,13 +90,12 @@ public class EmailActivityService(
         var emailIds = groupedEvents.Select(g => g.Key).ToList();
 
         var existingActivities = await db.EmailActivities
-            .Include(a => a.Timeline)
+            .Include(a => a.TimelineEvents)
             .Where(a => emailIds.Contains(a.EmailId))
             .ToDictionaryAsync(a => a.EmailId, ctx);
 
         var newEventsCount = 0;
         var updatedEmailsCount = 0;
-        var processedActivities = new List<EmailActivity>();
 
         foreach (var group in groupedEvents)
         {
@@ -116,10 +111,8 @@ public class EmailActivityService(
                     FromEmail = firstItem.EffectiveSender,
                     RecipientEmail = firstItem.EffectiveRecipient,
                     Subject = firstItem.Subject,
-                    LatestEvent = firstItem.Event ?? "unknown",
-                    LatestEventAt = ParseEventDate(firstItem.Date),
                     SentAt = ParseEventDate(firstItem.Date),
-                    Timeline = []
+                    TimelineEvents = []
                 };
                 db.EmailActivities.Add(activity);
                 existingActivities[emailId] = activity;
@@ -127,41 +120,40 @@ public class EmailActivityService(
             }
             else
             {
-                var sender = group.FirstOrDefault(e => !string.IsNullOrEmpty(e.EffectiveSender))?.EffectiveSender;
-                if (!string.IsNullOrEmpty(sender) && string.IsNullOrEmpty(activity.FromEmail))
+                var sender = group.FirstOrDefault(e => e.EffectiveSender.HasValue())?.EffectiveSender;
+                if (sender.HasValue() && !activity.FromEmail.HasValue())
                     activity.FromEmail = sender;
 
-                var recipient = group.FirstOrDefault(e => !string.IsNullOrEmpty(e.EffectiveRecipient))?.EffectiveRecipient;
-                if (!string.IsNullOrEmpty(recipient) && string.IsNullOrEmpty(activity.RecipientEmail))
+                var recipient = group.FirstOrDefault(e => e.EffectiveRecipient.HasValue())?.EffectiveRecipient;
+                if (recipient.HasValue() && !activity.RecipientEmail.HasValue())
                     activity.RecipientEmail = recipient;
 
-                var subject = group.FirstOrDefault(e => !string.IsNullOrEmpty(e.Subject))?.Subject;
-                if (!string.IsNullOrEmpty(subject) && string.IsNullOrEmpty(activity.Subject))
+                var subject = group.FirstOrDefault(e => e.Subject.HasValue())?.Subject;
+                if (subject.HasValue() && !activity.Subject.HasValue())
                     activity.Subject = subject;
             }
 
-            var activityUpdated = false;
+            var activityTimelineUpdated = false;
 
-            // Sort events by date ascending
-            var sortedEvents = group
+            // Sort group events by date ascending
+            var orderedTimelineEvents = group
                 .OrderBy(e => ParseEventDate(e.Date))
                 .ToList();
 
-            foreach (var item in sortedEvents)
+            foreach (var item in orderedTimelineEvents)
             {
                 var eventDate = ParseEventDate(item.Date);
                 var eventType = item.Event ?? "unknown";
                 var clickUrl = item.EffectiveUrl;
 
-                var existingEvent = activity.Timeline.FirstOrDefault(t =>
+                var existingTimelineEvent = activity.TimelineEvents.FirstOrDefault(t =>
                     t.Event.Equals(eventType, StringComparison.OrdinalIgnoreCase) &&
                     t.EventAt == eventDate &&
-                    (string.IsNullOrEmpty(clickUrl) || t.ClickUrl == clickUrl));
+                    (!clickUrl.HasValue() || t.ClickUrl == clickUrl));
 
-                if (existingEvent is not null) continue;
+                if (existingTimelineEvent is not null) continue;
 
-                var isError = ErrorEvents.Contains(eventType) ||
-                              (!string.IsNullOrEmpty(item.SmtpResponse) && (item.SmtpResponse.StartsWith("4") || item.SmtpResponse.StartsWith("5")));
+                var isError = ErrorEvents.Contains(eventType);
 
                 var timelineEvent = new EmailActivityEvent
                 {
@@ -176,18 +168,15 @@ public class EmailActivityService(
                     EmailActivity = activity
                 };
 
-                activity.Timeline.Add(timelineEvent);
+                activity.TimelineEvents.Add(timelineEvent);
                 newEventsCount++;
-                activityUpdated = true;
+                activityTimelineUpdated = true;
             }
 
-            if (activityUpdated || isNewActivity)
-            {
-                UpdateAggregateStatus(activity);
-                updatedEmailsCount++;
-            }
+            if (!activityTimelineUpdated && !isNewActivity) continue;
 
-            processedActivities.Add(activity);
+            UpdateAggregateStatus(activity);
+            updatedEmailsCount++;
         }
 
         await db.SaveChangesAsync(ctx);
@@ -196,67 +185,38 @@ public class EmailActivityService(
             TotalEventsFetched: allEvents.Count,
             EmailsProcessed: groupedEvents.Count,
             NewEventsAdded: newEventsCount,
-            UpdatedEmailsCount: updatedEmailsCount,
-            Activities: processedActivities
+            UpdatedEmailsCount: updatedEmailsCount
         );
-    }
-
-    public async Task<List<EmailActivity>> GetRecentActivitiesAsync(int limit = 100, CancellationToken ctx = default)
-    {
-        if (limit <= 0) limit = 100;
-        return await db.EmailActivities
-            .Include(a => a.Timeline.OrderBy(t => t.EventAt))
-            .OrderByDescending(a => a.LatestEventAt)
-            .Take(limit)
-            .ToListAsync(ctx);
-    }
-
-    public async Task<EmailActivity?> GetActivityByEmailIdAsync(string emailId, CancellationToken ctx = default)
-    {
-        return await db.EmailActivities
-            .Include(a => a.Timeline.OrderBy(t => t.EventAt))
-            .FirstOrDefaultAsync(a => a.EmailId == emailId, ctx);
-    }
-
-    public async Task<List<EmailActivityEvent>> GetTimelineForEmailAsync(string emailId, CancellationToken ctx = default)
-    {
-        return await db.EmailActivityEvents
-            .Where(e => e.EmailId == emailId)
-            .OrderBy(e => e.EventAt)
-            .ToListAsync(ctx);
     }
 
     private static void UpdateAggregateStatus(EmailActivity activity)
     {
-        if (activity.Timeline.Count == 0) return;
+        if (activity.TimelineEvents.Count == 0) return;
 
-        var orderedTimeline = activity.Timeline.OrderBy(t => t.EventAt).ToList();
+        var orderedTimeline = activity.TimelineEvents.OrderBy(t => t.EventAt).ToList();
         var earliest = orderedTimeline.First();
-        var latest = orderedTimeline.Last();
 
         activity.SentAt = earliest.EventAt;
-        activity.LatestEvent = latest.Event;
-        activity.LatestEventAt = latest.EventAt;
 
         // Delivery status
-        activity.IsDelivered = activity.Timeline.Any(t =>
+        activity.IsDelivered = activity.TimelineEvents.Any(t =>
             t.Event.Equals("delivered", StringComparison.OrdinalIgnoreCase) ||
             t.Event.Equals("opened", StringComparison.OrdinalIgnoreCase) ||
             t.Event.Equals("clicked", StringComparison.OrdinalIgnoreCase));
 
         // Open tracking
-        var openEvents = activity.Timeline
+        var openEvents = activity.TimelineEvents
             .Where(t => t.Event.Equals("opened", StringComparison.OrdinalIgnoreCase))
             .OrderBy(t => t.EventAt)
             .ToList();
 
-        activity.WasOpened = openEvents.Count > 0 || activity.Timeline.Any(t => t.Event.Equals("clicked", StringComparison.OrdinalIgnoreCase));
+        activity.WasOpened = openEvents.Count > 0 || activity.TimelineEvents.Any(t => t.Event.Equals("clicked", StringComparison.OrdinalIgnoreCase));
         activity.OpenCount = openEvents.Count;
         activity.FirstOpenedAt = openEvents.FirstOrDefault()?.EventAt;
         activity.LastOpenedAt = openEvents.LastOrDefault()?.EventAt;
 
         // Click tracking
-        var clickEvents = activity.Timeline
+        var clickEvents = activity.TimelineEvents
             .Where(t => t.Event.Equals("clicked", StringComparison.OrdinalIgnoreCase))
             .OrderBy(t => t.EventAt)
             .ToList();
@@ -267,21 +227,20 @@ public class EmailActivityService(
         activity.LastClickedAt = clickEvents.LastOrDefault()?.EventAt;
 
         // Bounce / Spam status
-        activity.IsBounced = activity.Timeline.Any(t =>
+        activity.IsBounced = activity.TimelineEvents.Any(t =>
             t.Event.Equals("soft-bounced", StringComparison.OrdinalIgnoreCase) ||
             t.Event.Equals("hard-bounced", StringComparison.OrdinalIgnoreCase));
 
-        activity.IsSpam = activity.Timeline.Any(t =>
+        activity.IsSpam = activity.TimelineEvents.Any(t =>
             t.Event.Equals("spam", StringComparison.OrdinalIgnoreCase));
 
         // Sandboxed status (separated from email provider error values)
-        var isSandboxed = activity.LastErrorMessage?.Contains("sandboxed", StringComparison.OrdinalIgnoreCase) ?? false;
-        activity.IsSandboxed = isSandboxed;
+        activity.IsSandboxed = activity.TimelineEvents.Any(t =>
+            t.ErrorMessage.HasValue() && t.ErrorMessage.Equals("sandboxed", StringComparison.OrdinalIgnoreCase));
 
-        // Error detection (exclude Sandboxed from error state)
+        // Error status (exclude Sandboxed from error state)
         var errorEvent = orderedTimeline.LastOrDefault(t =>
-            ErrorEvents.Contains(t.Event) ||
-            (t.ErrorMessage.HasValue() && !t.ErrorMessage.Contains("sandboxed", StringComparison.OrdinalIgnoreCase)));
+            ErrorEvents.Contains(t.Event) || (t.ErrorMessage.HasValue() && !t.ErrorMessage.Contains("sandboxed", StringComparison.OrdinalIgnoreCase)));
 
         activity.HasError = errorEvent is not null;
         activity.LastErrorMessage = errorEvent?.ErrorMessage;
