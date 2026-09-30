@@ -18,7 +18,7 @@
         <li class="breadcrumb-item active">@(Model.Event.Id == 0 ? "Create" : Model.Event.Name)</li>
     </ol>
 
-    <form method="post" enctype="multipart/form-data" id="eventForm">
+    <form method="post" enctype="multipart/form-data" id="eventForm" novalidate>
         <input type="hidden" name="RedirectAfterSave" id="redirectAfterSave" value="" />
         <input type="hidden" name="ActiveTab" id="activeTab" value="" />
         <partial name="Shared/_EventEditor" for="Event"/>

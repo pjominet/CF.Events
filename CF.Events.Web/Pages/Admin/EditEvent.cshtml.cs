@@ -267,15 +267,28 @@ public class EditEventModel(
     private async Task<List<SelectListItem>> GetEmailTemplateOptions(string?[] selectedTemplateIds)
     {
         var eventEmailTemplates = await emailTemplateService.GetEmailTemplatesAsync(["event"]);
-        return
-        [
-            .. eventEmailTemplates.Select(t => new SelectListItem
+        var options = eventEmailTemplates.Select(t => new SelectListItem
+        {
+            Value = t.Id,
+            Text = t.Label,
+            Selected = selectedTemplateIds.Contains(t.Id)
+        }).ToList();
+
+        // Ensure currently selected templates are always in the list to avoid data loss on connection issues
+        foreach (var selectedId in selectedTemplateIds)
+        {
+            if (selectedId.HasValue() && options.All(o => o.Value != selectedId))
             {
-                Value = t.Id,
-                Text = t.Label,
-                Selected = selectedTemplateIds.Contains(t.Id)
-            })
-        ];
+                options.Add(new SelectListItem
+                {
+                    Value = selectedId,
+                    Text = $"Template {selectedId}",
+                    Selected = true
+                });
+            }
+        }
+
+        return options;
     }
 
     public class EventModel

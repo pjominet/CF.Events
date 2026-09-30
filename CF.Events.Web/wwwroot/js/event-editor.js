@@ -153,6 +153,9 @@
         // the event listener above should already catch it.
         eventForm.addEventListener('submit', (e) => {
             if (!eventForm.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+
                 // Find first invalid input and its parent tab
                 const firstInvalid = eventForm.querySelector(':invalid');
                 if (firstInvalid) {
@@ -162,6 +165,15 @@
                         const tabButton = document.querySelector(`#eventEditorTabs button[data-bs-target="#${tabId}"]`);
                         if (tabButton) {
                             const tab = new bootstrap.Tab(tabButton)
+
+                            // Use shown.bs.tab event instead of timeout
+                            const onTabShown = () => {
+                                firstInvalid.focus();
+                                firstInvalid.reportValidity();
+                                tabButton.removeEventListener('shown.bs.tab', onTabShown);
+                            };
+
+                            tabButton.addEventListener('shown.bs.tab', onTabShown);
                             tab.show();
                         }
                     }
@@ -176,7 +188,12 @@
             if (activeTabButton) {
                 const activeTabInput = document.getElementById('activeTab');
                 if (activeTabInput) {
-                    activeTabInput.value = activeTabButton.id;
+                    const target = activeTabButton.getAttribute('data-bs-target');
+                    if (target && target.startsWith('#')) {
+                        activeTabInput.value = target.substring(1);
+                    } else {
+                        activeTabInput.value = activeTabButton.id.replace('-tab', '');
+                    }
                 }
             }
 
@@ -313,16 +330,5 @@
         endDateInput.addEventListener('change', updateMaxDays);
         endDateInput.addEventListener('input', updateMinEndDate);
         updateMinEndDate();
-    }
-
-    // Restore active tab from URL query parameter
-    const urlParams = new URLSearchParams(window.location.search);
-    const tabId = urlParams.get('tab');
-    if (tabId) {
-        const tabButton = document.querySelector(`#eventEditorTabs button[data-bs-target="#${tabId}"]`);
-        if (tabButton) {
-            const tab = new bootstrap.Tab(tabButton);
-            tab.show();
-        }
     }
 })();

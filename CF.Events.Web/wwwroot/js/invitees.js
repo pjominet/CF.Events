@@ -453,7 +453,6 @@
 
             const modal = bootstrap.Modal.getOrCreateInstance(notesModelEl);
             modal.show();
-            setTimeout(() => notesTextarea?.focus(), 300);
         });
 
         document.getElementById('notesSaveBtn').addEventListener('click', async function () {
@@ -557,7 +556,6 @@
                 });
 
                 if (response.ok) {
-                    const result = await response.json();
                     updatesToSend.forEach(update => {
                         if (update.accommodationCode !== undefined) {
                             const select = document.querySelector(`.accommodation-select[data-user-id="${update.userId}"]`);

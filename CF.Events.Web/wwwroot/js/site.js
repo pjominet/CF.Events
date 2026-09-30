@@ -455,7 +455,11 @@
 
         // If there is a tab ID in the URL, try to activate it
         if (activeTabId) {
-            const tabToActivate = document.getElementById(activeTabId + '-tab');
+            let tabToActivate = document.querySelector(`button[data-bs-target="#${activeTabId}"]`);
+            if (!tabToActivate) {
+                tabToActivate = document.getElementById(activeTabId + '-tab');
+            }
+
             if (tabToActivate) {
                 // Remove 'active' class from all tabs and panes
                 tabElements.forEach(tab => {
@@ -480,7 +484,8 @@
         // Listen for tab changes and update the URL
         tabElements.forEach(tab => {
             tab.addEventListener('shown.bs.tab', (event) => {
-                const targetId = event.target.id.replace('-tab', '');
+                const target = event.target.getAttribute('data-bs-target');
+                const targetId = (target && target.startsWith('#')) ? target.substring(1) : event.target.id.replace('-tab', '');
                 updateUrlWithTab(targetId);
             });
         });

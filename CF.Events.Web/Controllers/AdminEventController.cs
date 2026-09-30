@@ -81,7 +81,7 @@ public class AdminEventController(
         }
     }
 
-    [HttpPost("resend-invite")]
+    [HttpPost("send/invite")]
     public async Task<IActionResult> SendInvite([FromRoute] int eventId, [FromForm] string userId)
     {
         try
@@ -102,7 +102,7 @@ public class AdminEventController(
         return LocalRedirect($"/admin/events/{eventId}/invitees");
     }
 
-    [HttpPost("resend-invites")]
+    [HttpPost("send/invites")]
     public async Task<IActionResult> SendInvites([FromRoute] int eventId, [FromForm] string userIds)
     {
         if (!userIds.HasValue())
@@ -140,29 +140,7 @@ public class AdminEventController(
         return LocalRedirect($"/admin/events/{eventId}/invitees");
     }
 
-    [HttpPost("remove-invitees")]
-    public async Task<IActionResult> RemoveInvitees([FromRoute] int eventId, [FromForm] string userIds)
-    {
-        if (!userIds.HasValue())
-        {
-            toastNotification.Warning("No users selected");
-            return LocalRedirect($"/admin/events/{eventId}/invitees");
-        }
-
-        var ids = userIds.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
-        var count = await eventService.RemoveInviteesAsync(eventId, ids);
-
-        if (count == 0)
-        {
-            toastNotification.Warning("No invitees found to remove");
-            return LocalRedirect($"/admin/events/{eventId}/invitees");
-        }
-
-        toastNotification.Success($"Successfully removed {count} invitees");
-        return LocalRedirect($"/admin/events/{eventId}/invitees");
-    }
-
-    [HttpPost("send-save-the-date")]
+    [HttpPost("send/save-the-date")]
     public async Task<IActionResult> SendSaveTheDate([FromRoute] int eventId, [FromForm] string userId)
     {
         var result = await invitationService.SendSaveTheDateAsync(eventId, userId);
@@ -186,7 +164,7 @@ public class AdminEventController(
         return LocalRedirect($"/admin/events/{eventId}/invitees");
     }
 
-    [HttpPost("send-save-the-dates")]
+    [HttpPost("send/save-the-dates")]
     public async Task<IActionResult> SendSaveTheDates([FromRoute] int eventId, [FromForm] string userIds)
     {
         if (!userIds.HasValue())
@@ -244,18 +222,36 @@ public class AdminEventController(
         return LocalRedirect($"/admin/events/{eventId}/invitees");
     }
 
+    [HttpPost("remove-invitees")]
+    public async Task<IActionResult> RemoveInvitees([FromRoute] int eventId, [FromForm] string userIds)
+    {
+        if (!userIds.HasValue())
+        {
+            toastNotification.Warning("No users selected");
+            return LocalRedirect($"/admin/events/{eventId}/invitees");
+        }
+
+        var ids = userIds.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+        var count = await eventService.RemoveInviteesAsync(eventId, ids);
+
+        if (count == 0)
+        {
+            toastNotification.Warning("No invitees found to remove");
+            return LocalRedirect($"/admin/events/{eventId}/invitees");
+        }
+
+        toastNotification.Success($"Successfully removed {count} invitees");
+        return LocalRedirect($"/admin/events/{eventId}/invitees");
+    }
+
     [HttpPost("update-invitees")]
     public async Task<IActionResult> UpdateInvitees([FromRoute] int eventId, [FromBody] List<InviteeUpdateRequest> updates)
     {
         var count = await eventService.UpdateInviteesAsync(eventId, updates);
+        if (count <= 0) return NoContent();
 
-        if (count > 0)
-        {
-            var message = $"Successfully updated {count} invitee{(count > 1 ? "s" : "")}";
-            toastNotification.Success(message);
-        }
-
-        return Ok(new { count });
+        toastNotification.Success($"Successfully updated {count} invitee{(count > 1 ? "s" : "")}");
+        return NoContent();
     }
 
     [HttpPost("notes")]
