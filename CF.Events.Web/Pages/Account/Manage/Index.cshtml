@@ -10,7 +10,12 @@
 }
 
 @section Styles {
-    <link rel="stylesheet" href="/css/account.css" asp-append-version="true"/>
+    <environment include="Development">
+        <link rel="stylesheet" href="~/css/account.css" asp-append-version="true"/>
+    </environment>
+    <environment exclude="Development">
+        <link rel="stylesheet" href="~/css/account.min.css" asp-append-version="true"/>
+    </environment>
 }
 
 <section class="d-flex flex-column align-items-center" id="accountContainer">

@@ -370,6 +370,12 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial"/>
-    <script src="/js/rsvp.js" type="text/javascript" asp-append-version="true"></script>
-    <script src="/js/invitees.js" type="text/javascript" asp-append-version="true"></script>
+    <environment include="Development">
+        <script src="~/js/rsvp.js" type="text/javascript" asp-append-version="true"></script>
+        <script src="~/js/invitees.js" type="text/javascript" asp-append-version="true"></script>
+    </environment>
+    <environment exclude="Development">
+        <script src="~/js/rsvp.min.js" type="text/javascript" asp-append-version="true"></script>
+        <script src="~/js/invitees.min.js" type="text/javascript" asp-append-version="true"></script>
+    </environment>
 }

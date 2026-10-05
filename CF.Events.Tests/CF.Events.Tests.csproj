@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CF.Events.Web\CF.Events.Web.csproj" />
+    <ProjectReference Include="..\CF.Events.AssetCompiler\CF.Events.AssetCompiler.csproj" />
   </ItemGroup>
 
 </Project>

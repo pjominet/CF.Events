@@ -256,3 +256,7 @@ _Pvt_Extensions
 **/Resources/Assets/*
 !**/Resources/Assets/.gitkeep
 
+# Generated minified web assets
+*.min.css
+*.min.js
+

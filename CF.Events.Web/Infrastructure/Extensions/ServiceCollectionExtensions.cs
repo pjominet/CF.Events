@@ -89,6 +89,7 @@ public static class ServiceCollectionExtensions
         services.AddMemoryCache();
         services.AddScopedEditorJsonProcessorServices();
         services.AddScoped<IHtmlParser, HtmlParser>();
+        services.AddSingleton<IAssetIntegrityService, AssetIntegrityService>();
 
         services.AddHostedService<InvitationEmailWorker>();
         services.AddHostedService<EmailActivityWorker>();
