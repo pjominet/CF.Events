@@ -29,6 +29,7 @@ public class ExportService(EventsDbContext db) : IExportService
                         eu.User.DisplayName,
                         eu.User.Email,
                         eu.InvitationPriority,
+                        eu.InviteEmailSent,
                         MaxPeople = eu.User.GuestGroup != null ? eu.User.GuestGroup.MaxPeople : 0,
                         Rsvp = eu.Rsvp == null ? null : new
                         {
@@ -50,7 +51,7 @@ public class ExportService(EventsDbContext db) : IExportService
         var worksheet = workbook.Worksheets.Add("Invitees");
 
         // Header
-        var headers = new[] { "DisplayName", "Email", "InvitationPriority", "MaxPeople", "ActualAttendance", "Status", "SubmittedAt", "AttendingDays", "DietaryOptions", "Comments" };
+        var headers = new[] { "DisplayName", "Email", "InvitationPriority", "MaxPeople", "ActualAttendance", "InvitedAt", "RespondedAt", "Status", "AttendingDays", "DietaryOptions", "Comments" };
         for (var i = 0; i < headers.Length; i++)
         {
             var cell = worksheet.Cell(1, i + 1);
@@ -103,17 +104,19 @@ public class ExportService(EventsDbContext db) : IExportService
                     .Select(d => $"{d.ParticipantName}: {string.Join(", ", d.Restrictions)}{(d.OtherDetails.HasValue() ? $" (Other: {d.OtherDetails})" : "")}"))
                 : string.Empty;
             var comments = eu.Rsvp?.Comments ?? string.Empty;
-            var submittedAt = eu.Rsvp?.SubmittedAt.ToString("yyyy-MM-dd HH:mm:ss") ?? string.Empty;
+            var respondedAt = eu.Rsvp?.SubmittedAt.ToString("yyyy-MM-dd HH:mm:ss") ?? string.Empty;
+            var invitedAt = eu.InviteEmailSent?.ToString("yyyy-MM-dd HH:mm:ss") ?? string.Empty;
 
             worksheet.Cell(row, 1).Value = eu.DisplayName;
             worksheet.Cell(row, 2).Value = eu.Email;
             worksheet.Cell(row, 3).Value = eu.InvitationPriority;
             worksheet.Cell(row, 4).Value = eu.MaxPeople;
             worksheet.Cell(row, 5).Value = actualAttendance;
+            worksheet.Cell(row, 6).Value = invitedAt;
+            worksheet.Cell(row, 7).Value = respondedAt;
 
-            var statusCell = worksheet.Cell(row, 6);
+            var statusCell = worksheet.Cell(row, 8);
             statusCell.Value = status;
-            worksheet.Cell(row, 7).Value = submittedAt;
 
             // Color coding for status
             if (eu.Rsvp is null)
@@ -131,9 +134,9 @@ public class ExportService(EventsDbContext db) : IExportService
                 statusCell.Style.Font.FontColor = XLColor.FromHtml("#842029");
             }
 
-            worksheet.Cell(row, 8).Value = attendingDays;
-            worksheet.Cell(row, 9).Value = dietaryOptions;
-            worksheet.Cell(row, 10).Value = comments;
+            worksheet.Cell(row, 9).Value = attendingDays;
+            worksheet.Cell(row, 10).Value = dietaryOptions;
+            worksheet.Cell(row, 11).Value = comments;
 
             row++;
         }
