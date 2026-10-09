@@ -50,7 +50,7 @@
                         <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
                     </div>
                     <div class="text-center">
-                        <a class="text-dark-glass" asp-page="./ForgotPassword">Forgot your password?</a>
+                        <a class="text-dark-glass" asp-page="./ForgotPassword" asp-route-email="@Model.Input.Email">Forgot your password?</a>
                     </div>
                 }
             </form>
