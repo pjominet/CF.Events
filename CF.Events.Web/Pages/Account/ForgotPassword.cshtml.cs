@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text;
+using CF.Events.Web.Infrastructure.Extensions;
 using CF.Events.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -13,12 +14,22 @@ namespace CF.Events.Web.Pages.Account;
 public class ForgotPasswordModel(
     UserManager<AppUser> userManager,
     IEmailSender<AppUser> emailSender,
-    IWebHostEnvironment environment) : PageModel
+    IWebHostEnvironment environment,
+    ILogger<ForgotPasswordModel> logger) : PageModel
 {
     [BindProperty]
     public InputModel Input { get; set; } = new();
 
-    public void OnGet() { }
+    public void OnGet(string? email)
+    {
+        if (email.HasValue())
+        {
+            Input = new InputModel
+            {
+                Email = email
+            };
+        }
+    }
 
     public async Task<IActionResult> OnPostAsync()
     {
@@ -32,19 +43,24 @@ public class ForgotPasswordModel(
             return RedirectToPage("./ForgotPasswordConfirmation");
         }
 
+        logger.LogWarning("{User} requested password reset", user.Email);
+
         var token = await userManager.GeneratePasswordResetTokenAsync(user);
         token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
         // Generate the reset link
         var callbackUrl = Url.Page(
-            "/account/reset-password",
+            "/Account/ResetPassword",
             pageHandler: null,
             values: new { token, email = Input.Email },
-            protocol: Request.Scheme)!;
+            protocol: Request.Scheme);
 
         if (environment.IsDevelopment())
             TempData["ResetPasswordLink"] = callbackUrl;
-        else await emailSender.SendPasswordResetLinkAsync(user, Input.Email, callbackUrl);
+
+        if (callbackUrl.HasValue())
+            await emailSender.SendPasswordResetLinkAsync(user, Input.Email, callbackUrl);
+        else logger.LogWarning("Failed to generate password reset link for {User}", user.Email);
 
         return RedirectToPage("./ForgotPasswordConfirmation");
     }
