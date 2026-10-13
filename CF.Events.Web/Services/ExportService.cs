@@ -28,6 +28,9 @@ public class ExportService(EventsDbContext db) : IExportService
                     {
                         eu.User.DisplayName,
                         eu.User.Email,
+                        eu.InvitationPriority,
+                        eu.InviteEmailSent,
+                        MaxPeople = eu.User.GuestGroup != null ? eu.User.GuestGroup.MaxPeople : 0,
                         Rsvp = eu.Rsvp == null ? null : new
                         {
                             eu.Rsvp.Attending,
@@ -48,7 +51,7 @@ public class ExportService(EventsDbContext db) : IExportService
         var worksheet = workbook.Worksheets.Add("Invitees");
 
         // Header
-        var headers = new[] { "DisplayName", "Email", "Status", "AttendingDays", "DietaryOptions", "Comments", "SubmittedAt" };
+        var headers = new[] { "DisplayName", "Email", "InvitationPriority", "MaxPeople", "ActualAttendance", "InvitedAt", "RespondedAt", "Status", "AttendingDays", "DietaryOptions", "Comments" };
         for (var i = 0; i < headers.Length; i++)
         {
             var cell = worksheet.Cell(1, i + 1);
@@ -63,18 +66,56 @@ public class ExportService(EventsDbContext db) : IExportService
         {
             var status = eu.Rsvp is null ? "No Response" : (eu.Rsvp.Attending ? "Attending" : "Declined");
             var attendingDays = eu.Rsvp is not null
-                ? string.Join("|", eu.Rsvp.ParticipantAttendance.Select(pa => $"{pa.ParticipantName}: {string.Join(", ", pa.AttendingDays)}"))
+                ? string.Join("|", eu.Rsvp.ParticipantAttendance
+                    .Where(pa => pa.AttendingDays.Count != 0)
+                    .Select(pa => $"{pa.ParticipantName}: {string.Join(", ", pa.AttendingDays)}"))
                 : string.Empty;
+
+            var actualAttendance = 0;
+            if (eu.Rsvp is not null)
+            {
+                if (eu.Rsvp.Attending)
+                {
+                    // Calculate max participants across all days
+                    var allDays = eu.Rsvp.ParticipantAttendance
+                        .SelectMany(pa => pa.AttendingDays)
+                        .Distinct()
+                        .ToList();
+
+                    if (allDays.Count != 0)
+                    {
+                        actualAttendance = allDays.Max(day => eu.Rsvp.ParticipantAttendance.Count(pa => pa.AttendingDays.Contains(day)));
+                    }
+                    else if (eu.Rsvp.ParticipantAttendance.Count != 0)
+                    {
+                        // fallback if guests marked "Attending" but didn't pick any days, assume full group size
+                        actualAttendance = eu.MaxPeople;
+                    }
+                }
+                else
+                {
+                    actualAttendance = -eu.MaxPeople;
+                }
+            }
+
             var dietaryOptions = eu.Rsvp is not null
-                ? string.Join("|", eu.Rsvp.DietaryOptions.Select(d => $"{d.ParticipantName}: {string.Join(", ", d.Restrictions)}{(d.OtherDetails.HasValue() ? $" (Other: {d.OtherDetails})" : "")}"))
+                ? string.Join("|", eu.Rsvp.DietaryOptions
+                    .Where(d => d.Restrictions.Count != 0 || d.OtherDetails.HasValue())
+                    .Select(d => $"{d.ParticipantName}: {string.Join(", ", d.Restrictions)}{(d.OtherDetails.HasValue() ? $" (Other: {d.OtherDetails})" : "")}"))
                 : string.Empty;
             var comments = eu.Rsvp?.Comments ?? string.Empty;
-            var submittedAt = eu.Rsvp?.SubmittedAt.ToString("yyyy-MM-dd HH:mm:ss") ?? string.Empty;
+            var respondedAt = eu.Rsvp?.SubmittedAt.ToString("yyyy-MM-dd HH:mm:ss") ?? string.Empty;
+            var invitedAt = eu.InviteEmailSent?.ToString("yyyy-MM-dd HH:mm:ss") ?? string.Empty;
 
             worksheet.Cell(row, 1).Value = eu.DisplayName;
             worksheet.Cell(row, 2).Value = eu.Email;
+            worksheet.Cell(row, 3).Value = eu.InvitationPriority;
+            worksheet.Cell(row, 4).Value = eu.MaxPeople;
+            worksheet.Cell(row, 5).Value = actualAttendance;
+            worksheet.Cell(row, 6).Value = invitedAt;
+            worksheet.Cell(row, 7).Value = respondedAt;
 
-            var statusCell = worksheet.Cell(row, 3);
+            var statusCell = worksheet.Cell(row, 8);
             statusCell.Value = status;
 
             // Color coding for status
@@ -93,12 +134,27 @@ public class ExportService(EventsDbContext db) : IExportService
                 statusCell.Style.Font.FontColor = XLColor.FromHtml("#842029");
             }
 
-            worksheet.Cell(row, 4).Value = attendingDays;
-            worksheet.Cell(row, 5).Value = dietaryOptions;
-            worksheet.Cell(row, 6).Value = comments;
-            worksheet.Cell(row, 7).Value = submittedAt;
+            worksheet.Cell(row, 9).Value = attendingDays;
+            worksheet.Cell(row, 10).Value = dietaryOptions;
+            worksheet.Cell(row, 11).Value = comments;
 
             row++;
+        }
+
+        // Add total sum of ActualAttendance and MaxPeople
+        if (@event.EventUsers.Count > 0)
+        {
+            var totalRow = worksheet.Row(row);
+            totalRow.Cell(3).Value = "Total";
+            totalRow.Cell(3).Style.Font.Bold = true;
+
+            // MaxPeople Total
+            totalRow.Cell(4).FormulaA1 = $"=SUM(D2:D{row - 1})";
+            totalRow.Cell(4).Style.Font.Bold = true;
+
+            // ActualAttendance Total
+            totalRow.Cell(5).FormulaA1 = $"=SUM(E2:E{row - 1})";
+            totalRow.Cell(5).Style.Font.Bold = true;
         }
 
         worksheet.Columns().AdjustToContents();
